@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>tidb binlog部署 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="TiDBBinlog" />
+  
+  
+  
+  
+  <meta name="description" content="TiDB Binlog部署环境信息中控机是10.152.x.133 123456789101112131415161718192021222324252627282930313233[tidb_servers]10.152.x.1010.152.x.1110.152.x.12[tikv_servers]10.152.x.1010.152.x.1110.152.x.12[pd_servers]10.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TiDB Binlog部署">
+<meta property="og:url" content="http://fuxkdb.com/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="TiDB Binlog部署环境信息中控机是10.152.x.133 123456789101112131415161718192021222324252627282930313233[tidb_servers]10.152.x.1010.152.x.1110.152.x.12[tikv_servers]10.152.x.1010.152.x.1110.152.x.12[pd_servers]10.">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-12-02T11:31:00.000Z">
+<meta property="article:modified_time" content="2019-12-02T11:36:03.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="TiDB">
+<meta property="article:tag" content="Binlog">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2019-12-02-TiDB-Binlog部署" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      TiDB Binlog部署
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/" class="article-date">
+	  <time datetime="2019-12-02T11:31:00.000Z" itemprop="datePublished">2019-12-02</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="TiDB-Binlog部署"><a href="#TiDB-Binlog部署" class="headerlink" title="TiDB Binlog部署"></a>TiDB Binlog部署</h1><h2 id="环境信息"><a href="#环境信息" class="headerlink" title="环境信息"></a>环境信息</h2><p>中控机是<code>10.152.x.133</code></p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-attr">[tidb_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[tikv_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[pd_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## <span class="selector-tag">Monitoring</span> <span class="selector-tag">Part</span></span><br><span class="line"># <span class="selector-tag">prometheus</span> <span class="selector-tag">and</span> <span class="selector-tag">pushgateway</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitoring_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[grafana_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"># <span class="selector-tag">node_exporter</span> <span class="selector-tag">and</span> <span class="selector-tag">blackbox_exporter</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitored_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[alertmanager_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>先造点数据</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">yum install sysbench -y</span><br><span class="line"></span><br><span class="line">mysql -uroot -p -h10.152.x.10 -P4000 -e<span class="string">&quot;create database sysbench&quot;</span></span><br><span class="line"></span><br><span class="line">sysbench /usr/share/sysbench/oltp_read_write.lua  <span class="attribute">--mysql-user</span>=root <span class="attribute">--mysql-password</span>=supersecret <span class="attribute">--mysql-port</span>=4000 \</span><br><span class="line"><span class="attribute">--mysql-host</span>=10.152.x.10 \</span><br><span class="line"><span class="attribute">--mysql-db</span>=sysbench  <span class="attribute">--tables</span>=10 <span class="attribute">--table-size</span>=5000  <span class="attribute">--threads</span>=4 \</span><br><span class="line"><span class="attribute">--events</span>=5000 <span class="attribute">--report-interval</span>=5 <span class="attribute">--db-driver</span>=mysql prepare</span><br></pre></td></tr></table></figure>
+<h2 id="部署Pump"><a href="#部署Pump" class="headerlink" title="部署Pump"></a>部署Pump</h2><p>1.修改 tidb-ansible/inventory.ini 文件</p>
+<p>设置 <code>enable_binlog = True</code>，表示 TiDB 集群开启 binlog</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## binlog trigger</span></span><br><span class="line"><span class="attr">enable_binlog</span> = <span class="literal">True</span></span><br></pre></td></tr></table></figure>
+<p>2.为 <code>pump_servers</code> 主机组添加部署机器 IP</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[pump_servers</span><br><span class="line">pump1 ansible_host=<span class="number">10.152</span>.x<span class="number">.10</span></span><br><span class="line">pump2 ansible_host=<span class="number">10.152</span>.x<span class="number">.11</span></span><br><span class="line">pump3 ansible_host=<span class="number">10.152</span>.x<span class="number">.12</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果想要为pump专门指定目录, 可以使用<code>deploy_dir</code></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pump1 ansible_host=10.152.x.10 deploy_dir=/data1/pump</span><br><span class="line">pump2 ansible_host=10.152.x.11 deploy_dir=/data2/pump</span><br><span class="line">pump3 ansible_host=10.152.x.12 deploy_dir=/data3/pump</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>默认 Pump 保留 7 天数据，如需修改可修改 <code>tidb-ansible/conf/pump.yml</code>（TiDB 3.0.2 及之前版本中为 <code>tidb-ansible/conf/pump-cluster.yml</code>）文件中 <code>gc</code> 变量值，并取消注释。</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">global</span>:</span><br><span class="line">  <span class="comment"># an integer value to control the expiry date of the binlog data, which indicates for how long (in days) the binlog data would be stored</span></span><br><span class="line">  <span class="comment"># must be bigger than 0</span></span><br><span class="line">  <span class="comment"># gc: 7</span></span><br></pre></td></tr></table></figure>
+<p>3.部署 pump_servers 和 node_exporters</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">ansible</span>-playbook deploy.yml --tags=pump -l pump<span class="number">1</span>,pump<span class="number">2</span>,pump<span class="number">3</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果没有为pump指定别名则为</p>
+<p>ansible-playbook deploy.yml –tags=pump -l 10.152.x.10,10.152.x.11,10.152.x.12</p>
+<p>以上命令中，逗号后不要加空格，否则会报错</p>
+</blockquote>
+<p>4.启动 pump_servers</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ansible-playbook <span class="built_in">start</span>.yml <span class="comment">--tags=pump</span></span><br></pre></td></tr></table></figure>
+<p>查看一下</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ps -ef| grep pump</span></span><br><span class="line"><span class="attribute">tidb</span>     <span class="number">26199</span>     <span class="number">1</span>  <span class="number">0</span> <span class="number">21</span>:<span class="number">05</span> ?        <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> bin/pump --addr=<span class="number">0.0.0.0:8250</span> --advertise-addr=pump<span class="number">1</span>:<span class="number">8250</span> --pd-urls=http://<span class="number">10</span>.<span class="number">152</span>.x.<span class="number">10</span>:<span class="number">2379</span>,http://<span class="number">10</span>.<span class="number">152</span>.x.<span class="number">11</span>:<span class="number">2379</span>,http://<span class="number">10</span>.<span class="number">152</span>.x.<span class="number">12</span>:<span class="number">2379</span> --data-dir=/DATA<span class="number">1</span>/home/tidb/deploy/data.pump --log-file=/DATA<span class="number">1</span>/home/tidb/deploy/log/pump.log --config=conf/pump.toml</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>5.更新并重启 tidb_servers</p>
+<p>为了让<code>enable_binlog = True</code>生效</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ansible-playbook rolling_update.yml <span class="attribute">--tags</span>=tidb</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>6.更新监控信息</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ansible-playbook rolling_update_monitor.yml <span class="attribute">--tags</span>=prometheus</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>7.查看 Pump 服务状态</p>
+<p>使用 binlogctl 查看 Pump 服务状态，pd-urls 参数请替换为集群 PD 地址，结果 State 为 online 表示 Pump 启动成功</p>
+<figure class="highlight elm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$resources/bin/binlogctl -pd-urls=http://<span class="number">10.152</span>.x<span class="number">.10</span>:<span class="number">2379</span> -cmd pumps</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">01</span> <span class="number">21</span>:<span class="number">11</span>:<span class="number">47.655</span> +<span class="number">08</span>:<span class="number">00</span>] [<span class="type">INFO</span>] [nodes.go:<span class="number">49</span>] [<span class="string">&quot;query node&quot;</span>] [<span class="keyword">type</span>=pump] [node=&quot;&#123;<span class="type">NodeID</span>: knode10-152-x-12:8250, <span class="type">Addr</span>: pump3:8250, <span class="type">State</span>: online, <span class="type">MaxCommitTS</span>: 412930776489787394, <span class="type">UpdateTime</span>: 2019-12-01 21:11:45 +0800 <span class="type">CST</span>&#125;&quot;]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">01</span> <span class="number">21</span>:<span class="number">11</span>:<span class="number">47.655</span> +<span class="number">08</span>:<span class="number">00</span>] [<span class="type">INFO</span>] [nodes.go:<span class="number">49</span>] [<span class="string">&quot;query node&quot;</span>] [<span class="keyword">type</span>=pump] [node=&quot;&#123;<span class="type">NodeID</span>: knode10-152-x-10:8250, <span class="type">Addr</span>: pump1:8250, <span class="type">State</span>: online, <span class="type">MaxCommitTS</span>: 412930776463572993, <span class="type">UpdateTime</span>: 2019-12-01 21:11:45 +0800 <span class="type">CST</span>&#125;&quot;]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">01</span> <span class="number">21</span>:<span class="number">11</span>:<span class="number">47.655</span> +<span class="number">08</span>:<span class="number">00</span>] [<span class="type">INFO</span>] [nodes.go:<span class="number">49</span>] [<span class="string">&quot;query node&quot;</span>] [<span class="keyword">type</span>=pump] [node=&quot;&#123;<span class="type">NodeID</span>: knode10-152-x-11:8250, <span class="type">Addr</span>: pump2:8250, <span class="type">State</span>: online, <span class="type">MaxCommitTS</span>: 412930776489787393, <span class="type">UpdateTime</span>: 2019-12-01 21:11:45 +0800 <span class="type">CST</span>&#125;&quot;]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>或者登陆TiDB使用<code>show pump status</code>查看状态</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">root@</span><span class="number">10.152</span>.x<span class="number">.10</span> <span class="number">21</span>:<span class="number">10</span>:<span class="number">32</span> [(none)]&gt; show pump status;</span><br><span class="line">+-----------------------+------------+--------+--------------------+---------------------+</span><br><span class="line">| NodeID                | Address    | State  | Max_Commit_Ts      | Update_Time         |</span><br><span class="line">+-----------------------+------------+--------+--------------------+---------------------+</span><br><span class="line">| knode10<span class="number">-152</span>-x<span class="number">-10</span>:<span class="number">8250</span> | pump1:<span class="number">8250</span> | online | <span class="number">412930792991752193</span> | <span class="number">2019</span><span class="number">-12</span><span class="number">-01</span> <span class="number">21</span>:<span class="number">12</span>:<span class="number">48</span> |</span><br><span class="line">| knode10<span class="number">-152</span>-x<span class="number">-11</span>:<span class="number">8250</span> | pump2:<span class="number">8250</span> | online | <span class="number">412930793017966593</span> | <span class="number">2019</span><span class="number">-12</span><span class="number">-01</span> <span class="number">21</span>:<span class="number">12</span>:<span class="number">48</span> |</span><br><span class="line">| knode10<span class="number">-152</span>-x<span class="number">-12</span>:<span class="number">8250</span> | pump3:<span class="number">8250</span> | online | <span class="number">412930793017966594</span> | <span class="number">2019</span><span class="number">-12</span><span class="number">-01</span> <span class="number">21</span>:<span class="number">12</span>:<span class="number">48</span> |</span><br><span class="line">+-----------------------+------------+--------+--------------------+---------------------+</span><br><span class="line"><span class="number">3</span> rows <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.01</span> sec)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="部署Drainer"><a href="#部署Drainer" class="headerlink" title="部署Drainer"></a>部署Drainer</h2><h3 id="部署Drainer将MySQL作为TiDB从库"><a href="#部署Drainer将MySQL作为TiDB从库" class="headerlink" title="部署Drainer将MySQL作为TiDB从库"></a>部署Drainer将MySQL作为TiDB从库</h3><p>1.下载<code>tidb-enterprise-tools</code>安装包</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">wget</span> http://download.pingcap.org/tidb-enterprise-tools-latest-linux-amd<span class="number">64</span>.tar.gz</span><br><span class="line"><span class="attribute">tar</span> -zxvf tidb-enterprise-tools-latest-linux-amd<span class="number">64</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>2.使用TiDB Mydumper备份TiDB数据</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">$sudo ./tidb-enterprise-tools-latest-linux-amd64/bin/mydumper --ask-password -h <span class="number">10.152</span>.x<span class="number">.10</span> -P <span class="number">4000</span> -u root --threads=<span class="number">4</span> --chunk-filesize=<span class="number">64</span> --skip-tz-utc --regex <span class="string">&#x27;^(?!(mysql\.|information_schema\.|performance_schema\.))&#x27;</span>  -o /mfw_rundata/dump/ --verbose=<span class="number">3</span></span><br><span class="line">Enter MySQL Password: </span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.767</span>: Server version reported as: <span class="number">5.7</span><span class="number">.25</span>-TiDB-v3<span class="number">.0</span><span class="number">.5</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.767</span>: Connected to a TiDB server</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.771</span>: Skipping locks because of TiDB</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.772</span>: Set to tidb_snapshot <span class="string">&#x27;412931068452667405&#x27;</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.782</span>: Started dump at: <span class="number">2019</span><span class="number">-12</span><span class="number">-01</span> <span class="number">21</span>:<span class="number">30</span>:<span class="number">17</span></span><br><span class="line"></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.782</span>: Written master status</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.784</span>: Thread <span class="number">1</span> connected using MySQL connection ID <span class="number">20</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.794</span>: Thread <span class="number">1</span> <span class="keyword">set</span> to tidb_snapshot <span class="string">&#x27;412931068452667405&#x27;</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.796</span>: Thread <span class="number">2</span> connected using MySQL connection ID <span class="number">21</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.807</span>: Thread <span class="number">2</span> <span class="keyword">set</span> to tidb_snapshot <span class="string">&#x27;412931068452667405&#x27;</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.809</span>: Thread <span class="number">3</span> connected using MySQL connection ID <span class="number">22</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.819</span>: Thread <span class="number">3</span> <span class="keyword">set</span> to tidb_snapshot <span class="string">&#x27;412931068452667405&#x27;</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.820</span>: Thread <span class="number">4</span> connected using MySQL connection ID <span class="number">23</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.832</span>: Thread <span class="number">4</span> <span class="keyword">set</span> to tidb_snapshot <span class="string">&#x27;412931068452667405&#x27;</span></span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.843</span>: Thread <span class="number">2</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest1`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.844</span>: Non-InnoDB dump complete, unlocking tables</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.843</span>: Thread <span class="number">3</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest2`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.843</span>: Thread <span class="number">1</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest10`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.843</span>: Thread <span class="number">4</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest3`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.882</span>: Thread <span class="number">4</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest4`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.883</span>: Thread <span class="number">2</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest5`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.887</span>: Thread <span class="number">3</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest6`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.890</span>: Thread <span class="number">1</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest7`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.911</span>: Thread <span class="number">4</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest8`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.925</span>: Thread <span class="number">1</span> dumping data <span class="keyword">for</span> `sysbench`.`sbtest9`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.938</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest1`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.939</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest10`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.941</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest2`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.942</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest3`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.943</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest4`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.944</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest5`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.945</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest6`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.946</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest7`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.947</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest8`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.948</span>: Thread <span class="number">4</span> dumping schema <span class="keyword">for</span> `sysbench`.`sbtest9`</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">17.949</span>: Thread <span class="number">4</span> shutting down</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">18.079</span>: Thread <span class="number">2</span> shutting down</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">18.084</span>: Thread <span class="number">3</span> shutting down</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">18.087</span>: Thread <span class="number">1</span> shutting down</span><br><span class="line">** Message: <span class="number">21</span>:<span class="number">30</span>:<span class="number">18.087</span>: Finished dump at: <span class="number">2019</span><span class="number">-12</span><span class="number">-01</span> <span class="number">21</span>:<span class="number">30</span>:<span class="number">18</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>获取tso值</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$sudo cat /mfw_rundata/dump/metadata</span><br><span class="line">Started dump at: <span class="number">2019</span><span class="number">-12</span><span class="number">-01</span> <span class="number">21</span>:<span class="number">30</span>:<span class="number">17</span></span><br><span class="line">SHOW MASTER STATUS:</span><br><span class="line">        Log: tidb-binlog</span><br><span class="line">        Pos: <span class="number">412931068452667405</span></span><br><span class="line">        GTID:</span><br><span class="line"></span><br><span class="line">Finished dump at: <span class="number">2019</span><span class="number">-12</span><span class="number">-01</span> <span class="number">21</span>:<span class="number">30</span>:<span class="number">18</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">tso为 <span class="number">412931068452667405</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>为下游MySQL创建Drainer专用同步账号</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> <span class="keyword">IF</span> <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> <span class="string">&#x27;drainer&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">USER</span> <span class="string">&#x27;drainer&#x27;</span>@<span class="string">&#x27;%&#x27;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&#x27;drainer_supersecret&#x27;</span>;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">INSERT</span>, <span class="keyword">UPDATE</span>, <span class="keyword">DELETE</span>, <span class="keyword">CREATE</span>, <span class="keyword">DROP</span>, <span class="keyword">ALTER</span>, <span class="keyword">EXECUTE</span>, <span class="keyword">INDEX</span>, <span class="keyword">SELECT</span> <span class="keyword">ON</span> *.* <span class="keyword">TO</span> <span class="string">&#x27;drainer&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>导入数据到MySQL</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line">$sudo ./tidb-enterprise-tools-latest-linux-amd64/bin/loader -d /mfw<span class="emphasis">_rundata/dump/ -h 10.132.2.143 -u drainer -p drainer_</span>supersecret -P 3308 -t 2 -m &#x27;&#x27; -status-addr &#x27;:8723&#x27;</span><br><span class="line">2019/12/01 22:12:55 printer.go:52: [info] Welcome to loader</span><br><span class="line">2019/12/01 22:12:55 printer.go:53: [info] Release Version: v1.0.0-76-gad009d9</span><br><span class="line">2019/12/01 22:12:55 printer.go:54: [info] Git Commit Hash: ad009d917b2cdc2a9cc26bc4e7046884c1ff43e7</span><br><span class="line">2019/12/01 22:12:55 printer.go:55: [info] Git Branch: master</span><br><span class="line">2019/12/01 22:12:55 printer.go:56: [info] UTC Build Time: 2019-10-21 06:22:03</span><br><span class="line">2019/12/01 22:12:55 printer.go:57: [info] Go Version: go version go1.12 linux/amd64</span><br><span class="line">2019/12/01 22:12:55 main.go:51: [info] config: &#123;&quot;log-level&quot;:&quot;info&quot;,&quot;log-file&quot;:&quot;&quot;,&quot;status-addr&quot;:&quot;:8723&quot;,&quot;pool-size&quot;:2,&quot;dir&quot;:&quot;/mfw<span class="emphasis">_rundata/dump/&quot;,&quot;db&quot;:&#123;&quot;host&quot;:&quot;10.132.2.143&quot;,&quot;user&quot;:&quot;drainer&quot;,&quot;port&quot;:3308,&quot;sql-mode&quot;:&quot;&quot;,&quot;max-allowed-packet&quot;:67108864&#125;,&quot;checkpoint-schema&quot;:&quot;tidb_</span>loader&quot;,&quot;config-file&quot;:&quot;&quot;,&quot;route-rules&quot;:null,&quot;do-table&quot;:null,&quot;do-db&quot;:null,&quot;ignore-table&quot;:null,&quot;ignore-db&quot;:null,&quot;rm-checkpoint&quot;:false&#125;</span><br><span class="line">2019/12/01 22:12:55 loader.go:532: [info] [loader] prepare takes 0.000565 seconds</span><br><span class="line">2019/12/01 22:12:55 checkpoint.go:207: [info] calc checkpoint finished. finished tables (map[])</span><br><span class="line">2019/12/01 22:12:55 loader.go:715: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run db schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench-schema-create.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:720: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run db schema</span>]/mfw_</span>rundata/dump//sysbench-schema-create.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest10-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest10-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest3-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest3-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest9-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest9-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest2-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest2-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest4-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest4-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest5-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest5-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest7-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest7-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest6-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest6-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest8-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest8-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:736: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest1-schema.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:741: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run table schema</span>]/mfw_</span>rundata/dump//sysbench.sbtest1-schema.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:715: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run db schema</span>]/mfw<span class="emphasis">_rundata/dump//test-schema-create.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:720: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">run db schema</span>]/mfw_</span>rundata/dump//test-schema-create.sql[finished]</span><br><span class="line">2019/12/01 22:12:55 loader.go:773: [info] [loader] create tables takes 0.334379 seconds</span><br><span class="line">2019/12/01 22:12:55 loader.go:788: [info] [loader] all data files have been dispatched, waiting for them finished </span><br><span class="line">2019/12/01 22:12:55 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest3.sql[start]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest8.sql[start]</span><br><span class="line">2019/12/01 22:12:55 loader.go:216: [info] data file /mfw<span class="emphasis">_rundata/dump/sysbench.sbtest8.sql scanned finished.</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:55 loader.go:216: [info] data file /mfw_</span>rundata/dump/sysbench.sbtest3.sql scanned finished.</span><br><span class="line">2019/12/01 22:12:56 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest8.sql[finished]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:56 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest9.sql[start]</span><br><span class="line">2019/12/01 22:12:56 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest3.sql[finished]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:56 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest4.sql[start]</span><br><span class="line">2019/12/01 22:12:56 loader.go:216: [info] data file /mfw<span class="emphasis">_rundata/dump/sysbench.sbtest9.sql scanned finished.</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:56 loader.go:216: [info] data file /mfw_</span>rundata/dump/sysbench.sbtest4.sql scanned finished.</span><br><span class="line">2019/12/01 22:12:56 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest4.sql[finished]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:56 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest7.sql[start]</span><br><span class="line">2019/12/01 22:12:56 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest9.sql[finished]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:56 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest6.sql[start]</span><br><span class="line">2019/12/01 22:12:56 loader.go:216: [info] data file /mfw<span class="emphasis">_rundata/dump/sysbench.sbtest7.sql scanned finished.</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:56 loader.go:216: [info] data file /mfw_</span>rundata/dump/sysbench.sbtest6.sql scanned finished.</span><br><span class="line">2019/12/01 22:12:56 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest7.sql[finished]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:56 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest1.sql[start]</span><br><span class="line">2019/12/01 22:12:57 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest6.sql[finished]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:57 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest10.sql[start]</span><br><span class="line">2019/12/01 22:12:57 loader.go:216: [info] data file /mfw<span class="emphasis">_rundata/dump/sysbench.sbtest1.sql scanned finished.</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:57 loader.go:216: [info] data file /mfw_</span>rundata/dump/sysbench.sbtest10.sql scanned finished.</span><br><span class="line">2019/12/01 22:12:57 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest10.sql[finished]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:57 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest2.sql[start]</span><br><span class="line">2019/12/01 22:12:57 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest1.sql[finished]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:57 loader.go:158: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest5.sql[start]</span><br><span class="line">2019/12/01 22:12:57 loader.go:216: [info] data file /mfw<span class="emphasis">_rundata/dump/sysbench.sbtest2.sql scanned finished.</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:57 loader.go:216: [info] data file /mfw_</span>rundata/dump/sysbench.sbtest5.sql scanned finished.</span><br><span class="line">2019/12/01 22:12:57 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw<span class="emphasis">_rundata/dump//sysbench.sbtest2.sql[finished]</span></span><br><span class="line"><span class="emphasis">2019/12/01 22:12:57 loader.go:165: [<span class="string">info</span>] [<span class="string">loader</span>][<span class="symbol">restore table data sql</span>]/mfw_</span>rundata/dump//sysbench.sbtest5.sql[finished]</span><br><span class="line">2019/12/01 22:12:57 loader.go:791: [info] [loader] all data files has been finished, takes 2.037124 seconds</span><br><span class="line">2019/12/01 22:12:57 main.go:88: [info] loader stopped and exits </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>3.修改 <code>tidb-ansible/inventory.ini</code> 文件</p>
+<p>为 <code>drainer_servers</code> 主机组添加部署机器 IP，initial_commit_ts 请设置为获取的 initial_commit_ts，仅用于 Drainer 第一次启动</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[drainer_servers]</span><br><span class="line">drainer_mysql <span class="attribute">ansible_host</span>=10.152.x.12 <span class="attribute">initial_commit_ts</span>=<span class="string">&quot;412931068452667405&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>修改配置文件</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[tidb@knode10-152-x-133 21:33:21 ~/tidb-ansible]</span><br><span class="line"><span class="variable">$cp</span> conf/drainer.toml conf/drainer_mysql_drainer.toml</span><br><span class="line"></span><br><span class="line">vim conf/drainer_mysql_drainer.toml</span><br><span class="line"></span><br><span class="line">db-type = <span class="string">&quot;mysql&quot;</span></span><br><span class="line"></span><br><span class="line">[syncer.<span class="keyword">to</span>]</span><br><span class="line">host = <span class="string">&quot;10.132.2.143&quot;</span></span><br><span class="line">user = <span class="string">&quot;drainer&quot;</span></span><br><span class="line">password = <span class="string">&quot;drainer_supersecret&quot;</span></span><br><span class="line">port = 3308</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>4.部署Drainer</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">ansible-playbook</span> <span class="selector-tag">deploy_drainer</span><span class="selector-class">.yml</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>5.启动 Drainer</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">ansible-playbook</span> <span class="selector-tag">start_drainer</span><span class="selector-class">.yml</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>6.查看Drainer状态</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">root@</span><span class="number">10.152</span>.x<span class="number">.10</span> <span class="number">22</span>:<span class="number">06</span>:<span class="number">49</span> [(none)]&gt; show drainer status;</span><br><span class="line">+-----------------------+------------------+--------+--------------------+---------------------+</span><br><span class="line">| NodeID                | Address          | State  | Max_Commit_Ts      | Update_Time         |</span><br><span class="line">+-----------------------+------------------+--------+--------------------+---------------------+</span><br><span class="line">| knode10<span class="number">-152</span>-x<span class="number">-12</span>:<span class="number">8249</span> | <span class="number">10.152</span>.x<span class="number">.12</span>:<span class="number">8249</span> | online | <span class="number">412931643727675393</span> | <span class="number">2019</span><span class="number">-12</span><span class="number">-01</span> <span class="number">22</span>:<span class="number">06</span>:<span class="number">52</span> |</span><br><span class="line">+-----------------------+------------------+--------+--------------------+---------------------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">$resources/bin/binlogctl -pd-urls=http:<span class="comment">//10.152.x.10:2379 -cmd drainers</span></span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">01</span> <span class="number">22</span>:<span class="number">07</span>:<span class="number">27.531</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [nodes.go:<span class="number">49</span>] [<span class="string">&quot;query node&quot;</span>] [type=drainer] [node=<span class="string">&quot;&#123;NodeID: knode10-152-x-12:8249, Addr: 10.152.x.12:8249, State: online, MaxCommitTS: 412931651605102594, UpdateTime: 2019-12-01 22:07:26 +0800 CST&#125;&quot;</span>]</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2019/12/02/2019-12-02-TiDB-Binlog部署/" target="_blank" title="TiDB Binlog部署">http://fuxkdb.com/2019/12/02/2019-12-02-TiDB-Binlog部署/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Binlog/" rel="tag">Binlog</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TiDB/" rel="tag">TiDB</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/12/10/2019-12-10-MGR%E5%8F%82%E6%95%B0%E4%B9%8Bgroup_replication_ip_whitelist/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          MGR参数之group_replication_ip_whitelist
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/11/12/2019-11-12-ProxySQL%E5%B9%B3%E6%BB%91%E4%B8%8B%E7%BA%BF%E8%8A%82%E7%82%B9/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">ProxySQL平滑下线节点</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TiDB-Binlog%E9%83%A8%E7%BD%B2"><span class="nav-number">1.</span> <span class="nav-text">TiDB Binlog部署</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E4%BF%A1%E6%81%AF"><span class="nav-number">1.1.</span> <span class="nav-text">环境信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2Pump"><span class="nav-number">1.2.</span> <span class="nav-text">部署Pump</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2Drainer"><span class="nav-number">1.3.</span> <span class="nav-text">部署Drainer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2Drainer%E5%B0%86MySQL%E4%BD%9C%E4%B8%BATiDB%E4%BB%8E%E5%BA%93"><span class="nav-number">1.3.1.</span> <span class="nav-text">部署Drainer将MySQL作为TiDB从库</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

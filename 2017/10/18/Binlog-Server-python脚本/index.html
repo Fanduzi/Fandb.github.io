@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>binlog server python脚本 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL备份恢复" />
+  
+  
+  
+  
+  <meta name="description" content="有问题就是如果nohup python binlog_server.py &amp; ,然后kill 这个脚本,能kill掉,但是ps -ef | grep mysqlbinlog 还是在执行h还有一个小问题就是如果直接以命令行方式运行明文指定密码,那么通过ps -ef | grep mysqlbinlog会直接看到密码…密码写到配置文件的话也不太安全,总之,还需要完善  指定不同的dbname">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Binlog Server python脚本">
+<meta property="og:url" content="http://fuxkdb.com/2017/10/18/Binlog-Server-python%E8%84%9A%E6%9C%AC/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="有问题就是如果nohup python binlog_server.py &amp; ,然后kill 这个脚本,能kill掉,但是ps -ef | grep mysqlbinlog 还是在执行h还有一个小问题就是如果直接以命令行方式运行明文指定密码,那么通过ps -ef | grep mysqlbinlog会直接看到密码…密码写到配置文件的话也不太安全,总之,还需要完善  指定不同的dbname">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-10-18T09:23:00.000Z">
+<meta property="article:modified_time" content="2018-05-03T08:42:23.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL备份恢复">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-Binlog-Server-python脚本" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Binlog Server python脚本
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/10/18/Binlog-Server-python%E8%84%9A%E6%9C%AC/" class="article-date">
+	  <time datetime="2017-10-18T09:23:00.000Z" itemprop="datePublished">2017-10-18</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>有问题就是如果nohup python binlog_server.py &amp; ,然后kill 这个脚本,能kill掉,但是ps -ef | grep mysqlbinlog 还是在执行h<br>还有一个小问题就是如果直接以命令行方式运行明文指定密码,那么通过<code>ps -ef | grep mysqlbinlog</code>会直接看到密码…<br>密码写到配置文件的话也不太安全,总之,还需要完善</p>
+</blockquote>
+<p>指定不同的dbname,从不同的数据库拉binlog, dbname就是配置文件里的section</p>
+<h3 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GRANT</span> <span class="keyword">REPLICATION</span> <span class="keyword">SLAVE</span> <span class="keyword">ON</span> *.* <span class="keyword">TO</span> <span class="string">&#x27;binlog_backup&#x27;</span>@<span class="string">&#x27;106.3.130.255&#x27;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&#x27;xxx&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>fw.sh添加<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#备份binlog</span></span><br><span class="line"><span class="string">$IPTABLES</span> <span class="string">-A</span> <span class="string">INPUT</span> <span class="string">-p</span> <span class="string">tcp</span> <span class="string">-s</span> <span class="number">106.3</span><span class="number">.130</span><span class="number">.255</span> <span class="string">--dport</span> <span class="number">3306</span> <span class="string">-j</span> <span class="string">ACCEPT</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;&quot;</span><span class="string">&quot;</span></span><br><span class="line"><span class="string">Usage:</span></span><br><span class="line"><span class="string">        binlog_server.py --user=&lt;username&gt; --password=&lt;password&gt; --host=&lt;remote_host&gt; --port=&lt;remote_port&gt; --backup-dir=&lt;backup_dir&gt; --log=&lt;log&gt; [--last-file=&lt;last-file&gt;]</span></span><br><span class="line"><span class="string">        binlog_server.py -h | --help</span></span><br><span class="line"><span class="string">        binlog_server.py --version</span></span><br><span class="line"><span class="string">        binlog_server.py --config=&lt;config_file&gt; --dbname=&lt;database_name&gt; [--last-file=&lt;last-file&gt;]</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Options:</span></span><br><span class="line"><span class="string">        -h --help                      Show help information.</span></span><br><span class="line"><span class="string">        --version                      Show version.</span></span><br><span class="line"><span class="string">        --user=&lt;username&gt;              The user name used to connect to the remote server.</span></span><br><span class="line"><span class="string">        --password=&lt;password&gt;          The password used to connect to the remote server.</span></span><br><span class="line"><span class="string">        --host=&lt;remote_host&gt;            The remote host IP address.</span></span><br><span class="line"><span class="string">        --port=&lt;remote_port&gt;            The remote MySQL server port.</span></span><br><span class="line"><span class="string">        --backup-dir=&lt;backup_dir&gt;      The dest to store binlog.</span></span><br><span class="line"><span class="string">        --log=&lt;log&gt;                    The log.</span></span><br><span class="line"><span class="string">        --last-file=&lt;last-file&gt;        Specify the starting binlog.</span></span><br><span class="line"><span class="string">        --config=&lt;config_file&gt;          Config file.</span></span><br><span class="line"><span class="string">        --dbname=&lt;database_name&gt;        Section name in config file.</span></span><br><span class="line"><span class="string">&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">from</span> docopt import docopt</span><br><span class="line">import subprocess</span><br><span class="line">import logging</span><br><span class="line">import time</span><br><span class="line">import ConfigParser</span><br><span class="line">import os</span><br><span class="line"></span><br><span class="line">arguments = docopt(__doc__, <span class="attribute">version</span>=<span class="string">&#x27;Binlog server 1.0&#x27;</span>)</span><br><span class="line"><span class="keyword">if</span> arguments[<span class="string">&#x27;--config&#x27;</span>]:</span><br><span class="line">    <span class="attribute">cf</span>=ConfigParser.ConfigParser()</span><br><span class="line">    cf.read(arguments[<span class="string">&#x27;--config&#x27;</span>])</span><br><span class="line">    section_name = arguments[<span class="string">&#x27;--dbname&#x27;</span>]</span><br><span class="line">    db_host = cf.<span class="builtin-name">get</span>(section_name, <span class="string">&quot;db_host&quot;</span>)</span><br><span class="line">    db_port = cf.<span class="builtin-name">get</span>(section_name, <span class="string">&quot;db_port&quot;</span>)</span><br><span class="line">    db_user = cf.<span class="builtin-name">get</span>(section_name, <span class="string">&quot;db_user&quot;</span>)</span><br><span class="line">    db_passwd = cf.<span class="builtin-name">get</span>(section_name, <span class="string">&quot;db_passwd&quot;</span>)</span><br><span class="line">    backup_dir = cf.<span class="builtin-name">get</span>(section_name, <span class="string">&quot;backup_dir&quot;</span>)</span><br><span class="line">    log = cf.<span class="builtin-name">get</span>(section_name, <span class="string">&quot;log&quot;</span>)</span><br><span class="line">    logging.basicConfig(<span class="attribute">level</span>=logging.DEBUG,</span><br><span class="line">                <span class="attribute">format</span>=<span class="string">&#x27;%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s&#x27;</span>,</span><br><span class="line">                <span class="attribute">datefmt</span>=<span class="string">&#x27;%a, %d %b %Y %H:%M:%S&#x27;</span>,</span><br><span class="line">                <span class="attribute">filename</span>=log,</span><br><span class="line">                <span class="attribute">filemode</span>=<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line"></span><br><span class="line">logging.basicConfig(<span class="attribute">level</span>=logging.DEBUG,</span><br><span class="line">                <span class="attribute">format</span>=<span class="string">&#x27;%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s&#x27;</span>,</span><br><span class="line">                <span class="attribute">datefmt</span>=<span class="string">&#x27;%a, %d %b %Y %H:%M:%S&#x27;</span>,</span><br><span class="line">                <span class="attribute">filename</span>=arguments[<span class="string">&#x27;--log&#x27;</span>],</span><br><span class="line">                <span class="attribute">filemode</span>=<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line"></span><br><span class="line">def dumpBinlog(user,password,host,port,backup_dir,log,<span class="attribute">last_file</span>=<span class="string">&#x27;&#x27;</span>):</span><br><span class="line">        <span class="attribute">LOCAL_BACKUP_DIR</span>=backup_dir</span><br><span class="line">        <span class="keyword">if</span> backup_dir[-1]!= <span class="string">&#x27;/&#x27;</span>:</span><br><span class="line">            os.exit()</span><br><span class="line">        #<span class="attribute">BACKUP_LOG</span>=<span class="string">&#x27;/data4/binlog_backup/120.27.136.247/BB.log&#x27;</span></span><br><span class="line">        <span class="attribute">BACKUP_LOG</span>=log[log.rfind(<span class="string">&#x27;/&#x27;</span>)+1:]</span><br><span class="line">        <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> last_file:</span><br><span class="line">                    <span class="attribute">cmd</span>=<span class="string">&quot;ls -A &#123;LOCAL_BACKUP_DIR&#125; | grep -v &#123;BACKUP_LOG&#125; | grep -v nohup.out |wc -l&quot;</span>.format(LOCAL_BACKUP_DIR=LOCAL_BACKUP_DIR,BACKUP_LOG=BACKUP_LOG)</span><br><span class="line">                    <span class="attribute">child</span>=subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)</span><br><span class="line">                    child.wait()</span><br><span class="line">                    <span class="attribute">wc_l</span>=int(child.communicate()[0].strip())</span><br><span class="line">                    <span class="keyword">if</span> wc_l != 0:</span><br><span class="line">                            <span class="attribute">cmd</span>=<span class="string">&quot;ls -l %s | grep -v %s | grep -v nohup.out |tail -n 1 |awk &#x27;&#123;print <span class="variable">$9</span>&#125;&#x27;&quot;</span> % (LOCAL_BACKUP_DIR,BACKUP_LOG)</span><br><span class="line">                            <span class="attribute">child</span>=subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)</span><br><span class="line">                            child.wait()</span><br><span class="line">                            <span class="attribute">LAST_FILE</span>=child.communicate()[0].strip()</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                    <span class="attribute">LAST_FILE</span>=last_file</span><br><span class="line">            logging.<span class="builtin-name">info</span>(<span class="string">&#x27;Last File is %s&#x27;</span> % (LAST_FILE))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            <span class="attribute">mysqlbinlog</span>=<span class="string">&#x27;mysqlbinlog --raw --read-from-remote-server --stop-never --host=&#123;REMOTE_HOST&#125; --port=&#123;REMOTE_PORT&#125; --user=&#123;REMOTE_USER&#125; --password=&#123;REMOTE_PASS&#125; --result-file=&#123;RESULT_FILE&#125; &#123;LAST_FILE&#125;&#x27;</span>.format(REMOTE_HOST=host,REMOTE_PORT=port,REMOTE_USER=user,REMOTE_PASS=password,RESULT_FILE=LOCAL_BACKUP_DIR,LAST_FILE=LAST_FILE)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            subprocess.call(mysqlbinlog,<span class="attribute">shell</span>=<span class="literal">True</span>)</span><br><span class="line">            logging.<span class="builtin-name">info</span>(<span class="string">&#x27;Binlog server stop!!!,reconnect after 10 seconds&#x27;</span>)</span><br><span class="line">            time.sleep(10)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">if</span> arguments[<span class="string">&#x27;--config&#x27;</span>]:</span><br><span class="line">        <span class="attribute">lock_file</span>=db_host+&quot;_binlog_server.lock&quot;</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="attribute">lock_file</span>=arguments[<span class="string">&#x27;--host&#x27;</span>]+<span class="string">&quot;_binlog_server.lock&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="attribute">child</span>=subprocess.Popen(&#x27;ls /tmp|grep %s<span class="string">&#x27; % (lock_file),shell=True,stdout=subprocess.PIPE)</span></span><br><span class="line"><span class="string">    child.wait()</span></span><br><span class="line"><span class="string">    lock=child.communicate()[0].strip()</span></span><br><span class="line"><span class="string">    if not lock:</span></span><br><span class="line"><span class="string">        subprocess.call(&#x27;</span>touch /tmp/%s<span class="string">&#x27; % (lock_file),shell=True)</span></span><br><span class="line"><span class="string">        logging.info(&#x27;</span><span class="builtin-name">Get</span> lock,Binlog<span class="built_in"> server </span>start!!!<span class="string">&#x27;)</span></span><br><span class="line"><span class="string">        if not arguments[&#x27;</span>--config<span class="string">&#x27;]:</span></span><br><span class="line"><span class="string">          dumpBinlog(arguments[&#x27;</span>--user<span class="string">&#x27;],arguments[&#x27;</span>--password<span class="string">&#x27;],arguments[&#x27;</span>--host<span class="string">&#x27;],arguments[&#x27;</span>--port<span class="string">&#x27;],arguments[&#x27;</span>--backup-dir<span class="string">&#x27;],arguments[&#x27;</span>--log<span class="string">&#x27;],arguments[&#x27;</span>--last-file<span class="string">&#x27;])</span></span><br><span class="line"><span class="string">        else:</span></span><br><span class="line"><span class="string">          dumpBinlog(db_user,db_passwd,db_host,db_port,backup_dir,log,arguments[&#x27;</span>--last-file<span class="string">&#x27;])</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    else:</span></span><br><span class="line"><span class="string">        logging.info(&#x27;</span>Binlog<span class="built_in"> server </span>already running!!!<span class="string">&#x27;)</span></span><br><span class="line"><span class="string">        print(&#x27;</span>Binlog<span class="built_in"> server </span>already running!!!,please check <span class="keyword">or</span> reomove the lock file<span class="string">&#x27;)</span></span><br></pre></td></tr></table></figure>
+<h3 id="监控脚本"><a href="#监控脚本" class="headerlink" title="监控脚本"></a>监控脚本</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">num_py=`ps -ef | grep binlog_server.py | grep -v grep | grep GN_PT_SLAVE1 | wc -l`</span><br><span class="line">num_mysqlbinlog=`ps -ef | grep mysqlbinlog | grep -v grep | grep 120.27.136.247 | wc -l`</span><br><span class="line">TO_MAIL=xoxoxo@papapa.com</span><br><span class="line"><span class="keyword">if</span> [ <span class="variable">$num_py</span> -eq 0 ] &amp;&amp; [ <span class="variable">$num_mysqlbinlog</span> -eq 0 ];<span class="keyword">then</span></span><br><span class="line">        <span class="comment">#发邮件,GN_PT_SLAVE1 binlog server宕了</span></span><br><span class="line">        <span class="comment">#重启 nohup python /scripts/binlog_server.py --config=/tmp/binlog_server.cnf --dbname=GN_PT_SLAVE1 &amp;</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;GN_PT_SLAVE1 binlog server宕了&quot;</span> |/usr/bin/mutt -s <span class="string">&quot;Binlog server监控告警&quot;</span> <span class="variable">$TO_MAIL</span></span><br><span class="line"><span class="keyword">elif</span> [ <span class="variable">$num_py</span> -eq 0 ] &amp;&amp; [ <span class="variable">$num_mysqlbinlog</span> -eq 1 ];<span class="keyword">then</span></span><br><span class="line">        <span class="comment">#发邮件,GN_PT_SLAVE1 python脚本挂了,但是mysqlbinlog还在跑</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;GN_PT_SLAVE1 python脚本挂了,但是mysqlbinlog还在跑&quot;</span> |/usr/bin/mutt -s <span class="string">&quot;Binlog server监控告警&quot;</span> <span class="variable">$TO_MAIL</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+<h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[root@localhost 120.27.143.36]</span><span class="comment"># less /scripts/binlog_server.cnf </span></span><br><span class="line"><span class="section">[GN_PT_SLAVE1]</span></span><br><span class="line"><span class="attr">db_host</span>=<span class="number">120.27</span>.<span class="number">136.257</span></span><br><span class="line"><span class="attr">db_port</span>=<span class="number">3306</span></span><br><span class="line"><span class="attr">db_user</span>=binlog_backup</span><br><span class="line"><span class="attr">db_passwd</span>=xxx</span><br><span class="line"><span class="attr">backup_dir</span>=/data1/backup/db_backup/<span class="number">120.27</span>.<span class="number">136.247</span>/ --注意一定要以/结尾</span><br><span class="line"><span class="attr">log</span>=/data1/backup/db_backup/<span class="number">120.27</span>.<span class="number">136.247</span>/BB.log</span><br><span class="line"></span><br><span class="line"><span class="section">[GN_LOG_MASTER2]</span></span><br><span class="line"><span class="attr">db_host</span>=<span class="number">120.27</span>.<span class="number">143.256</span></span><br><span class="line"><span class="attr">db_port</span>=<span class="number">3306</span></span><br><span class="line"><span class="attr">db_user</span>=binlog_backup</span><br><span class="line"><span class="attr">db_passwd</span>=xxx</span><br><span class="line"><span class="attr">backup_dir</span>=/data2/backup/db_backup/<span class="number">120.27</span>.<span class="number">143.36</span>/ --注意一定要以/结尾</span><br><span class="line"><span class="attr">log</span>=/data2/backup/db_backup/<span class="number">120.27</span>.<span class="number">143.36</span>/BB.log</span><br></pre></td></tr></table></figure>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>两种方式<br>1.通过配置文件<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python <span class="regexp">/scripts/</span>binlog_server.py --config=<span class="regexp">/tmp/</span>binlog_server.cnf --dbname=GN_PT_SLAVE1</span><br></pre></td></tr></table></figure><br>2.命令行指定<br>注意backup-dir一定要以’/‘结尾<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python binlog_server.py <span class="attribute">--user</span>=binlog_backup <span class="attribute">--password</span>=xxxx <span class="attribute">--host</span>=xxxx <span class="attribute">--port</span>=3306 <span class="attribute">--backup-dir</span>=/data4/binlog_backup/ <span class="attribute">--log</span>=/data4/binlog_backup/BB.log</span><br></pre></td></tr></table></figure><br>在脚本中 创建了/tmp/IP_binlog_server.lock 文件,为了防止重复运行.<br>如果有需要停止,需要手动kill binlog_server.py 和 mysqlbinlog, 并且删除/tmp/IP_binlog_server.lock 文件,不然下次起不来</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/10/18/Binlog-Server-python脚本/" target="_blank" title="Binlog Server python脚本">http://fuxkdb.com/2017/10/18/Binlog-Server-python脚本/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%A4%87%E4%BB%BD%E6%81%A2%E5%A4%8D/" rel="tag">MySQL备份恢复</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/10/31/%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%8C%E4%B8%BB%E5%BB%BA%E8%AE%AE%E5%8D%95%E8%8A%82%E7%82%B9%E5%86%99%E5%85%A5/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          为什么双主只建议单节点写入?
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/09/29/PMM%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">PMM出问题排查</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7"><span class="nav-number">1.</span> <span class="nav-text">创建用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%84%9A%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%91%E6%8E%A7%E8%84%9A%E6%9C%AC"><span class="nav-number">3.</span> <span class="nav-text">监控脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">4.</span> <span class="nav-text">配置文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="nav-number"></span> <span class="nav-text">使用方法</span></a>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mysql(innodb)如何避免幻读 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL" />
+  
+  
+  
+  
+  <meta name="description" content="幻读Phantom Rows The so-called phantom problem occurs within a transaction when the same query produces different sets of rows at different times. For example, if a SELECT is executed twice, but returns">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL(InnoDB)如何避免幻读">
+<meta property="og:url" content="http://fuxkdb.com/2016/12/12/MySQL(InnoDB)%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E5%B9%BB%E8%AF%BB/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="幻读Phantom Rows The so-called phantom problem occurs within a transaction when the same query produces different sets of rows at different times. For example, if a SELECT is executed twice, but returns">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-12-12T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-17T08:24:59.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-MySQL(InnoDB)如何避免幻读" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MySQL(InnoDB)如何避免幻读
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/12/12/MySQL(InnoDB)%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E5%B9%BB%E8%AF%BB/" class="article-date">
+	  <time datetime="2016-12-12T14:00:00.000Z" itemprop="datePublished">2016-12-12</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="幻读Phantom-Rows"><a href="#幻读Phantom-Rows" class="headerlink" title="幻读Phantom Rows"></a>幻读Phantom Rows</h3><blockquote>
+<p>The so-called phantom problem occurs within a transaction when the same query produces different sets of rows at different times. For example, if a SELECT is executed twice, but returns a row the second time that was not returned the first time, the row is a “phantom” row.</p>
+</blockquote>
+<p>幻读问题是指一个事务的两次不同时间的相同查询返回了不同的的结果集。例如:一个 select 语句执行了两次，但是在第二次返回了第一次没有返回的行,那么这些行就是“phantom” row.</p>
+<h3 id="read-view-或者说-MVCC-实现了一致性不锁定读-Consistent-Nonlocking-Reads-，从而避免了幻读"><a href="#read-view-或者说-MVCC-实现了一致性不锁定读-Consistent-Nonlocking-Reads-，从而避免了幻读" class="headerlink" title="read view(或者说 MVCC)实现了一致性不锁定读(Consistent Nonlocking Reads)，从而避免了幻读"></a>read view(或者说 MVCC)实现了一致性不锁定读(Consistent Nonlocking Reads)，从而避免了幻读</h3><h4 id="实验1"><a href="#实验1" class="headerlink" title="实验1:"></a>实验1:</h4><p>开两个窗口设置<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> tx_isolation=<span class="string">&#x27;REPEATABLE-READ&#x27;</span>;</span><br><span class="line"><span class="keyword">select</span> @@session.autocommit;<span class="keyword">select</span> @@global.tx_isolation,@@session.tx_isolation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> read_view(<span class="built_in">text</span> <span class="built_in">varchar</span>(<span class="number">50</span>));</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> read_view <span class="keyword">values</span>(<span class="string">&#x27;init&#x27;</span>);</span><br></pre></td></tr></table></figure></p>
+<p>两个会话开始事务<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">SESSION_A</span>&gt;begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="attribute">SESSION_B</span>&gt;begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br></pre></td></tr></table></figure></p>
+<p>SESSION_A执行一个查询，这个查询可以访问任何表，这个查询的目的是创建一个当前时间点的快照<br><code>START TRANSACTION WITH CONSISTENT SNAPSHOT;</code>也可以达到同样的效果</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;select * from dept;</span></span><br><span class="line"><span class="emphasis">+--------+------------+----------+</span></span><br><span class="line"><span class="emphasis">| deptno | dname      | loc      |</span></span><br><span class="line"><span class="emphasis">+--------+------------+----------+</span></span><br><span class="line"><span class="emphasis">|     10 | ACCOUNTING | NEW YORK |</span></span><br><span class="line"><span class="emphasis">|     20 | RESEARCH   | DALLAS   |</span></span><br><span class="line"><span class="emphasis">|     30 | SALES      | CHICAGO  |</span></span><br><span class="line"><span class="emphasis">|     40 | OPERATIONS | BOSTON   |</span></span><br><span class="line"><span class="emphasis">+--------+------------+----------+</span></span><br><span class="line"><span class="emphasis">4 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure>
+<p>SESSION_B 插入一条记录并提交<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SESSION_B&gt;<span class="keyword">insert</span> <span class="keyword">into</span> read_view <span class="keyword">values</span>(<span class="string">&#x27;after session A select&#x27;</span>);</span><br><span class="line">Query OK, <span class="number">1</span> <span class="keyword">row</span> affected (<span class="number">0.01</span> sec)</span><br><span class="line"></span><br><span class="line">SESSION_B&gt;<span class="keyword">commit</span>;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure></p>
+<p>SESSION_A<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;select * from read_</span>view;</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">| text |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">| init |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;commit;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from read<span class="emphasis">_view;</span></span><br><span class="line"><span class="emphasis">+------------------------+</span></span><br><span class="line"><span class="emphasis">| text                   |</span></span><br><span class="line"><span class="emphasis">+------------------------+</span></span><br><span class="line"><span class="emphasis">| init                   |</span></span><br><span class="line"><span class="emphasis">| after session A select |</span></span><br><span class="line"><span class="emphasis">+------------------------+</span></span><br><span class="line"><span class="emphasis">2 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>由于 SESSION_A 第一次的查询开始于 SESSION_B 插入数据前，通过创建了一个以SELECT操作的时间为基准点的 read view,避免了幻读的产生<br>所以在 SESSION_A 的事务结束前,无法看到 SESSION_B 对表 read_view 做出的任何更改 (insert,delete,update)</p>
+<a id="more"></a>
+<h4 id="实验2"><a href="#实验2" class="headerlink" title="实验2"></a>实验2</h4><p>两个会话开始事务<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">SESSION_A</span>&gt;begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="attribute">SESSION_B</span>&gt;begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br></pre></td></tr></table></figure></p>
+<p>SESSION_B 在 SESSION_A 创建read view 前插入数据<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SESSION_B&gt;<span class="keyword">insert</span> <span class="keyword">into</span> read_view <span class="keyword">values</span>(<span class="string">&#x27;before Session_A select&#x27;</span>);</span><br><span class="line">Query OK, <span class="number">1</span> <span class="keyword">row</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">SESSION_B&gt;<span class="keyword">commit</span>;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure></p>
+<p>SESSION_A<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;select * from read_</span>view;</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">| text                    |</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">| init                    |</span><br><span class="line">| after session A select  |</span><br><span class="line">| before Session<span class="emphasis">_A select |</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">3 rows in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;commit</span><br><span class="line"><span class="code">    -&gt; ;</span></span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;select * from read_</span>view;</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">| text                    |</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">| init                    |</span><br><span class="line">| after session A select  |</span><br><span class="line">| before Session<span class="emphasis">_A select |</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">3 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>由于 SESSION_A 第一次查询开始于 SESSION_B 对表做出更改并提交后,所以这次的 read view 包含了 SESSION_B 所做出的更改</p>
+<p>在官方文档中写道<br><a target="_blank" rel="noopener" href="http://dev.mysql.com/doc/refman/5.7/en/innodb-consistent-read.html">http://dev.mysql.com/doc/refman/5.7/en/innodb-consistent-read.html</a></p>
+<blockquote>
+<p>A consistent read means that InnoDB uses multi-versioning to present to a query a snapshot of the database at a point in time. The query sees the changes made by transactions that committed before that point of time, and no changes made by later or uncommitted transactions. The exception to this rule is that the query sees the changes made by earlier statements within the same transaction. This exception causes the following anomaly: If you update some rows in a table, a SELECT sees the latest version of the updated rows, but it might also see older versions of any rows. If other sessions simultaneously update the same table, the anomaly means that you might see the table in a state that never existed in the database.</p>
+</blockquote>
+<p>一致性读是通过 MVCC 为查询提供了一个基于时间的点的快照。这个查询只能看到在自己之前提交的数据，而在查询开始之后提交的数据是不可以看到的。一个特例是,这个查询可以看到于自己开始之后的同一个事务产生的变化。这个特例会产生一些反常的现象</p>
+<blockquote>
+<p>If the transaction isolation level is REPEATABLE READ (the default level), all consistent reads within the same transaction read the snapshot established by the first such read in that transaction. You can get a fresher snapshot for your queries by committing the current transaction and after that issuing new queries.</p>
+</blockquote>
+<p>在默认隔离级别REPEATABLE READ下，同一事务的所有一致性读只会读取第一次查询时创建的快照</p>
+<h4 id="实验3"><a href="#实验3" class="headerlink" title="实验3"></a>实验3</h4><p>两个会话开始事务<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A开始事务并创建快照</span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;START TRANSACTION WITH CONSISTENT SNAPSHOT;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_B&gt;begin;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from read<span class="emphasis">_view;</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">| text                    |</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">| init                    |</span></span><br><span class="line"><span class="emphasis">| after session A select  |</span></span><br><span class="line"><span class="emphasis">| before Session_</span>A select |</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">3 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_B&gt;insert into read_</span>view values(<span class="emphasis">&#x27;anomaly&#x27;</span>),(<span class="emphasis">&#x27;anomaly&#x27;</span>);</span><br><span class="line">Query OK, 2 rows affected (0.00 sec)</span><br><span class="line">Records: 2  Duplicates: 0  Warnings: 0</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_B&gt;update read_</span>view set text=<span class="emphasis">&#x27;INIT&#x27;</span> where text=<span class="emphasis">&#x27;init&#x27;</span>;</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line">Rows matched: 1  Changed: 1  Warnings: 0</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_B&gt;commit;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from read<span class="emphasis">_view;</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">| text                    |</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">| init                    |</span></span><br><span class="line"><span class="emphasis">| after session A select  |</span></span><br><span class="line"><span class="emphasis">| before Session_</span>A select |</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">3 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A更新了它并没有&quot;看&quot;到的行</span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;update read<span class="emphasis">_view set text=&#x27;anomaly!&#x27; where text=&#x27;anomaly&#x27;;</span></span><br><span class="line"><span class="emphasis">Query OK, 2 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis">Rows matched: 2  Changed: 2  Warnings: 0</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from read<span class="emphasis">_view;</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">| text                    |</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">| init                    |</span></span><br><span class="line"><span class="emphasis">| after session A select  |</span></span><br><span class="line"><span class="emphasis">| before Session_</span>A select |</span><br><span class="line">| anomaly!                |</span><br><span class="line">| anomaly!                |</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">5 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;commit;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from read<span class="emphasis">_view;</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">| text                    |</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">| INIT                    |</span></span><br><span class="line"><span class="emphasis">| after session A select  |</span></span><br><span class="line"><span class="emphasis">| before Session_</span>A select |</span><br><span class="line">| anomaly!                |</span><br><span class="line">| anomaly!                |</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">5 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>观察实验步骤可以发现，在倒数第二次查询中，出现了一个并不存在的状态 </p>
+<blockquote>
+<p>the anomaly means that you might see the table in a state that never existed in the database</p>
+</blockquote>
+<p>这里A的前后两次读，均为快照读，而且是在同一个事务中。但是B先插入直接提交，此时A再update，update属于当前读，所以可以作用于新插入的行，并且将修改行的当前版本号设为A的事务号，所以第二次的快照读，是可以读取到的，因为同事务号。这种情况符合MVCC的规则，如果要称为一种幻读也非不可，算为一个特殊情况来看待吧。</p>
+<hr>
+<blockquote>
+<p>With READ COMMITTED isolation level, each consistent read within a transaction sets and reads its own fresh snapshot.</p>
+</blockquote>
+<p>在 read commit 隔离级别下，同一事务的每个一致性读sets and reads  its own fresh snapshot.</p>
+<h4 id="实验4"><a href="#实验4" class="headerlink" title="实验4"></a>实验4</h4><p>修改事务隔离级别<br><code>set session tx_isolation=&#39;READ-COMMITTED&#39;</code><br>两个会话开始事务<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;begin;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>B&gt;begin;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;select * from read_</span>view;</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">| text                    |</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">| INIT                    |</span><br><span class="line">| after session A select  |</span><br><span class="line">| before Session<span class="emphasis">_A select |</span></span><br><span class="line"><span class="emphasis">| anomaly!                |</span></span><br><span class="line"><span class="emphasis">| anomaly!                |</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">5 rows in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>B&gt;insert into read<span class="emphasis">_view values(&#x27;hehe&#x27;);</span></span><br><span class="line"><span class="emphasis">Query OK, 1 row affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>B&gt;commit;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;select * from read_</span>view;</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">| text                    |</span><br><span class="line"><span class="code">+-------------------------+</span></span><br><span class="line">| INIT                    |</span><br><span class="line">| after session A select  |</span><br><span class="line">| before Session<span class="emphasis">_A select |</span></span><br><span class="line"><span class="emphasis">| anomaly!                |</span></span><br><span class="line"><span class="emphasis">| anomaly!                |</span></span><br><span class="line"><span class="emphasis">| hehe                    |</span></span><br><span class="line"><span class="emphasis">+-------------------------+</span></span><br><span class="line"><span class="emphasis">6 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>read commit 每次读取都是新的快照</p>
+<h3 id="InnoDB通过Nextkey-lock解决了当前读时的幻读问题"><a href="#InnoDB通过Nextkey-lock解决了当前读时的幻读问题" class="headerlink" title="InnoDB通过Nextkey lock解决了当前读时的幻读问题"></a>InnoDB通过Nextkey lock解决了当前读时的幻读问题</h3><p>Innodb行锁分为:<br>| 类型           | 说明                                                                                                                                     |<br>|—————-|——————————————————————————————————————————————|<br>| Record Lock:   | 在索引上对单行记录加锁.                                                                                                                  |<br>| Gap Lock:      | 锁定一个范围的记录,但不包括记录本身.锁加在未使用的空闲空间上,可能是两个索引记录之间，也可能是第一个索引记录之前或最后一个索引之后的空间. |<br>| Next-Key Lock: | 行锁与间隙锁组合起来用就叫做Next-Key Lock。锁定一个范围，并且锁定记录本身。对于行的查询，都是采用该方法，主要目的是解决幻读的问题。      |</p>
+<h4 id="实验5"><a href="#实验5" class="headerlink" title="实验5"></a>实验5</h4><p>创建表<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">(<span class="symbol">mysql@</span>localhost) [fandb]&gt; create table t5(id <span class="built_in">int</span>,key(id));</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.02</span> sec)</span><br><span class="line"></span><br><span class="line">SESSION_A&gt;insert <span class="built_in">int</span>o t5 values(<span class="number">1</span>),(<span class="number">4</span>),(<span class="number">7</span>),(<span class="number">10</span>);</span><br><span class="line">Query OK, <span class="number">4</span> rows affected (<span class="number">0.00</span> sec)</span><br><span class="line">Records: <span class="number">4</span>  Duplicates: <span class="number">0</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure></p>
+<p>开始实验<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;begin;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from t5;</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">| id   |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">|    1 |</span><br><span class="line">|    4 |</span><br><span class="line">|    7 |</span><br><span class="line">|   10 |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">4 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;select * from t5 where id=7 for update;</span></span><br><span class="line"><span class="emphasis">+------+</span></span><br><span class="line"><span class="emphasis">| id   |</span></span><br><span class="line"><span class="emphasis">+------+</span></span><br><span class="line"><span class="emphasis">|    7 |</span></span><br><span class="line"><span class="emphasis">+------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>B&gt;begin;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_B&gt;insert into t5 values(2);</span></span><br><span class="line"><span class="emphasis">Query OK, 1 row affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>B&gt;insert into t5 values(12);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_B&gt;insert into t5 values(5); --被阻塞</span></span><br><span class="line"><span class="emphasis">^CCtrl-C -- sending &quot;KILL QUERY 93&quot; to server ...</span></span><br><span class="line"><span class="emphasis">Ctrl-C -- query aborted.</span></span><br><span class="line"><span class="emphasis">^[[AERROR 1317 (70100): Query execution was interrupted</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>B&gt;insert into t5 values(7); --被阻塞</span><br><span class="line">^CCtrl-C -- sending &quot;KILL QUERY 93&quot; to server ...</span><br><span class="line">Ctrl-C -- query aborted.</span><br><span class="line">ERROR 1317 (70100): Query execution was interrupted</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_B&gt;insert into t5 values(9); --被阻塞</span></span><br><span class="line"><span class="emphasis">^CCtrl-C -- sending &quot;KILL QUERY 93&quot; to server ...</span></span><br><span class="line"><span class="emphasis">Ctrl-C -- query aborted.</span></span><br><span class="line"><span class="emphasis">ERROR 1317 (70100): Query execution was interrupted</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>B&gt;commit;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;select * from t5;</span></span><br><span class="line"><span class="emphasis">+------+</span></span><br><span class="line"><span class="emphasis">| id   |</span></span><br><span class="line"><span class="emphasis">+------+</span></span><br><span class="line"><span class="emphasis">|    1 |</span></span><br><span class="line"><span class="emphasis">|    4 |</span></span><br><span class="line"><span class="emphasis">|    7 |</span></span><br><span class="line"><span class="emphasis">|   10 |</span></span><br><span class="line"><span class="emphasis">+------+</span></span><br><span class="line"><span class="emphasis">4 rows in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;commit;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;select * from t5;</span></span><br><span class="line"><span class="emphasis">+------+</span></span><br><span class="line"><span class="emphasis">| id   |</span></span><br><span class="line"><span class="emphasis">+------+</span></span><br><span class="line"><span class="emphasis">|    1 |</span></span><br><span class="line"><span class="emphasis">|    2 |</span></span><br><span class="line"><span class="emphasis">|    4 |</span></span><br><span class="line"><span class="emphasis">|    7 |</span></span><br><span class="line"><span class="emphasis">|   10 |</span></span><br><span class="line"><span class="emphasis">|   12 |</span></span><br><span class="line"><span class="emphasis">+------+</span></span><br><span class="line"><span class="emphasis">6 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>当以当前读模式<code>select * from t5 where id=7 for update;</code>获取 id=7的数据时,产生了 Next-Key Lock,锁住了4-10范围和 id=7单个record<br>从而阻塞了 SESSION_B在这个范围内插入数据，而在除此之外的范围内是可以插入数据的。<br>在倒数第二个查询中,因为 read view 的存在，避免了我们看到 2和12两条数据，避免了幻读<br>同时因为 Next-Key Lock 的存在,阻塞了其他回话插入数据，因此当前模式读不会产生幻读(select for update 是以当前读模式获取数据)</p>
+<h3 id="尽量使用唯一索引-因为唯一索引会把Next-Key-Lock降级为Record-Lock"><a href="#尽量使用唯一索引-因为唯一索引会把Next-Key-Lock降级为Record-Lock" class="headerlink" title="尽量使用唯一索引,因为唯一索引会把Next-Key Lock降级为Record Lock"></a>尽量使用唯一索引,因为唯一索引会把Next-Key Lock降级为Record Lock</h3><h4 id="实验6"><a href="#实验6" class="headerlink" title="实验6"></a>实验6</h4><p>创建表<br>(mysql@localhost) [fandb]&gt; create table t6(id int primary key);<br>Query OK, 0 rows affected (0.02 sec)</p>
+<p>SESSION_A&gt;insert into t6 values(1),(4),(7),(10);<br>Query OK, 4 rows affected (0.00 sec)<br>Records: 4  Duplicates: 0  Warnings: 0</p>
+<p>开始实验<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;begin;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from t6;</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">| id |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">|  1 |</span><br><span class="line">|  4 |</span><br><span class="line">|  7 |</span><br><span class="line">| 10 |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">4 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;select * from t6 where id=7 for update;</span></span><br><span class="line"><span class="emphasis">+----+</span></span><br><span class="line"><span class="emphasis">| id |</span></span><br><span class="line"><span class="emphasis">+----+</span></span><br><span class="line"><span class="emphasis">|  7 |</span></span><br><span class="line"><span class="emphasis">+----+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>B&gt;begin;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_B&gt;insert into t6 values(5); --插入成功没有阻塞</span></span><br><span class="line"><span class="emphasis">Query OK, 1 row affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>B&gt;insert into t6 values(8); --插入成功没有阻塞</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_B&gt;commit;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from t6;</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">| id |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">|  1 |</span><br><span class="line">|  4 |</span><br><span class="line">|  7 |</span><br><span class="line">| 10 |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">4 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;commit;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from t6;</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">| id |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">|  1 |</span><br><span class="line">|  4 |</span><br><span class="line">|  5 |</span><br><span class="line">|  7 |</span><br><span class="line">|  8 |</span><br><span class="line">| 10 |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">6 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>当 id 列有唯一索引,Next-Key Lock 会降级为 Records Lock</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2016/12/12/MySQL(InnoDB)如何避免幻读/" target="_blank" title="MySQL(InnoDB)如何避免幻读">http://fuxkdb.com/2016/12/12/MySQL(InnoDB)如何避免幻读/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/12/13/Innodb%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          Innodb事务隔离级别
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/07/31/Auto_increment%E8%AF%A6%E8%A7%A3/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Auto_increment详解</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%BB%E8%AF%BBPhantom-Rows"><span class="nav-number">1.</span> <span class="nav-text">幻读Phantom Rows</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#read-view-%E6%88%96%E8%80%85%E8%AF%B4-MVCC-%E5%AE%9E%E7%8E%B0%E4%BA%86%E4%B8%80%E8%87%B4%E6%80%A7%E4%B8%8D%E9%94%81%E5%AE%9A%E8%AF%BB-Consistent-Nonlocking-Reads-%EF%BC%8C%E4%BB%8E%E8%80%8C%E9%81%BF%E5%85%8D%E4%BA%86%E5%B9%BB%E8%AF%BB"><span class="nav-number">2.</span> <span class="nav-text">read view(或者说 MVCC)实现了一致性不锁定读(Consistent Nonlocking Reads)，从而避免了幻读</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C1"><span class="nav-number">2.1.</span> <span class="nav-text">实验1:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C2"><span class="nav-number">2.2.</span> <span class="nav-text">实验2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C3"><span class="nav-number">2.3.</span> <span class="nav-text">实验3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C4"><span class="nav-number">2.4.</span> <span class="nav-text">实验4</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#InnoDB%E9%80%9A%E8%BF%87Nextkey-lock%E8%A7%A3%E5%86%B3%E4%BA%86%E5%BD%93%E5%89%8D%E8%AF%BB%E6%97%B6%E7%9A%84%E5%B9%BB%E8%AF%BB%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">InnoDB通过Nextkey lock解决了当前读时的幻读问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C5"><span class="nav-number">3.1.</span> <span class="nav-text">实验5</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8%E5%94%AF%E4%B8%80%E7%B4%A2%E5%BC%95-%E5%9B%A0%E4%B8%BA%E5%94%AF%E4%B8%80%E7%B4%A2%E5%BC%95%E4%BC%9A%E6%8A%8ANext-Key-Lock%E9%99%8D%E7%BA%A7%E4%B8%BARecord-Lock"><span class="nav-number">4.</span> <span class="nav-text">尽量使用唯一索引,因为唯一索引会把Next-Key Lock降级为Record Lock</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C6"><span class="nav-number">4.1.</span> <span class="nav-text">实验6</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

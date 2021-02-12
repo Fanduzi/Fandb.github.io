@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>译文 clickhouse materialized views illuminated, part 1 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="ClickHouse物化视图" />
+  
+  
+  
+  
+  <meta name="description" content="ClickHouse Materialized Views Illuminated, Part 1 Altinity blog的读者们知道我们喜欢ClickHouse的物化视图. 物化视图可以实现聚合计算, 从Kafka读取数据, 实现最后点查询(last point queries)以及重组表主键索引和排序顺序. 除了这些功能之外, 物化视图可以在大量节点上很好地扩缩, 并可以处理大型数据集.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="译文 ClickHouse Materialized Views Illuminated, Part 1">
+<meta property="og:url" content="http://fuxkdb.com/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-1/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="ClickHouse Materialized Views Illuminated, Part 1 Altinity blog的读者们知道我们喜欢ClickHouse的物化视图. 物化视图可以实现聚合计算, 从Kafka读取数据, 实现最后点查询(last point queries)以及重组表主键索引和排序顺序. 除了这些功能之外, 物化视图可以在大量节点上很好地扩缩, 并可以处理大型数据集.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://altinity.com/wp-content/uploads/2020/02/4c9e8-stockvault-abstract-background-big-data-concept264047.jpg">
+<meta property="og:image" content="https://altinity.com/wp-content/uploads/2019/09/9a01c-summingmergetree-diagram.png">
+<meta property="article:published_time" content="2020-08-23T11:04:00.000Z">
+<meta property="article:modified_time" content="2020-08-23T11:04:57.497Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="ClickHouse">
+<meta property="article:tag" content="物化视图">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://altinity.com/wp-content/uploads/2020/02/4c9e8-stockvault-abstract-background-big-data-concept264047.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-1" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      译文 ClickHouse Materialized Views Illuminated, Part 1
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-1/" class="article-date">
+	  <time datetime="2020-08-23T11:04:00.000Z" itemprop="datePublished">2020-08-23</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-1"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-1" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 1"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">ClickHouse Materialized Views Illuminated, Part 1</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/4c9e8-stockvault-abstract-background-big-data-concept264047.jpg" alt="header"></p>
+<p><a target="_blank" rel="noopener" href="https://altinity.com/blog/">Altinity blog</a>的读者们知道我们喜欢ClickHouse的<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/sql-reference/statements/create/view/#materialized">物化视图</a>. 物化视图可以实现聚合计算, 从Kafka读取数据, 实现最后点查询(last point queries)以及重组表主键索引和排序顺序. 除了这些功能之外, 物化视图可以在大量节点上很好地扩缩, 并可以处理大型数据集. 它们是ClickHouse的独特功能之一.</p>
+<p>在计算领域, 强大的功能至少意味着一点点复杂性. 这篇由两部分组成的文章通过解释物化视图的工作原理来填补空白, 从而使初学者也可以有效地使用它们. 我们将通过几个详细的示例, 您可以根据自己的使用进行调整. 在此过程中, 我们将探索用于创建视图的语法的确切含义, 并让您深入了解ClickHouse在做什么.  示例是完全自包含的, 因此您可以将它们复制/粘贴到clickhouse-client中并自己运行它们.<br><a id="more"></a></p>
+<h2 id="How-Materialized-Views-Work-Computing-Sums"><a href="#How-Materialized-Views-Work-Computing-Sums" class="headerlink" title="How Materialized Views Work: Computing Sums"></a>How Materialized Views Work: Computing Sums</h2><p>ClickHouse物化视图自动在表之间转换数据. 它们类似于触发器, 对插入的行运行查询并将结果存入第二个表. 让我们看一个基本的例子. 假设我们有一个记录用户下载的表, 如下所示.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> download (</span><br><span class="line">  <span class="keyword">when</span> DateTime,</span><br><span class="line">  userid UInt32,</span><br><span class="line">  <span class="keyword">bytes</span> Float32</span><br><span class="line">) <span class="keyword">ENGINE</span>=MergeTree</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> toYYYYMM(<span class="keyword">when</span>)</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> (userid, <span class="keyword">when</span>)</span><br></pre></td></tr></table></figure>
+<p>我们希望跟踪每个用户的每日下载. 让我们看看如何用一个查询来做到这一点. 首先, 我们需要为单个用户向表中添加一些数据.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> download</span><br><span class="line">  <span class="keyword">SELECT</span></span><br><span class="line">    <span class="keyword">now</span>() + <span class="built_in">number</span> * <span class="number">60</span> <span class="keyword">as</span> <span class="keyword">when</span>,</span><br><span class="line">    <span class="number">25</span>,</span><br><span class="line">    <span class="keyword">rand</span>() % <span class="number">100000000</span></span><br><span class="line">  <span class="keyword">FROM</span> system.numbers</span><br><span class="line">  <span class="keyword">LIMIT</span> <span class="number">5000</span></span><br></pre></td></tr></table></figure>
+<p>接下来, 让我们运行一个查询来显示该用户的每日下载. 当添加新用户时, 这也将正常工作. </p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">SELECT </span><br><span class="line">    toStartOfDay(when) AS day, </span><br><span class="line">    userid, </span><br><span class="line">    count() AS downloads, </span><br><span class="line">    sum(bytes) AS bytes</span><br><span class="line">FROM download</span><br><span class="line">GROUP BY </span><br><span class="line">    userid, </span><br><span class="line">    day</span><br><span class="line">ORDER BY </span><br><span class="line">    userid ASC, </span><br><span class="line">    day ASC</span><br><span class="line"></span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬───────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">736</span> │ <span class="number">36722522631</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">73305428060</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">73183910537</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1384</span> │ <span class="number">70059352697</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴─────────────┘</span><br></pre></td></tr></table></figure>
+<p>我们可以通过每次运行查询以交互方式为应用程序计算这些每日总数, 但是对于大型表, 提前计算它们将更快, 更节省资源.  因此, 最好将结果放在单独的表格中, 该表格可以连续跟踪每天每个用户的下载总数.  我们可以使用以下物化视图来做到这一点. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">MATERIALIZED</span> <span class="keyword">VIEW</span> download_daily_mv</span><br><span class="line"><span class="keyword">ENGINE</span> = SummingMergeTree</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> toYYYYMM(<span class="keyword">day</span>) <span class="keyword">ORDER</span> <span class="keyword">BY</span> (userid, <span class="keyword">day</span>)</span><br><span class="line">POPULATE</span><br><span class="line"><span class="keyword">AS</span> <span class="keyword">SELECT</span></span><br><span class="line">  toStartOfDay(<span class="keyword">when</span>) <span class="keyword">AS</span> <span class="keyword">day</span>,</span><br><span class="line">  userid,</span><br><span class="line">  <span class="keyword">count</span>() <span class="keyword">as</span> downloads,</span><br><span class="line">  <span class="keyword">sum</span>(<span class="keyword">bytes</span>) <span class="keyword">AS</span> <span class="keyword">bytes</span></span><br><span class="line"><span class="keyword">FROM</span> download</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> userid, <span class="keyword">day</span></span><br></pre></td></tr></table></figure>
+<p>这里有三件重要的事情需要注意. 首先, 物化视图定义允许类似于CREATE TABLE的语法, 这是有意义的, 因为这个命令将实际创建一个隐藏的目标表(.inner表)来保存视图数据. 我们使用的ClickHouse引擎旨在使计算和计数变得简单:<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/engines/table-engines/mergetree-family/summingmergetree/">SummingMergeTree</a>. 它是用于计算聚合的物化视图的推荐引擎. </p>
+<p>其次, 视图定义包含关键字POPULATE. 这告诉ClickHouse将<code>download</code>表中的现有数据插入物化视图. 我们稍后会更多地讨论automatic population. </p>
+<blockquote>
+<p>需要注意, 在<code>POPULATE</code>填充历史数据的期间, 新进入的这部分数据会被忽略掉, 所以如果对准确性要求非常高, 应慎用</p>
+</blockquote>
+<p>第三, 视图定义包含一个SELECT语句, 该语句定义在加载视图时如何转换数据. 这个查询在表中的新数据上运行, 以计算每天每个用户id的下载数量和总字节数. 它本质上与我们以交互方式运行的查询相同, 只是在本例中, 结果将放在隐藏的目标表(.inner表)中. 我们可以跳过排序, 因为视图定义已经确保了排序顺序. </p>
+<p>现在, 我们从物化视图中查询数据</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM download_daily_mv</span><br><span class="line">ORDER BY day, userid </span><br><span class="line">LIMIT <span class="number">5</span></span><br><span class="line"></span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬───────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">736</span> │ <span class="number">36722522631</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">73305428060</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">73183910537</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1384</span> │ <span class="number">70059352697</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴─────────────┘</span><br></pre></td></tr></table></figure>
+<p>这为我们提供了与先前查询完全相同的答案.  原因是上面介绍的POPULATE关键字.  它确保源表中的现有数据自动加载到视图中.  不过, 有一个重要警告：如果在填充视图时插入了新数据, ClickHouse将会丢失它们.  在本系列的第二部分中, 我们将展示如何手动插入数据并避免数据遗漏的问题. </p>
+<p>现在, 尝试使用其他用户向表中添加更多数据. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> download</span><br><span class="line">  <span class="keyword">SELECT</span></span><br><span class="line">    <span class="keyword">now</span>() + <span class="built_in">number</span> * <span class="number">60</span> <span class="keyword">as</span> <span class="keyword">when</span>,</span><br><span class="line">    <span class="number">22</span>,</span><br><span class="line">    <span class="keyword">rand</span>() % <span class="number">100000000</span></span><br><span class="line">  <span class="keyword">FROM</span> system.numbers</span><br><span class="line">  <span class="keyword">LIMIT</span> <span class="number">5000</span></span><br></pre></td></tr></table></figure>
+<p>如果您从实例化视图中进行选择, 您将看到它现在具有用户ID 22和25的总数. 请注意, 一旦INSERT完成, 将立即填充新数据.  这是ClickHouse实例化视图的重要功能, 这使其对于实时分析非常有用. </p>
+<p>下面是查询和新结果. </p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">SELECT *</span><br><span class="line">FROM download_daily_mv</span><br><span class="line">ORDER BY </span><br><span class="line">    userid ASC, </span><br><span class="line">    day ASC</span><br><span class="line"></span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬───────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │       <span class="number">416</span> │ <span class="number">21063519801</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │      <span class="number">1440</span> │ <span class="number">71523929305</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │      <span class="number">1440</span> │ <span class="number">70435459582</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │      <span class="number">1440</span> │ <span class="number">70725673036</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-22</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │       <span class="number">264</span> │ <span class="number">13826466067</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴─────────────┘</span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬────────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1467</span> │  <span class="number">75441118166</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">2880</span> │ <span class="number">144811386193</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">2880</span> │ <span class="number">145138479865</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">2773</span> │ <span class="number">138488485955</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴──────────────┘</span><br></pre></td></tr></table></figure>
+<p>作为练习, 您可以对源表运行原始查询, 以确认它与物化视图中的总数相匹配. </p>
+<p>作为最后一个示例, 让我们使用物化视图按月汇总. 在本例中, 我们将物化视图视为一个普通表, 按月分组, 如下所示. 我们添加了WITH TOTALS子句, 它打印一个方便的聚合的总和. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    toStartOfMonth(<span class="keyword">day</span>) <span class="keyword">AS</span> <span class="keyword">month</span>, </span><br><span class="line">    userid, </span><br><span class="line">    <span class="keyword">sum</span>(downloads), </span><br><span class="line">    <span class="keyword">sum</span>(<span class="keyword">bytes</span>)</span><br><span class="line"><span class="keyword">FROM</span> download_daily_mv</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> </span><br><span class="line">    userid, </span><br><span class="line">    <span class="keyword">month</span></span><br><span class="line">    <span class="keyword">WITH</span> TOTALS</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> </span><br><span class="line">    userid <span class="keyword">ASC</span>, </span><br><span class="line">    <span class="keyword">month</span> <span class="keyword">ASC</span></span><br><span class="line"></span><br><span class="line">┌──────<span class="keyword">month</span>─┬─userid─┬─<span class="keyword">sum</span>(downloads)─┬───<span class="keyword">sum</span>(<span class="keyword">bytes</span>)─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-01</span> │     <span class="number">22</span> │           <span class="number">5000</span> │ <span class="number">247575047791</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-01</span> │     <span class="number">25</span> │          <span class="number">10000</span> │ <span class="number">503879470179</span> │</span><br><span class="line">└────────────┴────────┴────────────────┴──────────────┘</span><br><span class="line"></span><br><span class="line">Extremes:</span><br><span class="line">┌──────<span class="keyword">month</span>─┬─userid─┬─<span class="keyword">sum</span>(downloads)─┬───<span class="keyword">sum</span>(<span class="keyword">bytes</span>)─┐</span><br><span class="line">│ <span class="number">0000</span><span class="number">-00</span><span class="number">-00</span> │      <span class="number">0</span> │          <span class="number">15000</span> │ <span class="number">751454517970</span> │</span><br><span class="line">└────────────┴────────┴────────────────┴──────────────┘</span><br></pre></td></tr></table></figure>
+<p>从前面的示例中, 我们可以清楚地看到实例化视图如何正确地汇总源数据中的数据(how the materialized view correctly summarizes data from the source data).  如上例所示, 我们甚至可以“summarize the summaries”.  那么幕后到底发生了什么？ 下图说明了数据的逻辑流. </p>
+<p><img src="https://altinity.com/wp-content/uploads/2019/09/9a01c-summingmergetree-diagram.png" alt="logical"></p>
+<p>如图所示, 原表上INSERT的值被转换并应用于隐藏的目标表(.inner表). 要填充视图(To populate the view), 您要做的就是在源表中插入数据.</p>
+<p>您可以从隐藏的目标表(.inner表)和物化视图中进行查询. 实际上ClickHouse就是将查询路由到创建物化视图时自动创建的internel表中的.</p>
+<p>图中还有另外一件重要的事情需要注意. 物化视图创建一个具有特殊名称私有表来保存数据. 如果您通过输入<code>DROP TABLE download_daily_mv</code>删除物化视图, 则私有表也会被删除. 如果需要更改视图, 则需要将其删除并使用新数据重新创建</p>
+<blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">SHOW TABLES</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">┌─name─────────────────────┐</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">│ .inner.download_daily_mv │</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">│ download                 │</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">│ download_daily_mv        │</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">└──────────────────────────┘</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>.inner.download_daily_mv就是 internel表或叫私有表</p>
+</blockquote>
+<h2 id="Wrap-up-总结"><a href="#Wrap-up-总结" class="headerlink" title="Wrap-up - 总结"></a>Wrap-up - 总结</h2><p>我们刚刚审阅的示例使用SummingMergeTree创建一个视图以累加每日用户下载量.  我们从物化视图对SELECT使用了标准SQL语法.  这是SummingMergeTree引擎的特殊功能, 仅适用于总和和计数.  对于其他类型的聚合, 我们需要使用其他方法. </p>
+<p>另外, 我们的示例使用POPULATE关键字将现有表数据发布到视图创建的私有目标表(.inner表)中.  如果在填充视图时到达新的INSERT行, ClickHouse将错过它们.  当您是唯一使用数据集的人时, 此限制很容易解决, 但对于不断加载数据的生产系统来说是个问题.  此外, 删除视图后, 专用表也会消失.  这使得很难更改视图以适应源表中的架构更改. </p>
+<p>在下一篇文章中, 我们将展示如何创建物化视图来计算其他类型的聚合, 比如平均值或最大值/最小值. 我们还将展示如何显式定义目标表(.inner表), 并使用我们自己的SQL语句手动将数据加载到其中. 我们还将简要介绍模式迁移(schema migration). 同时, 我们希望您喜欢这一简要介绍, 并发现示例有用. </p>
+<h1 id="实测及问题"><a href="#实测及问题" class="headerlink" title="实测及问题"></a>实测及问题</h1><h2 id="删除基表-物化视图仍然可以查询"><a href="#删除基表-物化视图仍然可以查询" class="headerlink" title="删除基表, 物化视图仍然可以查询"></a>删除基表, 物化视图仍然可以查询</h2><p>这是符合预期的, 因为物化视图是存储了数据的</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">bj2-all-clickhouse-test<span class="number">-02</span> :) drop table download;</span><br><span class="line"></span><br><span class="line">DROP TABLE download</span><br><span class="line"></span><br><span class="line">Ok.</span><br><span class="line"></span><br><span class="line"><span class="number">0</span> rows <span class="keyword">in</span> <span class="keyword">set</span>. Elapsed: <span class="number">0.016</span> sec. </span><br><span class="line"></span><br><span class="line">bj2-all-clickhouse-test<span class="number">-02</span> :) show tables;</span><br><span class="line"></span><br><span class="line">SHOW TABLES</span><br><span class="line"></span><br><span class="line">┌─name─────────────────────┐</span><br><span class="line">│ .inner.download_daily_mv │</span><br><span class="line">│ download_daily_mv        │</span><br><span class="line">│ sbtest                   │</span><br><span class="line">│ sbtest_local             │</span><br><span class="line">└──────────────────────────┘</span><br><span class="line"></span><br><span class="line"><span class="number">4</span> rows <span class="keyword">in</span> <span class="keyword">set</span>. Elapsed: <span class="number">0.001</span> sec. </span><br><span class="line"></span><br><span class="line">bj2-all-clickhouse-test<span class="number">-02</span> :) select * <span class="keyword">from</span> download_daily_mv;</span><br><span class="line"></span><br><span class="line">SELECT *</span><br><span class="line">FROM download_daily_mv</span><br><span class="line"></span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬────────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1467</span> │  <span class="number">75441118166</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">2880</span> │ <span class="number">144811386193</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">2880</span> │ <span class="number">145138479865</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">2773</span> │ <span class="number">138488485955</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴──────────────┘</span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬───────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │       <span class="number">416</span> │ <span class="number">21063519801</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │      <span class="number">1440</span> │ <span class="number">71523929305</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │      <span class="number">1440</span> │ <span class="number">70435459582</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │      <span class="number">1440</span> │ <span class="number">70725673036</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-22</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">22</span> │       <span class="number">264</span> │ <span class="number">13826466067</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴─────────────┘</span><br><span class="line"></span><br><span class="line"><span class="number">9</span> rows <span class="keyword">in</span> <span class="keyword">set</span>. Elapsed: <span class="number">0.008</span> sec. </span><br></pre></td></tr></table></figure>
+<h2 id="数据在分区合并时聚合"><a href="#数据在分区合并时聚合" class="headerlink" title="数据在分区合并时聚合"></a>数据在分区合并时聚合</h2><p>重新创建download表和物化视图</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">SELECT </span><br><span class="line">    toStartOfDay(when) AS day, </span><br><span class="line">    userid, </span><br><span class="line">    count() AS downloads, </span><br><span class="line">    sum(bytes) AS bytes</span><br><span class="line">FROM download</span><br><span class="line">GROUP BY </span><br><span class="line">    userid, </span><br><span class="line">    day</span><br><span class="line">ORDER BY </span><br><span class="line">    userid ASC, </span><br><span class="line">    day ASC</span><br><span class="line"></span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬───────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">387</span> │ <span class="number">19855551536</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">73316885071</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">72322018002</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">71675677053</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-22</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">293</span> │ <span class="number">14125612942</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴─────────────┘</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">SELECT *</span><br><span class="line">FROM download_daily_mv</span><br><span class="line"></span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬───────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">387</span> │ <span class="number">19855551536</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">73316885071</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">72322018002</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">71675677053</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-22</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">293</span> │ <span class="number">14125612942</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴─────────────┘</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>再次向基表中插入数据, 然后查看物化视图中的数据</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">INSERT INTO download SELECT </span><br><span class="line">    now() + (number * <span class="number">60</span>) AS when, </span><br><span class="line">    <span class="number">25</span>, </span><br><span class="line">    rand() % <span class="number">100000000</span></span><br><span class="line">FROM system.numbers</span><br><span class="line">LIMIT <span class="number">5000</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">SELECT *</span><br><span class="line">FROM download_daily_mv</span><br><span class="line"></span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬───────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">387</span> │ <span class="number">19855551536</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">73316885071</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">72322018002</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">71675677053</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-22</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">293</span> │ <span class="number">14125612942</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴─────────────┘</span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬───────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">385</span> │ <span class="number">18771807859</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">73675739078</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">70555293899</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">1440</span> │ <span class="number">70773685728</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-22</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">295</span> │ <span class="number">14750186600</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴─────────────┘</span><br></pre></td></tr></table></figure>
+<p>可以看到物化视图中的数据并没有”全部聚合完整”</p>
+<p>查看物化视图private表分区情况</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">bj2-all-clickhouse-test-02</span> <span class="string">:)</span> <span class="string">select</span> <span class="string">*</span> <span class="string">from</span> <span class="string">system.parts</span> <span class="string">where</span> <span class="string">table=&#x27;.inner.download_daily_mv&#x27;\G</span></span><br><span class="line"></span><br><span class="line"><span class="string">SELECT</span> <span class="string">*</span></span><br><span class="line"><span class="string">FROM</span> <span class="string">system.parts</span></span><br><span class="line"><span class="string">WHERE</span> <span class="string">table</span> <span class="string">=</span> <span class="string">&#x27;.inner.download_daily_mv&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">Row 1:</span></span><br><span class="line"><span class="string">──────</span></span><br><span class="line"><span class="attr">partition:</span>                             <span class="number">202008</span></span><br><span class="line"><span class="attr">name:</span>                                  <span class="string">202008_1_1_0</span></span><br><span class="line"><span class="attr">part_type:</span>                             <span class="string">Wide</span></span><br><span class="line"><span class="attr">active:</span>                                <span class="number">1</span></span><br><span class="line"><span class="attr">marks:</span>                                 <span class="number">2</span></span><br><span class="line"><span class="attr">rows:</span>                                  <span class="number">5</span></span><br><span class="line"><span class="attr">bytes_on_disk:</span>                         <span class="number">421</span></span><br><span class="line"><span class="attr">data_compressed_bytes:</span>                 <span class="number">200</span></span><br><span class="line"><span class="attr">data_uncompressed_bytes:</span>               <span class="number">120</span></span><br><span class="line"><span class="attr">marks_bytes:</span>                           <span class="number">192</span></span><br><span class="line"><span class="attr">modification_time:</span>                     <span class="number">2020-08-18 17:33:51</span></span><br><span class="line"><span class="attr">remove_time:</span>                           <span class="number">0000-00-00 00:00:00</span></span><br><span class="line"><span class="attr">refcount:</span>                              <span class="number">1</span></span><br><span class="line"><span class="attr">min_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">max_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">min_time:</span>                              <span class="number">2020-08-18 00:00:00</span></span><br><span class="line"><span class="attr">max_time:</span>                              <span class="number">2020-08-22 00:00:00</span></span><br><span class="line"><span class="attr">partition_id:</span>                          <span class="number">202008</span></span><br><span class="line"><span class="attr">min_block_number:</span>                      <span class="number">1</span></span><br><span class="line"><span class="attr">max_block_number:</span>                      <span class="number">1</span></span><br><span class="line"><span class="attr">level:</span>                                 <span class="number">0</span></span><br><span class="line"><span class="attr">data_version:</span>                          <span class="number">1</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory:</span>           <span class="number">16</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory_allocated:</span> <span class="number">8192</span></span><br><span class="line"><span class="attr">is_frozen:</span>                             <span class="number">0</span></span><br><span class="line"><span class="attr">database:</span>                              <span class="string">duyalan</span></span><br><span class="line"><span class="attr">table:</span>                                 <span class="string">.inner.download_daily_mv</span></span><br><span class="line"><span class="attr">engine:</span>                                <span class="string">SummingMergeTree</span></span><br><span class="line"><span class="attr">disk_name:</span>                             <span class="string">default</span></span><br><span class="line"><span class="attr">path:</span>                                  <span class="string">/data/clickhouse/node2/data/duyalan/%2Einner%2Edownload_daily_mv/202008_1_1_0/</span></span><br><span class="line"><span class="attr">hash_of_all_files:</span>                     <span class="string">f4b55a88dac393d25ffe1c703cca4f6d</span></span><br><span class="line"><span class="attr">hash_of_uncompressed_files:</span>            <span class="string">58a4ab29ef36c22884ee7accd528b590</span></span><br><span class="line"><span class="attr">uncompressed_hash_of_compressed_files:</span> <span class="string">e18b006f608580db132ed90adb46902f</span></span><br><span class="line"></span><br><span class="line"><span class="attr">Row 2:</span></span><br><span class="line"><span class="string">──────</span></span><br><span class="line"><span class="attr">partition:</span>                             <span class="number">202008</span></span><br><span class="line"><span class="attr">name:</span>                                  <span class="string">202008_2_2_0</span></span><br><span class="line"><span class="attr">part_type:</span>                             <span class="string">Wide</span></span><br><span class="line"><span class="attr">active:</span>                                <span class="number">1</span></span><br><span class="line"><span class="attr">marks:</span>                                 <span class="number">2</span></span><br><span class="line"><span class="attr">rows:</span>                                  <span class="number">5</span></span><br><span class="line"><span class="attr">bytes_on_disk:</span>                         <span class="number">421</span></span><br><span class="line"><span class="attr">data_compressed_bytes:</span>                 <span class="number">200</span></span><br><span class="line"><span class="attr">data_uncompressed_bytes:</span>               <span class="number">120</span></span><br><span class="line"><span class="attr">marks_bytes:</span>                           <span class="number">192</span></span><br><span class="line"><span class="attr">modification_time:</span>                     <span class="number">2020-08-18 17:35:13</span></span><br><span class="line"><span class="attr">remove_time:</span>                           <span class="number">0000-00-00 00:00:00</span></span><br><span class="line"><span class="attr">refcount:</span>                              <span class="number">1</span></span><br><span class="line"><span class="attr">min_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">max_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">min_time:</span>                              <span class="number">2020-08-18 00:00:00</span></span><br><span class="line"><span class="attr">max_time:</span>                              <span class="number">2020-08-22 00:00:00</span></span><br><span class="line"><span class="attr">partition_id:</span>                          <span class="number">202008</span></span><br><span class="line"><span class="attr">min_block_number:</span>                      <span class="number">2</span></span><br><span class="line"><span class="attr">max_block_number:</span>                      <span class="number">2</span></span><br><span class="line"><span class="attr">level:</span>                                 <span class="number">0</span></span><br><span class="line"><span class="attr">data_version:</span>                          <span class="number">2</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory:</span>           <span class="number">16</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory_allocated:</span> <span class="number">8192</span></span><br><span class="line"><span class="attr">is_frozen:</span>                             <span class="number">0</span></span><br><span class="line"><span class="attr">database:</span>                              <span class="string">duyalan</span></span><br><span class="line"><span class="attr">table:</span>                                 <span class="string">.inner.download_daily_mv</span></span><br><span class="line"><span class="attr">engine:</span>                                <span class="string">SummingMergeTree</span></span><br><span class="line"><span class="attr">disk_name:</span>                             <span class="string">default</span></span><br><span class="line"><span class="attr">path:</span>                                  <span class="string">/data/clickhouse/node2/data/duyalan/%2Einner%2Edownload_daily_mv/202008_2_2_0/</span></span><br><span class="line"><span class="attr">hash_of_all_files:</span>                     <span class="string">049d090ea65c24be8544ab86846ea9fa</span></span><br><span class="line"><span class="attr">hash_of_uncompressed_files:</span>            <span class="string">58a4ab29ef36c22884ee7accd528b590</span></span><br><span class="line"><span class="attr">uncompressed_hash_of_compressed_files:</span> <span class="string">9ffea93e6b9bc375c7f04374b4a4a6a9</span></span><br><span class="line"></span><br><span class="line"><span class="attr">2 rows in set. Elapsed:</span> <span class="number">0.002</span> <span class="string">sec.</span> </span><br></pre></td></tr></table></figure>
+<p>可以看到, 有两个active分区<code>202008_1_1_0</code>, <code>202008_2_2_0</code></p>
+<p>我们手动<code>OPTIMIZE</code>尝试合并分区</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">bj2-all-clickhouse-test-02 :) <span class="keyword">optimize</span> <span class="keyword">table</span> download_daily_mv;</span><br><span class="line"></span><br><span class="line"><span class="keyword">OPTIMIZE</span> <span class="keyword">TABLE</span> download_daily_mv</span><br><span class="line"></span><br><span class="line">Ok.</span><br><span class="line"></span><br><span class="line"><span class="number">0</span> <span class="keyword">rows</span> <span class="keyword">in</span> set. Elapsed: <span class="number">0.004</span> sec. </span><br></pre></td></tr></table></figure>
+<p>再次查询物化视图数据</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">bj2-all-clickhouse-test<span class="number">-02</span> :) select * <span class="keyword">from</span> download_daily_mv;</span><br><span class="line"></span><br><span class="line">SELECT *</span><br><span class="line">FROM download_daily_mv</span><br><span class="line"></span><br><span class="line">┌─────────────────day─┬─userid─┬─downloads─┬────────bytes─┐</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-18</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">772</span> │  <span class="number">38627359395</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-19</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">2880</span> │ <span class="number">146992624149</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-20</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">2880</span> │ <span class="number">142877311901</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-21</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │      <span class="number">2880</span> │ <span class="number">142449362781</span> │</span><br><span class="line">│ <span class="number">2020</span><span class="number">-08</span><span class="number">-22</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> │     <span class="number">25</span> │       <span class="number">588</span> │  <span class="number">28875799542</span> │</span><br><span class="line">└─────────────────────┴────────┴───────────┴──────────────┘</span><br><span class="line"></span><br><span class="line"><span class="number">5</span> rows <span class="keyword">in</span> <span class="keyword">set</span>. Elapsed: <span class="number">0.001</span> sec. </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>查看private表分区情况</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">bj2-all-clickhouse-test-02</span> <span class="string">:)</span> <span class="string">select</span> <span class="string">*</span> <span class="string">from</span> <span class="string">system.parts</span> <span class="string">where</span> <span class="string">table=&#x27;.inner.download_daily_mv&#x27;\G</span></span><br><span class="line"></span><br><span class="line"><span class="string">SELECT</span> <span class="string">*</span></span><br><span class="line"><span class="string">FROM</span> <span class="string">system.parts</span></span><br><span class="line"><span class="string">WHERE</span> <span class="string">table</span> <span class="string">=</span> <span class="string">&#x27;.inner.download_daily_mv&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">Row 1:</span></span><br><span class="line"><span class="string">──────</span></span><br><span class="line"><span class="attr">partition:</span>                             <span class="number">202008</span></span><br><span class="line"><span class="attr">name:</span>                                  <span class="string">202008_1_1_0</span></span><br><span class="line"><span class="attr">part_type:</span>                             <span class="string">Wide</span></span><br><span class="line"><span class="attr">active:</span>                                <span class="number">0</span></span><br><span class="line"><span class="attr">marks:</span>                                 <span class="number">2</span></span><br><span class="line"><span class="attr">rows:</span>                                  <span class="number">5</span></span><br><span class="line"><span class="attr">bytes_on_disk:</span>                         <span class="number">421</span></span><br><span class="line"><span class="attr">data_compressed_bytes:</span>                 <span class="number">200</span></span><br><span class="line"><span class="attr">data_uncompressed_bytes:</span>               <span class="number">120</span></span><br><span class="line"><span class="attr">marks_bytes:</span>                           <span class="number">192</span></span><br><span class="line"><span class="attr">modification_time:</span>                     <span class="number">2020-08-18 17:33:51</span></span><br><span class="line"><span class="attr">remove_time:</span>                           <span class="number">2020-08-18 17:38:24</span></span><br><span class="line"><span class="attr">refcount:</span>                              <span class="number">1</span></span><br><span class="line"><span class="attr">min_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">max_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">min_time:</span>                              <span class="number">2020-08-18 00:00:00</span></span><br><span class="line"><span class="attr">max_time:</span>                              <span class="number">2020-08-22 00:00:00</span></span><br><span class="line"><span class="attr">partition_id:</span>                          <span class="number">202008</span></span><br><span class="line"><span class="attr">min_block_number:</span>                      <span class="number">1</span></span><br><span class="line"><span class="attr">max_block_number:</span>                      <span class="number">1</span></span><br><span class="line"><span class="attr">level:</span>                                 <span class="number">0</span></span><br><span class="line"><span class="attr">data_version:</span>                          <span class="number">1</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory:</span>           <span class="number">16</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory_allocated:</span> <span class="number">8192</span></span><br><span class="line"><span class="attr">is_frozen:</span>                             <span class="number">0</span></span><br><span class="line"><span class="attr">database:</span>                              <span class="string">duyalan</span></span><br><span class="line"><span class="attr">table:</span>                                 <span class="string">.inner.download_daily_mv</span></span><br><span class="line"><span class="attr">engine:</span>                                <span class="string">SummingMergeTree</span></span><br><span class="line"><span class="attr">disk_name:</span>                             <span class="string">default</span></span><br><span class="line"><span class="attr">path:</span>                                  <span class="string">/data/clickhouse/node2/data/duyalan/%2Einner%2Edownload_daily_mv/202008_1_1_0/</span></span><br><span class="line"><span class="attr">hash_of_all_files:</span>                     <span class="string">f4b55a88dac393d25ffe1c703cca4f6d</span></span><br><span class="line"><span class="attr">hash_of_uncompressed_files:</span>            <span class="string">58a4ab29ef36c22884ee7accd528b590</span></span><br><span class="line"><span class="attr">uncompressed_hash_of_compressed_files:</span> <span class="string">e18b006f608580db132ed90adb46902f</span></span><br><span class="line"></span><br><span class="line"><span class="attr">Row 2:</span></span><br><span class="line"><span class="string">──────</span></span><br><span class="line"><span class="attr">partition:</span>                             <span class="number">202008</span></span><br><span class="line"><span class="attr">name:</span>                                  <span class="string">202008_1_2_1</span></span><br><span class="line"><span class="attr">part_type:</span>                             <span class="string">Wide</span></span><br><span class="line"><span class="attr">active:</span>                                <span class="number">1</span></span><br><span class="line"><span class="attr">marks:</span>                                 <span class="number">2</span></span><br><span class="line"><span class="attr">rows:</span>                                  <span class="number">5</span></span><br><span class="line"><span class="attr">bytes_on_disk:</span>                         <span class="number">421</span></span><br><span class="line"><span class="attr">data_compressed_bytes:</span>                 <span class="number">200</span></span><br><span class="line"><span class="attr">data_uncompressed_bytes:</span>               <span class="number">120</span></span><br><span class="line"><span class="attr">marks_bytes:</span>                           <span class="number">192</span></span><br><span class="line"><span class="attr">modification_time:</span>                     <span class="number">2020-08-18 17:38:24</span></span><br><span class="line"><span class="attr">remove_time:</span>                           <span class="number">0000-00-00 00:00:00</span></span><br><span class="line"><span class="attr">refcount:</span>                              <span class="number">1</span></span><br><span class="line"><span class="attr">min_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">max_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">min_time:</span>                              <span class="number">2020-08-18 00:00:00</span></span><br><span class="line"><span class="attr">max_time:</span>                              <span class="number">2020-08-22 00:00:00</span></span><br><span class="line"><span class="attr">partition_id:</span>                          <span class="number">202008</span></span><br><span class="line"><span class="attr">min_block_number:</span>                      <span class="number">1</span></span><br><span class="line"><span class="attr">max_block_number:</span>                      <span class="number">2</span></span><br><span class="line"><span class="attr">level:</span>                                 <span class="number">1</span></span><br><span class="line"><span class="attr">data_version:</span>                          <span class="number">1</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory:</span>           <span class="number">16</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory_allocated:</span> <span class="number">8192</span></span><br><span class="line"><span class="attr">is_frozen:</span>                             <span class="number">0</span></span><br><span class="line"><span class="attr">database:</span>                              <span class="string">duyalan</span></span><br><span class="line"><span class="attr">table:</span>                                 <span class="string">.inner.download_daily_mv</span></span><br><span class="line"><span class="attr">engine:</span>                                <span class="string">SummingMergeTree</span></span><br><span class="line"><span class="attr">disk_name:</span>                             <span class="string">default</span></span><br><span class="line"><span class="attr">path:</span>                                  <span class="string">/data/clickhouse/node2/data/duyalan/%2Einner%2Edownload_daily_mv/202008_1_2_1/</span></span><br><span class="line"><span class="attr">hash_of_all_files:</span>                     <span class="string">fdc534a9b9aa0904cde863ee1deff532</span></span><br><span class="line"><span class="attr">hash_of_uncompressed_files:</span>            <span class="string">58a4ab29ef36c22884ee7accd528b590</span></span><br><span class="line"><span class="attr">uncompressed_hash_of_compressed_files:</span> <span class="string">df972eeaad3304d9a16bfa8cb46861ce</span></span><br><span class="line"></span><br><span class="line"><span class="attr">Row 3:</span></span><br><span class="line"><span class="string">──────</span></span><br><span class="line"><span class="attr">partition:</span>                             <span class="number">202008</span></span><br><span class="line"><span class="attr">name:</span>                                  <span class="string">202008_2_2_0</span></span><br><span class="line"><span class="attr">part_type:</span>                             <span class="string">Wide</span></span><br><span class="line"><span class="attr">active:</span>                                <span class="number">0</span></span><br><span class="line"><span class="attr">marks:</span>                                 <span class="number">2</span></span><br><span class="line"><span class="attr">rows:</span>                                  <span class="number">5</span></span><br><span class="line"><span class="attr">bytes_on_disk:</span>                         <span class="number">421</span></span><br><span class="line"><span class="attr">data_compressed_bytes:</span>                 <span class="number">200</span></span><br><span class="line"><span class="attr">data_uncompressed_bytes:</span>               <span class="number">120</span></span><br><span class="line"><span class="attr">marks_bytes:</span>                           <span class="number">192</span></span><br><span class="line"><span class="attr">modification_time:</span>                     <span class="number">2020-08-18 17:35:13</span></span><br><span class="line"><span class="attr">remove_time:</span>                           <span class="number">2020-08-18 17:38:24</span></span><br><span class="line"><span class="attr">refcount:</span>                              <span class="number">1</span></span><br><span class="line"><span class="attr">min_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">max_date:</span>                              <span class="number">0000-00-00</span></span><br><span class="line"><span class="attr">min_time:</span>                              <span class="number">2020-08-18 00:00:00</span></span><br><span class="line"><span class="attr">max_time:</span>                              <span class="number">2020-08-22 00:00:00</span></span><br><span class="line"><span class="attr">partition_id:</span>                          <span class="number">202008</span></span><br><span class="line"><span class="attr">min_block_number:</span>                      <span class="number">2</span></span><br><span class="line"><span class="attr">max_block_number:</span>                      <span class="number">2</span></span><br><span class="line"><span class="attr">level:</span>                                 <span class="number">0</span></span><br><span class="line"><span class="attr">data_version:</span>                          <span class="number">2</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory:</span>           <span class="number">16</span></span><br><span class="line"><span class="attr">primary_key_bytes_in_memory_allocated:</span> <span class="number">8192</span></span><br><span class="line"><span class="attr">is_frozen:</span>                             <span class="number">0</span></span><br><span class="line"><span class="attr">database:</span>                              <span class="string">duyalan</span></span><br><span class="line"><span class="attr">table:</span>                                 <span class="string">.inner.download_daily_mv</span></span><br><span class="line"><span class="attr">engine:</span>                                <span class="string">SummingMergeTree</span></span><br><span class="line"><span class="attr">disk_name:</span>                             <span class="string">default</span></span><br><span class="line"><span class="attr">path:</span>                                  <span class="string">/data/clickhouse/node2/data/duyalan/%2Einner%2Edownload_daily_mv/202008_2_2_0/</span></span><br><span class="line"><span class="attr">hash_of_all_files:</span>                     <span class="string">049d090ea65c24be8544ab86846ea9fa</span></span><br><span class="line"><span class="attr">hash_of_uncompressed_files:</span>            <span class="string">58a4ab29ef36c22884ee7accd528b590</span></span><br><span class="line"><span class="attr">uncompressed_hash_of_compressed_files:</span> <span class="string">9ffea93e6b9bc375c7f04374b4a4a6a9</span></span><br><span class="line"></span><br><span class="line"><span class="attr">3 rows in set. Elapsed:</span> <span class="number">0.002</span> <span class="string">sec.</span> </span><br></pre></td></tr></table></figure>
+<p>可以看到只有一个active分区了<code>202008_1_2_1</code></p>
+<p>所以对于本例中的物化视图, 在查询是仍然应该使用聚合函数聚合数据</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SELECT </span><br><span class="line">    day, </span><br><span class="line">    userid, </span><br><span class="line">    sum(downloads), </span><br><span class="line">    sum(bytes)</span><br><span class="line"><span class="keyword">FROM</span> download_no_populate_daily_mv</span><br><span class="line">GROUP BY </span><br><span class="line">    day, </span><br><span class="line">    userid</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/08/23/2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-1/" target="_blank" title="译文 ClickHouse Materialized Views Illuminated, Part 1">http://fuxkdb.com/2020/08/23/2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-1/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ClickHouse/" rel="tag">ClickHouse</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE/" rel="tag">物化视图</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-2/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          译文 ClickHouse Materialized Views Illuminated, Part 2
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/08/23/2020-08-23-%E4%B8%BA%E4%BB%80%E4%B9%88pt-osc%E5%92%8Cgh-osc%E5%9C%A8%E6%8B%B7%E8%B4%9D%E6%BA%90%E8%A1%A8%E6%95%B0%E6%8D%AE%E6%97%B6%E8%A6%81%E4%BD%BF%E7%94%A8insert-IGNORE-into-select-lock-in-share-mode/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">为什么pt-osc和gh-osc在拷贝源表数据时要使用insert IGNORE into select lock in share mode</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ClickHouse-Materialized-Views-Illuminated-Part-1"><span class="nav-number">1.</span> <span class="nav-text">ClickHouse Materialized Views Illuminated, Part 1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-Materialized-Views-Work-Computing-Sums"><span class="nav-number">1.1.</span> <span class="nav-text">How Materialized Views Work: Computing Sums</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Wrap-up-%E6%80%BB%E7%BB%93"><span class="nav-number">1.2.</span> <span class="nav-text">Wrap-up - 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E6%B5%8B%E5%8F%8A%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">实测及问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E5%9F%BA%E8%A1%A8-%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%BB%8D%E7%84%B6%E5%8F%AF%E4%BB%A5%E6%9F%A5%E8%AF%A2"><span class="nav-number">2.1.</span> <span class="nav-text">删除基表, 物化视图仍然可以查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%9C%A8%E5%88%86%E5%8C%BA%E5%90%88%E5%B9%B6%E6%97%B6%E8%81%9A%E5%90%88"><span class="nav-number">2.2.</span> <span class="nav-text">数据在分区合并时聚合</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

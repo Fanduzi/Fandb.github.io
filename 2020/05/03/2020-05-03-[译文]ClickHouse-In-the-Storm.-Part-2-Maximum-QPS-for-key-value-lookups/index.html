@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>译文-clickhouse in the storm. part 2 - maximum qps for key-value lookups | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="ClickHouse" />
+  
+  
+  
+  
+  <meta name="description" content="ClickHouse In the Storm. Part 2: Maximum QPS for key-value lookups上一篇文章调查了ClickHouse的连接性基准，以估计服务器并发的总体性能。 在本文中，我们将以实际示例为例，并在涉及实际数据时探讨并发性能。 MergeTree: Key-value lookup让我们看看MergeTree引擎表如何处理高并发性，以及它能够处理多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="译文-ClickHouse In the Storm. Part 2 - Maximum QPS for key-value lookups">
+<meta property="og:url" content="http://fuxkdb.com/2020/05/03/2020-05-03-[%E8%AF%91%E6%96%87]ClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="ClickHouse In the Storm. Part 2: Maximum QPS for key-value lookups上一篇文章调查了ClickHouse的连接性基准，以估计服务器并发的总体性能。 在本文中，我们将以实际示例为例，并在涉及实际数据时探讨并发性能。 MergeTree: Key-value lookup让我们看看MergeTree引擎表如何处理高并发性，以及它能够处理多">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556796638165-CUQLQJ0G4BJQ0EWQDHBO/ke17ZwdGBToddI8pDm48kOUXq56Mf96cq-AlxWb_NE4UqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2dsnA4nk8nf6OxIQXHdqyS0qhCyNx3nhnFifYPd2f8M34CjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+14.30.25.png?format=1500w">
+<meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556796812292-F16ERHJF1SFOG50ELVS7/ke17ZwdGBToddI8pDm48kL2ci4o9PLIH-hSblWNFEhsUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2drbK16meFCpVPybAp_PKLSYXpIXKp41hpffEn5d5I2lPCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+14.33.23.png?format=1500w">
+<meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556796891207-9RU68AIHC4QMUFVKTP40/ke17ZwdGBToddI8pDm48kMeM591erB947ONkYZbXjnkUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2dvHFv_CaTG-fxl6WZgoqPyDBiEszfsTLFOR1Gd_7CrNjCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+14.34.29.png?format=1500w">
+<meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556797813278-0Z12Z01T9BWYQUCXSDSQ/ke17ZwdGBToddI8pDm48kLFpBdBZf3d0gR7UgpeRi0gUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYxCRW4BPu10St3TBAUQYVKcjjGkO93kpxfGP9xwmzZ4PT3NxbbpDgdow0kBaFx7kwqc21XU2PtJQkFYgC4iAVbf/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+14.49.58.png?format=1500w">
+<meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556804180825-XUIYEZ3X295M8OLQ7GXI/ke17ZwdGBToddI8pDm48kLS9ZBW_CBZGFffNSGH-Hg8UqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2drRarevtO5UtFZ0BwdVgGVU5GfeGfnCWUzyxhVhxOwvpCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+16.36.12.png?format=1500w">
+<meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556804293766-80INKC1FBAFLONBJCBSK/ke17ZwdGBToddI8pDm48kBt2BGg9vVu6-ZWYrxMOcgkUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2diPgb2FutQMx4pnnagDedO56MlWA5D2NEbembC4-XoQGCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+16.37.50.png?format=1500w">
+<meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556837130047-A93HCCMJVCN2AAHKK6I1/ke17ZwdGBToddI8pDm48kD2qXglwocPe5_7eODUGnjYUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2dgFc2ChTO85jSuXlAqIkb6nKBha_DFSl6o5EVy9ZezsUCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-03+%D0%B2+1.45.22.png?format=1500w">
+<meta property="og:image" content="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556837229138-8O6O1AQS5H4LV5VSUO8U/ke17ZwdGBToddI8pDm48kHYH6bGvI2X5l4rAsz3F9mx7gQa3H78H3Y0txjaiv_0fDoOvxcdMmMKkDsyUqMSsMWxHk725yiiHCCLfrh8O1z5QPOohDIaIeljMHgDF5CVlOqpeNLcJ80NK65_fV7S1UYQhVSVUJAzegn04bVDMShJwTujpwhQWciJpeSNBzVNLZDqXZYzu2fuaodM4POSZ4w/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-03+%D0%B2+1.46.40.png?format=1500w">
+<meta property="article:published_time" content="2020-05-03T03:43:00.000Z">
+<meta property="article:modified_time" content="2020-05-03T04:08:38.999Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="ClickHouse">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556796638165-CUQLQJ0G4BJQ0EWQDHBO/ke17ZwdGBToddI8pDm48kOUXq56Mf96cq-AlxWb_NE4UqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2dsnA4nk8nf6OxIQXHdqyS0qhCyNx3nhnFifYPd2f8M34CjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+14.30.25.png?format=1500w">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-05-03-[译文]ClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      译文-ClickHouse In the Storm. Part 2 - Maximum QPS for key-value lookups
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups/" class="article-date">
+	  <time datetime="2020-05-03T03:43:00.000Z" itemprop="datePublished">2020-05-03</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="ClickHouse-In-the-Storm-Part-2-Maximum-QPS-for-key-value-lookups"><a href="#ClickHouse-In-the-Storm-Part-2-Maximum-QPS-for-key-value-lookups" class="headerlink" title="ClickHouse In the Storm. Part 2: Maximum QPS for key-value lookups"></a>ClickHouse In the Storm. Part 2: Maximum QPS for key-value lookups</h1><p><a target="_blank" rel="noopener" href="https://www.altinity.com/blog/clickhouse-in-the-storm-part-1">上一篇文章</a>调查了ClickHouse的连接性基准，以估计服务器并发的总体性能。 在本文中，我们将以实际示例为例，并在涉及实际数据时探讨并发性能。</p>
+<h2 id="MergeTree-Key-value-lookup"><a href="#MergeTree-Key-value-lookup" class="headerlink" title="MergeTree: Key-value lookup"></a>MergeTree: Key-value lookup</h2><p>让我们看看MergeTree引擎表如何处理高并发性，以及它能够处理多少个QPS用于键值查找。</p>
+<p>我们将使用2个综合数据集：</p>
+<p>‘fs12M’-具有1200万条记录的表，id为FixedString(16)和5个不同类型的参数：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> default.fs12M (</span><br><span class="line">    <span class="keyword">id</span> FixedString(<span class="number">16</span>),</span><br><span class="line">    value1 Float64,</span><br><span class="line">    value2 Float64,</span><br><span class="line">    value3 UInt32,</span><br><span class="line">    value4 UInt64,</span><br><span class="line">    str_value <span class="keyword">String</span></span><br><span class="line">) <span class="keyword">ENGINE</span> = MergeTree <span class="keyword">PARTITION</span> <span class="keyword">BY</span> tuple() <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">id</span></span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">256</span></span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>‘int20M’-具有2000万条记录的表，id为UInt64和一个Float32参数：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> default.int20M (</span><br><span class="line">    <span class="keyword">id</span> UInt64,</span><br><span class="line">    <span class="keyword">value</span> Float64</span><br><span class="line">) <span class="keyword">ENGINE</span> = MergeTree  <span class="keyword">PARTITION</span> <span class="keyword">BY</span> tuple()  <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">id</span></span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">256</span></span><br></pre></td></tr></table></figure>
+<p>You can find the create table statements <a target="_blank" rel="noopener" href="https://github.com/Altinity/clickhouse-sts/tree/master/tests/010_mergetree_index_granularity_256/docker-entrypoint-initdb.d">here</a>.</p>
+<p>我们将在下面使用两个查询来检查在4种情况下对这些表的lookup查询性能：</p>
+<ul>
+<li>通过id查询单条记录</li>
+<li>以1:3 hit/miss比率查询100条随机记录</li>
+<li>此外，还要为上面的每个测试检查两种形式的ClickHouse过滤——WHERE和PREWHERE (PREWHERE子句与WHERE语法相同，但内部工作方式略有不同)。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="keyword">table</span> <span class="keyword">WHERE</span> <span class="keyword">id</span> = … </span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="keyword">table</span> <span class="keyword">WHERE</span> <span class="keyword">id</span> <span class="keyword">IN</span> (... <span class="keyword">SELECT</span> <span class="number">100</span> random ids ...)</span><br></pre></td></tr></table></figure>
+<p>You can find all the select statements <a target="_blank" rel="noopener" href="https://github.com/Altinity/clickhouse-sts/blob/master/tests/helpers/fs12M_int20M_lookups.sh">here</a>.</p>
+<h3 id="CHOOSING-INDEX-GRANULARITY"><a href="#CHOOSING-INDEX-GRANULARITY" class="headerlink" title="CHOOSING INDEX_GRANULARITY"></a>CHOOSING INDEX_GRANULARITY</h3><p>MergeTree的最重要参数之一是<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/engines/table_engines/mergetree_family/mergetree/#mergetree-data-storage">index_granularity</a>。 让我们尝试为每种情况找到最佳的<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/engines/table_engines/mergetree_family/mergetree/#mergetree-data-storage">index_granularity</a>：</p>
+<p><img src="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556796638165-CUQLQJ0G4BJQ0EWQDHBO/ke17ZwdGBToddI8pDm48kOUXq56Mf96cq-AlxWb_NE4UqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2dsnA4nk8nf6OxIQXHdqyS0qhCyNx3nhnFifYPd2f8M34CjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+14.30.25.png?format=1500w" alt="Снимок экрана 2019-05-02 в 14.30.25.png"></p>
+<p>由于上面的表总结了几个不同测试的结果，所以该图显示了规范化到最佳运行的QPS(即1 =表示所有测试都给出了最大QPS)。如您所见，相比’int20M’, ‘fs12M’在index_granularity较小时性能较好, 因为键更大，涉及的列更多(包括一个相当大的字符串)。</p>
+<ul>
+<li>For fs12M the best QPS performance gives <em>index_granularity</em> 64 &amp; 128</li>
+<li>For int20M - 128 &amp; 256.</li>
+</ul>
+<p>小查询的性能可以通过使用<code>uncompressed cache</code>提高. ClickHouse通常不缓存数据, 但是对于快速的简短查询, 可以使用internal cache来保存未压缩的数据库块. 可以使用配置文件级别的<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/operations/settings/settings/#setting-use_uncompressed_cache">use_uncompressed_cache</a>设置将其打开。 默认缓存大小为8GB，但可以增加。</p>
+<blockquote>
+<p>目前use_uncompressed_cache参数在我们的生产环境没有打开, 我查阅了一些资料发现可能是参考了国内的博客, 而国内的博客可能都是互相<code>借鉴</code>都没有自己看这个参数, 也可能是我臆测的</p>
+<p>use_uncompressed_cache默认0关闭, 但在文档中有如下描述</p>
+<p>For queries that read at least a somewhat large volume of data (one million rows or more), the uncompressed cache is disabled automatically to save space for truly small queries. This means that you can keep the ‘use_uncompressed_cache’ setting always set to 1.</p>
+<p>不过在本文结论在, 作者建议只对特定的查询和特定的用户开启use_uncompressed_cache, 但是use_uncompressed_cache其实好像无法针对查询开启但可以针对会话</p>
+</blockquote>
+<h3 id="Let’s-see-how-QPS-looks-for-100-random-ID-lookups"><a href="#Let’s-see-how-QPS-looks-for-100-random-ID-lookups" class="headerlink" title="Let’s see how QPS looks for 100 random ID lookups:"></a>Let’s see how QPS looks for 100 random ID lookups:</h3><p><img src="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556796812292-F16ERHJF1SFOG50ELVS7/ke17ZwdGBToddI8pDm48kL2ci4o9PLIH-hSblWNFEhsUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2drbK16meFCpVPybAp_PKLSYXpIXKp41hpffEn5d5I2lPCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+14.33.23.png?format=1500w" alt="Снимок экрана 2019-05-02 в 14.33.23.png"></p>
+<p>正如我们预期的那样，对’fs12’的查找要比对’int20M’的查找慢。 使用PREWHERE而不是WHERE可以显着改善性能。</p>
+<h3 id="Here-are-QPS-numbers-for-single-value-lookup"><a href="#Here-are-QPS-numbers-for-single-value-lookup" class="headerlink" title="Here are QPS numbers for single value lookup:"></a>Here are QPS numbers for single value lookup:</h3><p><img src="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556796891207-9RU68AIHC4QMUFVKTP40/ke17ZwdGBToddI8pDm48kMeM591erB947ONkYZbXjnkUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2dvHFv_CaTG-fxl6WZgoqPyDBiEszfsTLFOR1Gd_7CrNjCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+14.34.29.png?format=1500w" alt="Снимок экрана 2019-05-02 в 14.34.29.png"></p>
+<p>启用<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/operations/settings/settings/#setting-use_uncompressed_cache">use_uncompressed_cache</a>最多可提高50％性能。 对于’int20M’单点查询，它的效果似乎较低，因为在所有测试案例中，它的运行速度都非常快。</p>
+<p>但是，如果该QPS还不够，该怎么办？ ClickHouse可以做得更好吗？ 可以，但是我们必须切换到其他数据结构以确保数据始终在内存中。 ClickHouse为此提供了多种选择：我们将尝试使用外部Dictionary和Join引擎。</p>
+<h2 id="Dictionary"><a href="#Dictionary" class="headerlink" title="Dictionary"></a>Dictionary</h2><p>通常使用字典来与外部数据集成。 请参阅有关此主题的<a target="_blank" rel="noopener" href="https://www.altinity.com/blog/2017/4/12/dictionaries-explained">博客文章</a>。 但是，也可以使用字典来为已经存储在ClickHouse中的数据建立内存中的缓存。 让我们看看如何做。</p>
+<p>首先，让我们为”int20M”表配置字典：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dictionaries</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dictionary</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>int20M<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">source</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">clickhouse</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">host</span>&gt;</span>localhost<span class="tag">&lt;/<span class="name">host</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">port</span>&gt;</span>9000<span class="tag">&lt;/<span class="name">port</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">user</span>&gt;</span>default<span class="tag">&lt;/<span class="name">user</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">password</span>&gt;</span><span class="tag">&lt;/<span class="name">password</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">db</span>&gt;</span>default<span class="tag">&lt;/<span class="name">db</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">table</span>&gt;</span>int20M<span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">clickhouse</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">lifetime</span>&gt;</span>0<span class="tag">&lt;/<span class="name">lifetime</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">layout</span>&gt;</span><span class="tag">&lt;<span class="name">hashed</span>&gt;</span><span class="tag">&lt;/<span class="name">hashed</span>&gt;</span><span class="tag">&lt;/<span class="name">layout</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">structure</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span><span class="tag">&lt;<span class="name">name</span>&gt;</span>id<span class="tag">&lt;/<span class="name">name</span>&gt;</span><span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">attribute</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">name</span>&gt;</span>value<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">type</span>&gt;</span>Float32<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">null_value</span>&gt;</span>0<span class="tag">&lt;/<span class="name">null_value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">attribute</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">structure</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dictionary</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dictionaries</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>您可以从<a target="_blank" rel="noopener" href="https://github.com/Altinity/clickhouse-sts/blob/master/tests/015_int20M_dictionary/dictionaries.d/int20M.xml">此处</a>下载我们为您准备好文件，该文件需要放置在ClickHouse配置文件夹中。</p>
+<p>不幸的是，目前无法使用FixedString键创建字典，因此我们仅测试’int20M’情况。</p>
+<p>为了通过键获取值，我们可以使用字典get函数对其进行查询：</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> dictGetFloat32(<span class="symbol">&#x27;test100M</span><span class="string">&#x27;,&#x27;</span>value&#x27;,<span class="number">9221669071414979782</span>)</span><br></pre></td></tr></table></figure>
+<p>You can find all the test selects <a target="_blank" rel="noopener" href="https://github.com/Altinity/clickhouse-sts/blob/master/tests/015_int20M_dictionary/int20Mdict_lookups.sh">here</a></p>
+<p><img src="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556797813278-0Z12Z01T9BWYQUCXSDSQ/ke17ZwdGBToddI8pDm48kLFpBdBZf3d0gR7UgpeRi0gUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYxCRW4BPu10St3TBAUQYVKcjjGkO93kpxfGP9xwmzZ4PT3NxbbpDgdow0kBaFx7kwqc21XU2PtJQkFYgC4iAVbf/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+14.49.58.png?format=1500w" alt="Снимок экрана 2019-05-02 в 14.49.58.png"></p>
+<p>好吧，它的QPS约为9.2K：比MergeTree更好.</p>
+<blockquote>
+<p>根据经验对于single point select MySQL可以轻松达到90k qps. 这也说明ClickHouse并不是用来做高并发短查询的.</p>
+</blockquote>
+<p>另一个选项是使用“缓存”字典布局(‘cached’ dictionaries layout)，它提示ClickHouse只将部分行保存在内存中。如果您的缓存命中率很高，那么它可以很好地工作。</p>
+<p>如果您不需要过于频繁地更新字典，则字典效果很好。 更新是异步的； 字典会定期检查源表，以确定是否需要刷新它。 有时可能不方便。 另一个不便之处是XML配置。 应该很快用字典DDL修复它，但是暂时我们必须坚持使用XML。</p>
+<h2 id="Join-table-Engine"><a href="#Join-table-Engine" class="headerlink" title="Join table Engine"></a>Join table Engine</h2><p>ClickHouse内部使用联接表引擎来处理SQL联接。 但是您可以像这样显式创建一个表：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> fs12M ( </span><br><span class="line">  <span class="keyword">id</span> FixedString(<span class="number">16</span>), </span><br><span class="line">  value1 Float64, </span><br><span class="line">  value2 Float64, </span><br><span class="line">  value3 UInt32, </span><br><span class="line">  value4 UInt64, </span><br><span class="line">  str_value <span class="keyword">String</span></span><br><span class="line">) <span class="keyword">ENGINE</span> = <span class="keyword">Join</span>(<span class="keyword">ANY</span>, <span class="keyword">LEFT</span>, <span class="keyword">id</span>)</span><br></pre></td></tr></table></figure>
+<p>然后可以像插入其他表一样插入该表。理想情况下，您可以用一个INSERT填充整个表，但是也可以用parts来完成(但是仍然需要足够大的parts，最好不要有太多的parts)。联接表在内存中持久存在(就像字典一样，但是以一种更紧凑的方式)，并且也在磁盘上刷新。也就是说，它将在服务器重启后恢复。</p>
+<p>无法直接查询Join table； 您始终需要将其用作联接的正确部分。 有两个选项可从联接表中提取数据。 第一个类似于使用joinGet函数的字典语法（它是由一个贡献者添加的，自18.6开始可用）。 或者，您可以进行真正的联接（例如，使用system.one表）。 我们将使用以下查询来测试这两种方法：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> joinGet(<span class="string">&#x27;int20M&#x27;</span>, <span class="string">&#x27;value&#x27;</span>, <span class="number">9221669071414979782</span>) <span class="keyword">as</span> <span class="keyword">value</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="number">9221669071414979782</span> <span class="keyword">as</span> <span class="keyword">id</span>, * <span class="keyword">FROM</span> system.one <span class="keyword">ANY</span> <span class="keyword">LEFT</span> <span class="keyword">JOIN</span> int20M <span class="keyword">USING</span> (<span class="keyword">id</span>);</span><br></pre></td></tr></table></figure>
+<p>Results, QPS:</p>
+<p><img src="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556804180825-XUIYEZ3X295M8OLQ7GXI/ke17ZwdGBToddI8pDm48kLS9ZBW_CBZGFffNSGH-Hg8UqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2drRarevtO5UtFZ0BwdVgGVU5GfeGfnCWUzyxhVhxOwvpCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+16.36.12.png?format=1500w" alt="Снимок экрана 2019-05-02 в 16.36.12.png"></p>
+<p>当您需要为每次查找进行大量的joinGet调用时，对于’fs12M’来说，joinGet和实际联接之间的区别显而易见。 当您只需要调用一次时-没有区别。</p>
+<p>与字典相比，Join表的性能稍差。 但是，由于它已经在数据库架构中，因此维护起来更容易。 与字典相比，联接使用的内存更少，您可以轻松添加新数据，等等。 不幸的是，无法进行更新。 （That would be too good. :)）</p>
+<p>让我们总结一下所有QPS结果并将其放在一张图表中：</p>
+<p><img src="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556804293766-80INKC1FBAFLONBJCBSK/ke17ZwdGBToddI8pDm48kBt2BGg9vVu6-ZWYrxMOcgkUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2diPgb2FutQMx4pnnagDedO56MlWA5D2NEbembC4-XoQGCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-02+%D0%B2+16.37.50.png?format=1500w" alt="Снимок экрана 2019-05-02 в 16.37.50.png"></p>
+<p>Latencies (90th percentile)</p>
+<p><img src="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556837130047-A93HCCMJVCN2AAHKK6I1/ke17ZwdGBToddI8pDm48kD2qXglwocPe5_7eODUGnjYUqsxRUqqbr1mOJYKfIPR7LoDQ9mXPOjoJoqy81S2I8N_N4V1vUb5AoIIIbLZhVYy7Mythp_T-mtop-vrsUOmeInPi9iDjx9w8K4ZfjXt2dgFc2ChTO85jSuXlAqIkb6nKBha_DFSl6o5EVy9ZezsUCjLISwBs8eEdxAxTptZAUg/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-03+%D0%B2+1.45.22.png?format=1500w" alt="Снимок экрана 2019-05-03 в 1.45.22.png"></p>
+<p><img src="https://images.squarespace-cdn.com/content/v1/58d158119f745633ea326878/1556837229138-8O6O1AQS5H4LV5VSUO8U/ke17ZwdGBToddI8pDm48kHYH6bGvI2X5l4rAsz3F9mx7gQa3H78H3Y0txjaiv_0fDoOvxcdMmMKkDsyUqMSsMWxHk725yiiHCCLfrh8O1z5QPOohDIaIeljMHgDF5CVlOqpeNLcJ80NK65_fV7S1UYQhVSVUJAzegn04bVDMShJwTujpwhQWciJpeSNBzVNLZDqXZYzu2fuaodM4POSZ4w/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA+%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0+2019-05-03+%D0%B2+1.46.40.png?format=1500w" alt="Снимок экрана 2019-05-03 в 1.46.40.png"></p>
+<h2 id="Conclusions-结论"><a href="#Conclusions-结论" class="headerlink" title="Conclusions - 结论"></a>Conclusions - 结论</h2><p>在本文的过程中，我们已经研究了并发基础知识。这是您可以用于自己的应用程序的一些主要结论。</p>
+<ul>
+<li><p>ClickHouse is not a key-value database (surprise! :) )</p>
+</li>
+<li><p>如果您需要在Clickhouse内部模拟键值查找方案-连接引擎和字典可提供最佳性能</p>
+</li>
+<li><p>如果每秒有很多查询，则禁用日志（或降低日志级别）可以提高性能</p>
+</li>
+<li><p>启用uncompressed cache有助于提高查询性能（对于“小的”查询仅返回几行）。最好仅针对特定查询和特定用户profile启用它</p>
+</li>
+<li><p>在高并发方案中使用max_thread = 1</p>
+</li>
+<li><p>尽量保持同时连接的数量足够少，以获得最大的QPS性能。具体数字当然取决于硬件。使用我们的低端机器进行测试，16-32范围内的连接显示了最好的QPS性能<br>对于UInt64键的键值类型场景，<em>index_granularity</em>= 256看起来是最好的选择，对于FixedString(16)键，也要考虑<em>index_granularity</em>= 128。</p>
+<blockquote>
+<p>然而默认<em>index_granularity</em>为8192</p>
+</blockquote>
+</li>
+<li><p>使用PREWHERE而不是WHERE进行点查找。</p>
+</li>
+</ul>
+<h2 id="Summary-总结"><a href="#Summary-总结" class="headerlink" title="Summary - 总结"></a>Summary - 总结</h2><p>ClickHouse不是key-value stroe, 但是根据我们的结果证实ClickHouse在不同并发的高负载下表现稳定, 并且能够在MergeTree表上（当数据位于文件系统缓存中时）每秒提供约4K(每秒)的查询, 当使用Dictionary或Join engine是甚至可以达到10k(每秒). 当然，在更好的硬件上，您会有更好的数字.</p>
+<p>这些结果远非键值数据库（例如Redis，在相同的硬件上可提供约125K QPS），但在某些情况下，即使这样的QPS速率也可以令人满意。 例如-通过复杂的OLAP计算在实时创建的数据中进行基于id的查找/通过id从物化视图中提取一些聚合等。并且，ClickHouse还可以水平和垂直缩放。</p>
+<p>简单ping和普通select之间的QPS差异表明，未来的优化具有一定的潜力。另外，将ClickHouse与键值数据库结合起来，这样就可以在两个方向上与ClickHouse无缝合作，这个想法听起来很有前途。如果你关注ClickHouse的pull requests，你可能已经看到了一些与Cassandra和Redis的草案整合。</p>
+<p>请继续关注，并订阅我们的博客！</p>
+<h1 id="原文链接"><a href="#原文链接" class="headerlink" title="原文链接:"></a>原文链接:</h1><p><a target="_blank" rel="noopener" href="https://www.altinity.com/blog/clickhouse-in-the-storm-part-2">https://www.altinity.com/blog/clickhouse-in-the-storm-part-2</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/05/03/2020-05-03-[译文]ClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups/" target="_blank" title="译文-ClickHouse In the Storm. Part 2 - Maximum QPS for key-value lookups">http://fuxkdb.com/2020/05/03/2020-05-03-[译文]ClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ClickHouse/" rel="tag">ClickHouse</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/05/03/2020-05-03-%E8%AF%91%E6%96%87-Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          译文-Group Replication and Percona XtraDB Cluster: Overview of Common Operations
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---%E6%9C%80%E5%A4%A7QPS%E4%BC%B0%E7%AE%97/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">译文-ClickHouse In the Storm. Part 1 - Maximum QPS estimation - 最大QPS估算</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ClickHouse-In-the-Storm-Part-2-Maximum-QPS-for-key-value-lookups"><span class="nav-number">1.</span> <span class="nav-text">ClickHouse In the Storm. Part 2: Maximum QPS for key-value lookups</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MergeTree-Key-value-lookup"><span class="nav-number">1.1.</span> <span class="nav-text">MergeTree: Key-value lookup</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CHOOSING-INDEX-GRANULARITY"><span class="nav-number">1.1.1.</span> <span class="nav-text">CHOOSING INDEX_GRANULARITY</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Let%E2%80%99s-see-how-QPS-looks-for-100-random-ID-lookups"><span class="nav-number">1.1.2.</span> <span class="nav-text">Let’s see how QPS looks for 100 random ID lookups:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Here-are-QPS-numbers-for-single-value-lookup"><span class="nav-number">1.1.3.</span> <span class="nav-text">Here are QPS numbers for single value lookup:</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dictionary"><span class="nav-number">1.2.</span> <span class="nav-text">Dictionary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Join-table-Engine"><span class="nav-number">1.3.</span> <span class="nav-text">Join table Engine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusions-%E7%BB%93%E8%AE%BA"><span class="nav-number">1.4.</span> <span class="nav-text">Conclusions - 结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary-%E6%80%BB%E7%BB%93"><span class="nav-number">1.5.</span> <span class="nav-text">Summary - 总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8E%9F%E6%96%87%E9%93%BE%E6%8E%A5"><span class="nav-number">2.</span> <span class="nav-text">原文链接:</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

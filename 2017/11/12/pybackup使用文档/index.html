@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>pybackup使用文档 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL备份恢复" />
+  
+  
+  
+  
+  <meta name="description" content="pybackup使用文档https:&#x2F;&#x2F;github.com&#x2F;Fanduzi&#x2F;pybackuppybackup源自于对线上备份脚本的改进和对备份情况的监控需求.原本生产库的备份是通过shell脚本调用mydumper,之后再将备份通过rsync传输到备份机.想要获取备份状态,时间,rsync传输时间等信息只能通过解析日志.pybackup由python编写,调用mydumper和rsync,将备份">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pybackup使用文档">
+<meta property="og:url" content="http://fuxkdb.com/2017/11/12/pybackup%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="pybackup使用文档https:&#x2F;&#x2F;github.com&#x2F;Fanduzi&#x2F;pybackuppybackup源自于对线上备份脚本的改进和对备份情况的监控需求.原本生产库的备份是通过shell脚本调用mydumper,之后再将备份通过rsync传输到备份机.想要获取备份状态,时间,rsync传输时间等信息只能通过解析日志.pybackup由python编写,调用mydumper和rsync,将备份">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-11-12T14:04:00.000Z">
+<meta property="article:modified_time" content="2018-05-03T08:36:27.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL备份恢复">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-pybackup使用文档" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      pybackup使用文档
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/11/12/pybackup%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/" class="article-date">
+	  <time datetime="2017-11-12T14:04:00.000Z" itemprop="datePublished">2017-11-12</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="pybackup使用文档"><a href="#pybackup使用文档" class="headerlink" title="pybackup使用文档"></a>pybackup使用文档</h1><p><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/pybackup">https://github.com/Fanduzi/pybackup</a><br>pybackup源自于对线上备份脚本的改进和对备份情况的监控需求.<br>原本生产库的备份是通过shell脚本调用mydumper,之后再将备份通过rsync传输到备份机.<br>想要获取备份状态,时间,rsync传输时间等信息只能通过解析日志.<br>pybackup由python编写,调用mydumper和rsync,将备份信息存入数据库中,后期可以通过grafana图形化展示和监控备份<br>目前不支持2.6,仅在2.7.14做过测试</p>
+<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>帮助信息<br><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@iZ23t8cwo3iZ backup_db]# <span class="keyword">python</span> pybackup.<span class="keyword">py</span> -h</span><br><span class="line">Usage:</span><br><span class="line">        pybackup.<span class="keyword">py</span> mydumper ARG_WITH_NO_--... (([--<span class="keyword">no</span>-rsync] [--<span class="keyword">no</span>-<span class="keyword">history</span>]) | [--<span class="keyword">only</span>-backup])</span><br><span class="line">        pybackup.<span class="keyword">py</span> <span class="keyword">only</span>-rsync [--backup-dir=<span class="symbol">&lt;DIR&gt;</span>] [--bk-id=<span class="symbol">&lt;id&gt;</span>] [--<span class="built_in">log</span>-<span class="keyword">file</span>=<span class="symbol">&lt;log&gt;</span>]</span><br><span class="line">        pybackup.<span class="keyword">py</span> -h | --<span class="keyword">help</span></span><br><span class="line">        pybackup.<span class="keyword">py</span> --<span class="keyword">version</span></span><br><span class="line"></span><br><span class="line">Option<span class="variable">s:</span></span><br><span class="line">        -h --<span class="keyword">help</span>                      Show <span class="keyword">help</span> information.</span><br><span class="line">        --<span class="keyword">version</span>                      Show <span class="keyword">version</span>.</span><br><span class="line">        --<span class="keyword">no</span>-rsync                     Do not use rsync.</span><br><span class="line">        --<span class="keyword">no</span>-<span class="keyword">history</span>                   Do not record backup <span class="keyword">history</span> information.</span><br><span class="line">        --<span class="keyword">only</span>-backup                  Equal <span class="keyword">to</span> use both --<span class="keyword">no</span>-rsync <span class="built_in">and</span> --<span class="keyword">no</span>-<span class="keyword">history</span>.</span><br><span class="line">        --<span class="keyword">only</span>-rsync                   When you backup <span class="built_in">complete</span>, but rsync failed, use this option <span class="keyword">to</span> rsync your backup.</span><br><span class="line">        --backup-dir=<span class="symbol">&lt;DIR&gt;</span>             The directory where the backup <span class="keyword">files</span> need <span class="keyword">to</span> <span class="keyword">be</span> rsync are located. [defaul<span class="variable">t:</span> ./]</span><br><span class="line">        --bk-id=<span class="symbol">&lt;id&gt;</span>                   bk-id in table user_backup.</span><br><span class="line">        --<span class="built_in">log</span>-<span class="keyword">file</span>=<span class="symbol">&lt;log&gt;</span>               <span class="built_in">log</span> <span class="keyword">file</span> [defaul<span class="variable">t:</span> ./rsync.<span class="built_in">log</span>]</span><br><span class="line"></span><br><span class="line">more <span class="keyword">help</span> information in:</span><br><span class="line">http<span class="variable">s:</span>//github.<span class="keyword">com</span>/Fanduzi</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pybackup.<span class="keyword">py</span> mydumper ARG_WITH_NO_--... (([--<span class="keyword">no</span>-rsync] [--<span class="keyword">no</span>-<span class="keyword">history</span>]) | [--<span class="keyword">only</span>-backup])</span><br></pre></td></tr></table></figure>
+<p>除了最后三个参数,使用的所有参数和mydumper -h中列出的参数相同. 只不过目前只支持长选项,并且不带’–’</p>
+<a id="more"></a>
+<p>例:<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./pybackup.py mydumper <span class="attribute">password</span>=fanboshi <span class="attribute">database</span>=fandb <span class="attribute">outputdir</span>=/data4/recover/pybackup/2017-11-12 <span class="attribute">logfile</span>=/data4/recover/pybackup/bak.log <span class="attribute">verbose</span>=3</span><br></pre></td></tr></table></figure><br>可以使用<code>./pybackup.py mydumper help</code>查看mydumper帮助信息</p>
+<p>–no-rsync</p>
+<p>不使用rsync传输</p>
+<p>–no-history</p>
+<p>不记录备份信息到数据库</p>
+<p>–only-backup</p>
+<p>等价于同时使用–no-rsync和–no-history . 不能与–no-rsync或–no-history同时使用</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pybackup.<span class="keyword">py</span> <span class="keyword">only</span>-rsync [--backup-dir=<span class="symbol">&lt;DIR&gt;</span>] [--bk-id=<span class="symbol">&lt;id&gt;</span>] [--<span class="built_in">log</span>-<span class="keyword">file</span>=<span class="symbol">&lt;log&gt;</span>]</span><br></pre></td></tr></table></figure>
+<p>当备份成功rsync失败时可以使用only-rsync来同步备份成功的文件</p>
+<p>–backup-dir</p>
+<p>需要使用rsync同步的备份文件路径,如果不指定,则默认为./</p>
+<p>–bk-id</p>
+<p>user_backup表中记录的备份bk_id,如果指定,则会在rsync同步完成后更新指定bk_id行的,传输起始时间,耗时,是否成功等信息.如果不指定则不更新user_backup表</p>
+<p>–log-file</p>
+<p>本次rsync指定的日志,如果不指定,则默认为当前目录rsync.log文件</p>
+<h2 id="配置文件说明"><a href="#配置文件说明" class="headerlink" title="配置文件说明"></a>配置文件说明</h2><p>配置文件为pbackup.conf<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost pybackup]# less pybackup.conf </span><br><span class="line">[CATALOG]            --存储备份信息的数据库配置</span><br><span class="line"><span class="attribute">db_host</span>=localhost</span><br><span class="line"><span class="attribute">db_port</span>=3306</span><br><span class="line"><span class="attribute">db_user</span>=root</span><br><span class="line"><span class="attribute">db_passwd</span>=fanboshi</span><br><span class="line"><span class="attribute">db_use</span>=catalogdb</span><br><span class="line"></span><br><span class="line">[TDB]              --需要备份的数据库配置</span><br><span class="line"><span class="attribute">db_host</span>=localhost</span><br><span class="line"><span class="attribute">db_port</span>=3306</span><br><span class="line"><span class="attribute">db_user</span>=root</span><br><span class="line"><span class="attribute">db_passwd</span>=fanboshi</span><br><span class="line"><span class="attribute">db_use</span>=information_schema</span><br><span class="line"><span class="attribute">db_consistency</span>=<span class="literal">True</span>  --0.7.0新增option,可以不写,不写则为<span class="literal">False</span>,后面会对这个option进行说明</span><br><span class="line"><span class="attribute">db_list</span>=test,fandb,union_log_ad_% --指定需要备份的数据库,可以使用mysql支持的通配符. 如果想要备份所有数据库则填写%</span><br><span class="line"></span><br><span class="line">[rsync]</span><br><span class="line"><span class="attribute">password_file</span>=/data4/recover/pybackup/rsync.sec    --等同于--password-file</span><br><span class="line"><span class="attribute">dest</span>=platform@xx.xx.xx.xx/db_backup/xx.xx.xx.xx --传输到哪个目录</span><br><span class="line">address=                                           --使用的网卡.可以为空不指定</span><br></pre></td></tr></table></figure><br>注意<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[TDB]</span></span><br><span class="line"><span class="attr">db_list</span>=fan,bo,shi           代表备份fan,bo,shi三个数据库</span><br><span class="line"><span class="attr">db_list</span>=!fan,!bo,!shi        代表不备份fan,bo,shi三个数据库</span><br><span class="line"><span class="attr">db_list</span>=%                    代表备份所有数据库</span><br><span class="line"><span class="attr">db_list</span>=!fan,bo              不支持</span><br></pre></td></tr></table></figure><br>还有一点需要注意,即便在配置文件中定义了db_list参数,也可以在命令行强制指定database=xx / regex / tables-list,例如<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pybackup.py mydumper <span class="attribute">password</span>=<span class="string">&quot;xx&quot;</span> <span class="attribute">user</span>=root <span class="attribute">socket</span>=/data/mysql/mysql.sock <span class="attribute">outputdir</span>=/data/backup_db/ <span class="attribute">verbose</span>=3 compress <span class="attribute">threads</span>=8 triggers events routines use-savepoints <span class="attribute">logfile</span>=/data/backup_db/pybackup.log <span class="attribute">database</span>=yourdb</span><br></pre></td></tr></table></figure><br>此时会只备份<code>yourdb</code>而忽略配置文件中的定义</p>
+<p>备份信息示例<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">*************************** <span class="number">4.</span> row ***************************</span><br><span class="line">               id: <span class="number">4</span></span><br><span class="line">            bk_id: bcd36dc6-c9e7<span class="number">-11e7</span><span class="number">-9e30</span><span class="number">-005056</span>b15d9c</span><br><span class="line">        bk_server: xx.xx.xx.xx</span><br><span class="line">       start_time: <span class="number">2017</span><span class="number">-11</span><span class="number">-15</span> <span class="number">17</span>:<span class="number">31</span>:<span class="number">20</span></span><br><span class="line">         end_time: <span class="number">2017</span><span class="number">-11</span><span class="number">-15</span> <span class="number">17</span>:<span class="number">32</span>:<span class="number">07</span></span><br><span class="line">     elapsed_time: <span class="number">47</span></span><br><span class="line">      backuped_db: fandb,test,union_log_ad_201710_db,union_log_ad_201711_db</span><br><span class="line">      is_complete: Y,Y,Y,Y</span><br><span class="line">          bk_size: <span class="number">480</span>M</span><br><span class="line">           bk_dir: /data4/recover/pybackup/<span class="number">2017</span><span class="number">-11</span><span class="number">-15</span></span><br><span class="line">   transfer_start: <span class="number">2017</span><span class="number">-11</span><span class="number">-15</span> <span class="number">17</span>:<span class="number">32</span>:<span class="number">07</span></span><br><span class="line">     transfer_end: <span class="number">2017</span><span class="number">-11</span><span class="number">-15</span> <span class="number">17</span>:<span class="number">33</span>:<span class="number">36</span></span><br><span class="line"> transfer_elapsed: <span class="number">89</span></span><br><span class="line">transfer_complete: Y</span><br><span class="line">      remote_dest: <span class="symbol">platform@</span>xx.xx.xx.xx/db_backup/xx.xx.xx.xx/</span><br><span class="line">    master_status: mysql-bin<span class="number">.000036</span>,<span class="number">61286</span>,</span><br><span class="line">     slave_status: Not a slave</span><br><span class="line">     tool_version: mydumper <span class="number">0.9</span><span class="number">.2</span>, built against MySQL <span class="number">5.5</span><span class="number">.53</span></span><br><span class="line">   server_version: <span class="number">5.7</span><span class="number">.18</span>-log</span><br><span class="line">       bk_command: mydumper --password=supersecrect --outputdir=/data4/recover/pybackup/<span class="number">2017</span><span class="number">-11</span><span class="number">-15</span> --verbose=<span class="number">3</span> --compress --triggers --events --routines --use-savepoints database=fandb,test,union_log_ad_201710_db,union_log_ad_201711_db</span><br></pre></td></tr></table></figure></p>
+<h3 id="建库建表语句"><a href="#建库建表语句" class="headerlink" title="建库建表语句"></a>建库建表语句</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">database</span> catalogdb;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> user_backup (</span><br><span class="line">    <span class="keyword">id</span> <span class="built_in">INT</span> AUTO_INCREMENT <span class="keyword">NOT</span> <span class="literal">NULL</span> PRIMARY <span class="keyword">KEY</span>,</span><br><span class="line">    bk_id <span class="built_in">CHAR</span>(<span class="number">36</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span>,</span><br><span class="line">    bk_server <span class="built_in">VARCHAR</span>(<span class="number">15</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    start_time DATETIME <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    end_time DATETIME <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    elapsed_time <span class="built_in">INT</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    backuped_db <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    is_complete <span class="built_in">VARCHAR</span>(<span class="number">30</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    bk_size <span class="built_in">VARCHAR</span>(<span class="number">10</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    bk_dir <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    transfer_start DATETIME,</span><br><span class="line">    transfer_end DATETIME,</span><br><span class="line">    transfer_elapsed <span class="built_in">INT</span>,</span><br><span class="line">    transfer_complete <span class="built_in">VARCHAR</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    remote_dest <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    master_status <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    slave_status <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    tool_version <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    server_version <span class="built_in">VARCHAR</span>(<span class="number">200</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    bk_command <span class="built_in">VARCHAR</span>(<span class="number">400</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    tag <span class="built_in">varchar</span>(<span class="number">200</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;N/A&#x27;</span>,</span><br><span class="line">    is_deleted <span class="built_in">char</span>(<span class="number">1</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;N&#x27;</span></span><br><span class="line">)  <span class="keyword">ENGINE</span>=<span class="keyword">INNODB</span> <span class="built_in">CHARACTER</span> <span class="keyword">SET</span> UTF8 <span class="keyword">COLLATE</span> UTF8_GENERAL_CI;</span><br></pre></td></tr></table></figure>
+<h3 id="关于db-consistency"><a href="#关于db-consistency" class="headerlink" title="关于db_consistency"></a>关于db_consistency</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./pybackup.py mydumper <span class="attribute">password</span>=fanboshi <span class="attribute">database</span>=fandb <span class="attribute">outputdir</span>=/data4/recover/pybackup/2017-11-12 <span class="attribute">logfile</span>=/data4/recover/pybackup/bak.log <span class="attribute">verbose</span>=3</span><br></pre></td></tr></table></figure>
+<p>以上面命令为例,默认脚本逻辑对于db_list指定的库通过for循环逐一使用mydumper –database=xx 备份<br>如果知道db_consistency=True则会替换为使用 –regex备份db_list中指定的所有数据库, 保证了数据库之间的一致性</p>
+<h3 id="备份脚本示例"><a href="#备份脚本示例" class="headerlink" title="备份脚本示例"></a>备份脚本示例</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/bin/sh</span></span><br><span class="line"><span class="attribute">DSERVENDAY</span>=`date +%Y-%m-%d <span class="attribute">--date</span>=<span class="string">&#x27;2 day ago&#x27;</span>`</span><br><span class="line"><span class="attribute">DTODAY</span>=`date +%Y-%m-%d`</span><br><span class="line"></span><br><span class="line">cd /data/backup_db/</span><br><span class="line">rm -rf <span class="variable">$DTODAY</span></span><br><span class="line">rm -rf <span class="variable">$DSERVENDAY</span></span><br><span class="line">mkdir <span class="variable">$DTODAY</span></span><br><span class="line">source ~/.bash_profile</span><br><span class="line">python /data/backup_db/pybackup.py mydumper <span class="attribute">password</span>=<span class="string">&quot;papapa&quot;</span> <span class="attribute">user</span>=root <span class="attribute">socket</span>=/data/mysql/mysql.sock <span class="attribute">outputdir</span>=/data/backup_db/$DTODAY <span class="attribute">verbose</span>=3 compress <span class="attribute">threads</span>=8 triggers events routines use-savepoints <span class="attribute">logfile</span>=/data/backup_db/pybackup.log</span><br></pre></td></tr></table></figure>
+<p>crontab<br><figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">0 </span><span class="number">4</span> * * * /<span class="keyword">data</span>/backup_db/pybackup.sh&gt;&gt; /<span class="keyword">data</span>/backup_db/pybackup_sh.<span class="keyword">log</span> <span class="number">2</span>&gt;&amp;<span class="number">1</span> </span><br></pre></td></tr></table></figure></p>
+<p>logroatate脚本<br><figure class="highlight haskell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">/<span class="class"><span class="keyword">data</span>/backup_db/pybackup.log &#123;</span></span><br><span class="line"><span class="class">      <span class="title">daily</span></span></span><br><span class="line"><span class="class">      <span class="title">rotate</span> 7</span></span><br><span class="line"><span class="class">      <span class="title">missingok</span></span></span><br><span class="line"><span class="class">      <span class="title">compress</span></span></span><br><span class="line"><span class="class">      <span class="title">delaycompress</span></span></span><br><span class="line"><span class="class">      <span class="title">copytruncate</span></span></span><br><span class="line"><span class="class">&#125;</span></span><br><span class="line"></span><br><span class="line">/<span class="class"><span class="keyword">data</span>/backup_db/pybackup_sh.log &#123;</span></span><br><span class="line"><span class="class">      <span class="title">daily</span></span></span><br><span class="line"><span class="class">      <span class="title">rotate</span> 7</span></span><br><span class="line"><span class="class">      <span class="title">missingok</span></span></span><br><span class="line"><span class="class">      <span class="title">compress</span></span></span><br><span class="line"><span class="class">      <span class="title">delaycompress</span></span></span><br><span class="line"><span class="class">      <span class="title">copytruncate</span></span></span><br><span class="line"><span class="class">&#125;</span></span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/11/12/pybackup使用文档/" target="_blank" title="pybackup使用文档">http://fuxkdb.com/2017/11/12/pybackup使用文档/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%A4%87%E4%BB%BD%E6%81%A2%E5%A4%8D/" rel="tag">MySQL备份恢复</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/11/24/Pt-table-checksum%E5%8E%9F%E7%90%86%E6%B5%85%E6%9E%90/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          Pt-table-checksum原理浅析
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/10/31/%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%8C%E4%B8%BB%E5%BB%BA%E8%AE%AE%E5%8D%95%E8%8A%82%E7%82%B9%E5%86%99%E5%85%A5/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">为什么双主只建议单节点写入?</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#pybackup%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3"><span class="nav-number">1.</span> <span class="nav-text">pybackup使用文档</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E"><span class="nav-number">1.1.</span> <span class="nav-text">参数说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%AF%B4%E6%98%8E"><span class="nav-number">1.2.</span> <span class="nav-text">配置文件说明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BB%BA%E5%BA%93%E5%BB%BA%E8%A1%A8%E8%AF%AD%E5%8F%A5"><span class="nav-number">1.2.1.</span> <span class="nav-text">建库建表语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Edb-consistency"><span class="nav-number">1.2.2.</span> <span class="nav-text">关于db_consistency</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%87%E4%BB%BD%E8%84%9A%E6%9C%AC%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.2.3.</span> <span class="nav-text">备份脚本示例</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

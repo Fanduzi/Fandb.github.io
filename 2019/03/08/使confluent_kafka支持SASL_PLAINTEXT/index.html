@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>使confluent_kafka支持sasl_plaintext | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="Kafka" />
+  
+  
+  
+  
+  <meta name="description" content="同事之前一直使用kafka-python开发. 上了ACL以后发现kafka-python居然不支持SASL_PLAINTEXT  https:&#x2F;&#x2F;kafka-python.readthedocs.io&#x2F;en&#x2F;master&#x2F;apidoc&#x2F;KafkaProducer.htmlsasl_mechanism (str) – string picking sasl mechanism when secur">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使confluent_kafka支持SASL_PLAINTEXT">
+<meta property="og:url" content="http://fuxkdb.com/2019/03/08/%E4%BD%BFconfluent_kafka%E6%94%AF%E6%8C%81SASL_PLAINTEXT/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="同事之前一直使用kafka-python开发. 上了ACL以后发现kafka-python居然不支持SASL_PLAINTEXT  https:&#x2F;&#x2F;kafka-python.readthedocs.io&#x2F;en&#x2F;master&#x2F;apidoc&#x2F;KafkaProducer.htmlsasl_mechanism (str) – string picking sasl mechanism when secur">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-03-08T10:53:00.000Z">
+<meta property="article:modified_time" content="2019-03-10T05:21:48.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="Kafka">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-使confluent_kafka支持SASL_PLAINTEXT" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      使confluent_kafka支持SASL_PLAINTEXT
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/03/08/%E4%BD%BFconfluent_kafka%E6%94%AF%E6%8C%81SASL_PLAINTEXT/" class="article-date">
+	  <time datetime="2019-03-08T10:53:00.000Z" itemprop="datePublished">2019-03-08</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>同事之前一直使用kafka-python开发. 上了ACL以后发现kafka-python居然不支持SASL_PLAINTEXT</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaProducer.html">https://kafka-python.readthedocs.io/en/master/apidoc/KafkaProducer.html</a><br>sasl_mechanism (str) – string picking sasl mechanism when security_protocol is SASL_PLAINTEXT or SASL_SSL. Currently only PLAIN is supported. Default: None</p>
+</blockquote>
+<p>看了一下<a target="_blank" rel="noopener" href="https://github.com/confluentinc/confluent-kafka-python">confluent-kafka</a>是支持的但需要重新编译<a target="_blank" rel="noopener" href="https://github.com/edenhill/librdkafka">librdkafka</a><br>否则会报错:<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KafkaException: KafkaError&#123;<span class="attribute">code</span>=_INVALID_ARG,val=-186,str=&quot;Failed <span class="keyword">to</span> create producer: <span class="literal">No</span> provider <span class="keyword">for</span> SASL mechanism GSSAPI: recompile librdkafka with libsasl2 <span class="keyword">or</span> openssl support. Current build options: PLAIN SASL_SCRAM<span class="string">&quot;&#125;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="安装confluent-kafka"><a href="#安装confluent-kafka" class="headerlink" title="安装confluent-kafka"></a>安装confluent-kafka</h2><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">pip</span> install confluent-kafka</span><br><span class="line"><span class="attribute">Collecting</span> confluent-kafka</span><br><span class="line">  <span class="attribute">Downloading</span> https://files.pythonhosted.org/packages/<span class="number">2</span>a/ba/dccb<span class="number">27376453</span>f<span class="number">91</span>ad<span class="number">8</span>fa<span class="number">57</span>f<span class="number">75</span>a<span class="number">7</span>ba<span class="number">5</span>dc<span class="number">188023700</span>c<span class="number">1789273</span>dec<span class="number">976477</span>b<span class="number">2</span>/confluent_kafka-<span class="number">0</span>.<span class="number">11</span>.<span class="number">6</span>-cp<span class="number">37</span>-cp<span class="number">37</span>m-manylinux<span class="number">1</span>_x<span class="number">86</span>_<span class="number">64</span>.whl (<span class="number">3</span>.<span class="number">9</span>MB)</span><br><span class="line">    <span class="attribute">100</span>% |████████████████████████████████| <span class="number">3</span>.<span class="number">9</span>MB <span class="number">984</span>kB/s </span><br></pre></td></tr></table></figure>
+<h2 id="安装librdkafka"><a href="#安装librdkafka" class="headerlink" title="安装librdkafka"></a>安装librdkafka</h2><p>克隆下来<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">21</span>:<span class="number">05</span> /tmp]</span><br><span class="line">git clone https:<span class="comment">//github.com/edenhill/librdkafka.git</span></span><br><span class="line">Cloning <span class="built_in">int</span>o <span class="string">&#x27;librdkafka&#x27;</span>...</span><br><span class="line">remote: Enumerating objects: <span class="number">213</span>, done.</span><br><span class="line">remote: Counting objects: <span class="number">100</span>% (<span class="number">213</span>/<span class="number">213</span>), done.</span><br><span class="line">remote: Compressing objects: <span class="number">100</span>% (<span class="number">111</span>/<span class="number">111</span>), done.</span><br><span class="line">remote: Total <span class="number">18133</span> (delta <span class="number">133</span>), reused <span class="number">149</span> (delta <span class="number">98</span>), pack-reused <span class="number">17920</span></span><br><span class="line">Receiving objects: <span class="number">100</span>% (<span class="number">18133</span>/<span class="number">18133</span>), <span class="number">11.15</span> MiB | <span class="number">946.00</span> KiB/s, done.</span><br><span class="line">Resolving deltas: <span class="number">100</span>% (<span class="number">13758</span>/<span class="number">13758</span>), done.</span><br></pre></td></tr></table></figure><br>检查依赖<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">rpm</span> -qa| grep openssl</span><br><span class="line"><span class="attribute">openssl</span>-<span class="number">1</span>.<span class="number">0</span>.<span class="number">2</span>k-<span class="number">16</span>.el<span class="number">7</span>.x<span class="number">86</span>_<span class="number">64</span></span><br><span class="line"><span class="attribute">openssl</span>-libs-<span class="number">1</span>.<span class="number">0</span>.<span class="number">2</span>k-<span class="number">16</span>.el<span class="number">7</span>.x<span class="number">86</span>_<span class="number">64</span></span><br><span class="line"><span class="attribute">openssl</span>-devel-<span class="number">1</span>.<span class="number">0</span>.<span class="number">2</span>k-<span class="number">16</span>.el<span class="number">7</span>.x<span class="number">86</span>_<span class="number">64</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>The GNU toolchain<br>GNU make<br>pthreads<br>zlib-dev (optional, for gzip compression support)<br>libssl-dev (optional, for SSL and SASL SCRAM support) –这个对于centos openssl-devel<br>libsasl2-dev (optional, for SASL GSSAPI support)<br>libzstd-dev (optional, for ZStd compression support)<br>安装<br><figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./configure</span><br><span class="line"><span class="built_in">make</span> &amp;&amp; <span class="built_in">make</span> install</span><br></pre></td></tr></table></figure><br>注意下make的时候这里是ok就行<br><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">checking</span></span> <span class="keyword">for</span> libssl (by pkg-config)... ok</span><br><span class="line"><span class="function"><span class="title">checking</span></span> <span class="keyword">for</span> libssl (by compile)... ok (cached)</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<h2 id="替换库文件"><a href="#替换库文件" class="headerlink" title="替换库文件"></a>替换库文件</h2><p>查找<br><figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">find / -name <span class="string">&quot;librdkafka*&quot;</span> </span><br><span class="line">/root/.pyenv/versions/<span class="number">3.7</span>.<span class="number">2</span>/<span class="class"><span class="keyword">lib</span>/<span class="title">python3</span>.7/<span class="title">site</span>-<span class="title">packages</span>/<span class="title">confluent_kafka</span>/.<span class="title">libs</span>/<span class="title">librdkafka</span>.<span class="title">so</span>.1</span></span><br></pre></td></tr></table></figure><br>替换<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">#cd /root/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs/</span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">03</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#ll</span><br><span class="line">total <span class="number">10316</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">2903144</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libcrypto<span class="number">-4</span>c524931.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">6944424</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> librdkafka.so<span class="number">.1</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">584072</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libssl<span class="number">-01</span>b7eff1.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">87848</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libz-a147dcb0.so<span class="number">.1</span><span class="number">.2</span><span class="number">.3</span></span><br><span class="line">-rw-r--r-- <span class="number">1</span> root root <span class="number">35336</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> monitoring-<span class="built_in">int</span>erceptor.so</span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">04</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#mv librdkafka.so<span class="number">.1</span> librdkafka.so<span class="number">.1</span>.bak</span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">11</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#ln -s /usr/local/lib/librdkafka.so<span class="number">.1</span> librdkafka.so<span class="number">.1</span></span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">23</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#ll</span><br><span class="line">total <span class="number">10316</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">2903144</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libcrypto<span class="number">-4</span>c524931.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">lrwxrwxrwx <span class="number">1</span> root root <span class="number">30</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">24</span> librdkafka.so<span class="number">.1</span> -&gt; /usr/local/lib/librdkafka.so<span class="number">.1</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">6944424</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> librdkafka.so<span class="number">.1</span>.bak</span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">584072</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libssl<span class="number">-01</span>b7eff1.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">87848</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libz-a147dcb0.so<span class="number">.1</span><span class="number">.2</span><span class="number">.3</span></span><br><span class="line">-rw-r--r-- <span class="number">1</span> root root <span class="number">35336</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> monitoring-<span class="built_in">int</span>erceptor.so</span><br></pre></td></tr></table></figure></p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><figure class="highlight python-repl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#python</span><br><span class="line">Python 3.7.2 (default, Mar 4 2019, 16:55:21) </span><br><span class="line">[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)] on linux</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="keyword">from</span> confluent_kafka <span class="keyword">import</span> Producer     </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">p = Producer(&#123;<span class="string">&#x27;bootstrap.servers&#x27;</span>: <span class="string">&#x27;192.168.4.114:9092&#x27;</span>, <span class="string">&#x27;security.protocol&#x27;</span>: <span class="string">&#x27;SASL_PLAINTEXT&#x27;</span>, <span class="string">&#x27;sasl.mechanism&#x27;</span>:<span class="string">&#x27;SCRAM-SHA-256&#x27;</span>,<span class="string">&#x27;sasl.username&#x27;</span>:<span class="string">&#x27;admin&#x27;</span>,<span class="string">&#x27;sasl.password&#x27;</span>:<span class="string">&#x27;your-admin-pass&#x27;</span>&#125;)        </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="function"><span class="keyword">def</span> <span class="title">delivery_report</span>(<span class="params">err, msg</span>):</span></span></span><br><span class="line"><span class="meta">...</span> <span class="python"><span class="keyword">if</span> err <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span></span><br><span class="line"><span class="meta">...</span> <span class="python">print(<span class="string">&#x27;Message delivery failed: &#123;&#125;&#x27;</span>.format(err))</span></span><br><span class="line"><span class="meta">...</span> <span class="python"><span class="keyword">else</span>:</span></span><br><span class="line"><span class="meta">...</span> <span class="python">print(<span class="string">&#x27;Message delivered to &#123;&#125; [&#123;&#125;]&#x27;</span>.format(msg.topic(), msg.partition()))</span></span><br><span class="line"><span class="meta">...</span> </span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="keyword">for</span> data <span class="keyword">in</span> [<span class="string">&#x27;hello&#x27;</span>,<span class="string">&#x27;word&#x27;</span>]:  </span></span><br><span class="line"><span class="meta">...</span> <span class="python">p.produce(<span class="string">&#x27;test_acl&#x27;</span>, data.encode(<span class="string">&#x27;utf-8&#x27;</span>), callback=delivery_report)</span></span><br><span class="line"><span class="meta">...</span> </span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">p.poll(<span class="number">10</span>) </span></span><br><span class="line">Message delivered to test_acl [0]</span><br><span class="line">Message delivered to test_acl [0]</span><br><span class="line">1</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">p.flush()</span></span><br><span class="line">0</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">quit()</span></span><br></pre></td></tr></table></figure>
+<p>成功收到消息<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node004114 kafka]# bin/kafka-console-consumer.sh --bootstrap-server <span class="number">192.168</span><span class="number">.4</span><span class="number">.114</span>:<span class="number">9092</span> --topic test_acl --consumer.config config/client-sasl.properties --<span class="keyword">from</span>-beginning</span><br><span class="line">hello</span><br><span class="line">word</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2019/03/08/使confluent_kafka支持SASL_PLAINTEXT/" target="_blank" title="使confluent_kafka支持SASL_PLAINTEXT">http://fuxkdb.com/2019/03/08/使confluent_kafka支持SASL_PLAINTEXT/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/03/12/%E4%BF%AE%E6%94%B9sysbench%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F%E4%B8%BAcsv%E6%88%96json%20%E6%B7%BB%E5%8A%A0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E6%A0%87/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          修改sysbench输出格式为csv或json, 添加自定义指标
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/02/22/2019-02-22-%E5%81%87%E5%A6%82Kafka%E9%9B%86%E7%BE%A4%E4%B8%AD%E4%B8%80%E4%B8%AAbroker%E5%AE%95%E6%9C%BA%E6%97%A0%E6%B3%95%E6%81%A2%E5%A4%8D,-%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85confluent-kafka"><span class="nav-number">1.</span> <span class="nav-text">安装confluent-kafka</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85librdkafka"><span class="nav-number">2.</span> <span class="nav-text">安装librdkafka</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%BF%E6%8D%A2%E5%BA%93%E6%96%87%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">替换库文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81"><span class="nav-number">4.</span> <span class="nav-text">验证</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

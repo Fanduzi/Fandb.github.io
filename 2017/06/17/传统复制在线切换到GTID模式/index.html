@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>传统复制在线切换到gtid模式 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL复制" />
+  
+  
+  
+  
+  <meta name="description" content="传统复制切换到GTID模式5.7.6以后参数gtid_mode可以动态修改GTID_MODE:  OFF   彻底关闭GTID,如果关闭状态的备库接受到带GTID的事务,则复制中断   OFF_PERMISSIVE   可以认为是关闭GTID前的过渡阶段,主库在设置成该值后不再生成GTID,备库在接受到带GTID 和不带GTID的事务都可以容忍主库在关闭GTID时,执行事务会产生一个Anonymo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="传统复制在线切换到GTID模式">
+<meta property="og:url" content="http://fuxkdb.com/2017/06/17/%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="传统复制切换到GTID模式5.7.6以后参数gtid_mode可以动态修改GTID_MODE:  OFF   彻底关闭GTID,如果关闭状态的备库接受到带GTID的事务,则复制中断   OFF_PERMISSIVE   可以认为是关闭GTID前的过渡阶段,主库在设置成该值后不再生成GTID,备库在接受到带GTID 和不带GTID的事务都可以容忍主库在关闭GTID时,执行事务会产生一个Anonymo">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-06-17T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-07T02:28:10.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL复制">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-传统复制在线切换到GTID模式" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      传统复制在线切换到GTID模式
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/06/17/%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F/" class="article-date">
+	  <time datetime="2017-06-17T14:00:00.000Z" itemprop="datePublished">2017-06-17</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="传统复制切换到GTID模式"><a href="#传统复制切换到GTID模式" class="headerlink" title="传统复制切换到GTID模式"></a>传统复制切换到GTID模式</h2><p>5.7.6以后参数<code>gtid_mode</code>可以动态修改<br>GTID_MODE:</p>
+<ul>
+<li><p>OFF </p>
+<blockquote>
+<p>彻底关闭GTID,如果关闭状态的备库接受到带GTID的事务,则复制中断</p>
+</blockquote>
+</li>
+<li><p>OFF_PERMISSIVE </p>
+<blockquote>
+<p>可以认为是关闭GTID前的过渡阶段,主库在设置成该值后不再生成GTID,备库在接受到带GTID 和不带GTID的事务都可以容忍<br>主库在关闭GTID时,执行事务会产生一个Anonymous_Gtid事件,会在备库执行:<br>SET @@SESSION.GTID_NEXT= ‘ANONYMOUS’<br>备库在执行匿名事务时,就不会去尝试生成本地GTID了</p>
+</blockquote>
+</li>
+<li><p>ON_PERMISSIVE</p>
+<blockquote>
+<p>可以认为是打开GTID前的过渡阶段,主库在设置成该值后会产生GTID,同时备库依然容忍带GTID和不带GTID的事务</p>
+</blockquote>
+</li>
+<li><p>ON</p>
+<blockquote>
+<p>完全打开GTID,如果打开状态的备库接受到不带GTID的事务,则复制中断</p>
+</blockquote>
+</li>
+</ul>
+<p>准备工作<br>1.拓扑中的所有服务器都必须使用MySQL 5.7.6或更高版本. 除非拓扑中的所有服务器都使用此版本,否则无法在任何单个服务器上启用GTID事务.<br>2.所有服务器都将gtid_mode设置为默认值OFF.</p>
+<p>The following procedure can be paused at any time and later resumed where it was, or reversed by jumping to the corresponding step of Section 16.1.5.3, “Disabling GTID Transactions Online”, the online procedure to disable GTIDs. This makes the procedure fault-tolerant because any unrelated issues that may appear in the middle of the procedure can be handled as usual, and then the procedure continued where it was left off.<br>切换过程可以再任意时刻停止,并稍后继续执行</p>
+<blockquote>
+<p>注意<br>在每一步执行完全完成后再执行下一步</p>
+</blockquote>
+<a id="more"></a>
+<h3 id="从传统复制模式切换到GTID模式"><a href="#从传统复制模式切换到GTID模式" class="headerlink" title="从传统复制模式切换到GTID模式"></a>从传统复制模式切换到GTID模式</h3><h4 id="1-在每个sever执行"><a href="#1-在每个sever执行" class="headerlink" title="1.在每个sever执行:"></a>1.在每个sever执行:</h4><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> @@GLOBAL.ENFORCE_GTID_CONSISTENCY <span class="comment">= WARN</span>;</span><br></pre></td></tr></table></figure>
+<p>让服务器与您的正常工作负载运行一段时间并监视日志. 如果此步骤在日志中导致任何警告,请调整应用程序,以使其仅使用兼容GTID的功能,并且不会产生任何警告.</p>
+<blockquote>
+<p>Important<br>这是第一个重要步骤. 您必须确保在进入下一步骤之前不会在错误日志中生成警告.</p>
+</blockquote>
+<h4 id="2-在每个sever执行"><a href="#2-在每个sever执行" class="headerlink" title="2.在每个sever执行:"></a>2.在每个sever执行:</h4><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> @@GLOBAL.ENFORCE_GTID_CONSISTENCY <span class="comment">= ON</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="3-在每个sever执行"><a href="#3-在每个sever执行" class="headerlink" title="3.在每个sever执行:"></a>3.在每个sever执行:</h4><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> @@GLOBAL.GTID_MODE <span class="comment">= OFF_PERMISSIVE</span>;</span><br></pre></td></tr></table></figure>
+<p>哪个服务器首先执行此语句无关紧要,但重要的是所有服务器在任何服务器开始下一步之前完成此步骤.</p>
+<h4 id="4-在每个sever执行"><a href="#4-在每个sever执行" class="headerlink" title="4.在每个sever执行:"></a>4.在每个sever执行:</h4><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> @@GLOBAL.GTID_MODE <span class="comment">= ON_PERMISSIVE</span>;</span><br></pre></td></tr></table></figure>
+<p>哪个服务器首先执行此语句无关紧要.</p>
+<p>5.在每个服务器上,等待状态变量ONGOING_ANONYMOUS_TRANSACTION_COUNT为零. 可以使用如下方式查询:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">STATUS</span> <span class="keyword">LIKE</span> <span class="string">&#x27;ONGOING_ANONYMOUS_TRANSACTION_COUNT&#x27;</span>;</span><br></pre></td></tr></table></figure><br>ONGOING_ANONYMOUS_TRANSACTION_COUNT显示已标记为匿名的正在进行的事务的数量</p>
+<blockquote>
+<p>注意:<br>在从库上,理论上这个值可能显示为零,之后又显示为非零值.这并不是问题,只要显示为零一次即可</p>
+</blockquote>
+<p>6.等待生成到步骤5的所有事务复制到所有服务器. 您可以在不停止更新的情况下执行此操作：唯一重要的是所有anonymous transactions都被复制了.</p>
+<p>有关检查所有匿名事务已复制到所有服务器的一种方法,请参见第16.1.5.4节“验证匿名事务的复制”.</p>
+<p>7.If you use binary logs for anything other than replication, for example point in time backup and restore, wait until you do not need the old binary logs having transactions without GTIDs.</p>
+<p>For instance, after step 6 has completed, you can execute FLUSH LOGS on the server where you are taking backups. Then either explicitly take a backup or wait for the next iteration of any periodic backup routine you may have set up.</p>
+<p>Ideally, wait for the server to purge all binary logs that existed when step 6 was completed. Also wait for any backup taken before step 6 to expire.</p>
+<blockquote>
+<p>Important<br>This is the second important point. It is vital to understand that binary logs containing anonymous transactions, without GTIDs cannot be used after the next step. After this step, you must be sure that transactions without GTIDs do not exist anywhere in the topology.</p>
+</blockquote>
+<h4 id="8-在每个sever执行"><a href="#8-在每个sever执行" class="headerlink" title="8.在每个sever执行:"></a>8.在每个sever执行:</h4><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> @@GLOBAL.GTID_MODE <span class="comment">= ON</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="9-在每个sever的my-cnf配置文件中添加"><a href="#9-在每个sever的my-cnf配置文件中添加" class="headerlink" title="9.在每个sever的my.cnf配置文件中添加"></a>9.在每个sever的my.cnf配置文件中添加</h4><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">gtid-mode</span>=<span class="literal">ON</span></span><br><span class="line"><span class="attr">ENFORCE_GTID_CONSISTENCY</span> = <span class="literal">ON</span></span><br></pre></td></tr></table></figure>
+<p>现在可以保证所有事务都具有GTID（除了在步骤5或更早版本中生成的已经处理的事务之外）. 要开始使用GTID协议,以便稍后执行自动故障切换,请在每个从站上执行以下操作. 或者,如果使用多源复制,请对每个通道执行此操作,并包括FOR CHANNEL通道子句：<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">STOP</span> <span class="keyword">SLAVE</span> [<span class="keyword">FOR</span> CHANNEL <span class="string">&#x27;channel&#x27;</span>];</span><br><span class="line"><span class="keyword">CHANGE</span> <span class="keyword">MASTER</span> <span class="keyword">TO</span> MASTER_AUTO_POSITION = <span class="number">1</span> [<span class="keyword">FOR</span> CHANNEL <span class="string">&#x27;channel&#x27;</span>];</span><br><span class="line"><span class="keyword">START</span> <span class="keyword">SLAVE</span> [<span class="keyword">FOR</span> CHANNEL <span class="string">&#x27;channel&#x27;</span>];</span><br></pre></td></tr></table></figure></p>
+<p>参考</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/41200">https://yq.aliyun.com/articles/41200</a></p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/06/17/传统复制在线切换到GTID模式/" target="_blank" title="传统复制在线切换到GTID模式">http://fuxkdb.com/2017/06/17/传统复制在线切换到GTID模式/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%A4%8D%E5%88%B6/" rel="tag">MySQL复制</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/06/28/docopt%E8%AF%A6%E8%A7%A3/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          docopt详解
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/06/13/%E4%B8%BB%E4%BB%8E%E5%88%87%E6%8D%A2%E5%AE%9E%E4%BE%8B(%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6)/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">主从切换实例(传统复制)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">传统复制切换到GTID模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">从传统复制模式切换到GTID模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9C%A8%E6%AF%8F%E4%B8%AAsever%E6%89%A7%E8%A1%8C"><span class="nav-number">1.1.1.</span> <span class="nav-text">1.在每个sever执行:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%9C%A8%E6%AF%8F%E4%B8%AAsever%E6%89%A7%E8%A1%8C"><span class="nav-number">1.1.2.</span> <span class="nav-text">2.在每个sever执行:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%9C%A8%E6%AF%8F%E4%B8%AAsever%E6%89%A7%E8%A1%8C"><span class="nav-number">1.1.3.</span> <span class="nav-text">3.在每个sever执行:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%9C%A8%E6%AF%8F%E4%B8%AAsever%E6%89%A7%E8%A1%8C"><span class="nav-number">1.1.4.</span> <span class="nav-text">4.在每个sever执行:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-%E5%9C%A8%E6%AF%8F%E4%B8%AAsever%E6%89%A7%E8%A1%8C"><span class="nav-number">1.1.5.</span> <span class="nav-text">8.在每个sever执行:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-%E5%9C%A8%E6%AF%8F%E4%B8%AAsever%E7%9A%84my-cnf%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%B8%AD%E6%B7%BB%E5%8A%A0"><span class="nav-number">1.1.6.</span> <span class="nav-text">9.在每个sever的my.cnf配置文件中添加</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>视图合并、hash join连接列数据分布不均匀引发的惨案 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="OracleSQL Tuning" />
+  
+  
+  
+  
+  <meta name="description" content="表大小1234567891011121314151617181920212223242526272829303132333435363738394041424344454647SQL&gt; select count(*) from agent.TB_AGENT_INFO;  COUNT(*)----------      1751SQL&gt; select count(*) from TB_C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="视图合并、hash join连接列数据分布不均匀引发的惨案">
+<meta property="og:url" content="http://fuxkdb.com/2017/08/09/%E8%A7%86%E5%9B%BE%E5%90%88%E5%B9%B6%E3%80%81hash-join%E8%BF%9E%E6%8E%A5%E5%88%97%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E4%B8%8D%E5%9D%87%E5%8C%80%E5%BC%95%E5%8F%91%E7%9A%84%E6%83%A8%E6%A1%88/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="表大小1234567891011121314151617181920212223242526272829303132333435363738394041424344454647SQL&gt; select count(*) from agent.TB_AGENT_INFO;  COUNT(*)----------      1751SQL&gt; select count(*) from TB_C">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://images2015.cnblogs.com/blog/1012378/201608/1012378-20160826093914538-1800751894.png">
+<meta property="og:image" content="http://images2015.cnblogs.com/blog/1012378/201608/1012378-20160826093944413-1737380579.png">
+<meta property="og:image" content="http://images2015.cnblogs.com/blog/1012378/201608/1012378-20160826093951647-160612509.png">
+<meta property="og:image" content="http://images2015.cnblogs.com/blog/1012378/201608/1012378-20160826094007288-269400624.png">
+<meta property="article:published_time" content="2017-08-09T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-09T07:36:58.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="Oracle">
+<meta property="article:tag" content="SQL Tuning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://images2015.cnblogs.com/blog/1012378/201608/1012378-20160826093914538-1800751894.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-视图合并、hash-join连接列数据分布不均匀引发的惨案" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      视图合并、hash join连接列数据分布不均匀引发的惨案
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/09/%E8%A7%86%E5%9B%BE%E5%90%88%E5%B9%B6%E3%80%81hash-join%E8%BF%9E%E6%8E%A5%E5%88%97%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E4%B8%8D%E5%9D%87%E5%8C%80%E5%BC%95%E5%8F%91%E7%9A%84%E6%83%A8%E6%A1%88/" class="article-date">
+	  <time datetime="2017-08-09T14:00:00.000Z" itemprop="datePublished">2017-08-09</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>表大小<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; select count(<span class="strong">*) from agent.TB_AGENT_INFO;</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">  COUNT(*</span>)</span><br><span class="line">----------</span><br><span class="line"><span class="code">      1751</span></span><br><span class="line"></span><br><span class="line">SQL&gt; select count(<span class="strong">*) from TB_CHANNEL_INFO ;</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">  COUNT(*</span>)</span><br><span class="line">----------</span><br><span class="line"><span class="code">      1807</span></span><br><span class="line"></span><br><span class="line">SQL&gt; select count(<span class="strong">*) from TB_USER_CHANNEL;</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">  COUNT(*</span>)</span><br><span class="line">----------</span><br><span class="line"><span class="code">      7269</span></span><br><span class="line"></span><br><span class="line">SQL&gt; select count(<span class="strong">*) from OSS_USER_STATION;</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">  COUNT(*</span>)</span><br><span class="line">----------</span><br><span class="line"><span class="code">      2149</span></span><br><span class="line"></span><br><span class="line">SQL&gt; select count(<span class="strong">*) from tb_user_zgy ;</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">  COUNT(*</span>)</span><br><span class="line">----------</span><br><span class="line"><span class="code">  43</span></span><br><span class="line"></span><br><span class="line">SQL&gt; select count(<span class="strong">*) from act.tb_user_agent_relat;</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">  COUNT(*</span>)</span><br><span class="line">----------</span><br><span class="line"><span class="code">     29612</span></span><br><span class="line"></span><br><span class="line">SQL&gt; select count(<span class="strong">*) from agent.base_data_user_info ;</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">  COUNT(*</span>)</span><br><span class="line">----------</span><br><span class="line"><span class="code">     30005</span></span><br><span class="line"></span><br><span class="line">SQL&gt; select count(<span class="strong">*) from agent.base_data_invest_info;</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">  COUNT(*</span>)</span><br><span class="line">----------</span><br><span class="line"><span class="code">   3530163</span></span><br></pre></td></tr></table></figure></p>
+<p>慢的sql<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line">select a.city,</span><br><span class="line">       a.agent_id,</span><br><span class="line">       a.username,</span><br><span class="line">       a.real_name,</span><br><span class="line">       phone,</span><br><span class="line">       zgy_name,</span><br><span class="line">       login_count,</span><br><span class="line">       user_count,</span><br><span class="line">       count(distinct b.invest_id) user_invested,</span><br><span class="line">       sum(b.order_amount / <span class="number">100</span>) invest_amount</span><br><span class="line">  <span class="keyword">from</span> (select a.city,</span><br><span class="line">               a.agent_id,</span><br><span class="line">               a.username,</span><br><span class="line">               a.real_name, -- 业主姓名</span><br><span class="line">               a.phone, -- 业主手机号</span><br><span class="line">               d.real_name zgy_name, -- 所属专管员</span><br><span class="line">               count(distinct <span class="keyword">case</span></span><br><span class="line">                       when c.str_day &lt;= <span class="string">&#x27;20160821&#x27;</span> then</span><br><span class="line">                        c.login_name</span><br><span class="line">                     end) login_count,</span><br><span class="line">               count(distinct <span class="keyword">case</span></span><br><span class="line">                       when c.str_day &lt;= <span class="string">&#x27;20160821&#x27;</span> then</span><br><span class="line">                        decode(c.status, <span class="number">1</span>, c.invest_id, <span class="literal">null</span>)</span><br><span class="line">                     end) user_count</span><br><span class="line">          <span class="keyword">from</span> (select agent_id, city, username, real_name, phone</span><br><span class="line">                   <span class="keyword">from</span> agent.TB_AGENT_INFO</span><br><span class="line">                  where agent_id <span class="keyword">in</span></span><br><span class="line">                        (SELECT agent_id</span><br><span class="line">                           FROM (SELECT distinct *</span><br><span class="line">                                   FROM TB_CHANNEL_INFO t</span><br><span class="line">                                  START WITH t.CHANNEL_ID <span class="keyword">in</span></span><br><span class="line">                                             (select CHANNEL_ID</span><br><span class="line">                                                <span class="keyword">from</span> TB_USER_CHANNEL</span><br><span class="line">                                               where USER_ID = <span class="number">596</span>)</span><br><span class="line">                                 CONNECT BY PRIOR</span><br><span class="line">                                             t.CHANNEL_ID = t.PARENT_CHANNEL_ID)</span><br><span class="line">                          WHERE agent_id IS NOT NULL)) a</span><br><span class="line">          left join oss_user_station e</span><br><span class="line">            on a.agent_id = e.agent_id</span><br><span class="line">           <span class="keyword">and</span> e.user_type = <span class="number">0</span></span><br><span class="line">          left join tb_user_zgy d</span><br><span class="line">            on e.username = d.username</span><br><span class="line">          left join act.tb_user_agent_relat  c</span><br><span class="line">            on a.agent_id = c.agent_id</span><br><span class="line">         group by a.city,</span><br><span class="line">                  a.username,</span><br><span class="line">                  a.real_name,</span><br><span class="line">                  a.phone,</span><br><span class="line">                  d.real_name,</span><br><span class="line">                  a.agent_id) a</span><br><span class="line">  left join (select invest_id, order_amount, agent_id, str_day</span><br><span class="line">               <span class="keyword">from</span> agent.base_data_invest_info</span><br><span class="line">              where str_day &gt;= <span class="string">&#x27;20150801&#x27;</span> <span class="keyword">and</span> str_day&lt;=<span class="string">&#x27;20160821&#x27;</span>) b</span><br><span class="line">    on a.agent_id = b.agent_id</span><br><span class="line"> group by a.city,</span><br><span class="line">          a.agent_id,</span><br><span class="line">          a.username,</span><br><span class="line">          a.real_name,</span><br><span class="line">          a.phone,</span><br><span class="line">          a.zgy_name,</span><br><span class="line">          a.login_count,</span><br><span class="line">          a.user_count</span><br><span class="line">这个查询可以看成两部分，第一部分一堆小表关联的a和唯一的一个大表再做关联</span><br><span class="line"></span><br><span class="line">man</span><br><span class="line">----------------------------------------------------------------------------------------------------------------------------------</span><br><span class="line">| Id  | Operation                                        | Name                  | Rows  | Bytes |TempSpc| Cost (%CPU)| Time    |</span><br><span class="line">----------------------------------------------------------------------------------------------------------------------------------</span><br><span class="line">|   <span class="number">0</span> | SELECT STATEMENT                                 |                       |    <span class="number">55</span>M|  <span class="number">6616</span>M|       |  <span class="number">3934</span>K  (<span class="number">1</span>)| <span class="number">13</span>:<span class="number">06</span>:<span class="number">52</span> |</span><br><span class="line">|   <span class="number">1</span> |  HASH GROUP BY                                   |                       |    <span class="number">55</span>M|  <span class="number">6616</span>M|       |  <span class="number">3934</span>K  (<span class="number">1</span>)| <span class="number">13</span>:<span class="number">06</span>:<span class="number">52</span> |</span><br><span class="line">|   <span class="number">2</span> |   VIEW                                           | VW_DAG_1              |    <span class="number">55</span>M|  <span class="number">6616</span>M|       |  <span class="number">3934</span>K  (<span class="number">1</span>)| <span class="number">13</span>:<span class="number">06</span>:<span class="number">52</span> |</span><br><span class="line">|   <span class="number">3</span> |    HASH GROUP BY                                 |                       |    <span class="number">55</span>M|  <span class="number">6301</span>M|  <span class="number">7681</span>M|  <span class="number">3934</span>K  (<span class="number">1</span>)| <span class="number">13</span>:<span class="number">06</span>:<span class="number">52</span> |</span><br><span class="line">|   <span class="number">4</span> |     VIEW                                         | VM_NWVW_0             |    <span class="number">55</span>M|  <span class="number">6301</span>M|       |  <span class="number">2456</span>K  (<span class="number">1</span>)| <span class="number">08</span>:<span class="number">11</span>:<span class="number">15</span> |</span><br><span class="line">|   <span class="number">5</span> |      SORT GROUP BY                               |                       |    <span class="number">55</span>M|    <span class="number">10</span>G|    <span class="number">11</span>G|  <span class="number">2456</span>K  (<span class="number">1</span>)| <span class="number">08</span>:<span class="number">11</span>:<span class="number">15</span> |</span><br><span class="line">|*  <span class="number">6</span> |       HASH JOIN RIGHT OUTER                      |                       |    <span class="number">55</span>M|    <span class="number">10</span>G|       | <span class="number">21643</span>   (<span class="number">2</span>)| <span class="number">00</span>:<span class="number">04</span>:<span class="number">20</span> |</span><br><span class="line">|   <span class="number">7</span> |        TABLE ACCESS FULL                         | TB_USER_AGENT_RELAT   | <span class="number">27937</span> |  <span class="number">1200</span>K|       |   <span class="number">102</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">02</span> |</span><br><span class="line">|*  <span class="number">8</span> |        HASH JOIN OUTER                           |                       |  <span class="number">3374</span>K|   <span class="number">511</span>M|       | <span class="number">21392</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">04</span>:<span class="number">17</span> |</span><br><span class="line">|*  <span class="number">9</span> |         HASH JOIN SEMI                           |                       |  <span class="number">1712</span> |   <span class="number">188</span>K|       |  <span class="number">2007</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">25</span> |</span><br><span class="line">|* <span class="number">10</span> |          HASH JOIN RIGHT OUTER                   |                       |  <span class="number">1712</span> |   <span class="number">173</span>K|       |    <span class="number">32</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">11</span> |           TABLE ACCESS FULL                      | TB_USER_ZGY           |    <span class="number">43</span> |   <span class="number">903</span> |       |     <span class="number">3</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|* <span class="number">12</span> |           HASH JOIN RIGHT OUTER                  |                       |  <span class="number">1712</span> |   <span class="number">138</span>K|       |    <span class="number">29</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|* <span class="number">13</span> |            TABLE ACCESS FULL                     | OSS_USER_STATION      |  <span class="number">1075</span> | <span class="number">25800</span> |       |     <span class="number">6</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">14</span> |            TABLE ACCESS FULL                     | TB_AGENT_INFO         |  <span class="number">1712</span> |    <span class="number">98</span>K|       |    <span class="number">23</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">15</span> |          VIEW                                    | VW_NSO_1              | <span class="number">16271</span> |   <span class="number">143</span>K|       |  <span class="number">1975</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">24</span> |</span><br><span class="line">|* <span class="number">16</span> |           VIEW                                   |                       | <span class="number">16271</span> |   <span class="number">143</span>K|       |  <span class="number">1975</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">24</span> |</span><br><span class="line">|  <span class="number">17</span> |            HASH UNIQUE                           |                       | <span class="number">16271</span> |  <span class="number">8882</span>K|    <span class="number">10</span>M|  <span class="number">1975</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">24</span> |</span><br><span class="line">|* <span class="number">18</span> |             CONNECT BY WITHOUT FILTERING (UNIQUE)|                       |       |       |       |            |          |</span><br><span class="line">|* <span class="number">19</span> |              HASH JOIN RIGHT SEMI                |                       |   <span class="number">530</span> |   <span class="number">146</span>K|       |    <span class="number">29</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|* <span class="number">20</span> |               TABLE ACCESS FULL                  | TB_USER_CHANNEL       |   <span class="number">600</span> |  <span class="number">7800</span> |       |     <span class="number">7</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">21</span> |               TABLE ACCESS FULL                  | TB_CHANNEL_INFO       |  <span class="number">1807</span> |   <span class="number">476</span>K|       |    <span class="number">22</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">22</span> |              TABLE ACCESS FULL                   | TB_CHANNEL_INFO       |  <span class="number">1807</span> |   <span class="number">476</span>K|       |    <span class="number">22</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|* <span class="number">23</span> |         TABLE ACCESS FULL                        | BASE_DATA_INVEST_INFO |  <span class="number">3374</span>K|   <span class="number">148</span>M|       | <span class="number">19375</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">03</span>:<span class="number">53</span> |</span><br><span class="line">----------------------------------------------------------------------------------------------------------------------------------</span><br><span class="line"></span><br><span class="line">Predicate Information (identified by operation id):</span><br><span class="line">---------------------------------------------------</span><br><span class="line"></span><br><span class="line">   <span class="number">6</span> - access(<span class="string">&quot;AGENT_ID&quot;</span>=<span class="string">&quot;C&quot;</span>.<span class="string">&quot;AGENT_ID&quot;</span>(+))</span><br><span class="line">   <span class="number">8</span> - access(<span class="string">&quot;AGENT_ID&quot;</span>=<span class="string">&quot;AGENT_ID&quot;</span>(+))</span><br><span class="line">   <span class="number">9</span> - access(<span class="string">&quot;AGENT_ID&quot;</span>=<span class="string">&quot;AGENT_ID&quot;</span>)</span><br><span class="line">  <span class="number">10</span> - access(<span class="string">&quot;C&quot;</span>.<span class="string">&quot;USERNAME&quot;</span>=<span class="string">&quot;D&quot;</span>.<span class="string">&quot;USERNAME&quot;</span>(+))</span><br><span class="line">  <span class="number">12</span> - access(<span class="string">&quot;AGENT_ID&quot;</span>=<span class="string">&quot;C&quot;</span>.<span class="string">&quot;AGENT_ID&quot;</span>(+))</span><br><span class="line">  <span class="number">13</span> - filter(<span class="string">&quot;C&quot;</span>.<span class="string">&quot;USER_TYPE&quot;</span>(+)=<span class="number">0</span>)</span><br><span class="line">  <span class="number">16</span> - filter(<span class="string">&quot;AGENT_ID&quot;</span> IS NOT NULL)</span><br><span class="line">  <span class="number">18</span> - access(<span class="string">&quot;T&quot;</span>.<span class="string">&quot;PARENT_CHANNEL_ID&quot;</span>=PRIOR <span class="string">&quot;T&quot;</span>.<span class="string">&quot;CHANNEL_ID&quot;</span>)</span><br><span class="line">  <span class="number">19</span> - access(<span class="string">&quot;T&quot;</span>.<span class="string">&quot;CHANNEL_ID&quot;</span>=<span class="string">&quot;CHANNEL_ID&quot;</span>)</span><br><span class="line">  <span class="number">20</span> - filter(<span class="string">&quot;USER_ID&quot;</span>=<span class="number">596</span>)</span><br><span class="line">  <span class="number">23</span> - filter(<span class="string">&quot;STR_DAY&quot;</span>(+)&gt;=<span class="string">&#x27;20150801&#x27;</span> AND <span class="string">&quot;STR_DAY&quot;</span>(+)&lt;=<span class="string">&#x27;20160821&#x27;</span>)</span><br></pre></td></tr></table></figure><br><a id="more"></a><br>尝试单独跑 a,很快<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">select</span> a.city,</span><br><span class="line">               a.agent_id,</span><br><span class="line">               a.username,</span><br><span class="line">               a.real_name, <span class="comment">-- 业主姓名</span></span><br><span class="line">               a.phone, <span class="comment">-- 业主手机号</span></span><br><span class="line">               d.real_name zgy_name, <span class="comment">-- 所属专管员</span></span><br><span class="line">               <span class="keyword">count</span>(<span class="keyword">distinct</span> <span class="keyword">case</span></span><br><span class="line">                       <span class="keyword">when</span> c.str_day &lt;= <span class="string">&#x27;20160821&#x27;</span> <span class="keyword">then</span></span><br><span class="line">                        c.login_name</span><br><span class="line">                     <span class="keyword">end</span>) login_count,</span><br><span class="line">               <span class="keyword">count</span>(<span class="keyword">distinct</span> <span class="keyword">case</span></span><br><span class="line">                       <span class="keyword">when</span> c.str_day &lt;= <span class="string">&#x27;20160821&#x27;</span> <span class="keyword">then</span></span><br><span class="line">                        <span class="keyword">decode</span>(c.status, <span class="number">1</span>, c.invest_id, <span class="literal">null</span>)</span><br><span class="line">                     <span class="keyword">end</span>) user_count</span><br><span class="line">          <span class="keyword">from</span> (<span class="keyword">select</span> agent_id, city, username, real_name, phone</span><br><span class="line">                   <span class="keyword">from</span> agent.TB_AGENT_INFO</span><br><span class="line">                  <span class="keyword">where</span> agent_id <span class="keyword">in</span></span><br><span class="line">                        (<span class="keyword">SELECT</span> agent_id</span><br><span class="line">                           <span class="keyword">FROM</span> (<span class="keyword">SELECT</span> <span class="keyword">distinct</span> *</span><br><span class="line">                                   <span class="keyword">FROM</span> TB_CHANNEL_INFO t</span><br><span class="line">                                  <span class="keyword">START</span> <span class="keyword">WITH</span> t.CHANNEL_ID <span class="keyword">in</span></span><br><span class="line">                                             (<span class="keyword">select</span> CHANNEL_ID</span><br><span class="line">                                                <span class="keyword">from</span> TB_USER_CHANNEL</span><br><span class="line">                                               <span class="keyword">where</span> USER_ID = <span class="number">596</span>)</span><br><span class="line">                                 <span class="keyword">CONNECT</span> <span class="keyword">BY</span> <span class="keyword">PRIOR</span></span><br><span class="line">                                             t.CHANNEL_ID = t.PARENT_CHANNEL_ID)</span><br><span class="line">                          <span class="keyword">WHERE</span> agent_id <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>)) a</span><br><span class="line">          <span class="keyword">left</span> <span class="keyword">join</span> oss_user_station e</span><br><span class="line">            <span class="keyword">on</span> a.agent_id = e.agent_id</span><br><span class="line">           <span class="keyword">and</span> e.user_type = <span class="number">0</span></span><br><span class="line">          <span class="keyword">left</span> <span class="keyword">join</span> tb_user_zgy d</span><br><span class="line">            <span class="keyword">on</span> e.username = d.username</span><br><span class="line">          <span class="keyword">left</span> <span class="keyword">join</span> act.tb_user_agent_relat  c</span><br><span class="line">            <span class="keyword">on</span> a.agent_id = c.agent_id</span><br><span class="line">         <span class="keyword">group</span> <span class="keyword">by</span> a.city,</span><br><span class="line">                  a.username,</span><br><span class="line">                  a.real_name,</span><br><span class="line">                  a.phone,</span><br><span class="line">                  d.real_name,</span><br><span class="line">                  a.agent_id) a</span><br></pre></td></tr></table></figure><br>单独跑a很快，和b合在一起就很慢，那么怀疑是由于视图合并，导致了a内部的表提前去和b关联，引发了性能问题。<br>尝试禁止视图合并可以使用rownum&gt;0,或no_merge hint</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line">select a.city,</span><br><span class="line">       a.agent_id,</span><br><span class="line">       a.username,</span><br><span class="line">       a.real_name,</span><br><span class="line">       phone,</span><br><span class="line">       zgy_name,</span><br><span class="line">       login_count,</span><br><span class="line">       user_count,</span><br><span class="line">       count(distinct b.invest_id) user_invested,</span><br><span class="line">       sum(b.order_amount / <span class="number">100</span>) invest_amount</span><br><span class="line">  <span class="keyword">from</span> (select * <span class="keyword">from</span> (select a.city,</span><br><span class="line">               a.agent_id,</span><br><span class="line">               a.username,</span><br><span class="line">               a.real_name, -- 业主姓名</span><br><span class="line">               a.phone, -- 业主手机号</span><br><span class="line">               d.real_name zgy_name, -- 所属专管员</span><br><span class="line">               count(distinct <span class="keyword">case</span></span><br><span class="line">                       when c.str_day &lt;= <span class="string">&#x27;20160821&#x27;</span> then</span><br><span class="line">                        c.login_name</span><br><span class="line">                     end) login_count,</span><br><span class="line">               count(distinct <span class="keyword">case</span></span><br><span class="line">                       when c.str_day &lt;= <span class="string">&#x27;20160821&#x27;</span> then</span><br><span class="line">                        decode(c.status, <span class="number">1</span>, c.invest_id, <span class="literal">null</span>)</span><br><span class="line">                     end) user_count</span><br><span class="line">          <span class="keyword">from</span> (select agent_id, city, username, real_name, phone</span><br><span class="line">                   <span class="keyword">from</span> agent.TB_AGENT_INFO</span><br><span class="line">                  where agent_id <span class="keyword">in</span></span><br><span class="line">                        (SELECT agent_id</span><br><span class="line">                           FROM (SELECT distinct *</span><br><span class="line">                                   FROM TB_CHANNEL_INFO t</span><br><span class="line">                                  START WITH t.CHANNEL_ID <span class="keyword">in</span></span><br><span class="line">                                             (select CHANNEL_ID</span><br><span class="line">                                                <span class="keyword">from</span> TB_USER_CHANNEL</span><br><span class="line">                                               where USER_ID = <span class="number">596</span>)</span><br><span class="line">                                 CONNECT BY PRIOR</span><br><span class="line">                                             t.CHANNEL_ID = t.PARENT_CHANNEL_ID)</span><br><span class="line">                          WHERE agent_id IS NOT NULL)) a</span><br><span class="line">          left join oss_user_station e</span><br><span class="line">            on a.agent_id = e.agent_id</span><br><span class="line">           <span class="keyword">and</span> e.user_type = <span class="number">0</span></span><br><span class="line">          left join tb_user_zgy d</span><br><span class="line">            on e.username = d.username</span><br><span class="line">          left join act.tb_user_agent_relat  c</span><br><span class="line">            on a.agent_id = c.agent_id</span><br><span class="line">         group by a.city,</span><br><span class="line">                  a.username,</span><br><span class="line">                  a.real_name,</span><br><span class="line">                  a.phone,</span><br><span class="line">                  d.real_name,</span><br><span class="line">                  a.agent_id) where rownum&gt;<span class="number">0</span>)a</span><br><span class="line">  left join (select invest_id, order_amount, agent_id, str_day</span><br><span class="line">               <span class="keyword">from</span> agent.base_data_invest_info</span><br><span class="line">              where str_day &gt;= <span class="string">&#x27;20150801&#x27;</span> <span class="keyword">and</span> str_day&lt;=<span class="string">&#x27;20160821&#x27;</span>) b</span><br><span class="line">    on a.agent_id = b.agent_id</span><br><span class="line"> group by a.city,</span><br><span class="line">          a.agent_id,</span><br><span class="line">          a.username,</span><br><span class="line">          a.real_name,</span><br><span class="line">          a.phone,</span><br><span class="line">          a.zgy_name,</span><br><span class="line">          a.login_count,</span><br><span class="line">          a.user_count</span><br><span class="line"></span><br><span class="line">kuai</span><br><span class="line">-----------------------------------------------------------------------------------------------------------------------------------</span><br><span class="line">| Id  | Operation                                         | Name                  | Rows  | Bytes |TempSpc| Cost (%CPU)| Time    |</span><br><span class="line">-----------------------------------------------------------------------------------------------------------------------------------</span><br><span class="line">|   <span class="number">0</span> | SELECT STATEMENT                                  |                       |   <span class="number">823</span>M|    <span class="number">96</span>G|       |    <span class="number">23</span>M  (<span class="number">1</span>)| <span class="number">78</span>:<span class="number">59</span>:<span class="number">52</span> |</span><br><span class="line">|   <span class="number">1</span> |  HASH GROUP BY                                    |                       |   <span class="number">823</span>M|    <span class="number">96</span>G|       |    <span class="number">23</span>M  (<span class="number">1</span>)| <span class="number">78</span>:<span class="number">59</span>:<span class="number">52</span> |</span><br><span class="line">|   <span class="number">2</span> |   VIEW                                            | VW_DAG_0              |   <span class="number">823</span>M|    <span class="number">96</span>G|       |    <span class="number">23</span>M  (<span class="number">1</span>)| <span class="number">78</span>:<span class="number">59</span>:<span class="number">52</span> |</span><br><span class="line">|   <span class="number">3</span> |    HASH GROUP BY                                  |                       |   <span class="number">823</span>M|    <span class="number">98</span>G|   <span class="number">112</span>G|    <span class="number">23</span>M  (<span class="number">1</span>)| <span class="number">78</span>:<span class="number">59</span>:<span class="number">52</span> |</span><br><span class="line">|*  <span class="number">4</span> |     HASH JOIN OUTER                               |                       |   <span class="number">823</span>M|    <span class="number">98</span>G|    <span class="number">26</span>M| <span class="number">41358</span>   (<span class="number">6</span>)| <span class="number">00</span>:<span class="number">08</span>:<span class="number">17</span> |</span><br><span class="line">|   <span class="number">5</span> |      VIEW                                         |                       |   <span class="number">259</span>K|    <span class="number">23</span>M|       | <span class="number">11090</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">02</span>:<span class="number">14</span> |</span><br><span class="line">|   <span class="number">6</span> |       COUNT                                       |                       |       |       |       |            |          |</span><br><span class="line">|*  <span class="number">7</span> |        FILTER                                     |                       |       |       |       |            |          |</span><br><span class="line">|   <span class="number">8</span> |         VIEW                                      |                       |   <span class="number">259</span>K|    <span class="number">23</span>M|       | <span class="number">11090</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">02</span>:<span class="number">14</span> |</span><br><span class="line">|   <span class="number">9</span> |          SORT GROUP BY                            |                       |   <span class="number">259</span>K|    <span class="number">38</span>M|    <span class="number">41</span>M| <span class="number">11090</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">02</span>:<span class="number">14</span> |</span><br><span class="line">|* <span class="number">10</span> |           HASH JOIN                               |                       |   <span class="number">259</span>K|    <span class="number">38</span>M|       |  <span class="number">2111</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">26</span> |</span><br><span class="line">|* <span class="number">11</span> |            VIEW                                   |                       | <span class="number">16271</span> |   <span class="number">143</span>K|       |  <span class="number">1975</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">24</span> |</span><br><span class="line">|  <span class="number">12</span> |             HASH UNIQUE                           |                       | <span class="number">16271</span> |  <span class="number">8882</span>K|    <span class="number">10</span>M|  <span class="number">1975</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">24</span> |</span><br><span class="line">|* <span class="number">13</span> |              CONNECT BY WITHOUT FILTERING (UNIQUE)|                       |       |       |       |            |          |</span><br><span class="line">|* <span class="number">14</span> |               HASH JOIN RIGHT SEMI                |                       |   <span class="number">530</span> |   <span class="number">146</span>K|       |    <span class="number">29</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|* <span class="number">15</span> |                TABLE ACCESS FULL                  | TB_USER_CHANNEL       |   <span class="number">600</span> |  <span class="number">7800</span> |       |     <span class="number">7</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">16</span> |                TABLE ACCESS FULL                  | TB_CHANNEL_INFO       |  <span class="number">1807</span> |   <span class="number">476</span>K|       |    <span class="number">22</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">17</span> |               TABLE ACCESS FULL                   | TB_CHANNEL_INFO       |  <span class="number">1807</span> |   <span class="number">476</span>K|       |    <span class="number">22</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|* <span class="number">18</span> |            HASH JOIN OUTER                        |                       | <span class="number">27937</span> |  <span class="number">4037</span>K|       |   <span class="number">134</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">02</span> |</span><br><span class="line">|* <span class="number">19</span> |             HASH JOIN RIGHT OUTER                 |                       |  <span class="number">1712</span> |   <span class="number">173</span>K|       |    <span class="number">32</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">20</span> |              TABLE ACCESS FULL                    | TB_USER_ZGY           |    <span class="number">43</span> |   <span class="number">903</span> |       |     <span class="number">3</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|* <span class="number">21</span> |              HASH JOIN RIGHT OUTER                |                       |  <span class="number">1712</span> |   <span class="number">138</span>K|       |    <span class="number">29</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|* <span class="number">22</span> |               TABLE ACCESS FULL                   | OSS_USER_STATION      |  <span class="number">1075</span> | <span class="number">25800</span> |       |     <span class="number">6</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">23</span> |               TABLE ACCESS FULL                   | TB_AGENT_INFO         |  <span class="number">1712</span> |    <span class="number">98</span>K|       |    <span class="number">23</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span> |</span><br><span class="line">|  <span class="number">24</span> |             TABLE ACCESS FULL                     | TB_USER_AGENT_RELAT   | <span class="number">27937</span> |  <span class="number">1200</span>K|       |   <span class="number">102</span>   (<span class="number">0</span>)| <span class="number">00</span>:<span class="number">00</span>:<span class="number">02</span> |</span><br><span class="line">|* <span class="number">25</span> |      TABLE ACCESS FULL                            | BASE_DATA_INVEST_INFO |  <span class="number">3374</span>K|   <span class="number">109</span>M|       | <span class="number">19375</span>   (<span class="number">1</span>)| <span class="number">00</span>:<span class="number">03</span>:<span class="number">53</span> |</span><br><span class="line">-----------------------------------------------------------------------------------------------------------------------------------</span><br><span class="line"></span><br><span class="line">Predicate Information (identified by operation id):</span><br><span class="line">---------------------------------------------------</span><br><span class="line"></span><br><span class="line">   <span class="number">4</span> - access(<span class="string">&quot;A&quot;</span>.<span class="string">&quot;AGENT_ID&quot;</span>=<span class="string">&quot;AGENT_ID&quot;</span>(+))</span><br><span class="line">   <span class="number">7</span> - filter(ROWNUM&gt;<span class="number">0</span>)</span><br><span class="line">  <span class="number">10</span> - access(<span class="string">&quot;AGENT_ID&quot;</span>=<span class="string">&quot;AGENT_ID&quot;</span>)</span><br><span class="line">  <span class="number">11</span> - filter(<span class="string">&quot;AGENT_ID&quot;</span> IS NOT NULL)</span><br><span class="line">  <span class="number">13</span> - access(<span class="string">&quot;T&quot;</span>.<span class="string">&quot;PARENT_CHANNEL_ID&quot;</span>=PRIOR <span class="string">&quot;T&quot;</span>.<span class="string">&quot;CHANNEL_ID&quot;</span>)</span><br><span class="line">  <span class="number">14</span> - access(<span class="string">&quot;T&quot;</span>.<span class="string">&quot;CHANNEL_ID&quot;</span>=<span class="string">&quot;CHANNEL_ID&quot;</span>)</span><br><span class="line">  <span class="number">15</span> - filter(<span class="string">&quot;USER_ID&quot;</span>=<span class="number">596</span>)</span><br><span class="line">  <span class="number">18</span> - access(<span class="string">&quot;AGENT_ID&quot;</span>=<span class="string">&quot;C&quot;</span>.<span class="string">&quot;AGENT_ID&quot;</span>(+))</span><br><span class="line">  <span class="number">19</span> - access(<span class="string">&quot;C&quot;</span>.<span class="string">&quot;USERNAME&quot;</span>=<span class="string">&quot;D&quot;</span>.<span class="string">&quot;USERNAME&quot;</span>(+))</span><br><span class="line">  <span class="number">21</span> - access(<span class="string">&quot;AGENT_ID&quot;</span>=<span class="string">&quot;C&quot;</span>.<span class="string">&quot;AGENT_ID&quot;</span>(+))</span><br><span class="line">  <span class="number">22</span> - filter(<span class="string">&quot;C&quot;</span>.<span class="string">&quot;USER_TYPE&quot;</span>(+)=<span class="number">0</span>)</span><br><span class="line">  <span class="number">25</span> - filter(<span class="string">&quot;STR_DAY&quot;</span>(+)&gt;=<span class="string">&#x27;20150801&#x27;</span> AND <span class="string">&quot;STR_DAY&quot;</span>(+)&lt;=<span class="string">&#x27;20160821&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>用no_merge hint禁止视图合并也可以<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> a.city,</span><br><span class="line">       a.agent_id,</span><br><span class="line">       a.username,</span><br><span class="line">       a.real_name,</span><br><span class="line">       phone,</span><br><span class="line">       zgy_name,</span><br><span class="line">       login_count,</span><br><span class="line">       user_count,</span><br><span class="line">       <span class="keyword">count</span>(<span class="keyword">distinct</span> b.invest_id) user_invested,</span><br><span class="line">       <span class="keyword">sum</span>(b.order_amount / <span class="number">100</span>) invest_amount</span><br><span class="line">  <span class="keyword">from</span> (<span class="keyword">select</span> <span class="comment">/*+ no_merge */</span></span><br><span class="line">               a.city,</span><br><span class="line">               a.agent_id,</span><br><span class="line">               a.username,</span><br><span class="line">               a.real_name, <span class="comment">-- 业主姓名</span></span><br><span class="line">               a.phone, <span class="comment">-- 业主手机号</span></span><br><span class="line">               d.real_name zgy_name, <span class="comment">-- 所属专管员</span></span><br><span class="line">               <span class="keyword">count</span>(<span class="keyword">distinct</span> <span class="keyword">case</span></span><br><span class="line">                       <span class="keyword">when</span> c.str_day &lt;= <span class="string">&#x27;20160821&#x27;</span> <span class="keyword">then</span></span><br><span class="line">                        c.login_name</span><br><span class="line">                     <span class="keyword">end</span>) login_count,</span><br><span class="line">               <span class="keyword">count</span>(<span class="keyword">distinct</span> <span class="keyword">case</span></span><br><span class="line">                       <span class="keyword">when</span> c.str_day &lt;= <span class="string">&#x27;20160821&#x27;</span> <span class="keyword">then</span></span><br><span class="line">                        <span class="keyword">decode</span>(c.status, <span class="number">1</span>, c.invest_id, <span class="literal">null</span>)</span><br><span class="line">                     <span class="keyword">end</span>) user_count</span><br><span class="line">          <span class="keyword">from</span> (<span class="keyword">select</span>  <span class="comment">/*+ qb_name(sb) */</span> agent_id, city, username, real_name, phone</span><br><span class="line">                   <span class="keyword">from</span> agent.TB_AGENT_INFO</span><br><span class="line">                  <span class="keyword">where</span> agent_id <span class="keyword">in</span></span><br><span class="line">                        (<span class="keyword">SELECT</span> agent_id</span><br><span class="line">                           <span class="keyword">FROM</span> (<span class="keyword">SELECT</span> <span class="keyword">distinct</span> *</span><br><span class="line">                                   <span class="keyword">FROM</span> TB_CHANNEL_INFO t</span><br><span class="line">                                  <span class="keyword">START</span> <span class="keyword">WITH</span> t.CHANNEL_ID <span class="keyword">in</span></span><br><span class="line">                                             (<span class="keyword">select</span> CHANNEL_ID</span><br><span class="line">                                                <span class="keyword">from</span> TB_USER_CHANNEL</span><br><span class="line">                                               <span class="keyword">where</span> USER_ID = <span class="number">596</span>)</span><br><span class="line">                                 <span class="keyword">CONNECT</span> <span class="keyword">BY</span> <span class="keyword">PRIOR</span></span><br><span class="line">                                             t.CHANNEL_ID = t.PARENT_CHANNEL_ID)</span><br><span class="line">                          <span class="keyword">WHERE</span> agent_id <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>)) a</span><br><span class="line">          <span class="keyword">left</span> <span class="keyword">join</span> oss_user_station e</span><br><span class="line">            <span class="keyword">on</span> a.agent_id = e.agent_id</span><br><span class="line">           <span class="keyword">and</span> e.user_type = <span class="number">0</span></span><br><span class="line">          <span class="keyword">left</span> <span class="keyword">join</span> tb_user_zgy d</span><br><span class="line">            <span class="keyword">on</span> e.username = d.username</span><br><span class="line">          <span class="keyword">left</span> <span class="keyword">join</span> (<span class="keyword">select</span> * <span class="keyword">from</span> act.tb_user_agent_relat c) c</span><br><span class="line">            <span class="keyword">on</span> a.agent_id = c.agent_id</span><br><span class="line">         <span class="keyword">group</span> <span class="keyword">by</span> a.city,</span><br><span class="line">                  a.username,</span><br><span class="line">                  a.real_name,</span><br><span class="line">                  a.phone,</span><br><span class="line">                  d.real_name,</span><br><span class="line">                  a.agent_id) a</span><br><span class="line">  <span class="keyword">left</span> <span class="keyword">join</span> (<span class="keyword">select</span> invest_id, order_amount, agent_id, str_day</span><br><span class="line">               <span class="keyword">from</span> agent.base_data_invest_info</span><br><span class="line">              <span class="keyword">where</span> str_day &gt;= <span class="string">&#x27;20150801&#x27;</span> <span class="keyword">and</span> str_day&lt;=<span class="string">&#x27;20160821&#x27;</span>) b</span><br><span class="line">    <span class="keyword">on</span> a.agent_id = b.agent_id</span><br><span class="line"> <span class="keyword">group</span> <span class="keyword">by</span> a.city,</span><br><span class="line">          a.agent_id,</span><br><span class="line">          a.username,</span><br><span class="line">          a.real_name,</span><br><span class="line">          a.phone,</span><br><span class="line">          a.zgy_name,</span><br><span class="line">          a.login_count,</span><br><span class="line">          a.user_count</span><br></pre></td></tr></table></figure><br><img src="http://images2015.cnblogs.com/blog/1012378/201608/1012378-20160826093914538-1800751894.png" alt=""></p>
+<p>至此sql从一个小时都跑不完，到最后两秒跑完，工作已经完成，但是单从慢的执行计划中并没有看出什么问题。有聚合函数group by走hash没有错，虽然有全表扫描带*但是要么过滤性太差，要么不是性能瓶颈。那为什么总共300多w就跑不完了呢</p>
+<p>慢的执行计划做一个10046<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">Number of plan statistics captured: 1</span><br><span class="line"></span><br><span class="line">Rows (1st) Rows (avg) Rows (max)  Row Source Operation</span><br><span class="line">---------- ---------- ----------  ---------------------------------------------------</span><br><span class="line">         0          0          0  HASH<span class="built_in"> GROUP </span>BY (<span class="attribute">cr</span>=0 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=278 us <span class="attribute">cost</span>=3934270 <span class="attribute">size</span>=6937507584 <span class="attribute">card</span>=55059584)</span><br><span class="line">         0          0          0   VIEW  VW_DAG_1 (<span class="attribute">cr</span>=0 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=111 us <span class="attribute">cost</span>=3934270 <span class="attribute">size</span>=6937507584 <span class="attribute">card</span>=55059584)</span><br><span class="line">         0          0          0    HASH<span class="built_in"> GROUP </span>BY (<span class="attribute">cr</span>=0 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=108 us <span class="attribute">cost</span>=3934270 <span class="attribute">size</span>=6607150080 <span class="attribute">card</span>=55059584)</span><br><span class="line">         0          0          0     VIEW  VM_NWVW_0 (<span class="attribute">cr</span>=0 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=32 us <span class="attribute">cost</span>=2456206 <span class="attribute">size</span>=6607150080 <span class="attribute">card</span>=55059584)</span><br><span class="line">         0          0          0      SORT<span class="built_in"> GROUP </span>BY (<span class="attribute">cr</span>=0 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=31 us <span class="attribute">cost</span>=2456206 <span class="attribute">size</span>=11177095552 <span class="attribute">card</span>=55059584)</span><br><span class="line"> 148234852  148234852  148234852       HASH JOIN RIGHT OUTER (<span class="attribute">cr</span>=34882 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=34098445 us <span class="attribute">cost</span>=21643 <span class="attribute">size</span>=11177095552 <span class="attribute">card</span>=55059584)</span><br><span class="line">     29651      29651      29651        TABLE ACCESS FULL TB_USER_AGENT_RELAT (<span class="attribute">cr</span>=332 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=8201 us <span class="attribute">cost</span>=102 <span class="attribute">size</span>=1229228 <span class="attribute">card</span>=27937)</span><br><span class="line">    703556     703556     703556        HASH JOIN OUTER (<span class="attribute">cr</span>=34550 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=1518631 us <span class="attribute">cost</span>=21392 <span class="attribute">size</span>=536480628 <span class="attribute">card</span>=3374092)</span><br><span class="line">       612        612        612         HASH JOIN SEMI (<span class="attribute">cr</span>=272 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=31359 us <span class="attribute">cost</span>=2007 <span class="attribute">size</span>=193456 <span class="attribute">card</span>=1712)</span><br><span class="line">      1751       1751       1751          HASH JOIN RIGHT OUTER (<span class="attribute">cr</span>=100 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=11404 us <span class="attribute">cost</span>=32 <span class="attribute">size</span>=178048 <span class="attribute">card</span>=1712)</span><br><span class="line">        43         43         43           TABLE ACCESS FULL TB_USER_ZGY (<span class="attribute">cr</span>=2 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=103 us <span class="attribute">cost</span>=3 <span class="attribute">size</span>=903 <span class="attribute">card</span>=43)</span><br><span class="line">      1751       1751       1751           HASH JOIN RIGHT OUTER (<span class="attribute">cr</span>=98 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=6664 us <span class="attribute">cost</span>=29 <span class="attribute">size</span>=142096 <span class="attribute">card</span>=1712)</span><br><span class="line">      1312       1312       1312            TABLE ACCESS FULL OSS_USER_STATION (<span class="attribute">cr</span>=15 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=420 us <span class="attribute">cost</span>=6 <span class="attribute">size</span>=25800 <span class="attribute">card</span>=1075)</span><br><span class="line">      1751       1751       1751            TABLE ACCESS FULL TB_AGENT_INFO (<span class="attribute">cr</span>=83 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=1804 us <span class="attribute">cost</span>=23 <span class="attribute">size</span>=101008 <span class="attribute">card</span>=1712)</span><br><span class="line">       612        612        612          VIEW  VW_NSO_1 (<span class="attribute">cr</span>=172 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=19720 us <span class="attribute">cost</span>=1975 <span class="attribute">size</span>=146439 <span class="attribute">card</span>=16271)</span><br><span class="line">       612        612        612           VIEW  (<span class="attribute">cr</span>=172 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=19351 us <span class="attribute">cost</span>=1975 <span class="attribute">size</span>=146439 <span class="attribute">card</span>=16271)</span><br><span class="line">       613        613        613            HASH UNIQUE (<span class="attribute">cr</span>=172 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=19224 us <span class="attribute">cost</span>=1975 <span class="attribute">size</span>=9095489 <span class="attribute">card</span>=16271)</span><br><span class="line">      1215       1215       1215             CONNECT BY WITHOUT FILTERING (UNIQUE) (<span class="attribute">cr</span>=172 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=16687 us)</span><br><span class="line">       603        603        603              HASH JOIN RIGHT SEMI (<span class="attribute">cr</span>=97 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=4922 us <span class="attribute">cost</span>=29 <span class="attribute">size</span>=149990 <span class="attribute">card</span>=530)</span><br><span class="line">       603        603        603               TABLE ACCESS FULL TB_USER_CHANNEL (<span class="attribute">cr</span>=22 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=550 us <span class="attribute">cost</span>=7 <span class="attribute">size</span>=7800 <span class="attribute">card</span>=600)</span><br><span class="line">      1807       1807       1807               TABLE ACCESS FULL TB_CHANNEL_INFO (<span class="attribute">cr</span>=75 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=1615 us <span class="attribute">cost</span>=22 <span class="attribute">size</span>=487890 <span class="attribute">card</span>=1807)</span><br><span class="line">      1807       1807       1807              TABLE ACCESS FULL TB_CHANNEL_INFO (<span class="attribute">cr</span>=75 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=1133 us <span class="attribute">cost</span>=22 <span class="attribute">size</span>=487890 <span class="attribute">card</span>=1807)</span><br><span class="line">   1631878    1631878    1631878         TABLE ACCESS FULL BASE_DATA_INVEST_INFO (<span class="attribute">cr</span>=34278 <span class="attribute">pr</span>=0 <span class="attribute">pw</span>=0 <span class="attribute">time</span>=950767 us <span class="attribute">cost</span>=19375 <span class="attribute">size</span>=155208232 <span class="attribute">card</span>=3374092)</span><br></pre></td></tr></table></figure><br>id 6 1亿4千多万，一个多小时也没跑出来<br>并且temp撑爆了<br>第 43 行出现错误:<br>ORA-01652: 无法通过 128 (在表空间 TEMP 中) 扩展 temp 段<br>一亿四千多万，b表才300万，sql group by之前也不过一百多万的结果</p>
+<p>根据  6 -<br>access(“AGENT_ID”=”C”.”AGENT_ID”(+)) 查看c和b表agent_id数据分布<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select agent_id,count(*) <span class="keyword">from</span> act.tb_user_agent_relat<span class="built_in"> group </span>by agent_id order by 2 desc </span><br></pre></td></tr></table></figure><br><img src="http://images2015.cnblogs.com/blog/1012378/201608/1012378-20160826093944413-1737380579.png" alt=""></p>
+<p> 最多的6827行，最少的1行<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select agent_id,count(*) <span class="keyword">from</span> agent.base_data_invest_info<span class="built_in"> group </span>by agent_id order by 2 desc</span><br></pre></td></tr></table></figure><br><img src="http://images2015.cnblogs.com/blog/1012378/201608/1012378-20160826093951647-160612509.png" alt=""></p>
+<p>最多50w，最少1行<br>又一次进了hash join链接列数据分布不均匀的坑，hash join只适合数据分布均匀的列做链接条件</p>
+<p>做个oradebug short_stack<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; select unique sid <span class="keyword">from</span> v$mystat;</span><br><span class="line"></span><br><span class="line">       SID</span><br><span class="line">----------</span><br><span class="line">      <span class="number">1132</span></span><br><span class="line"></span><br><span class="line">SQL&gt; select p.spid <span class="keyword">from</span> v$process p ,v$session s where s.paddr=p.addr <span class="keyword">and</span> s.sid=<span class="number">1132</span>;</span><br><span class="line"></span><br><span class="line">SPID</span><br><span class="line">------------------------------------------------</span><br><span class="line"><span class="number">28539</span></span><br><span class="line">	  </span><br><span class="line">oradebug setospid <span class="number">28539</span></span><br><span class="line"></span><br><span class="line">SQL&gt; oradebug short_stack</span><br><span class="line">ksedsts()+<span class="number">465</span>&lt;-ksdxfstk()+<span class="number">32</span>&lt;-ksdxcb()+<span class="number">1927</span>&lt;-sspuser()+<span class="number">112</span>&lt;-__sighandler()&lt;-io_submit()+<span class="number">7</span>&lt;-skgfqio()+<span class="number">1275</span>&lt;-ksfd_skgfqio()+<span class="number">894</span>&lt;-ksfdgo()+<span class="number">423</span>&lt;-ksfdaio()+<span class="number">2290</span>&lt;-kcflbi()+<span class="number">906</span>&lt;-kcbldio()+<span class="number">3104</span>&lt;-kcblsltio()+<span class="number">530</span>&lt;-stsIssueWrite()+<span class="number">118</span>&lt;-stsGetBlock()+<span class="number">442</span>&lt;-sdbinb()+<span class="number">135</span>&lt;-sdbput()+<span class="number">1042</span>&lt;-smbwrt()+<span class="number">247</span>&lt;-smbput()+<span class="number">2503</span>&lt;-sorput()+<span class="number">93</span>&lt;-qesaEvaAndPutDistAggOpns()+<span class="number">590</span>&lt;-qergsRowP()+<span class="number">430</span>&lt;-qerhjWalkHashBucket()+<span class="number">397</span>&lt;-qerhjGenProbeHashTable()+<span class="number">1571</span>&lt;-qerhjGenProbeHashTable()+<span class="number">718</span>&lt;-kdstf11011010000km()+<span class="number">673</span>&lt;-kdsttgr()+<span class="number">153241</span>&lt;-qertbFetch()+<span class="number">2455</span>&lt;-rwsfcd()+<span class="number">103</span>&lt;-qerhjFetch()+<span class="number">1661</span>&lt;-rwsfcd()+<span class="number">103</span>&lt;-qerhjFetch()+<span class="number">1661</span>&lt;-qergsFetch()+<span class="number">757</span>&lt;-qervwFetch()+<span class="number">139</span>&lt;-qerghFetch()+<span class="number">315</span>&lt;-qervwFetch()+<span class="number">139</span>&lt;-qerghFetch()+<span class="number">315</span>&lt;-opifch2()+<span class="number">2766</span>&lt;-kpoal8()+<span class="number">2833</span>&lt;-opiodr()+<span class="number">917</span>&lt;-ttcpip()+<span class="number">2183</span>&lt;-opitsk()+<span class="number">1710</span>&lt;-opiino()+<span class="number">969</span>&lt;-opiodr()+<span class="number">917</span>&lt;-opidrv()+<span class="number">570</span>&lt;-sou2o()+<span class="number">103</span>&lt;-opimai_real()+<span class="number">133</span>&lt;-ssthrdmain()+<span class="number">265</span>&lt;-main()+<span class="number">201</span>&lt;-__libc_start_main()+<span class="number">244</span></span><br><span class="line">SQL&gt; </span><br><span class="line">SQL&gt; </span><br><span class="line">SQL&gt; </span><br><span class="line">SQL&gt; </span><br><span class="line">SQL&gt; oradebug short_stack</span><br><span class="line">ksedsts()+<span class="number">465</span>&lt;-ksdxfstk()+<span class="number">32</span>&lt;-ksdxcb()+<span class="number">1927</span>&lt;-sspuser()+<span class="number">112</span>&lt;-__sighandler()&lt;-io_submit()+<span class="number">7</span>&lt;-skgfqio()+<span class="number">1275</span>&lt;-ksfd_skgfqio()+<span class="number">894</span>&lt;-ksfdgo()+<span class="number">423</span>&lt;-ksfdaio()+<span class="number">2290</span>&lt;-kcflbi()+<span class="number">906</span>&lt;-kcbldio()+<span class="number">3104</span>&lt;-kcblsltio()+<span class="number">530</span>&lt;-stsIssueWrite()+<span class="number">118</span>&lt;-stsGetBlock()+<span class="number">442</span>&lt;-sdbinb()+<span class="number">135</span>&lt;-sdbput()+<span class="number">1042</span>&lt;-smbwrt()+<span class="number">247</span>&lt;-smbput()+<span class="number">2503</span>&lt;-sorput()+<span class="number">93</span>&lt;-qesaEvaAndPutDistAggOpns()+<span class="number">590</span>&lt;-qergsRowP()+<span class="number">430</span>&lt;-qerhjWalkHashBucket()+<span class="number">397</span>&lt;-qerhjGenProbeHashTable()+<span class="number">1571</span>&lt;-qerhjWalkHashBucket()+<span class="number">397</span>&lt;-qerhjGenProbeHashTable()+<span class="number">1571</span>&lt;-kdstf11011010000km()+<span class="number">673</span>&lt;-kdsttgr()+<span class="number">153241</span>&lt;-qertbFetch()+<span class="number">2455</span>&lt;-rwsfcd()+<span class="number">103</span>&lt;-qerhjFetch()+<span class="number">1661</span>&lt;-rwsfcd()+<span class="number">103</span>&lt;-qerhjFetch()+<span class="number">1661</span>&lt;-qergsFetch()+<span class="number">757</span>&lt;-qervwFetch()+<span class="number">139</span>&lt;-qerghFetch()+<span class="number">315</span>&lt;-qervwFetch()+<span class="number">139</span>&lt;-qerghFetch()+<span class="number">315</span>&lt;-opifch2()+<span class="number">2766</span>&lt;-kpoal8()+<span class="number">2833</span>&lt;-opiodr()+<span class="number">917</span>&lt;-ttcpip()+<span class="number">2183</span>&lt;-opitsk()+<span class="number">1710</span>&lt;-opiino()+<span class="number">969</span>&lt;-opiodr()+<span class="number">917</span>&lt;-opidrv()+<span class="number">570</span>&lt;-sou2o()+<span class="number">103</span>&lt;-opimai_real()+<span class="number">133</span>&lt;-ssthrdmain()+<span class="number">265</span>&lt;-main()+<span class="number">201</span>&lt;-__libc_start_main()+<span class="number">244</span></span><br><span class="line">SQL&gt; </span><br><span class="line">SQL&gt; </span><br><span class="line">SQL&gt; </span><br><span class="line">SQL&gt; </span><br><span class="line"></span><br><span class="line">SQL&gt; oradebug short_stack</span><br><span class="line">ksedsts()+<span class="number">465</span>&lt;-ksdxfstk()+<span class="number">32</span>&lt;-ksdxcb()+<span class="number">1927</span>&lt;-sspuser()+<span class="number">112</span>&lt;-__sighandler()&lt;-qergsRowP()+<span class="number">2161</span>&lt;-qerhjWalkHashBucket()+<span class="number">397</span>&lt;-qerhjGenProbeHashTable()+<span class="number">1571</span>&lt;-qerhjWalkHashBucket()+<span class="number">397</span>&lt;-qerhjGenProbeHashTable()+<span class="number">1571</span>&lt;-kdstf11011010000km()+<span class="number">673</span>&lt;-kdsttgr()+<span class="number">153241</span>&lt;-qertbFetch()+<span class="number">2455</span>&lt;-rwsfcd()+<span class="number">103</span>&lt;-qerhjFetch()+<span class="number">1661</span>&lt;-rwsfcd()+<span class="number">103</span>&lt;-qerhjFetch()+<span class="number">1661</span>&lt;-qergsFetch()+<span class="number">757</span>&lt;-qervwFetch()+<span class="number">139</span>&lt;-qerghFetch()+<span class="number">315</span>&lt;-qervwFetch()+<span class="number">139</span>&lt;-qerghFetch()+<span class="number">315</span>&lt;-opifch2()+<span class="number">2766</span>&lt;-kpoal8()+<span class="number">2833</span>&lt;-opiodr()+<span class="number">917</span>&lt;-ttcpip()+<span class="number">2183</span>&lt;-opitsk()+<span class="number">1710</span>&lt;-opiino()+<span class="number">969</span>&lt;-opiodr()+<span class="number">917</span>&lt;-opidrv()+<span class="number">570</span>&lt;-sou2o()+<span class="number">103</span>&lt;-opimai_real()+<span class="number">133</span>&lt;-ssthrdmain()+<span class="number">265</span>&lt;-main()+<span class="number">201</span>&lt;-__libc_start_main()+<span class="number">244</span></span><br><span class="line">SQL&gt; oradebug short_stack</span><br><span class="line">ksedsts()+<span class="number">465</span>&lt;-ksdxfstk()+<span class="number">32</span>&lt;-ksdxcb()+<span class="number">1927</span>&lt;-sspuser()+<span class="number">112</span>&lt;-__sighandler()&lt;-lmebco()+<span class="number">63</span>&lt;-qesaSimpleCompare()+<span class="number">73</span>&lt;-smbput()+<span class="number">913</span>&lt;-sorput()+<span class="number">93</span>&lt;-qergsRowP()+<span class="number">1067</span>&lt;-qerhjWalkHashBucket()+<span class="number">397</span>&lt;-qerhjGenProbeHashTable()+<span class="number">1571</span>&lt;-qerhjGenProbeHashTable()+<span class="number">718</span>&lt;-kdstf11011010000km()+<span class="number">673</span>&lt;-kdsttgr()+<span class="number">153241</span>&lt;-qertbFetch()+<span class="number">2455</span>&lt;-rwsfcd()+<span class="number">103</span>&lt;-qerhjFetch()+<span class="number">1661</span>&lt;-rwsfcd()+<span class="number">103</span>&lt;-qerhjFetch()+<span class="number">1661</span>&lt;-qergsFetch()+<span class="number">757</span>&lt;-qervwFetch()+<span class="number">139</span>&lt;-qerghFetch()+<span class="number">315</span>&lt;-qervwFetch()+<span class="number">139</span>&lt;-qerghFetch()+<span class="number">315</span>&lt;-opifch2()+<span class="number">2766</span>&lt;-kpoal8()+<span class="number">2833</span>&lt;-opiodr()+<span class="number">917</span>&lt;-ttcpip()+<span class="number">2183</span>&lt;-opitsk()+<span class="number">1710</span>&lt;-opiino()+<span class="number">969</span>&lt;-opiodr()+<span class="number">917</span>&lt;-opidrv()+<span class="number">570</span>&lt;-sou2o()+<span class="number">103</span>&lt;-opimai_real()+<span class="number">133</span>&lt;-ssthrdmain()+<span class="number">265</span>&lt;-main()+<span class="number">201</span>&lt;-__libc_start_main()+<span class="number">244</span></span><br><span class="line"></span><br><span class="line">可以看到qerhjWalkHashBucket</span><br><span class="line">qerhjWalkHashBucket就表示在做hash join的过程中需要遍历hash bucket中的数据，当链接列数据分布不均，某些值特别多时，遍历其hash bucket的成本也就非常高，如果pga放不下了，就会放到temp进行磁盘io，这就是性能瓶颈的原因，这个例子把<span class="number">30</span>g的temp表空间都撑爆了，可见hash bucket有多大！</span><br></pre></td></tr></table></figure></p>
+<p>做个SQL MONITOR，也可以看出，瓶颈在id 6。如果做一个sql rpt也可以发现sql执行过程中的每妙逻辑读实际并不高，因为时间都花在了遍历hash bucket中<br><img src="http://images2015.cnblogs.com/blog/1012378/201608/1012378-20160826094007288-269400624.png" alt=""></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/08/09/视图合并、hash-join连接列数据分布不均匀引发的惨案/" target="_blank" title="视图合并、hash join连接列数据分布不均匀引发的惨案">http://fuxkdb.com/2017/08/09/视图合并、hash-join连接列数据分布不均匀引发的惨案/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL-Tuning/" rel="tag">SQL Tuning</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/08/09/%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E4%B8%8D%E5%9D%87%E5%8C%80%E8%B5%B0HASH-JOIN%E5%AF%BC%E8%87%B4%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          数据分布不均匀走HASH JOIN导致的性能问题
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/08/09/%E6%8A%93%E8%B7%91%E5%BE%97%E6%85%A2%E7%9A%84SQL%EF%BC%8C%E6%9F%A5%E7%9C%8B%E6%AD%A3%E5%9C%A8%E8%B7%91%E7%9A%84sql%E7%9A%84%E7%AD%89%E5%BE%85%E4%BA%8B%E4%BB%B6/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">抓跑得慢的SQL，查看正在跑的sql的等待事件</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav">无</ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

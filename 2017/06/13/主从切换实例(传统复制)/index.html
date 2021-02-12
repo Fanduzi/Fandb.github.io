@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>主从切换实例(传统复制) | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL复制" />
+  
+  
+  
+  
+  <meta name="description" content="主从切换案例M为主库,read writeS* 为从库,read only现在要对M进行硬件维护,提升S1为主库,接管业务读写. M维护完成后作为从库,如下图首先可以进行如下切换 (A)再进行如下切换(B) A切换步骤首先在S1制造”错误”1234set session sql_log_bin&#x3D;0;create table t_error_maker(id int);set session sql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="主从切换实例(传统复制)">
+<meta property="og:url" content="http://fuxkdb.com/2017/06/13/%E4%B8%BB%E4%BB%8E%E5%88%87%E6%8D%A2%E5%AE%9E%E4%BE%8B(%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6)/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="主从切换案例M为主库,read writeS* 为从库,read only现在要对M进行硬件维护,提升S1为主库,接管业务读写. M维护完成后作为从库,如下图首先可以进行如下切换 (A)再进行如下切换(B) A切换步骤首先在S1制造”错误”1234set session sql_log_bin&#x3D;0;create table t_error_maker(id int);set session sql">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_32.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_33.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_34.png">
+<meta property="article:published_time" content="2017-06-13T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-07T02:27:33.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL复制">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_32.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-主从切换实例(传统复制)" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      主从切换实例(传统复制)
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/06/13/%E4%B8%BB%E4%BB%8E%E5%88%87%E6%8D%A2%E5%AE%9E%E4%BE%8B(%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6)/" class="article-date">
+	  <time datetime="2017-06-13T14:00:00.000Z" itemprop="datePublished">2017-06-13</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="主从切换案例"><a href="#主从切换案例" class="headerlink" title="主从切换案例"></a>主从切换案例</h3><p>M为主库,read write<br>S* 为从库,read only<br>现在要对M进行硬件维护,提升S1为主库,接管业务读写. M维护完成后作为从库,如下图<br><img src="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_32.png" alt="img"><br>首先可以进行如下切换 (A)<br><img src="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_33.png" alt="img"><br>再进行如下切换(B)<br><img src="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_34.png" alt="img"></p>
+<h4 id="A切换步骤"><a href="#A切换步骤" class="headerlink" title="A切换步骤"></a>A切换步骤</h4><p>首先在S1制造”错误”<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_log_bin=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> t_error_maker(<span class="keyword">id</span> <span class="built_in">int</span>);</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_log_bin=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> t_error_maker;</span><br></pre></td></tr></table></figure><br>通过在session级别关闭写入binlog,建表,开启写入binlog,删表 制造异常, 当S11 S12 S13都执行到drop语句时,会报错停止sql_thread.<br>通过这种方式,可以让它们停止在同一个位置.<br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">master</span> <span class="keyword">status</span> 获取<span class="keyword">File</span> <span class="keyword">Position</span></span><br></pre></td></tr></table></figure><br>S11 S13<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">stop</span> <span class="keyword">slave</span>;</span><br><span class="line"><span class="keyword">change</span> <span class="keyword">master</span>到S12上</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span>;</span><br></pre></td></tr></table></figure><br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> sql_slave_skip_counter=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span> sql_thread;</span><br></pre></td></tr></table></figure></p>
+<h4 id="B切换步骤"><a href="#B切换步骤" class="headerlink" title="B切换步骤"></a>B切换步骤</h4><p>M 停止业务写操作<br><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> read_only=<span class="keyword">on</span>; 此时只有super权限用户能写入</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> super_read_only=<span class="keyword">on</span>;禁止super权限用户写</span><br><span class="line"><span class="comment">#这里没有通过修改用户密码的方式是因为修改用户密码对已经连接上来的用户无效</span></span><br></pre></td></tr></table></figure><br>等M S1 S12 跑一致后(File Position相同) 停S12 sql_thread, 将业务写入操作接入S1<br>最后M<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> read_only=<span class="keyword">off</span>;</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> super_read_only=<span class="keyword">off</span>;</span><br><span class="line"><span class="keyword">change</span> <span class="keyword">master</span> 到S12</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span></span><br></pre></td></tr></table></figure><br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span> sql_thread;</span><br></pre></td></tr></table></figure></p>
+<p>以上步骤通过脚本完成的话,可以做到对业务造成很小的影响<br>脚本实例如下,注释掉了B步骤,因为需要配合切换业务写入操作<br><a id="more"></a><br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-  </span></span><br><span class="line"><span class="comment">#coding=utf-8</span></span><br><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> warnings <span class="keyword">import</span> filterwarnings</span><br><span class="line"><span class="keyword">from</span> progressive.bar <span class="keyword">import</span> Bar</span><br><span class="line">error_message=<span class="string">u&quot;Error &#x27;Unknown table &#x27;fandb.t_error_maker&#x27;&#x27; on query. Default database: &#x27;fandb&#x27;. Query: &#x27;DROP TABLE `t_error_maker` /* generated by server */&#x27;&quot;</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dec_progressive</span>(<span class="params">func</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">progess</span>(<span class="params">*args, **kwargs</span>):</span></span><br><span class="line">        <span class="keyword">global</span> i</span><br><span class="line">        i += <span class="number">100</span>/<span class="number">9</span></span><br><span class="line">        bar.cursor.restore()</span><br><span class="line">        bar.draw(value=i)</span><br><span class="line">        <span class="keyword">return</span> func(*args, **kwargs)</span><br><span class="line">    <span class="keyword">return</span> progess</span><br><span class="line"><span class="comment">#创建数据库连接函数</span></span><br><span class="line"><span class="meta">@dec_progressive</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_conn</span>(<span class="params">host,port,user,password,db=<span class="string">&#x27;performance_schema&#x27;</span>,charset=<span class="string">&#x27;utf8&#x27;</span></span>):</span></span><br><span class="line">    <span class="keyword">return</span> pymysql.connect(host=host, port=int(port), user=user,password=password,db=db,charset=charset)</span><br><span class="line"><span class="comment">#制造复制异常函数</span></span><br><span class="line"><span class="meta">@dec_progressive</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">error_maker</span>(<span class="params">host,port,user,password,db,charset</span>):</span></span><br><span class="line">    conn=get_conn(host=host, port=int(port), user=user,password=password,db=db,charset=charset)</span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&quot;set session sql_log_bin=0;&quot;</span>)</span><br><span class="line">    cursor.execute(<span class="string">&quot;create table t_error_maker(id int)&quot;</span>)</span><br><span class="line">    cursor.execute(<span class="string">&quot;set session sql_log_bin=1&quot;</span>)</span><br><span class="line">    cursor.execute(<span class="string">&quot;drop table t_error_maker&quot;</span>)</span><br><span class="line">    cursor.close()</span><br><span class="line">    conn.close()</span><br><span class="line"><span class="comment">#获取slave status</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_slave_status</span>(<span class="params">conn,sql</span>):</span></span><br><span class="line">    cursor = conn.cursor(pymysql.cursors.DictCursor)</span><br><span class="line">    cursor.execute(sql)</span><br><span class="line">    result = cursor.fetchone()</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">    cursor.close()</span><br><span class="line"><span class="comment">#获取master status</span></span><br><span class="line"><span class="meta">@dec_progressive</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_master_status</span>(<span class="params">conn</span>):</span></span><br><span class="line">    cursor = conn.cursor(pymysql.cursors.DictCursor)</span><br><span class="line">    cursor.execute(<span class="string">&quot;show master status;&quot;</span>)</span><br><span class="line">    result = cursor.fetchone()</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">    cursor.close()</span><br><span class="line"><span class="comment">#执行change master语句</span></span><br><span class="line"><span class="meta">@dec_progressive</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">change_master</span>(<span class="params">conn,change_string</span>):</span></span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&quot;stop slave;&quot;</span>)</span><br><span class="line">    cursor.execute(change_string)</span><br><span class="line">    cursor.execute(<span class="string">&quot;start slave;&quot;</span>)</span><br><span class="line">    cursor.close()</span><br><span class="line"><span class="comment">#修复slave错误</span></span><br><span class="line"><span class="meta">@dec_progressive</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">repair_slave</span>(<span class="params">conn</span>):</span></span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    cursor.execute(<span class="string">&quot;set global sql_slave_skip_counter=1;&quot;</span>)</span><br><span class="line">    cursor.execute(<span class="string">&quot;start slave sql_thread;&quot;</span>)</span><br><span class="line">    cursor.close()  </span><br><span class="line"><span class="comment">#设置read only</span></span><br><span class="line"><span class="meta">@dec_progressive</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">set_read_only</span>(<span class="params">conn,switch</span>):</span></span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    <span class="keyword">if</span> switch == <span class="string">&#x27;on&#x27;</span>:</span><br><span class="line">        cursor.execute(<span class="string">&quot;set global read_only=on;&quot;</span>)</span><br><span class="line">    <span class="keyword">elif</span> switch == <span class="string">&#x27;off&#x27;</span>:</span><br><span class="line">        cursor.execute(<span class="string">&quot;set global read_only=off;&quot;</span>)</span><br><span class="line">    cursor.close()</span><br><span class="line"><span class="comment">#启停 sql_thread</span></span><br><span class="line"><span class="meta">@dec_progressive</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">set_sql_thread</span>(<span class="params">conn,switch</span>):</span></span><br><span class="line">    cursor = conn.cursor()</span><br><span class="line">    <span class="keyword">if</span> switch == <span class="string">&#x27;off&#x27;</span>:</span><br><span class="line">        cursor.execute(<span class="string">&quot;stop slave sql_thread;&quot;</span>)</span><br><span class="line">    <span class="keyword">elif</span> switch == <span class="string">&#x27;on&#x27;</span>:</span><br><span class="line">        cursor.execute(<span class="string">&quot;start slave sql_thread;&quot;</span>)</span><br><span class="line">    cursor.close()</span><br><span class="line"><span class="comment">#判断 39 40 41是否都因为drop t_error_maker停止</span></span><br><span class="line"><span class="meta">@dec_progressive</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_error_status</span>():</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        Last_SQL_Error_39 = get_slave_status(conn39,<span class="string">&#x27;show slave status;&#x27;</span>)[<span class="string">&#x27;Last_SQL_Error&#x27;</span>]</span><br><span class="line">        Last_SQL_Error_40 = get_slave_status(conn40,<span class="string">&#x27;show slave status;&#x27;</span>)[<span class="string">&#x27;Last_SQL_Error&#x27;</span>]</span><br><span class="line">        Last_SQL_Error_41 = get_slave_status(conn41,<span class="string">&#x27;show slave status;&#x27;</span>)[<span class="string">&#x27;Last_SQL_Error&#x27;</span>]</span><br><span class="line">        <span class="keyword">if</span> Last_SQL_Error_39 == Last_SQL_Error_40 == Last_SQL_Error_41 == error_message:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            time.sleep(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    MAX_VALUE = <span class="number">100</span></span><br><span class="line">    bar = Bar(max_value=MAX_VALUE, fallback=<span class="literal">True</span>)</span><br><span class="line">    bar.cursor.clear_lines(<span class="number">2</span>)</span><br><span class="line">    bar.cursor.save()</span><br><span class="line">    i=<span class="number">0</span></span><br><span class="line">    <span class="comment">#不显示MySQL的warning</span></span><br><span class="line">    filterwarnings(<span class="string">&#x27;ignore&#x27;</span>,category=pymysql.Warning)</span><br><span class="line">    <span class="comment">#连接36 制造复制异常函数</span></span><br><span class="line">    print(<span class="string">u&quot;连接3306 制造复制异常函数&quot;</span>)</span><br><span class="line">    error_maker(host=<span class="string">&#x27;172.16.65.36&#x27;</span>, port=<span class="number">3306</span>, user=<span class="string">&#x27;root&#x27;</span>,password=<span class="string">&#x27;mysql&#x27;</span>,db=<span class="string">&#x27;fandb&#x27;</span>,charset=<span class="string">&#x27;utf8&#x27;</span>)</span><br><span class="line">    conn39 = get_conn(<span class="string">&#x27;10.0.1.39&#x27;</span>,<span class="number">3306</span>,<span class="string">&#x27;root&#x27;</span>,<span class="string">&#x27;mysql&#x27;</span>)</span><br><span class="line">    conn40 = get_conn(<span class="string">&#x27;10.0.1.40&#x27;</span>,<span class="number">3306</span>,<span class="string">&#x27;root&#x27;</span>,<span class="string">&#x27;mysql&#x27;</span>)</span><br><span class="line">    conn41 = get_conn(<span class="string">&#x27;10.0.1.41&#x27;</span>,<span class="number">3306</span>,<span class="string">&#x27;root&#x27;</span>,<span class="string">&#x27;mysql&#x27;</span>)</span><br><span class="line">    <span class="comment">#判断 39 40 41是否都因为drop t_error_maker停止</span></span><br><span class="line">    print(<span class="string">u&quot;判断 39 40 41是否都因为drop t_error_maker停止&quot;</span>)</span><br><span class="line">    get_error_status()</span><br><span class="line">    <span class="comment">#获取40 master status 以供39 41切换</span></span><br><span class="line">    print(<span class="string">u&quot;获取40 master status 以供39 41切换&quot;</span>)</span><br><span class="line">    master_status_40 = get_master_status(conn40)</span><br><span class="line">    File_40,Position_40 = master_status_40[<span class="string">&#x27;File&#x27;</span>],master_status_40[<span class="string">&#x27;Position&#x27;</span>]</span><br><span class="line">    change_string = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    change master to </span></span><br><span class="line"><span class="string">    master_host=&#x27;10.0.1.40&#x27;,</span></span><br><span class="line"><span class="string">    master_port=3306,</span></span><br><span class="line"><span class="string">    master_user=&#x27;repl&#x27;,</span></span><br><span class="line"><span class="string">    master_password=&#x27;repl&#x27;,</span></span><br><span class="line"><span class="string">    master_log_file=&#x27;%s&#x27;,</span></span><br><span class="line"><span class="string">    master_log_pos=%d;</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span> % (File_40,Position_40)</span><br><span class="line">    <span class="comment">#39 41切换到40</span></span><br><span class="line">    print(<span class="string">u&quot;39,41切换到40&quot;</span>)</span><br><span class="line">    change_master(conn39,change_string)</span><br><span class="line">    print(<span class="string">u&quot;39切换到40成功&quot;</span>)</span><br><span class="line">    change_master(conn41,change_string)</span><br><span class="line">    print(<span class="string">u&quot;41切换到40成功&quot;</span>)</span><br><span class="line">    <span class="comment">#修复40 slave</span></span><br><span class="line">    print(<span class="string">u&quot;修复40 slave&quot;</span>)</span><br><span class="line">    repair_slave(conn40)</span><br><span class="line">    <span class="comment"># conn35 = get_conn(&#x27;172.16.65.35&#x27;,3306,&#x27;root&#x27;,&#x27;mysql&#x27;)</span></span><br><span class="line">    <span class="comment"># conn36 = get_conn(&#x27;172.16.65.36&#x27;,3306,&#x27;root&#x27;,&#x27;mysql&#x27;)</span></span><br><span class="line">    <span class="comment"># #35 设置read only</span></span><br><span class="line">    <span class="comment"># set_read_only(conn35,switch=&#x27;on&#x27;)</span></span><br><span class="line">    <span class="comment"># #判断35 36 40 是否同步</span></span><br><span class="line">    <span class="comment"># while True:</span></span><br><span class="line">    <span class="comment">#   res35 = get_slave_status(conn35,&#x27;show master status;&#x27;)</span></span><br><span class="line">    <span class="comment">#   res36 = get_slave_status(conn36,&#x27;show slave status;&#x27;)</span></span><br><span class="line">    <span class="comment">#   res40 = get_slave_status(conn40,&#x27;show slave status;&#x27;)</span></span><br><span class="line">    <span class="comment">#   File_35,Position_35 = res35[&#x27;File&#x27;],res35[&#x27;Position&#x27;]</span></span><br><span class="line">    <span class="comment">#   File_36,Position_36 = res36[&#x27;Relay_Master_Log_File&#x27;],res36[&#x27;Exec_Master_Log_Pos&#x27;]</span></span><br><span class="line">    <span class="comment">#   File_40,Position_40 = res40[&#x27;Relay_Master_Log_File&#x27;],res40[&#x27;Exec_Master_Log_Pos&#x27;]</span></span><br><span class="line">    <span class="comment">#   if File_35 == File_36 == File_40 and Position_35 == Position_36 == Position_40:</span></span><br><span class="line">    <span class="comment">#       break</span></span><br><span class="line">    <span class="comment">#   else:</span></span><br><span class="line">    <span class="comment">#       time.sleep(1)</span></span><br><span class="line">    <span class="comment"># #停40 sql_thread</span></span><br><span class="line">    <span class="comment"># set_sql_thread(conn40,switch=&#x27;off&#x27;)</span></span><br><span class="line">    <span class="comment"># #写接入36</span></span><br><span class="line">    <span class="comment"># #35 read_only=off</span></span><br><span class="line">    <span class="comment"># set_read_only(conn35,switch=&#x27;off&#x27;)</span></span><br><span class="line">    <span class="comment"># master_status_40 = get_master_status(conn40)</span></span><br><span class="line">    <span class="comment"># File_40,Position_40 = master_status_40[&#x27;File&#x27;],master_status_40[&#x27;Position&#x27;]</span></span><br><span class="line">    <span class="comment"># change_string = &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># change master to </span></span><br><span class="line">    <span class="comment"># master_host=&#x27;10.0.1.40&#x27;,</span></span><br><span class="line">    <span class="comment"># master_port=3306,</span></span><br><span class="line">    <span class="comment"># master_user=&#x27;repl&#x27;,</span></span><br><span class="line">    <span class="comment"># master_password=&#x27;repl&#x27;,</span></span><br><span class="line">    <span class="comment"># master_log_file=&#x27;%s&#x27;,</span></span><br><span class="line">    <span class="comment"># master_log_pos=%d;</span></span><br><span class="line">    <span class="comment"># &quot;&quot;&quot; % (File_40,Position_40)</span></span><br><span class="line">    <span class="comment"># change_master(conn35,change_string)</span></span><br><span class="line">    <span class="comment"># #起40 sql_thread</span></span><br><span class="line">    <span class="comment"># set_sql_thread(conn40,switch=&#x27;on&#x27;)</span></span><br><span class="line">    bar.cursor.restore()</span><br><span class="line">    bar.draw(value=<span class="number">100</span>)</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/06/13/主从切换实例(传统复制)/" target="_blank" title="主从切换实例(传统复制)">http://fuxkdb.com/2017/06/13/主从切换实例(传统复制)/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%A4%8D%E5%88%B6/" rel="tag">MySQL复制</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/06/17/%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          传统复制在线切换到GTID模式
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/05/07/Tpcc-MySQL/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Tpcc-MySQL</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E4%BB%8E%E5%88%87%E6%8D%A2%E6%A1%88%E4%BE%8B"><span class="nav-number">1.</span> <span class="nav-text">主从切换案例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#A%E5%88%87%E6%8D%A2%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.1.</span> <span class="nav-text">A切换步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#B%E5%88%87%E6%8D%A2%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.2.</span> <span class="nav-text">B切换步骤</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

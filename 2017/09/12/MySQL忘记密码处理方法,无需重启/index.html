@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mysql忘记密码处理方法,无需重启 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL" />
+  
+  
+  
+  
+  <meta name="description" content="源库这边跑一个sysbench,为了测试之后kill -HUP是不是会有影响1234567891011sysbench &#x2F;usr&#x2F;share&#x2F;sysbench&#x2F;oltp_read_write.lua  --mysql-user&#x3D;root --mysql-password&#x3D;mysql --mysql-port&#x3D;3306 \--mysql-socket&#x3D;&#x2F;data&#x2F;mysqldata&#x2F;3306&#x2F;mys">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL忘记密码处理方法,无需重启">
+<meta property="og:url" content="http://fuxkdb.com/2017/09/12/MySQL%E5%BF%98%E8%AE%B0%E5%AF%86%E7%A0%81%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95,%E6%97%A0%E9%9C%80%E9%87%8D%E5%90%AF/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="源库这边跑一个sysbench,为了测试之后kill -HUP是不是会有影响1234567891011sysbench &#x2F;usr&#x2F;share&#x2F;sysbench&#x2F;oltp_read_write.lua  --mysql-user&#x3D;root --mysql-password&#x3D;mysql --mysql-port&#x3D;3306 \--mysql-socket&#x3D;&#x2F;data&#x2F;mysqldata&#x2F;3306&#x2F;mys">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-09-12T07:18:00.000Z">
+<meta property="article:modified_time" content="2017-09-12T07:18:57.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-MySQL忘记密码处理方法,无需重启" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MySQL忘记密码处理方法,无需重启
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/09/12/MySQL%E5%BF%98%E8%AE%B0%E5%AF%86%E7%A0%81%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95,%E6%97%A0%E9%9C%80%E9%87%8D%E5%90%AF/" class="article-date">
+	  <time datetime="2017-09-12T07:18:00.000Z" itemprop="datePublished">2017-09-12</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>源库这边跑一个sysbench,为了测试之后kill -HUP是不是会有影响<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sysbench /usr/share/sysbench/oltp_read_write.lua  <span class="attribute">--mysql-user</span>=root <span class="attribute">--mysql-password</span>=mysql <span class="attribute">--mysql-port</span>=3306 \</span><br><span class="line"><span class="attribute">--mysql-socket</span>=/data/mysqldata/3306/mysql.sock  <span class="attribute">--mysql-host</span>=localhost \</span><br><span class="line"><span class="attribute">--mysql-db</span>=sysbenchtest  <span class="attribute">--tables</span>=10 <span class="attribute">--table-size</span>=5000000  <span class="attribute">--threads</span>=30 \</span><br><span class="line"><span class="attribute">--events</span>=5000000 <span class="attribute">--report-interval</span>=5  <span class="attribute">--db-driver</span>=mysql prepare</span><br><span class="line"></span><br><span class="line">sysbench \</span><br><span class="line">/usr/share/sysbench/oltp_read_write.lua \</span><br><span class="line"><span class="attribute">--mysql-user</span>=root  <span class="attribute">--mysql-password</span>=mysql <span class="attribute">--mysql-port</span>=3306 \</span><br><span class="line"><span class="attribute">--mysql-socket</span>=/data/mysqldata/3306/mysql.sock  <span class="attribute">--mysql-host</span>=localhost \</span><br><span class="line"><span class="attribute">--mysql-db</span>=sysbenchtest  <span class="attribute">--tables</span>=10 <span class="attribute">--table-size</span>=5000000 \</span><br><span class="line"><span class="attribute">--threads</span>=30 <span class="attribute">--report-interval</span>=5 <span class="attribute">--time</span>=7000 <span class="attribute">--db-driver</span>=mysql <span class="builtin-name">run</span> &gt; binlog_off.txt</span><br></pre></td></tr></table></figure></p>
+<p>把忘记密码的库的mysql.user表传到一个知道密码的测试库<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">root@uz22199</span> <span class="string">mysql</span>]<span class="comment"># scp -p user.* 10.4.3.100:/data/mysqldata/3306/data/fandb/</span></span><br><span class="line"><span class="string">root@10.4.3.100&#x27;s</span> <span class="attr">password:</span> </span><br><span class="line"><span class="string">user.frm</span>                                                                                                                                                                                  <span class="number">100</span><span class="string">%</span>  <span class="string">11KB</span>  <span class="number">10.</span><span class="string">6KB/s</span>  <span class="number">00</span><span class="string">:00</span>    </span><br><span class="line"><span class="string">user.MYD</span>                                                                                                                                                                                  <span class="number">100</span><span class="string">%</span>  <span class="number">736</span>    <span class="number">0.</span><span class="string">7KB/s</span>  <span class="number">00</span><span class="string">:00</span>    </span><br><span class="line"><span class="string">user.MYI</span>                                                                                                                                                                                  <span class="number">100</span><span class="string">%</span> <span class="number">4096    </span><span class="number">4.</span><span class="string">0KB/s</span>  <span class="number">00</span><span class="string">:00</span> </span><br></pre></td></tr></table></figure></p>
+<p>生成一下insert语句,后面用<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@test43100 ~]# mysqldump <span class="attribute">--user</span>=root <span class="attribute">--password</span>=<span class="string">&#x27;mysql&#x27;</span> fandb<span class="built_in"> user </span><span class="attribute">--where</span>=<span class="string">&quot;host=&#x27;localhost&#x27; and user=&#x27;root&#x27;&quot;</span> |grep INSERT</span><br><span class="line">mysqldump: [<span class="builtin-name">Warning</span>] Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line">Warning: A partial dump <span class="keyword">from</span> a<span class="built_in"> server </span>that has GTIDs will by<span class="built_in"> default </span>include the GTIDs of all transactions, even those that changed suppressed parts of the database. <span class="keyword">If</span> you don<span class="string">&#x27;t want to restore GTIDs, pass --set-gtid-purged=OFF. To make a complete dump, pass --all-databases --triggers --routines --events. </span></span><br><span class="line"><span class="string">INSERT INTO `user` VALUES (&#x27;</span>localhost<span class="string">&#x27;,&#x27;</span>root<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span><span class="string">&#x27;,&#x27;</span><span class="string">&#x27;,&#x27;</span><span class="string">&#x27;,&#x27;</span><span class="string">&#x27;,0,0,0,0,&#x27;</span>mysql_native_password<span class="string">&#x27;,&#x27;</span><span class="number">*81F5E21E35407D884A6CD4A731AEBFB6AF209E1B</span><span class="string">&#x27;,&#x27;</span>N<span class="string">&#x27;,&#x27;</span>2017-08-04 08:12:53<span class="string">&#x27;,NULL,&#x27;</span>N<span class="string">&#x27;);</span></span><br></pre></td></tr></table></figure><br><a id="more"></a><br>新用户密码mysql<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">root@mysqldb 15:04:  [(none)]&gt; select password(<span class="emphasis">&#x27;mysql&#x27;</span>);</span><br><span class="line"><span class="code">+-------------------------------------------+</span></span><br><span class="line">| password(<span class="emphasis">&#x27;mysql&#x27;</span>)                        |</span><br><span class="line"><span class="code">+-------------------------------------------+</span></span><br><span class="line">| <span class="strong">*E74858DB86EBA20BC33D0AECAE8A8108C56B17FA |</span></span><br><span class="line"><span class="strong">+-------------------------------------------+</span></span><br></pre></td></tr></table></figure></p>
+<p>新插入一个用户,把上面的insert改一下<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`user`</span> <span class="keyword">VALUES</span> (<span class="string">&#x27;localhost&#x27;</span>,<span class="string">&#x27;fanboshi&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;Y&#x27;</span>,<span class="string">&#x27;&#x27;</span>,<span class="string">&#x27;&#x27;</span>,<span class="string">&#x27;&#x27;</span>,<span class="string">&#x27;&#x27;</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="string">&#x27;mysql_native_password&#x27;</span>,<span class="string">&#x27;*E74858DB86EBA20BC33D0AECAE8A8108C56B17FA&#x27;</span>,<span class="string">&#x27;N&#x27;</span>,<span class="string">&#x27;2017-08-04 08:12:53&#x27;</span>,<span class="literal">NULL</span>,<span class="string">&#x27;N&#x27;</span>);</span><br></pre></td></tr></table></figure><br>关闭表<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">root@</span>mysqldb <span class="number">15</span>:<span class="number">05</span>:  [(none)]&gt; flush tables;</span><br></pre></td></tr></table></figure></p>
+<p>传回源库<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">root@test43100</span> <span class="string">fandb</span>]<span class="comment"># scp -p user.* 10.4.1.45:/data/mysqldata/3306/data/mysql/</span></span><br><span class="line"><span class="string">root@10.4.1.45&#x27;s</span> <span class="attr">password:</span> </span><br><span class="line"><span class="string">user.frm</span>                                                                                                                                                                                  <span class="number">100</span><span class="string">%</span>  <span class="string">11KB</span>  <span class="number">10.</span><span class="string">6KB/s</span>  <span class="number">00</span><span class="string">:00</span>    </span><br><span class="line"><span class="string">user.MYD</span>                                                                                                                                                                                  <span class="number">100</span><span class="string">%</span>  <span class="number">864</span>    <span class="number">0.</span><span class="string">8KB/s</span>  <span class="number">00</span><span class="string">:00</span>    </span><br><span class="line"><span class="string">user.MYI</span>  </span><br></pre></td></tr></table></figure></p>
+<p>无法登陆<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@uz22199 ~]# mysql -ufanboshi -pmysql</span><br><span class="line">mysql: [<span class="builtin-name">Warning</span>] Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line"><span class="builtin-name">ERROR</span> 1045 (28000): Access denied <span class="keyword">for</span><span class="built_in"> user </span><span class="string">&#x27;fanboshi&#x27;</span>@<span class="string">&#x27;localhost&#x27;</span> (using password: <span class="literal">YES</span>)</span><br></pre></td></tr></table></figure></p>
+<p>flush privileges<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">root@mysqldb 14:53:  [mysql]&gt; flush privileges;</span><br><span class="line">Query OK, 0 rows affected (0.82 sec)</span><br><span class="line"></span><br><span class="line">[root@uz22199 ~]# mysql -ufanboshi -pmysql</span><br><span class="line">mysql: [<span class="builtin-name">Warning</span>] Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line">Welcome <span class="keyword">to</span> the MySQL monitor.  Commands end with ; <span class="keyword">or</span> \g.</span><br><span class="line">Your MySQL<span class="built_in"> connection </span>id is 44</span><br><span class="line">Server version: 5.7.18-log MySQL<span class="built_in"> Community Server </span>(GPL)</span><br><span class="line"></span><br><span class="line">Copyright (c) 2000, 2017, Oracle <span class="keyword">and</span>/<span class="keyword">or</span> its affiliates. All rights reserved.</span><br><span class="line"></span><br><span class="line">Oracle is a registered trademark of Oracle Corporation <span class="keyword">and</span>/<span class="keyword">or</span> its</span><br><span class="line">affiliates. Other names may be trademarks of their respective</span><br><span class="line">owners.</span><br><span class="line"></span><br><span class="line">Type <span class="string">&#x27;help;&#x27;</span> <span class="keyword">or</span> <span class="string">&#x27;\h&#x27;</span> <span class="keyword">for</span> help.<span class="built_in"> Type </span><span class="string">&#x27;\c&#x27;</span> <span class="keyword">to</span> clear the current input statement.</span><br><span class="line"></span><br><span class="line">fanboshi@mysqldb 14:54:  [(none)]&gt; quit</span><br></pre></td></tr></table></figure><br>flush privileges完了就可以登陆了,不知道只这样做可以不可以,还是按吴总来吧</p>
+<p>看一下现在mysqld进程号<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@uz22199 ~]# ps -ef| grep mysqld</span><br><span class="line">root    14676    1  0 Sep11 ?        00:00:00 /bin/sh /usr/local/mysql/bin/mysqld_safe <span class="attribute">--relay-log-recovery</span>=0</span><br><span class="line">mysql    16188 14676  2 Sep11 ?        00:33:24 /usr/local/mysql/bin/mysqld <span class="attribute">--basedir</span>=/usr/local/mysql <span class="attribute">--datadir</span>=/data/mysqldata/3306/data <span class="attribute">--plugin-dir</span>=/usr/local/mysql/lib/plugin <span class="attribute">--user</span>=mysql <span class="attribute">--relay-log-recovery</span>=0 <span class="attribute">--log-error</span>=/data/mysqldata/3306/data/../error.log <span class="attribute">--open-files-limit</span>=65535 <span class="attribute">--pid-file</span>=/data/mysqldata/3306/mysql.pid <span class="attribute">--socket</span>=/data/mysqldata/3306/mysql.sock <span class="attribute">--port</span>=3306</span><br><span class="line">root    23497 21466  1 13:49 pts/4    00:00:55 sysbench /usr/share/sysbench/oltp_read_write.lua <span class="attribute">--mysql-user</span>=root <span class="attribute">--mysql-password</span>=mysql <span class="attribute">--mysql-port</span>=3306 <span class="attribute">--mysql-socket</span>=/data/mysqldata/3306/mysql.sock <span class="attribute">--mysql-host</span>=localhost <span class="attribute">--mysql-db</span>=sysbenchtest <span class="attribute">--tables</span>=10 <span class="attribute">--table-size</span>=5000000 <span class="attribute">--threads</span>=2 <span class="attribute">--report-interval</span>=5 <span class="attribute">--time</span>=7000 <span class="attribute">--db-driver</span>=mysql run</span><br><span class="line">root    23775 21421  0 14:54 pts/0    00:00:00 grep mysqld</span><br></pre></td></tr></table></figure></p>
+<p>kill -HUP 重新加载配置文件<br><figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@uz22199</span> ~]<span class="meta"># kill -HUP `pidof mysqld`</span></span><br></pre></td></tr></table></figure></p>
+<p>看一下mysqld pid没变<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@uz22199 ~]# ps -ef| grep mysqld</span><br><span class="line">root    14676    1  0 Sep11 ?        00:00:00 /bin/sh /usr/local/mysql/bin/mysqld_safe <span class="attribute">--relay-log-recovery</span>=0</span><br><span class="line">mysql    16188 14676  2 Sep11 ?        00:33:26 /usr/local/mysql/bin/mysqld <span class="attribute">--basedir</span>=/usr/local/mysql <span class="attribute">--datadir</span>=/data/mysqldata/3306/data <span class="attribute">--plugin-dir</span>=/usr/local/mysql/lib/plugin <span class="attribute">--user</span>=mysql <span class="attribute">--relay-log-recovery</span>=0 <span class="attribute">--log-error</span>=/data/mysqldata/3306/data/../error.log <span class="attribute">--open-files-limit</span>=65535 <span class="attribute">--pid-file</span>=/data/mysqldata/3306/mysql.pid <span class="attribute">--socket</span>=/data/mysqldata/3306/mysql.sock <span class="attribute">--port</span>=3306</span><br><span class="line">root    23497 21466  1 13:49 pts/4    00:00:55 sysbench /usr/share/sysbench/oltp_read_write.lua <span class="attribute">--mysql-user</span>=root <span class="attribute">--mysql-password</span>=mysql <span class="attribute">--mysql-port</span>=3306 <span class="attribute">--mysql-socket</span>=/data/mysqldata/3306/mysql.sock <span class="attribute">--mysql-host</span>=localhost <span class="attribute">--mysql-db</span>=sysbenchtest <span class="attribute">--tables</span>=10 <span class="attribute">--table-size</span>=5000000 <span class="attribute">--threads</span>=2 <span class="attribute">--report-interval</span>=5 <span class="attribute">--time</span>=7000 <span class="attribute">--db-driver</span>=mysql run</span><br><span class="line">root    23782 21421  0 14:55 pts/0    00:00:00 grep mysqld</span><br></pre></td></tr></table></figure><br>sysbench没有报错                    </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/09/12/MySQL忘记密码处理方法,无需重启/" target="_blank" title="MySQL忘记密码处理方法,无需重启">http://fuxkdb.com/2017/09/12/MySQL忘记密码处理方法,无需重启/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/09/29/PMM%E8%AE%BE%E7%BD%AEgrafana%E7%99%BB%E5%BD%95%E7%94%A8%E6%88%B7/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          PMM设置grafana登录用户
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/09/11/MySQL%E4%B8%8D%E5%AE%8C%E5%85%A8%E6%81%A2%E5%A4%8D/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">MySQL不完全恢复</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav">无</ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

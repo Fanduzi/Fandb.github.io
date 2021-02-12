@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>docopt详解 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="Python" />
+  
+  
+  
+  
+  <meta name="description" content="12345678910111213141516Naval Fate.Usage:  naval_fate ship new &lt;name&gt;...  naval_fate ship &lt;name&gt; move &lt;x&gt; &lt;y&gt; [--speed&#x3D;&lt;kn&gt;]  naval_fate ship shoot &lt;x&gt; &lt;y&gt;  na">
+<meta property="og:type" content="article">
+<meta property="og:title" content="docopt详解">
+<meta property="og:url" content="http://fuxkdb.com/2017/06/28/docopt%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="12345678910111213141516Naval Fate.Usage:  naval_fate ship new &lt;name&gt;...  naval_fate ship &lt;name&gt; move &lt;x&gt; &lt;y&gt; [--speed&#x3D;&lt;kn&gt;]  naval_fate ship shoot &lt;x&gt; &lt;y&gt;  na">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-06-28T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-07T02:18:00.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-docopt详解" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      docopt详解
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/06/28/docopt%E8%AF%A6%E8%A7%A3/" class="article-date">
+	  <time datetime="2017-06-28T14:00:00.000Z" itemprop="datePublished">2017-06-28</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Naval Fate.</span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line">  naval_fate ship <span class="keyword">new</span> <span class="symbol">&lt;name&gt;</span>...</span><br><span class="line">  naval_fate ship <span class="symbol">&lt;name&gt;</span> <span class="keyword">move</span> <span class="symbol">&lt;x&gt;</span> <span class="symbol">&lt;y&gt;</span> [--speed=<span class="symbol">&lt;kn&gt;</span>]</span><br><span class="line">  naval_fate ship shoot <span class="symbol">&lt;x&gt;</span> <span class="symbol">&lt;y&gt;</span></span><br><span class="line">  naval_fate mine (<span class="keyword">set</span>|<span class="built_in">remove</span>) <span class="symbol">&lt;x&gt;</span> <span class="symbol">&lt;y&gt;</span> [--moored|--drifting]</span><br><span class="line">  naval_fate -h | --<span class="keyword">help</span></span><br><span class="line">  naval_fate --<span class="keyword">version</span></span><br><span class="line"></span><br><span class="line">Option<span class="variable">s:</span></span><br><span class="line">  -h --<span class="keyword">help</span>     Show this screen.</span><br><span class="line">  --<span class="keyword">version</span>     Show <span class="keyword">version</span>.</span><br><span class="line">  --speed=<span class="symbol">&lt;kn&gt;</span>  Speed in knots [defaul<span class="variable">t:</span> <span class="number">10</span>].</span><br><span class="line">  --moored      Moored (anchored) mine.</span><br><span class="line">  --drifting    Drifting mine.</span><br></pre></td></tr></table></figure>
+<p>该示例描述了可执行的naval_fate的界面，可以使用命令(ship，new，move等)的不同组合，选项(-h，–help，–speed = <kn>等)和 位置参数(<name>，<x>，<y>).</p>
+<p>示例使用方括号“[]”，圆括号“()”，管道“|” 和省略号“…”来描述可选的，必需的，相互排斥的和重复的元素. 一起，这些元素形成有效的使用模式，每个都以程序的名称naval_fate开头.</p>
+<p>Below the usage patterns，有一个包含说明的选项列表. 它们描述一个选项是否具有短/长形式(-h，–help)，选项是否具有参数(-speed = <kn>)，以及该参数是否具有默认值([default:10]).</p>
+<h3 id="Usage模式"><a href="#Usage模式" class="headerlink" title="Usage模式"></a>Usage模式</h3><p>在Usage:(不区分大小写) 关键字 间出现,并且显示的空了一行的部分 被解释为 usage pattern<br>在”Usage:”后出现的第一个单词被解释为程序的名字. 下面是一个最简单的示例,该示例没有任何命令行参数<br><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#### Usage: my_program</span><br></pre></td></tr></table></figure><br>程序可以使用用于描述模式的各种元素列出几个模式:<br><figure class="highlight fsharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  my_program command --option &lt;argument&gt;</span><br><span class="line">  my_program <span class="meta">[&lt;optional-argument&gt;]</span></span><br><span class="line">  my_program --another-option=&lt;<span class="keyword">with</span>-argument&gt;</span><br><span class="line">  my_program (--either-that-option | &lt;<span class="keyword">or</span>-this-argument&gt;)</span><br><span class="line">  my_program &lt;repeating-argument&gt; &lt;repeating-argument&gt;...</span><br></pre></td></tr></table></figure></p>
+<h4 id="ARGUMENT"><a href="#ARGUMENT" class="headerlink" title=" ARGUMENT"></a><argument> ARGUMENT</h4><a id="more"></a>
+<p>以”&lt;”开始,”&gt;”结尾 和 大写字母的被解释为 位置参数</p>
+<p>####-o --option<br>以一个或两个破折号开头的单词(除了“ - ”，“ - ”之外)分别被解释为短(一个字母)或长选项.</p>
+<ul>
+<li>短选项可以“堆叠”，这意味着-abc等同于-a -b -c.</li>
+<li>长选项可以在空格或等于“=”之后指定参数: –input = ARG相当于 - 输入ARG</li>
+<li>短选项可以在可选空格之后指定参数:-f FILE等效于-fFILE</li>
+</ul>
+<p>注意，写入 –input(与–input = ARG相比)是容易产生歧义的，这意味着不可能知道ARG是选项的参数还是位置参数. 在Usage:中，只有在提供该选项的description(如下所述)时，这个选项才会被解释为参数选项. 否则它将被解释为一个选项和单独的位置参数.<br>同样,使用-f FILE和-fFILE也可能产生歧义,后者可能是一组断选项的堆叠(就像之前的例子-abc是-a -b -c的堆叠),或者是一个带参数得选项.只有在提供了该选项的description时，这些符号才会被被解释为一个带参数的选项.</p>
+<h4 id="command"><a href="#command" class="headerlink" title="command"></a>command</h4><p>所有其他不符合–options或<arguments>的约定的单词都被解释为(sub)command.</p>
+<h4 id="optional-elements-可选元素"><a href="#optional-elements-可选元素" class="headerlink" title="[optional elements] 可选元素"></a>[optional elements] 可选元素</h4><p>被方括号”[]”包围起来的元素(options, arguments, commands)被标记为可选项.<br><code>Usage: my_program [command --option &lt;argument&gt;]</code><br>等价于<br><code>Usage: my_program [command] [--option] [&lt;argument&gt;]</code></p>
+<h4 id="required-elements-必要元素"><a href="#required-elements-必要元素" class="headerlink" title="(required elements) 必要元素"></a>(required elements) 必要元素</h4><p>默认情况下需要所有元素，如果不包括在括号“[]”中. 但是，有时候，必须使用“”()“来明确标记元素. 例如，当您需要组合相互排斥的元素(请参阅下一节):<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program (--either-<span class="keyword">this</span> &lt;and-that&gt; | &lt;or-<span class="keyword">this</span>&gt;)</span><br></pre></td></tr></table></figure><br>另一个用例是当您需要指定如果存在一个元素，则需要另外一个元素:<br><figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">Usage:</span> my_program [(<span class="params">&lt;one-argument&gt;</span> <span class="params">&lt;another-argument&gt;</span>)]</span><br></pre></td></tr></table></figure><br>在这种情况下，有效的程序调用可以是无参数，也可以是2个参数.</p>
+<h4 id="element-another"><a href="#element-another" class="headerlink" title="element|another"></a>element|another</h4><p>相互排斥的元素可以用管道“|”分隔开 如下:<br><figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">Usage:</span> <span class="comment">my_program</span> <span class="comment">go</span> <span class="comment">(</span>--<span class="comment">up</span> <span class="comment">|</span> --<span class="comment">down</span> <span class="comment">|</span> --<span class="comment">left</span> <span class="comment">|</span> --<span class="comment">right)</span></span><br></pre></td></tr></table></figure><br>当需要相互排斥的情况之一时，使用括号“()”对元素进行分组. 当不需要相互排斥的情况时，使用括号“[]”分组元素:</p>
+<p>Note, that specifying several patterns works exactly like pipe “|”, that is:<br><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program <span class="built_in">run</span> [<span class="comment">--fast]</span></span><br><span class="line">       my_program jump [<span class="comment">--high]</span></span><br></pre></td></tr></table></figure><br>等价于<br><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program (<span class="built_in">run</span> [<span class="comment">--fast] | jump [--high])</span></span><br></pre></td></tr></table></figure></p>
+<h4 id="element…"><a href="#element…" class="headerlink" title="element…"></a>element…</h4><p>使用省略号“…”来指定左侧的参数(或参数组)可以重复一次或多次:<br><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program <span class="keyword">open</span> <span class="symbol">&lt;file&gt;</span>...</span><br><span class="line">       my_program <span class="keyword">move</span> (<span class="symbol">&lt;from&gt;</span> <span class="symbol">&lt;to&gt;</span>)...</span><br></pre></td></tr></table></figure><br>您可以灵活地指定所需的参数数. 以下是需要零个或多个参数的3种(冗余)方法:<br><figure class="highlight fsharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Usage: my_program <span class="meta">[&lt;file&gt;...]</span></span><br><span class="line"><span class="meta">       my_program [&lt;file&gt;]</span>...</span><br><span class="line">       my_program <span class="meta">[&lt;file&gt; [&lt;file&gt; ...]]</span></span><br></pre></td></tr></table></figure></p>
+<p>一个或多个参数<br><figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">Usage:</span> my_program <span class="params">&lt;file&gt;</span>...</span><br></pre></td></tr></table></figure><br>两个或多个参数<br><figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">Usage:</span> my_program <span class="params">&lt;file&gt;</span> <span class="params">&lt;file&gt;</span>...</span><br></pre></td></tr></table></figure></p>
+<h4 id="options"><a href="#options" class="headerlink" title="[options]"></a>[options]</h4><p>“[options]”是一种快捷方式，可以避免在模式中列出所有选项(带有说明的选项列表). 例如:<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Usage</span>: my_program [options] &lt;path&gt;</span><br><span class="line"></span><br><span class="line">--all             List everything.</span><br><span class="line">--long            Long output.</span><br><span class="line">--human-readable  Display in human-readable format.</span><br></pre></td></tr></table></figure><br>等价于<br><figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">Usage:</span> <span class="comment">my_program</span> <span class="title">[</span>--<span class="comment">all</span> --<span class="comment">long</span> --<span class="comment">human</span><span class="literal">-</span><span class="comment">readable</span><span class="title">]</span> &lt;<span class="comment">path</span>&gt;</span><br><span class="line"></span><br><span class="line">--<span class="comment">all</span>             <span class="comment">List</span> <span class="comment">everything</span><span class="string">.</span></span><br><span class="line">--<span class="comment">long</span>            <span class="comment">Long</span> <span class="comment">output</span><span class="string">.</span></span><br><span class="line">--<span class="comment">human</span><span class="literal">-</span><span class="comment">readable</span>  <span class="comment">Display</span> <span class="comment">in</span> <span class="comment">human</span><span class="literal">-</span><span class="comment">readable</span> <span class="comment">format</span><span class="string">.</span></span><br></pre></td></tr></table></figure><br>如果您有很多选项，并且所有选项都适用于其中一种模式，这将非常有用. 或者，如果您有短版本和长版本的选项(specified in option description part)，you can list either of them in a pattern:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Usage</span>: my_program [-alh] &lt;path&gt;</span><br><span class="line"></span><br><span class="line">-a, --all             List everything.</span><br><span class="line">-l, --long            Long output.</span><br><span class="line">-h, --human-readable  Display in human-readable format.</span><br></pre></td></tr></table></figure>
+<h4 id="–"><a href="#–" class="headerlink" title="[–]"></a>[–]</h4><p>双重破折号“ - ”，当不是选项的一部分时，通常用作分隔选项和位置参数的约定，以便处理例如文件名可能被误认为选项的情况. 为了支持这个约定，在位置参数之前添加“[ - ]”到你的模式中.<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Usage</span>: my_program [<span class="keyword">options</span>] [<span class="comment">--] &lt;file&gt;...</span></span><br></pre></td></tr></table></figure><br>Apart from this special meaning, “–” is just a normal command, so you can apply any previously-described operations, for example, make it required (by dropping brackets “[ ]”)</p>
+<h4 id=""><a href="#" class="headerlink" title="[-]"></a>[-]</h4><p>一个单独的破折号“ - ”，当不是选项的一部分时，常常被用来表示一个程序应该处理stdin而不是一个文件. 如果你想遵循这个惯例，在你的模式中添加“[ - ]”. “ - ”本身只是一个正常的命令，您可以使用任何意义.</p>
+<h4 id="Option-descriptions"><a href="#Option-descriptions" class="headerlink" title="Option descriptions"></a>Option descriptions</h4><p>选项描述包含您放在使用模式下的选项列表.即使在usage pattern中没有产生歧义也可以指定他们<br>选项的描述允许指定:</p>
+<ul>
+<li>互为同义词的短选项和长选项</li>
+<li>带参数得选项</li>
+<li>选项参数得默认值</li>
+</ul>
+<p>The rules are as follows:<br>以“ - ”或“ – ”(不包括空格)开头的每一行都被视为一个选项描述，例如:</p>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">Options:</span></span><br><span class="line">  --verbose   <span class="meta"># GOOD</span></span><br><span class="line">  -o FILE     <span class="meta"># GOOD</span></span><br><span class="line"><span class="symbol">Other:</span> --bad  <span class="meta"># BAD, line does not start with dash <span class="string">&quot;-&quot;</span> 错误的示例,不是以<span class="string">&#x27;-&#x27;</span>开头的行</span></span><br></pre></td></tr></table></figure>
+<p>要指定一个选项有一个参数，请在空格(或等于“=”符号)后面放置一个描述该参数的单词，如下所示. 遵循<angular-bracket>或UPPER-CASE约定的选项参数. 如果要分离选项，可以使用逗号. 在下面的示例中，两行均有效，但建议使用单一样式.<br><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-o <span class="keyword">FILE</span> --output=<span class="keyword">FILE</span>       # without comma, with <span class="string">&quot;=&quot;</span> <span class="built_in">sign</span></span><br><span class="line">-i &lt;<span class="keyword">file</span>&gt;, --input &lt;<span class="keyword">file</span>&gt;   # with comma, without <span class="string">&quot;=&quot;</span> <span class="built_in">sign</span></span><br></pre></td></tr></table></figure></p>
+<p>使用两个空格分隔选项和其描述信息<br><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">--verbose MORE text.    <span class="comment"># BAD, will be treated as if verbose</span></span><br><span class="line">                        <span class="comment"># option had an argument MORE, so use</span></span><br><span class="line">                        <span class="comment"># 2 spaces instead</span></span><br><span class="line">-q        Quit.         <span class="comment"># GOOD</span></span><br><span class="line">-o <span class="keyword">FILE</span>   Output <span class="keyword">file</span>.  <span class="comment"># GOOD</span></span><br><span class="line">--stdout  Use stdout.   <span class="comment"># GOOD, 2 spaces</span></span><br></pre></td></tr></table></figure><br>如果要为参数的选项设置默认值，请将其放入选项的描述中，格式为[default:<the-default-value>].<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">--coefficient</span>=K  The K coefficient [default: <span class="number">2.95</span>]</span><br><span class="line"><span class="attr">--output</span>=FILE    Output file [default: test.txt]</span><br><span class="line"><span class="attr">--directory</span>=DIR  Some directory [default: ./]</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/06/28/docopt详解/" target="_blank" title="docopt详解">http://fuxkdb.com/2017/06/28/docopt详解/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/" rel="tag">Python</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/07/06/Sysbench%E5%87%BA%E5%9B%BE/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          Sysbench出图
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/06/17/%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">传统复制在线切换到GTID模式</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Usage%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">Usage模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ARGUMENT"><span class="nav-number">1.1.</span> <span class="nav-text"> ARGUMENT</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#command"><span class="nav-number">1.2.</span> <span class="nav-text">command</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#optional-elements-%E5%8F%AF%E9%80%89%E5%85%83%E7%B4%A0"><span class="nav-number">1.3.</span> <span class="nav-text">[optional elements] 可选元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#required-elements-%E5%BF%85%E8%A6%81%E5%85%83%E7%B4%A0"><span class="nav-number">1.4.</span> <span class="nav-text">(required elements) 必要元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#element-another"><span class="nav-number">1.5.</span> <span class="nav-text">element|another</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#element%E2%80%A6"><span class="nav-number">1.6.</span> <span class="nav-text">element…</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#options"><span class="nav-number">1.7.</span> <span class="nav-text">[options]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%93"><span class="nav-number">1.8.</span> <span class="nav-text">[–]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-number">1.9.</span> <span class="nav-text">[-]</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Option-descriptions"><span class="nav-number">1.10.</span> <span class="nav-text">Option descriptions</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

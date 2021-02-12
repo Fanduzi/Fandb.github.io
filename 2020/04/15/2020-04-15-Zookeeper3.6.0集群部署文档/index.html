@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>zookeeper3.6.0集群部署文档 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="ZooKeeper" />
+  
+  
+  
+  
+  <meta name="description" content="Zookeeper3.6.0集群部署文档一点一点完善…">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zookeeper3.6.0集群部署文档">
+<meta property="og:url" content="http://fuxkdb.com/2020/04/15/2020-04-15-Zookeeper3.6.0%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Zookeeper3.6.0集群部署文档一点一点完善…">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://fuxkdb.com/2020/04/15/2020-04-15-Zookeeper3.6.0%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/index_files/image-20200415150513009.png">
+<meta property="article:published_time" content="2020-04-15T15:32:00.000Z">
+<meta property="article:modified_time" content="2020-04-15T15:33:28.928Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="ZooKeeper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://fuxkdb.com/2020/04/15/2020-04-15-Zookeeper3.6.0%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/index_files/image-20200415150513009.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-04-15-Zookeeper3.6.0集群部署文档" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Zookeeper3.6.0集群部署文档
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/04/15/2020-04-15-Zookeeper3.6.0%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" class="article-date">
+	  <time datetime="2020-04-15T15:32:00.000Z" itemprop="datePublished">2020-04-15</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Zookeeper3-6-0集群部署文档"><a href="#Zookeeper3-6-0集群部署文档" class="headerlink" title="Zookeeper3.6.0集群部署文档"></a>Zookeeper3.6.0集群部署文档</h1><p>一点一点完善…</p>
+<a id="more"></a>
+<h2 id="下载安装包"><a href="#下载安装包" class="headerlink" title="下载安装包"></a>下载安装包</h2><p><a target="_blank" rel="noopener" href="https://zookeeper.apache.org/releases.html">https://zookeeper.apache.org/releases.html</a></p>
+<p><img src="index_files/image-20200415150513009.png" alt="image-20200415150513009"></p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">cd</span> /tmp &amp;&amp; \</span><br><span class="line"><span class="attribute">wget</span> https://downloads.apache.org/zookeeper/zookeeper-<span class="number">3</span>.<span class="number">6</span>.<span class="number">0</span>/apache-zookeeper-<span class="number">3</span>.<span class="number">6</span>.<span class="number">0</span>-bin.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="attribute">tar</span> -zxvf apache-zookeeper-<span class="number">3</span>.<span class="number">6</span>.<span class="number">0</span>-bin.tar.gz -C /usr/local/</span><br><span class="line"><span class="attribute">ln</span> -s /usr/local/apache-zookeeper-<span class="number">3</span>.<span class="number">6</span>.<span class="number">0</span>-bin /usr/local/zookeeper</span><br></pre></td></tr></table></figure>
+<h2 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h2><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.bashrc</span><br><span class="line"></span><br><span class="line"><span class="builtin-name">export</span> <span class="attribute">ZOOKEEPER_HOME</span>=/usr/local/zookeeper</span><br><span class="line"><span class="builtin-name">export</span> <span class="attribute">PATH</span>=<span class="variable">$PATH</span>:$ZOOKEEPER_HOME/bin</span><br></pre></td></tr></table></figure>
+<h2 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h2><h3 id="zoo-cfg"><a href="#zoo-cfg" class="headerlink" title="zoo.cfg"></a>zoo.cfg</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">cat zoo.cfg</span><br><span class="line"><span class="comment"># 抄的clickhouse官网</span></span><br><span class="line"><span class="comment"># https://clickhouse.tech/docs/en/operations/tips/#zookeeper</span></span><br><span class="line"></span><br><span class="line"><span class="attribute">tickTime</span>=2000</span><br><span class="line"><span class="attribute">initLimit</span>=30000</span><br><span class="line"><span class="attribute">syncLimit</span>=10</span><br><span class="line"><span class="attribute">maxClientCnxns</span>=2000</span><br><span class="line"><span class="attribute">maxSessionTimeout</span>=60000000</span><br><span class="line">autopurge.<span class="attribute">snapRetainCount</span>=10</span><br><span class="line">autopurge.<span class="attribute">purgeInterval</span>=1</span><br><span class="line"><span class="attribute">preAllocSize</span>=131072</span><br><span class="line"><span class="attribute">snapCount</span>=3000000</span><br><span class="line"><span class="attribute">leaderServes</span>=<span class="literal">yes</span></span><br><span class="line"><span class="attribute">standaloneEnabled</span>=<span class="literal">false</span></span><br><span class="line"><span class="attribute">reconfigEnabled</span>=<span class="literal">true</span></span><br><span class="line">4lw.commands.<span class="attribute">whitelist</span>=*</span><br><span class="line"><span class="attribute">dataDir</span>=/data/zookeeper/test/data</span><br><span class="line"><span class="attribute">dataLogDir</span>=/data/zookeeper/test/logs</span><br><span class="line"><span class="attribute">dynamicConfigFile</span>=/usr/local/apache-zookeeper-3.6.0-bin/conf/zoo_replicated1.cfg.dynamic</span><br><span class="line"></span><br><span class="line">4lw.commands.<span class="attribute">whitelist</span>=*</span><br></pre></td></tr></table></figure>
+<h3 id="dynamicConfigFile"><a href="#dynamicConfigFile" class="headerlink" title="dynamicConfigFile"></a>dynamicConfigFile</h3><p>vim /usr/local/apache-zookeeper-3.6.0-bin/conf/zoo_replicated1.cfg.dynamic</p>
+<p>三个节点一样</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#cat zoo_replicated1.cfg.dynamic</span><br><span class="line">server<span class="number">.1</span>=<span class="number">172.16</span><span class="number">.24</span><span class="number">.2</span>:<span class="number">2888</span>:<span class="number">3888</span>:participant;<span class="number">2181</span></span><br><span class="line">server<span class="number">.2</span>=<span class="number">172.16</span><span class="number">.24</span><span class="number">.13</span>:<span class="number">2888</span>:<span class="number">3888</span>:participant;<span class="number">2181</span></span><br><span class="line">server<span class="number">.3</span>=<span class="number">172.16</span><span class="number">.24</span><span class="number">.109</span>:<span class="number">2888</span>:<span class="number">3888</span>:participant;<span class="number">2181</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意不能用0.0.0.0, 否则有bug</p>
+<p>用于客户端连接的端口<br>clientPort: 2181<br>用于节点间通信的TCP端口<br>peerPort: 2888<br>用于首领选举的TCP端口<br>leaderPort: 3888</p>
+<p>participant代表参与者</p>
+</blockquote>
+<h3 id="myid"><a href="#myid" class="headerlink" title="myid"></a>myid</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#master</span></span><br><span class="line">echo <span class="string">&quot;1&quot;</span>&gt;<span class="regexp">/data/</span>zookeeper<span class="regexp">/ch_9000/</span>data/myid</span><br><span class="line"></span><br><span class="line"><span class="comment">#slave1</span></span><br><span class="line">echo <span class="string">&quot;2&quot;</span>&gt;<span class="regexp">/data/</span>zookeeper<span class="regexp">/ch_9000/</span>data/myid</span><br><span class="line"></span><br><span class="line"><span class="comment">#slave2</span></span><br><span class="line">echo <span class="string">&quot;3&quot;</span>&gt;<span class="regexp">/data/</span>zookeeper<span class="regexp">/ch_9000/</span>data/myid</span><br></pre></td></tr></table></figure>
+<h3 id="配置zk日志的滚动输入"><a href="#配置zk日志的滚动输入" class="headerlink" title="配置zk日志的滚动输入"></a>配置zk日志的滚动输入</h3><blockquote>
+<p>看bin/zkEnv.sh 里面</p>
+</blockquote>
+<p>默认zk日志输出到一个文件,且不会自动清理,所以,一段时间后zk日志会非常大!<br>这里配置zk日志滚动输出,且每个文件10M限制,最多保留10个文件.</p>
+<ol>
+<li><p><code>zookeeper-env.sh</code><br><code>./conf</code>目录下新建<code>zookeeper-env.sh</code>文件,修改到<code>sudo chmod 755 zookeeper-env.sh</code>权限</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#cat conf/zookeeper-env.sh</span></span><br><span class="line"><span class="comment">#!/usr/bin/env bash</span></span><br><span class="line"><span class="comment">#tip:custom configurationfile，do not amend the zkEnv.sh file</span></span><br><span class="line"><span class="comment">#chang the log dir and output of rolling file</span></span><br><span class="line"></span><br><span class="line"><span class="attr">ZOO_LOG_DIR</span>=<span class="string">&quot;/usr/local/zookeeper/logs&quot;</span></span><br><span class="line"><span class="attr">ZOO_LOG4J_PROP</span>=<span class="string">&quot;INFO,ROLLINGFILE&quot;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>log4j.properties 修改日志的输入形式</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">zookeeper.root.logger</span>=INFO, ROLLINGFILE</span><br><span class="line"><span class="comment">#zookeeper.root.logger=INFO, CONSOLE</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="attr">zookeeper.console.threshold</span>=INFO</span><br><span class="line"></span><br><span class="line"><span class="attr">zookeeper.log.dir</span>=/usr/local/zookeeper/logs</span><br><span class="line"><span class="attr">zookeeper.log.file</span>=zookeeper.log</span><br><span class="line"><span class="attr">zookeeper.log.threshold</span>=INFO</span><br><span class="line"><span class="attr">zookeeper.log.maxfilesize</span>=<span class="number">256</span>MB  --要改就改这个</span><br><span class="line"><span class="attr">zookeeper.log.maxbackupindex</span>=<span class="number">20</span>  --要改就改这个</span><br></pre></td></tr></table></figure>
+</li>
+<li><pre><code>mkdir /usr/local/zookeeper/logs
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 配置运行zk的jvm</span><br><span class="line"></span><br><span class="line">&gt; 看bin/zkEnv.sh 里面</span><br><span class="line"></span><br><span class="line">`./conf`目录下新建`java.env`文件,修改到`sudo chmod 755 java.env`权限,主要用于`GC log`,`RAM`等的配置.</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+#!/usr/bin/env bash
+#config the jvm parameter in a reasonable
+#note that the shell is source in so that do not need to use export 
+#set java  classpath 
+#CLASSPATH=&quot;&quot; 
+#set jvm start parameter , also can set JVMFLAGS variable
+SERVER_JVMFLAGS=&quot;-Xms1024m -Xmx2048m $JVMFLAGS&quot;
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## 启动zookeeper服务(所有节点)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+# zkServer.sh start
+ZooKeeper JMX enabled by default
+Using config: /usr/local/zookeeper/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## 遇到问题</span><br><span class="line"></span><br><span class="line">### 问题1</span><br><span class="line">使用stat验证zookeeper服务时报错</span><br></pre></td></tr></table></figure>
+#telnet 127.0.0.1 2181
+Trying 127.0.0.1...
+Connected to 127.0.0.1.
+Escape character is &apos;^]&apos;.
+stat
+stat is not executed because it is not in the whitelist.
+Connection closed by foreign host.
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">这里出问题了. <span class="number">3.5</span><span class="number">.3</span>以后新增参数`<span class="number">4</span>lw.commands.whitelist`</span><br><span class="line">https:<span class="comment">//zookeeper.apache.org/doc/r3.6.0/zookeeperAdmin.html</span></span><br><span class="line"></span><br><span class="line">### 问题<span class="number">2</span></span><br><span class="line">之前我是这样配置的dynamicConfigFile的</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">三个节点, 自己都是`<span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>`</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+#cat zoo_ch_9000.cfg.dynamic
+server.1=0.0.0.0:2888:3888:participant;0.0.0.0:2181
+server.2=172.16.24.13:2888:3888:participant;0.0.0.0:2181
+server.3=172.16.24.109:2888:3888:participant;0.0.0.0:2181
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+#cat zoo_ch_9000.cfg.dynamic
+server.1=172.16.24.2:2888:3888:participant;0.0.0.0:2181
+server.2=0.0.0.0:2888:3888:participant;0.0.0.0:2181
+server.3=172.16.24.109:2888:3888:participant;0.0.0.0:2181
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+#cat zoo_ch_9000.cfg.dynamic 
+server.1=172.16.24.2:2888:3888:participant;0.0.0.0:2181
+server.2=172.16.24.13:2888:3888:participant;0.0.0.0:2181
+server.3=0.0.0.0:2888:3888:participant;0.0.0.0:2181
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">这样装完以后能用, 但是<span class="attribute">myid</span>=1挂掉重启后一直无法加入</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+2020-04-15 16:03:24,420 [myid:1] - INFO  [WorkerSender[myid=1]:QuorumCnxManager@462] - Have smaller server identifier, so dropping the connection: (3, 1)
+2020-04-15 16:03:24,622 [myid:1] - INFO  [QuorumPeer[myid=1](plain=0.0.0.0:2181)(secure=disabled):QuorumCnxManager@462] - Have smaller server identifier, so dropping the connection: (2, 1)
+2020-04-15 16:03:24,623 [myid:1] - INFO  [QuorumPeer[myid=1](plain=0.0.0.0:2181)(secure=disabled):QuorumCnxManager@462] - Have smaller server identifier, so dropping the connection: (3, 1)
+2020-04-15 16:03:24,623 [myid:1] - INFO  [QuorumPeer[myid=1](plain=0.0.0.0:2181)(secure=disabled):FastLeaderElection@966] - Notification time out: 400
+2020-04-15 16:03:25,024 [myid:1] - INFO  [QuorumPeer[myid=1](plain=0.0.0.0:2181)(secure=disabled):QuorumCnxManager@462] - Have smaller server identifier, so dropping the connection: (2, 1)
+2020-04-15 16:03:25,025 [myid:1] - INFO  [QuorumPeer[myid=1](plain=0.0.0.0:2181)(secure=disabled):QuorumCnxManager@462] - Have smaller server identifier, so dropping the connection: (3, 1)
+2020-04-15 16:03:25,025 [myid:1] - INFO  [QuorumPeer[myid=1](plain=0.0.0.0:2181)(secure=disabled):FastLeaderElection@966] - Notification time out: 800
+</code></pre></li>
+</ol>
+<p>貌似是bug</p>
+<p><a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/ZOOKEEPER-2938">https://issues.apache.org/jira/browse/ZOOKEEPER-2938</a></p>
+<p><del>用3.4.14的配置启动3.6.0 仍然有此问题, 说明可能不是配置问题</del><br>反复测过几次就是0.0.0.0的问题, 实际上我在来云账户之前从没有用过0.0.0.0, 之前马蜂窝的服务器也是双网卡, 我看过运维的kafka和大数据的kafka都没有使用过0.0.0.0这种方式, 来到这边才看到这种用法, 本着”可能有坑、与线上统一”的原则继承了这样的配置, 实际对这种配置我还是不太理解, 虽然百度了一下说是ECS或Docker不这样配有问题</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/04/15/2020-04-15-Zookeeper3.6.0集群部署文档/" target="_blank" title="Zookeeper3.6.0集群部署文档">http://fuxkdb.com/2020/04/15/2020-04-15-Zookeeper3.6.0集群部署文档/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ZooKeeper/" rel="tag">ZooKeeper</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/05/02/2020-05-02-ClickHouse%E5%A4%9A%E5%AE%9E%E4%BE%8B%E9%83%A8%E7%BD%B2/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          ClickHouse多实例部署
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/04/15/2020-04-15-Kafka%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Kafka版本升级</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Zookeeper3-6-0%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3"><span class="nav-number">1.</span> <span class="nav-text">Zookeeper3.6.0集群部署文档</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85%E5%8C%85"><span class="nav-number">1.1.</span> <span class="nav-text">下载安装包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="nav-number">1.2.</span> <span class="nav-text">配置环境变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">1.3.</span> <span class="nav-text">修改配置文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#zoo-cfg"><span class="nav-number">1.3.1.</span> <span class="nav-text">zoo.cfg</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dynamicConfigFile"><span class="nav-number">1.3.2.</span> <span class="nav-text">dynamicConfigFile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#myid"><span class="nav-number">1.3.3.</span> <span class="nav-text">myid</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEzk%E6%97%A5%E5%BF%97%E7%9A%84%E6%BB%9A%E5%8A%A8%E8%BE%93%E5%85%A5"><span class="nav-number">1.3.4.</span> <span class="nav-text">配置zk日志的滚动输入</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

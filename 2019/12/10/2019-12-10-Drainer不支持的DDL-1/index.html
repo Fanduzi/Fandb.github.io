@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>drainer不支持的ddl-1 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="TiDBDrainer" />
+  
+  
+  
+  
+  <meta name="description" content="Drainer不支持的DDL-1版本3.0.5 1.rename table t1 to b_db.b_t1已经做好TiDB-&gt;MySQL的同步, 开启了pump, drainer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Drainer不支持的DDL-1">
+<meta property="og:url" content="http://fuxkdb.com/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Drainer不支持的DDL-1版本3.0.5 1.rename table t1 to b_db.b_t1已经做好TiDB-&gt;MySQL的同步, 开启了pump, drainer">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-12-10T13:23:00.000Z">
+<meta property="article:modified_time" content="2019-12-10T13:52:12.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="TiDB">
+<meta property="article:tag" content="Drainer">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2019-12-10-Drainer不支持的DDL-1" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Drainer不支持的DDL-1
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/" class="article-date">
+	  <time datetime="2019-12-10T13:23:00.000Z" itemprop="datePublished">2019-12-10</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Drainer不支持的DDL-1"><a href="#Drainer不支持的DDL-1" class="headerlink" title="Drainer不支持的DDL-1"></a>Drainer不支持的DDL-1</h1><p>版本3.0.5</p>
+<h2 id="1-rename-table-t1-to-b-db-b-t1"><a href="#1-rename-table-t1-to-b-db-b-t1" class="headerlink" title="1.rename table t1 to b_db.b_t1"></a>1.rename table t1 to b_db.b_t1</h2><p>已经做好TiDB-&gt;MySQL的同步, 开启了pump, drainer</p>
+<a id="more"></a>
+<h3 id="问题复现"><a href="#问题复现" class="headerlink" title="问题复现"></a>问题复现</h3><p>在TiDB创建fanboshi表</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">root@10.152.x.150 17:53:27 [sysbench]&gt; show tables;</span><br><span class="line">ERROR 2006 (HY000): MySQL server has gone away</span><br><span class="line">No connection. Trying to reconnect...</span><br><span class="line">Connection id:    76</span><br><span class="line">Current database: sysbench</span><br><span class="line"></span><br><span class="line"><span class="code">+--------------------+</span></span><br><span class="line">| Tables<span class="emphasis">_in_</span>sysbench |</span><br><span class="line"><span class="code">+--------------------+</span></span><br><span class="line">| sbtest1            |</span><br><span class="line">| sbtest10           |</span><br><span class="line">| sbtest2            |</span><br><span class="line">| sbtest3            |</span><br><span class="line">| sbtest4            |</span><br><span class="line">| sbtest5            |</span><br><span class="line">| sbtest6            |</span><br><span class="line">| sbtest7            |</span><br><span class="line">| sbtest8            |</span><br><span class="line">| sbtest9            |</span><br><span class="line"><span class="code">+--------------------+</span></span><br><span class="line">10 rows in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">root@10.152.x.150 18:31:19 [sysbench]&gt; create table fanboshi like sbtest1;</span><br><span class="line">Query OK, 0 rows affected (0.13 sec)</span><br><span class="line"></span><br><span class="line">root@10.152.x.150 18:31:24 [sysbench]&gt;  select count(<span class="strong">*) from sbtest1;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|   500456 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.31 sec)</span><br><span class="line"></span><br><span class="line">root@10.152.x.150 18:31:42 [sysbench]&gt; select count(<span class="strong">*) from sbtest1;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|   500757 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.30 sec)</span><br></pre></td></tr></table></figure>
+<p>在下游MySQL查看, 同步没有问题</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 18:59:35 [sysbench]&gt; show tables;</span><br><span class="line"><span class="code">+--------------------+</span></span><br><span class="line">| Tables<span class="emphasis">_in_</span>sysbench |</span><br><span class="line"><span class="code">+--------------------+</span></span><br><span class="line">| fanboshi           |</span><br><span class="line">| sbtest1            |</span><br><span class="line">| sbtest10           |</span><br><span class="line">| sbtest2            |</span><br><span class="line">| sbtest3            |</span><br><span class="line">| sbtest4            |</span><br><span class="line">| sbtest5            |</span><br><span class="line">| sbtest6            |</span><br><span class="line">| sbtest7            |</span><br><span class="line">| sbtest8            |</span><br><span class="line">| sbtest9            |</span><br><span class="line"><span class="code">+--------------------+</span></span><br><span class="line">11 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">root@localhost 18:59:37 [sysbench]&gt; select count(<span class="strong">*) from sbtest1;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|   500757 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.13 sec)</span><br></pre></td></tr></table></figure>
+<p>在TiDB执行</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">root@</span><span class="number">10.152</span>.x<span class="number">.150</span> <span class="number">18</span>:<span class="number">57</span>:<span class="number">59</span> [sysbench]&gt; create database tidb_sysbench;</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.10</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="symbol">root@</span><span class="number">10.152</span>.x<span class="number">.150</span> <span class="number">18</span>:<span class="number">58</span>:<span class="number">09</span> [sysbench]&gt; rename table fanboshi to tidb_sysbench.tidb_fanboshi;</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.10</span> sec)</span><br></pre></td></tr></table></figure>
+<p>Drainer报错退出</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">14.979</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [collector.go:<span class="number">284</span>] [<span class="string">&quot;get ddl job&quot;</span>] [job=<span class="string">&quot;ID:79, Type:rename table, State:synced, SchemaState:public, SchemaID:77, TableID:75, RowCount:0, ArgLen:0, start time: 2019-12-02 18:59:14.012 +0800 CST, Err:&lt;nil&gt;, ErrCount:0, SnapshotVersion:0&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">14.979</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [syncer.go:<span class="number">400</span>] [<span class="string">&quot;add ddl item to syncer, you can add this commit ts to `ignore-txn-commit-ts` to skip this ddl if needed&quot;</span>] [sql=<span class="string">&quot;rename table fanboshi to tidb_sysbench.tidb_fanboshi&quot;</span>] [<span class="string">&quot;commit ts&quot;</span>=<span class="number">412951341698121738</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.993</span> +<span class="number">08</span>:<span class="number">00</span>] [ERROR] [load.go:<span class="number">594</span>] [<span class="string">&quot;exec failed&quot;</span>] [sql=<span class="string">&quot;rename table fanboshi to tidb_sysbench.tidb_fanboshi&quot;</span>] [error=<span class="string">&quot;Error 1017: Can&#x27;t find file: &#x27;./tidb_sysbench/fanboshi.frm&#x27; (errno: 2 - No such file or directory)&quot;</span>] [errorVerbose=<span class="string">&quot;Error 1017: Can&#x27;t find file: &#x27;./tidb_sysbench/fanboshi.frm&#x27; (errno: 2 - No such file or directory)\ngithub.com/pingcap/errors.AddStack\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/pkg/mod/github.com/pingcap/errors@v0.11.4/errors.go:174\ngithub.com/pingcap/errors.Trace\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/pkg/mod/github.com/pingcap/errors@v0.11.4/juju_adaptor.go:15\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*loaderImpl).execDDL\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:337\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*batchManager).execDDL\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:592\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*batchManager).put\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:615\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*loaderImpl).Run\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:478\ngithub.com/pingcap/tidb-binlog/drainer/sync.(*MysqlSyncer).run\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/drainer/sync/mysql.go:121\nruntime.goexit\n\t/usr/local/go/src/runtime/asm_amd64.s:1337&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.994</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [load.go:<span class="number">435</span>] [<span class="string">&quot;Run()... in Loader quit&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.994</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [load.go:<span class="number">715</span>] [<span class="string">&quot;txnManager has been closed&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.994</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [load.go:<span class="number">659</span>] [<span class="string">&quot;run()... in txnManager quit&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.994</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [mysql.go:<span class="number">117</span>] [<span class="string">&quot;Successes chan quit&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.994</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [syncer.go:<span class="number">251</span>] [<span class="string">&quot;write save point&quot;</span>] [ts=<span class="number">412951341357334529</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.994</span> +<span class="number">08</span>:<span class="number">00</span>] [ERROR] [syncer.go:<span class="number">416</span>] [<span class="string">&quot;Failed to close syncer&quot;</span>] [error=<span class="string">&quot;Error 1017: Can&#x27;t find file: &#x27;./tidb_sysbench/fanboshi.frm&#x27; (errno: 2 - No such file or directory)&quot;</span>] [errorVerbose=<span class="string">&quot;Error 1017: Can&#x27;t find file: &#x27;./tidb_sysbench/fanboshi.frm&#x27; (errno: 2 - No such file or directory)\ngithub.com/pingcap/errors.AddStack\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/pkg/mod/github.com/pingcap/errors@v0.11.4/errors.go:174\ngithub.com/pingcap/errors.Trace\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/pkg/mod/github.com/pingcap/errors@v0.11.4/juju_adaptor.go:15\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*loaderImpl).execDDL\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:337\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*batchManager).execDDL\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:592\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*batchManager).put\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:615\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*loaderImpl).Run\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:478\ngithub.com/pingcap/tidb-binlog/drainer/sync.(*MysqlSyncer).run\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/drainer/sync/mysql.go:121\nruntime.goexit\n\t/usr/local/go/src/runtime/asm_amd64.s:1337&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.996</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [syncer.go:<span class="number">243</span>] [<span class="string">&quot;handleSuccess quit&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.996</span> +<span class="number">08</span>:<span class="number">00</span>] [ERROR] [server.go:<span class="number">270</span>] [<span class="string">&quot;syncer exited abnormal&quot;</span>] [error=<span class="string">&quot;Error 1017: Can&#x27;t find file: &#x27;./tidb_sysbench/fanboshi.frm&#x27; (errno: 2 - No such file or directory)&quot;</span>] [errorVerbose=<span class="string">&quot;Error 1017: Can&#x27;t find file: &#x27;./tidb_sysbench/fanboshi.frm&#x27; (errno: 2 - No such file or directory)\ngithub.com/pingcap/errors.AddStack\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/pkg/mod/github.com/pingcap/errors@v0.11.4/errors.go:174\ngithub.com/pingcap/errors.Trace\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/pkg/mod/github.com/pingcap/errors@v0.11.4/juju_adaptor.go:15\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*loaderImpl).execDDL\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:337\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*batchManager).execDDL\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:592\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*batchManager).put\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:615\ngithub.com/pingcap/tidb-binlog/pkg/loader.(*loaderImpl).Run\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/loader/load.go:478\ngithub.com/pingcap/tidb-binlog/drainer/sync.(*MysqlSyncer).run\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/drainer/sync/mysql.go:121\nruntime.goexit\n\t/usr/local/go/src/runtime/asm_amd64.s:1337&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.997</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [util.go:<span class="number">66</span>] [Exit] [name=syncer]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">19.997</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [server.go:<span class="number">406</span>] [<span class="string">&quot;begin to close drainer server&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">20.001</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [server.go:<span class="number">371</span>] [<span class="string">&quot;has already update status&quot;</span>] [id=knode10<span class="number">-152</span><span class="number">-1</span><span class="number">-166</span>:<span class="number">8249</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">20.001</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [server.go:<span class="number">410</span>] [<span class="string">&quot;commit status done&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">20.001</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [util.go:<span class="number">66</span>] [Exit] [name=heartbeat]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">20.001</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [collector.go:<span class="number">130</span>] [<span class="string">&quot;publishBinlogs quit&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">20.001</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [pump.go:<span class="number">72</span>] [<span class="string">&quot;pump is closing&quot;</span>] [id=knode10<span class="number">-152</span><span class="number">-1</span><span class="number">-166</span>:<span class="number">8250</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">20.001</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [pump.go:<span class="number">72</span>] [<span class="string">&quot;pump is closing&quot;</span>] [id=knode10<span class="number">-152</span><span class="number">-1</span><span class="number">-150</span>:<span class="number">8250</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">20.001</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [util.go:<span class="number">66</span>] [Exit] [name=collect]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">18</span>:<span class="number">59</span>:<span class="number">20.001</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [main.go:<span class="number">73</span>] [<span class="string">&quot;drainer exit&quot;</span>]</span><br></pre></td></tr></table></figure>
+<h3 id="问题修复"><a href="#问题修复" class="headerlink" title="问题修复"></a>问题修复</h3><p>参考<a href="[https://pingcap.com/docs-cn/stable/reference/tidb-binlog/faq/#%E5%90%8C%E6%AD%A5%E6%97%B6%E5%87%BA%E7%8E%B0%E4%B8%8A%E6%B8%B8%E6%95%B0%E6%8D%AE%E5%BA%93%E6%94%AF%E6%8C%81%E4%BD%86%E6%98%AF%E4%B8%8B%E6%B8%B8%E6%95%B0%E6%8D%AE%E5%BA%93%E6%89%A7%E8%A1%8C%E4%BC%9A%E5%87%BA%E9%94%99%E7%9A%84-ddl%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E5%8A%9E](https://pingcap.com/docs-cn/stable/reference/tidb-binlog/faq/#同步时出现上游数据库支持但是下游数据库执行会出错的-ddl应该怎么办">同步时出现上游数据库支持但是下游数据库执行会出错的 DDL，应该怎么办？</a>)</p>
+<p>根据drainer.log中的日志信息我们获取这个ddl的<code>commit ts</code>为412951341698121738</p>
+<p>在中控机配置文件或者直接在drainer所属服务器的配置文件中直接修改都可以, 我这里在中控机修改, 因为我只有一个drainer. 如果有多个drainer建议在drainer服务器修改配置文件</p>
+<p>1.添加要忽略的<code>commit-ts</code></p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ignore syncing the txn with specified commit ts to downstream</span></span><br><span class="line"><span class="attr">ignore-txn-commit-ts</span> = [<span class="number">412951341698121738</span>]</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意这个应该填写integer, 如果填写为<code>&quot;412951341698121738&quot;</code>drainer会起不来, 而且使用<code>systemctl start drainer-8249.service</code>无任何错误提示<code>/DATA1/deploy/log/drainer_stderr.log</code>日志业务内容</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[root@knode10-152-1-166 deploy]# cat /etc/systemd/system/drainer-8249.service </span><br><span class="line">[Unit]</span><br><span class="line"><span class="attribute">Description</span>=drainer-8249 service</span><br><span class="line"><span class="attribute">After</span>=syslog.target network.target remote-fs.target nss-lookup.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line"><span class="attribute">LimitNOFILE</span>=1000000</span><br><span class="line"><span class="comment">#LimitCORE=infinity</span></span><br><span class="line"><span class="attribute">LimitSTACK</span>=10485760</span><br><span class="line"><span class="attribute">User</span>=tidb</span><br><span class="line"><span class="attribute">ExecStart</span>=/DATA1/deploy/scripts/run_drainer.sh</span><br><span class="line"><span class="attribute">Restart</span>=on-failure</span><br><span class="line"><span class="attribute">RestartSec</span>=15s</span><br><span class="line"><span class="attribute">SendSIGKILL</span>=<span class="literal">no</span></span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line"><span class="attribute">WantedBy</span>=multi-user.target</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[root@knode10-152-1-166 deploy]# ./bin/drainer <span class="attribute">--addr</span>=<span class="string">&quot;10.152.x.166:8249&quot;</span> <span class="attribute">--pd-urls</span>=<span class="string">&quot;http://10.152.x.152:2379,http://10.152.x.146:2379,http://10.152.x.147:2379&quot;</span> <span class="attribute">--data-dir</span>=<span class="string">&quot;/DATA1/deploy/data.drainer&quot;</span> <span class="attribute">--log-file</span>=<span class="string">&quot;/DATA1/deploy/log/drainer.log&quot;</span> <span class="attribute">--config</span>=conf/drainer.toml <span class="attribute">--initial-commit-ts</span>=<span class="string">&quot;412950687779913731&quot;</span> 2&gt;&gt; <span class="string">&quot;/DATA1/deploy/log/drainer_stderr.log&quot;</span></span><br><span class="line">[2019/12/02 19:17:35.996 +08:00] [FATAL] [main.go:39] [<span class="string">&quot;verifying flags failed, See &#x27;drainer --help&#x27;.&quot;</span>] [<span class="attribute">error</span>=<span class="string">&quot;toml: cannot load TOML value of type string into a Go integer&quot;</span>] [<span class="attribute">errorVerbose</span>=<span class="string">&quot;toml: cannot load TOML value of type string into a Go integer\ngithub.com/pingcap/errors.AddStack\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/pkg/mod/github.com/pingcap/errors@v0.11.4/errors.go:174\ngithub.com/pingcap/errors.Trace\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/pkg/mod/github.com/pingcap/errors@v0.11.4/juju_adaptor.go:15\ngithub.com/pingcap/tidb-binlog/pkg/util.StrictDecodeFile\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/pkg/util/util.go:188\ngithub.com/pingcap/tidb-binlog/drainer.(*Config).configFromFile\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/drainer/config.go:226\ngithub.com/pingcap/tidb-binlog/drainer.(*Config).Parse\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/drainer/config.go:169\nmain.main\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/cmd/drainer/main.go:38\nruntime.main\n\t/usr/local/go/src/runtime/proc.go:200\nruntime.goexit\n\t/usr/local/go/src/runtime/asm_amd64.s:1337&quot;</span>] [<span class="attribute">stack</span>=<span class="string">&quot;github.com/pingcap/log.Fatal\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/pkg/mod/github.com/pingcap/log@v0.0.0-20190715063458-479153f07ebd/global.go:59\nmain.main\n\t/home/jenkins/agent/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb-binlog/cmd/drainer/main.go:39\nruntime.main\n\t/usr/local/go/src/runtime/proc.go:200&quot;</span>]</span><br><span class="line"></span><br><span class="line">查看日志无内容</span><br><span class="line">[root@knode10-152-1-166 deploy]# cat /DATA1/deploy/log/drainer_stderr.log</span><br><span class="line">[root@knode10-152-1-166 deploy]# </span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>2.在MySQL手动执行失败的DDL语句</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">root@</span>localhost <span class="number">19</span>:<span class="number">09</span>:<span class="number">27</span> [sysbench]&gt; rename table fanboshi to tidb_sysbench.tidb_fanboshi;</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>3.启动drainer</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">systemctl start drainer<span class="number">-8249.</span>service </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.473</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [version.go:<span class="number">50</span>] [<span class="string">&quot;Welcome to Drainer&quot;</span>] [<span class="string">&quot;Release Version&quot;</span>=v3<span class="number">.0</span><span class="number">.5</span>] [<span class="string">&quot;Git Commit Hash&quot;</span>=<span class="number">88e58f</span>165b6556ba084761c35b4be6db164a5c06] [<span class="string">&quot;Build TS&quot;</span>=<span class="string">&quot;2019-10-25 03:24:55&quot;</span>] [<span class="string">&quot;Go Version&quot;</span>=go1<span class="number">.12</span>] [<span class="string">&quot;Go OS/Arch&quot;</span>=linux/amd64]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.474</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [main.go:<span class="number">46</span>] [<span class="string">&quot;start drainer...&quot;</span>] [config=<span class="string">&quot;&#123;\&quot;log-level\&quot;:\&quot;info\&quot;,\&quot;node-id\&quot;:\&quot;\&quot;,\&quot;addr\&quot;:\&quot;http://10.152.x.166:8249\&quot;,\&quot;advertise-addr\&quot;:\&quot;http://10.152.x.166:8249\&quot;,\&quot;data-dir\&quot;:\&quot;/DATA1/deploy/data.drainer\&quot;,\&quot;detect-interval\&quot;:10,\&quot;pd-urls\&quot;:\&quot;http://10.152.x.152:2379,http://10.152.x.146:2379,http://10.152.x.147:2379\&quot;,\&quot;log-file\&quot;:\&quot;/DATA1/deploy/log/drainer.log\&quot;,\&quot;initial-commit-ts\&quot;:412950687779913731,\&quot;sycner\&quot;:&#123;\&quot;sql-mode\&quot;:null,\&quot;ignore-txn-commit-ts\&quot;:[412951341698121738],\&quot;ignore-schemas\&quot;:\&quot;INFORMATION_SCHEMA,PERFORMANCE_SCHEMA,mysql\&quot;,\&quot;ignore-table\&quot;:null,\&quot;txn-batch\&quot;:20,\&quot;worker-count\&quot;:4,\&quot;to\&quot;:&#123;\&quot;host\&quot;:\&quot;10.133.1.52\&quot;,\&quot;user\&quot;:\&quot;drainer\&quot;,\&quot;password\&quot;:\&quot;drainer123\&quot;,\&quot;port\&quot;:3308,\&quot;checkpoint\&quot;:&#123;\&quot;schema\&quot;:\&quot;\&quot;&#125;,\&quot;dir\&quot;:\&quot;\&quot;,\&quot;time-limit\&quot;:\&quot;\&quot;,\&quot;size-limit\&quot;:\&quot;\&quot;,\&quot;zookeeper-addrs\&quot;:\&quot;\&quot;,\&quot;kafka-addrs\&quot;:\&quot;\&quot;,\&quot;kafka-version\&quot;:\&quot;\&quot;,\&quot;kafka-max-messages\&quot;:0,\&quot;topic-name\&quot;:\&quot;\&quot;&#125;,\&quot;replicate-do-table\&quot;:null,\&quot;replicate-do-db\&quot;:null,\&quot;db-type\&quot;:\&quot;mysql\&quot;,\&quot;disable-dispatch\&quot;:false,\&quot;safe-mode\&quot;:false,\&quot;disable-detect\&quot;:false&#125;,\&quot;security\&quot;:&#123;\&quot;ssl-ca\&quot;:\&quot;\&quot;,\&quot;ssl-cert\&quot;:\&quot;\&quot;,\&quot;ssl-key\&quot;:\&quot;\&quot;&#125;,\&quot;synced-check-time\&quot;:5,\&quot;compressor\&quot;:\&quot;\&quot;,\&quot;EtcdTimeout\&quot;:5000000000,\&quot;MetricsAddr\&quot;:\&quot;\&quot;,\&quot;MetricsInterval\&quot;:15&#125;&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.474</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [client.go:<span class="number">144</span>] [<span class="string">&quot;[pd] create pd client with endpoints&quot;</span>] [pd-address=<span class="string">&quot;[http://10.152.x.146:2379,http://10.152.x.147:2379,http://10.152.x.152:2379]&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.483</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [client.go:<span class="number">252</span>] [<span class="string">&quot;[pd] switch leader&quot;</span>] [new-leader=http:<span class="comment">//10.152.x.152:2379] [old-leader=]</span></span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.484</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [client.go:<span class="number">163</span>] [<span class="string">&quot;[pd] init cluster id&quot;</span>] [cluster-id=<span class="number">6751370831202615818</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.484</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [server.go:<span class="number">111</span>] [<span class="string">&quot;get cluster id from pd&quot;</span>] [id=<span class="number">6751370831202615818</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.491</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [checkpoint.go:<span class="number">65</span>] [<span class="string">&quot;initialize checkpoint&quot;</span>] [name=mysql] [checkpoint=<span class="number">412951341357334529</span>] [cfg=<span class="string">&quot;&#123;\&quot;Db\&quot;:&#123;\&quot;host\&quot;:\&quot;10.133.1.52\&quot;,\&quot;user\&quot;:\&quot;drainer\&quot;,\&quot;password\&quot;:\&quot;drainer123\&quot;,\&quot;port\&quot;:3308&#125;,\&quot;Schema\&quot;:\&quot;tidb_binlog\&quot;,\&quot;Table\&quot;:\&quot;checkpoint\&quot;,\&quot;ClusterID\&quot;:6751370831202615818,\&quot;InitialCommitTS\&quot;:412950687779913731,\&quot;dir\&quot;:\&quot;/DATA1/deploy/data.drainer/savepoint\&quot;&#125;&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.491</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [store.go:<span class="number">69</span>] [<span class="string">&quot;new store&quot;</span>] [path=<span class="string">&quot;tikv://10.152.x.146:2379,10.152.x.147:2379,10.152.x.152:2379?disableGC=true&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.491</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [client.go:<span class="number">144</span>] [<span class="string">&quot;[pd] create pd client with endpoints&quot;</span>] [pd-address=<span class="string">&quot;[10.152.x.146:2379,10.152.x.147:2379,10.152.x.152:2379]&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.495</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [client.go:<span class="number">252</span>] [<span class="string">&quot;[pd] switch leader&quot;</span>] [new-leader=http:<span class="comment">//10.152.x.152:2379] [old-leader=]</span></span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.496</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [client.go:<span class="number">163</span>] [<span class="string">&quot;[pd] init cluster id&quot;</span>] [cluster-id=<span class="number">6751370831202615818</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.497</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [store.go:<span class="number">75</span>] [<span class="string">&quot;new store with retry success&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.517</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [store.go:<span class="number">69</span>] [<span class="string">&quot;new store&quot;</span>] [path=<span class="string">&quot;tikv://10.152.x.146:2379,10.152.x.147:2379,10.152.x.152:2379?disableGC=true&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.518</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [client.go:<span class="number">144</span>] [<span class="string">&quot;[pd] create pd client with endpoints&quot;</span>] [pd-address=<span class="string">&quot;[10.152.x.146:2379,10.152.x.147:2379,10.152.x.152:2379]&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.521</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [client.go:<span class="number">252</span>] [<span class="string">&quot;[pd] switch leader&quot;</span>] [new-leader=http:<span class="comment">//10.152.x.152:2379] [old-leader=]</span></span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.521</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [client.go:<span class="number">163</span>] [<span class="string">&quot;[pd] init cluster id&quot;</span>] [cluster-id=<span class="number">6751370831202615818</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.522</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [store.go:<span class="number">75</span>] [<span class="string">&quot;new store with retry success&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.533</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [server.go:<span class="number">246</span>] [<span class="string">&quot;register success&quot;</span>] [<span class="string">&quot;drainer node id&quot;</span>=knode10<span class="number">-152</span><span class="number">-1</span><span class="number">-166</span>:<span class="number">8249</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.533</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [server.go:<span class="number">296</span>] [<span class="string">&quot;start to server request&quot;</span>] [addr=http:<span class="comment">//10.152.x.166:8249]</span></span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.537</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [merge.go:<span class="number">222</span>] [<span class="string">&quot;merger add source&quot;</span>] [<span class="string">&quot;source id&quot;</span>=knode10<span class="number">-152</span><span class="number">-1</span><span class="number">-150</span>:<span class="number">8250</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.537</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [merge.go:<span class="number">222</span>] [<span class="string">&quot;merger add source&quot;</span>] [<span class="string">&quot;source id&quot;</span>=knode10<span class="number">-152</span><span class="number">-1</span><span class="number">-166</span>:<span class="number">8250</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.537</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [pump.go:<span class="number">133</span>] [<span class="string">&quot;pump create pull binlogs client&quot;</span>] [id=knode10<span class="number">-152</span><span class="number">-1</span><span class="number">-166</span>:<span class="number">8250</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">26.537</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [pump.go:<span class="number">133</span>] [<span class="string">&quot;pump create pull binlogs client&quot;</span>] [id=knode10<span class="number">-152</span><span class="number">-1</span><span class="number">-150</span>:<span class="number">8250</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">27.545</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [collector.go:<span class="number">284</span>] [<span class="string">&quot;get ddl job&quot;</span>] [job=<span class="string">&quot;ID:79, Type:rename table, State:synced, SchemaState:public, SchemaID:77, TableID:75, RowCount:0, ArgLen:0, start time: 2019-12-02 18:59:14.012 +0800 CST, Err:&lt;nil&gt;, ErrCount:0, SnapshotVersion:0&quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">27.545</span> +<span class="number">08</span>:<span class="number">00</span>] [WARN] [syncer.go:<span class="number">317</span>] [<span class="string">&quot;skip txn&quot;</span>] [binlog=<span class="string">&quot;tp:Commit start_ts:412951341698121737 commit_ts:412951341698121738 prewrite_key:\&quot;mDB:43\\000\\000\\000\\374\\000\\000\\000\\000\\000\\000\\000H\&quot; ddl_query:\&quot;rename table fanboshi to tidb_sysbench.tidb_fanboshi\&quot; ddl_job_id:79 &quot;</span>]</span><br><span class="line">[<span class="number">2019</span>/<span class="number">12</span>/<span class="number">02</span> <span class="number">19</span>:<span class="number">19</span>:<span class="number">30.855</span> +<span class="number">08</span>:<span class="number">00</span>] [INFO] [syncer.go:<span class="number">251</span>] [<span class="string">&quot;write save point&quot;</span>] [ts=<span class="number">412951660163760129</span>]</span><br></pre></td></tr></table></figure>
+<p>5.验证同步</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node10<span class="number">-133</span><span class="number">-1</span><span class="number">-59</span> fanboshi]# sh sysbench_tidb_run.sh </span><br><span class="line">sysbench <span class="number">1.0</span><span class="number">.18</span> (using bundled LuaJIT <span class="number">2.1</span><span class="number">.0</span>-beta2)</span><br><span class="line"></span><br><span class="line">Running the test with following options:</span><br><span class="line">Number of threads: <span class="number">4</span></span><br><span class="line">Report <span class="built_in">int</span>ermediate results every <span class="number">5</span> second(s)</span><br><span class="line">Initializing random number generator <span class="keyword">from</span> current time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Initializing worker threads...</span><br><span class="line"></span><br><span class="line">Threads started!</span><br><span class="line"></span><br><span class="line">[ <span class="number">5</span>s ] thds: <span class="number">4</span> tps: <span class="number">130.27</span> qps: <span class="number">2613.67</span> (r/w/o: <span class="number">1830.43</span>/<span class="number">133.87</span>/<span class="number">649.37</span>) lat (ms,<span class="number">95</span>%): <span class="number">38.94</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">10</span>s ] thds: <span class="number">4</span> tps: <span class="number">136.41</span> qps: <span class="number">2733.37</span> (r/w/o: <span class="number">1913.32</span>/<span class="number">141.41</span>/<span class="number">678.64</span>) lat (ms,<span class="number">95</span>%): <span class="number">37.56</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br></pre></td></tr></table></figure>
+<p>TiDB</p>
+<figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@<span class="number">10.152</span>.x.<span class="number">150</span> <span class="number">19</span>:<span class="number">20</span>:<span class="number">43</span> [sysbench]&gt; <span class="keyword">select</span> count<span class="comment">(*) from sbtest1;</span></span><br><span class="line"><span class="comment">+----------+</span></span><br><span class="line"><span class="comment">| count(*)</span> |</span><br><span class="line">+----------+</span><br><span class="line">|   <span class="number">500882</span> |</span><br><span class="line">+----------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.27</span> sec)</span><br></pre></td></tr></table></figure>
+<p>下游MySQL</p>
+<figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">root@localhost <span class="number">19</span>:<span class="number">20</span>:<span class="number">08</span> [sysbench]&gt; <span class="keyword">select</span> count<span class="comment">(*) from sbtest1;</span></span><br><span class="line"><span class="comment">+----------+</span></span><br><span class="line"><span class="comment">| count(*)</span> |</span><br><span class="line">+----------+</span><br><span class="line">|   <span class="number">500757</span> |</span><br><span class="line">+----------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.12</span> sec)</span><br><span class="line"></span><br><span class="line">root@localhost <span class="number">19</span>:<span class="number">20</span>:<span class="number">13</span> [sysbench]&gt; <span class="keyword">select</span> count<span class="comment">(*) from sbtest1;</span></span><br><span class="line"><span class="comment">+----------+</span></span><br><span class="line"><span class="comment">| count(*)</span> |</span><br><span class="line">+----------+</span><br><span class="line">|   <span class="number">500882</span> |</span><br><span class="line">+----------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.11</span> sec)</span><br></pre></td></tr></table></figure>
+<p>同步恢复</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2019/12/10/2019-12-10-Drainer不支持的DDL-1/" target="_blank" title="Drainer不支持的DDL-1">http://fuxkdb.com/2019/12/10/2019-12-10-Drainer不支持的DDL-1/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Drainer/" rel="tag">Drainer</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TiDB/" rel="tag">TiDB</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          TiDB Syncer不同表名库名同步且支持pt-osc改表
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/12/10/2019-12-10-MGR%E5%8F%82%E6%95%B0%E4%B9%8Bgroup_replication_ip_whitelist/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">MGR参数之group_replication_ip_whitelist</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1"><span class="nav-number">1.</span> <span class="nav-text">Drainer不支持的DDL-1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-rename-table-t1-to-b-db-b-t1"><span class="nav-number">1.1.</span> <span class="nav-text">1.rename table t1 to b_db.b_t1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%A4%8D%E7%8E%B0"><span class="nav-number">1.1.1.</span> <span class="nav-text">问题复现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E4%BF%AE%E5%A4%8D"><span class="nav-number">1.1.2.</span> <span class="nav-text">问题修复</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

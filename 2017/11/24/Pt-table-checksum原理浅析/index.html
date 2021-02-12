@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>pt-table-checksum原理浅析 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLPercona Toolkit" />
+  
+  
+  
+  
+  <meta name="description" content="Pt-table-checksum原理浅析主库建一个表12345node1&gt; create table fan(id int) engine&#x3D;innodb;Query OK, 0 rows affected (0.12 sec)node1&gt; insert into fan values(1);Query OK, 1 row affected (0.07 sec)从库制造不一致12345">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pt-table-checksum原理浅析">
+<meta property="og:url" content="http://fuxkdb.com/2017/11/24/Pt-table-checksum%E5%8E%9F%E7%90%86%E6%B5%85%E6%9E%90/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Pt-table-checksum原理浅析主库建一个表12345node1&gt; create table fan(id int) engine&#x3D;innodb;Query OK, 0 rows affected (0.12 sec)node1&gt; insert into fan values(1);Query OK, 1 row affected (0.07 sec)从库制造不一致12345">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-11-24T03:01:00.000Z">
+<meta property="article:modified_time" content="2017-11-24T03:01:53.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Percona Toolkit">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-Pt-table-checksum原理浅析" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Pt-table-checksum原理浅析
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/11/24/Pt-table-checksum%E5%8E%9F%E7%90%86%E6%B5%85%E6%9E%90/" class="article-date">
+	  <time datetime="2017-11-24T03:01:00.000Z" itemprop="datePublished">2017-11-24</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Pt-table-checksum原理浅析"><a href="#Pt-table-checksum原理浅析" class="headerlink" title="Pt-table-checksum原理浅析"></a>Pt-table-checksum原理浅析</h2><p>主库建一个表<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">node1&gt; <span class="keyword">create</span> <span class="keyword">table</span> fan(id <span class="type">int</span>) engine=innodb;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.12</span> sec)</span><br><span class="line"></span><br><span class="line">node1&gt; <span class="keyword">insert</span> <span class="keyword">into</span> fan <span class="keyword">values</span>(<span class="number">1</span>);</span><br><span class="line">Query OK, <span class="number">1</span> <span class="keyword">row</span> affected (<span class="number">0.07</span> sec)</span><br></pre></td></tr></table></figure><br>从库制造不一致<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">node2&gt; select * from fan;</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">| id  |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">|    1 |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">node2&gt; update fan set id=2;</span><br></pre></td></tr></table></figure><br>两边打开general log,然后<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node1 ~]# pt-table-checksum --nocheck-replication-filters --no-check-binlog-format h=<span class="number">172.16</span><span class="number">.83</span><span class="number">.17</span>,u=root,p=mysql,P=<span class="number">3307</span> --replicate=percona.checksums --recursion-method=dsn=h=<span class="number">172.16</span><span class="number">.83</span><span class="number">.21</span>,D=percona,t=dsns --databases=sysbench --tables=fan</span><br><span class="line">            TS ERRORS  DIFFS    ROWS  CHUNKS SKIPPED    TIME TABLE</span><br><span class="line"><span class="number">11</span><span class="number">-06</span>T05:<span class="number">12</span>:<span class="number">58</span>      <span class="number">0</span>      <span class="number">1</span>        <span class="number">1</span>      <span class="number">1</span>      <span class="number">0</span>  <span class="number">0.344</span> sysbench.fan</span><br></pre></td></tr></table></figure></p>
+<p>先看两边的checksums表<br><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">node1&gt; select * from  `percona`.`checksums` where tbl=&#x27;fan&#x27;;</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">| db      | tbl | chunk | chunk_time | chunk_index | lower_boundary | upper_boundary | this_crc | this_cnt | master_crc | master_cnt | ts                  |</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">| sysbench | fan |    1 |  0.019798 | NULL        | NULL          | NULL          | 42981178 |        1 | 42981178  |          1 | 2017-11-06 05<span class="function">:12</span><span class="function">:58</span> |</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line"></span><br><span class="line">node2&gt; select * from  `percona`.`checksums` where tbl=&#x27;fan&#x27;;</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">| db      | tbl | chunk | chunk_time | chunk_index | lower_boundary | upper_boundary | this_crc | this_cnt | master_crc | master_cnt | ts                  |</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">| sysbench | fan |    1 |  0.019798 | NULL        | NULL          | NULL          | 40deaf21 |        1 | 42981178  |          1 | 2017-11-06 05<span class="function">:12</span><span class="function">:58</span> |</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">1 row in <span class="keyword">set</span> <span class="params">(0.04 sec)</span></span><br></pre></td></tr></table></figure><br><a id="more"></a><br>node1的checksums表的this_crc,this_cnt和master_crc,master_cnt肯定是一样的<br>因为.这边是replace into select 先计算this_crc,this_cnt .<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">REPLACE</span> <span class="keyword">INTO</span> <span class="string">`percona`</span>.<span class="string">`checksums`</span> (db, tbl, <span class="keyword">chunk</span>, chunk_index, lower_boundary, upper_boundary, this_cnt, this_crc) <span class="keyword">SELECT</span> <span class="string">&#x27;sysbench&#x27;</span>, <span class="string">&#x27;fan&#x27;</span>, <span class="string">&#x27;1&#x27;</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="keyword">COUNT</span>(*) <span class="keyword">AS</span> cnt, <span class="keyword">COALESCE</span>(<span class="keyword">LOWER</span>(<span class="keyword">CONV</span>(<span class="keyword">BIT_XOR</span>(<span class="keyword">CAST</span>(<span class="keyword">CRC32</span>(<span class="keyword">CONCAT_WS</span>(<span class="string">&#x27;#&#x27;</span>, <span class="string">`id`</span>, <span class="keyword">CONCAT</span>(<span class="keyword">ISNULL</span>(<span class="string">`id`</span>)))) <span class="keyword">AS</span> <span class="keyword">UNSIGNED</span>)), <span class="number">10</span>, <span class="number">16</span>)), <span class="number">0</span>) <span class="keyword">AS</span> crc <span class="keyword">FROM</span> <span class="string">`sysbench`</span>.<span class="string">`fan`</span> <span class="comment">/*checksum table*/</span></span><br><span class="line"><span class="keyword">SHOW</span> <span class="keyword">WARNINGS</span></span><br></pre></td></tr></table></figure><br>然后再获取this_crc, this_cnt的值<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> this_crc, this_cnt <span class="keyword">FROM</span> <span class="string">`percona`</span>.<span class="string">`checksums`</span> <span class="keyword">WHERE</span> db = <span class="string">&#x27;sysbench&#x27;</span> <span class="keyword">AND</span> tbl = <span class="string">&#x27;fan&#x27;</span> <span class="keyword">AND</span> <span class="keyword">chunk</span> = <span class="string">&#x27;1&#x27;</span></span><br></pre></td></tr></table></figure><br>最后把master_crc,master_cnt更新成这个值<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> <span class="string">`percona`</span>.<span class="string">`checksums`</span> <span class="keyword">SET</span> chunk_time = <span class="string">&#x27;0.019798&#x27;</span>, master_crc = <span class="string">&#x27;42981178&#x27;</span>, master_cnt = <span class="string">&#x27;1&#x27;</span> <span class="keyword">WHERE</span> db = <span class="string">&#x27;sysbench&#x27;</span> <span class="keyword">AND</span> tbl = <span class="string">&#x27;fan&#x27;</span> <span class="keyword">AND</span> <span class="keyword">chunk</span> = <span class="string">&#x27;1&#x27;</span></span><br></pre></td></tr></table></figure><br>而到了从库这里.由于主库设置了binlog_format=statement 所以replace into select复制过去到从库还是语句,而不是值.此时从库执行这个语句,在自己的checksums表中根据自己的实际值算出了this_crc,this_cnt<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">REPLACE</span> <span class="keyword">INTO</span> <span class="string">`percona`</span>.<span class="string">`checksums`</span> (db, tbl, <span class="keyword">chunk</span>, chunk_index, lower_boundary, upper_boundary, this_cnt, this_crc) <span class="keyword">SELECT</span> <span class="string">&#x27;sysbench&#x27;</span>, <span class="string">&#x27;fan&#x27;</span>, <span class="string">&#x27;1&#x27;</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="keyword">COUNT</span>(*) <span class="keyword">AS</span> cnt, <span class="keyword">COALESCE</span>(<span class="keyword">LOWER</span>(<span class="keyword">CONV</span>(<span class="keyword">BIT_XOR</span>(<span class="keyword">CAST</span>(<span class="keyword">CRC32</span>(<span class="keyword">CONCAT_WS</span>(<span class="string">&#x27;#&#x27;</span>, <span class="string">`id`</span>, <span class="keyword">CONCAT</span>(<span class="keyword">ISNULL</span>(<span class="string">`id`</span>)))) <span class="keyword">AS</span> <span class="keyword">UNSIGNED</span>)), <span class="number">10</span>, <span class="number">16</span>)), <span class="number">0</span>) <span class="keyword">AS</span> crc <span class="keyword">FROM</span> <span class="string">`sysbench`</span>.<span class="string">`fan`</span> <span class="comment">/*checksum table*/</span></span><br><span class="line"><span class="keyword">COMMIT</span> <span class="comment">/* implicit, from Xid_log_event */</span></span><br></pre></td></tr></table></figure><br>然后拿主库传过来的主库的this_crc, this_cnt的值更新自己的master_crc,master_cnt<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line"><span class="keyword">UPDATE</span> <span class="string">`percona`</span>.<span class="string">`checksums`</span> <span class="keyword">SET</span> chunk_time = <span class="string">&#x27;0.019798&#x27;</span>, master_crc = <span class="string">&#x27;42981178&#x27;</span>, master_cnt = <span class="string">&#x27;1&#x27;</span> <span class="keyword">WHERE</span> db = <span class="string">&#x27;sysbench&#x27;</span> <span class="keyword">AND</span> tbl = <span class="string">&#x27;fan&#x27;</span> <span class="keyword">AND</span> <span class="keyword">chunk</span> = <span class="string">&#x27;1&#x27;</span></span><br><span class="line"><span class="keyword">COMMIT</span> <span class="comment">/* implicit, from Xid_log_event */</span></span><br></pre></td></tr></table></figure><br>这样,从库的checksums表中就存储了自己和主库的hash值. 最后查一把,把结果返回输出到屏幕<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">MAX</span>(<span class="keyword">chunk</span>) <span class="keyword">FROM</span> <span class="string">`percona`</span>.<span class="string">`checksums`</span> <span class="keyword">WHERE</span> db=<span class="string">&#x27;sysbench&#x27;</span> <span class="keyword">AND</span> tbl=<span class="string">&#x27;fan&#x27;</span> <span class="keyword">AND</span> master_crc <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="literal">NULL</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="keyword">CONCAT</span>(db, <span class="string">&#x27;.&#x27;</span>, tbl) <span class="keyword">AS</span> <span class="string">`table`</span>, <span class="keyword">chunk</span>, chunk_index, lower_boundary, upper_boundary, <span class="keyword">COALESCE</span>(this_cnt-master_cnt, <span class="number">0</span>) <span class="keyword">AS</span> cnt_diff, <span class="keyword">COALESCE</span>(this_crc &lt;&gt; master_crc <span class="keyword">OR</span> <span class="keyword">ISNULL</span>(master_crc) &lt;&gt; <span class="keyword">ISNULL</span>(this_crc), <span class="number">0</span>) <span class="keyword">AS</span> crc_diff, this_cnt, master_cnt, this_crc, master_crc <span class="keyword">FROM</span> <span class="string">`percona`</span>.<span class="string">`checksums`</span> <span class="keyword">WHERE</span> (master_cnt &lt;&gt; this_cnt <span class="keyword">OR</span> master_crc &lt;&gt; this_crc <span class="keyword">OR</span> <span class="keyword">ISNULL</span>(master_crc) &lt;&gt; <span class="keyword">ISNULL</span>(this_crc))  <span class="keyword">AND</span> (db=<span class="string">&#x27;sysbench&#x27;</span> <span class="keyword">AND</span> tbl=<span class="string">&#x27;fan&#x27;</span>)</span><br><span class="line"></span><br><span class="line">这个结果为手动查询的. pt-<span class="keyword">table</span>-<span class="keyword">checksum</span>根据这个结果自己整理好格式输出到屏幕</span><br><span class="line">+<span class="comment">--------------+-------+-------------+----------------+----------------+----------+----------+----------+------------+----------+------------+</span></span><br><span class="line">| <span class="keyword">table</span>        | <span class="keyword">chunk</span> | chunk_index | lower_boundary | upper_boundary | cnt_diff | crc_diff | this_cnt | master_cnt | this_crc | master_crc |</span><br><span class="line">+<span class="comment">--------------+-------+-------------+----------------+----------------+----------+----------+----------+------------+----------+------------+</span></span><br><span class="line">| sysbench.fan |    <span class="number">1</span> | <span class="literal">NULL</span>        | <span class="literal">NULL</span>          | <span class="literal">NULL</span>          |        <span class="number">0</span> |        <span class="number">1</span> |        <span class="number">1</span> |          <span class="number">1</span> | <span class="number">40</span>deaf21 | <span class="number">42981178</span>  |</span><br><span class="line">+<span class="comment">--------------+-------+-------------+----------------+----------------+----------+----------+----------+------------+----------+------------+</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="关于两边查询一致性的保证"><a href="#关于两边查询一致性的保证" class="headerlink" title="关于两边查询一致性的保证"></a>关于两边查询一致性的保证</h2><p>pt-table-checksum 会设置<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> <span class="keyword">SESSION</span> <span class="keyword">TRANSACTION</span> <span class="keyword">ISOLATION</span> <span class="keyword">LEVEL</span> <span class="keyword">REPEATABLE</span> <span class="keyword">READ</span></span><br></pre></td></tr></table></figure><br>这样避免幻读,通过gap lock阻塞其他insert.保证肯定是replace into select先commit;这样肯定是replace into select先复制到从库(binlog是谁先提交记录谁)<br><figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">node1&gt; select <span class="symbol">*</span> from fan;</span><br><span class="line">+----+------+</span><br><span class="line">|<span class="string"> id </span>|<span class="string"> name </span>|</span><br><span class="line">+----+------+</span><br><span class="line">|<span class="string">  1 </span>|<span class="string"> fan  </span>|</span><br><span class="line">|<span class="string">  5 </span>|<span class="string"> fan  </span>|</span><br><span class="line">|<span class="string">  7 </span>|<span class="string"> fan  </span>|</span><br><span class="line">|<span class="string">  9 </span>|<span class="string"> fan  </span>|</span><br><span class="line">|<span class="string"> 10 </span>|<span class="string"> fan  </span>|</span><br><span class="line">|<span class="string"> 11 </span>|<span class="string"> fan  </span>|</span><br><span class="line">|<span class="string"> 12 </span>|<span class="string"> fan  </span>|</span><br><span class="line">|<span class="string"> 13 </span>|<span class="string"> fan  </span>|</span><br><span class="line">|<span class="string"> 14 </span>|<span class="string"> fan  </span>|</span><br><span class="line">|<span class="string"> 15 </span>|<span class="string"> fan  </span>|</span><br><span class="line">+----+------+</span><br><span class="line">10 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">node1&gt; select <span class="symbol">*</span> from fan2;</span><br><span class="line">+----+------+</span><br><span class="line">|<span class="string"> id </span>|<span class="string"> name </span>|</span><br><span class="line">+----+------+</span><br><span class="line">|<span class="string">  1 </span>|<span class="string"> duzi </span>|</span><br><span class="line">|<span class="string">  5 </span>|<span class="string"> duzi </span>|</span><br><span class="line">|<span class="string">  7 </span>|<span class="string"> duzi </span>|</span><br><span class="line">|<span class="string">  9 </span>|<span class="string"> duzi </span>|</span><br><span class="line">|<span class="string"> 10 </span>|<span class="string"> duzi </span>|</span><br><span class="line">|<span class="string"> 11 </span>|<span class="string"> duzi </span>|</span><br><span class="line">|<span class="string"> 12 </span>|<span class="string"> duzi </span>|</span><br><span class="line">|<span class="string"> 13 </span>|<span class="string"> duzi </span>|</span><br><span class="line">|<span class="string"> 14 </span>|<span class="string"> duzi </span>|</span><br><span class="line">|<span class="string"> 15 </span>|<span class="string"> duzi </span>|</span><br><span class="line">+----+------+</span><br><span class="line">10 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">node1&gt; SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">node1&gt; begin;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">node1&gt; replace into fan2 select <span class="symbol">*</span> from fan where id<span class="variable">&lt;7;</span></span><br><span class="line"><span class="variable">Query OK, 4 rows affected, 1 warning (0.01 sec)</span></span><br><span class="line"><span class="variable">Records: 2  Duplicates: 2  Warnings: 1</span></span><br></pre></td></tr></table></figure><br>node2被锁<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">node2&gt; <span class="keyword">SET</span> <span class="keyword">SESSION</span> <span class="keyword">TRANSACTION</span> <span class="keyword">ISOLATION</span> <span class="keyword">LEVEL</span> <span class="keyword">REPEATABLE</span> <span class="keyword">READ</span>;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">node2&gt; <span class="keyword">begin</span>;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">node2&gt; <span class="keyword">insert</span> <span class="keyword">into</span> fan <span class="keyword">values</span>(<span class="number">4</span>,<span class="string">&#x27;ceshi&#x27;</span>);</span><br><span class="line">ERROR <span class="number">1205</span> (HY000): <span class="keyword">Lock</span> wait timeout exceeded; try restarting <span class="keyword">transaction</span></span><br></pre></td></tr></table></figure><br>show engine innodb status<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="string">163F4</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="string">163F0</span> <span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">0</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">662</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">0</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">46</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">0x7f42f81bf700</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">62676</span> <span class="string">localhost</span> <span class="string">root</span></span><br><span class="line"><span class="string">show</span> <span class="string">engine</span> <span class="string">innodb</span> <span class="string">status</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="string">163F3,</span> <span class="string">ACTIVE</span> <span class="number">5</span> <span class="string">sec</span> <span class="string">inserting</span></span><br><span class="line"><span class="string">mysql</span> <span class="string">tables</span> <span class="string">in</span> <span class="string">use</span> <span class="number">1</span><span class="string">,</span> <span class="string">locked</span> <span class="number">1</span></span><br><span class="line"><span class="string">LOCK</span> <span class="string">WAIT</span> <span class="number">2</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">376</span><span class="string">,</span> <span class="number">1</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">45</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">0x7f42b44cd700</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">62675</span> <span class="string">localhost</span> <span class="string">root</span> <span class="string">update</span></span><br><span class="line"><span class="string">insert</span> <span class="string">into</span> <span class="string">fan</span> <span class="string">values(4,&#x27;ceshi&#x27;)</span></span><br><span class="line"><span class="string">-------</span> <span class="attr">TRX HAS BEEN WAITING 5 SEC FOR THIS LOCK TO BE GRANTED:</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">49</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">3</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">`PRIMARY`</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`sysbench`.`fan`</span> <span class="string">trx</span> <span class="string">id</span> <span class="string">163F3</span> <span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">gap</span> <span class="string">before</span> <span class="string">rec</span> <span class="string">insert</span> <span class="string">intention</span> <span class="string">waiting</span></span><br><span class="line"><span class="string">Record</span> <span class="string">lock,</span> <span class="attr">heap no 3 PHYSICAL RECORD:</span> <span class="string">n_fields</span> <span class="number">4</span><span class="string">;</span> <span class="string">compact</span> <span class="string">format;</span> <span class="string">info</span> <span class="string">bits</span> <span class="number">0</span></span><br><span class="line"><span class="attr">0:</span> <span class="string">len</span> <span class="number">4</span><span class="string">;</span> <span class="string">hex</span> <span class="number">80000005</span><span class="string">;</span> <span class="string">asc</span>    <span class="string">;;</span></span><br><span class="line"><span class="attr">1:</span> <span class="string">len</span> <span class="number">6</span><span class="string">;</span> <span class="string">hex</span> <span class="string">0000000163de;</span> <span class="string">asc</span>    <span class="string">c</span> <span class="string">;;</span></span><br><span class="line"><span class="attr">2:</span> <span class="string">len</span> <span class="number">7</span><span class="string">;</span> <span class="string">hex</span> <span class="string">ac00000cc70110;</span> <span class="string">asc</span>        <span class="string">;;</span></span><br><span class="line"><span class="attr">3:</span> <span class="string">len</span> <span class="number">3</span><span class="string">;</span> <span class="string">hex</span> <span class="string">66616e;</span> <span class="string">asc</span> <span class="string">fan;;</span></span><br></pre></td></tr></table></figure><br><figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select <span class="symbol">*</span> from INNODB_TRX  ;</span><br><span class="line">+--------+-----------+---------------------+-----------------------+---------------------+------------+---------------------+-----------------------------------+---------------------+-------------------+-------------------+------------------+-----------------------+-----------------+-------------------+-------------------------+---------------------+-------------------+------------------------+----------------------------+---------------------------+---------------------------+</span><br><span class="line">|<span class="string"> trx_id </span>|<span class="string"> trx_state </span>|<span class="string"> trx_started        </span>|<span class="string"> trx_requested_lock_id </span>|<span class="string"> trx_wait_started    </span>|<span class="string"> trx_weight </span>|<span class="string"> trx_mysql_thread_id </span>|<span class="string"> trx_query                        </span>|<span class="string"> trx_operation_state </span>|<span class="string"> trx_tables_in_use </span>|<span class="string"> trx_tables_locked </span>|<span class="string"> trx_lock_structs </span>|<span class="string"> trx_lock_memory_bytes </span>|<span class="string"> trx_rows_locked </span>|<span class="string"> trx_rows_modified </span>|<span class="string"> trx_concurrency_tickets </span>|<span class="string"> trx_isolation_level </span>|<span class="string"> trx_unique_checks </span>|<span class="string"> trx_foreign_key_checks </span>|<span class="string"> trx_last_foreign_key_error </span>|<span class="string"> trx_adaptive_hash_latched </span>|<span class="string"> trx_adaptive_hash_timeout </span>|</span><br><span class="line">+--------+-----------+---------------------+-----------------------+---------------------+------------+---------------------+-----------------------------------+---------------------+-------------------+-------------------+------------------+-----------------------+-----------------+-------------------+-------------------------+---------------------+-------------------+------------------------+----------------------------+---------------------------+---------------------------+</span><br><span class="line">|<span class="string"> 163F3  </span>|<span class="string"> LOCK WAIT </span>|<span class="string"> 2017-11-06 05:56:40 </span>|<span class="string"> 163F3:49:3:3          </span>|<span class="string"> 2017-11-06 05:56:40 </span>|<span class="string">          2 </span>|<span class="string">                  45 </span>|<span class="string"> insert into fan values(4,&#x27;ceshi&#x27;) </span>|<span class="string"> inserting           </span>|<span class="string">                1 </span>|<span class="string">                1 </span>|<span class="string">                2 </span>|<span class="string">                  376 </span>|<span class="string">              1 </span>|<span class="string">                0 </span>|<span class="string">                      0 </span>|<span class="string"> REPEATABLE READ    </span>|<span class="string">                1 </span>|<span class="string">                      1 </span>|<span class="string"> NULL                      </span>|<span class="string">                        0 </span>|<span class="string">                    10000 </span>|</span><br><span class="line">|<span class="string"> 163F2  </span>|<span class="string"> RUNNING  </span>|<span class="string"> 2017-11-06 05:56:29 </span>|<span class="string"> NULL                  </span>|<span class="string"> NULL                </span>|<span class="string">          6 </span>|<span class="string">                  47 </span>|<span class="string"> NULL                              </span>|<span class="string"> NULL                </span>|<span class="string">                0 </span>|<span class="string">                0 </span>|<span class="string">                4 </span>|<span class="string">                  1248 </span>|<span class="string">              5 </span>|<span class="string">                2 </span>|<span class="string">                      0 </span>|<span class="string"> REPEATABLE READ    </span>|<span class="string">                1 </span>|<span class="string">                      1 </span>|<span class="string"> NULL                      </span>|<span class="string">                        0 </span>|<span class="string">                    10000 </span>|</span><br><span class="line">+--------+-----------+---------------------+-----------------------+---------------------+------------+---------------------+-----------------------------------+---------------------+-------------------+-------------------+------------------+-----------------------+-----------------+-------------------+-------------------------+---------------------+-------------------+------------------------+----------------------------+---------------------------+---------------------------+</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/11/24/Pt-table-checksum原理浅析/" target="_blank" title="Pt-table-checksum原理浅析">http://fuxkdb.com/2017/11/24/Pt-table-checksum原理浅析/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Percona-Toolkit/" rel="tag">Percona Toolkit</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          PMM使用Grafana告警
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/11/12/pybackup%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">pybackup使用文档</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Pt-table-checksum%E5%8E%9F%E7%90%86%E6%B5%85%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">Pt-table-checksum原理浅析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E4%B8%A4%E8%BE%B9%E6%9F%A5%E8%AF%A2%E4%B8%80%E8%87%B4%E6%80%A7%E7%9A%84%E4%BF%9D%E8%AF%81"><span class="nav-number">2.</span> <span class="nav-text">关于两边查询一致性的保证</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

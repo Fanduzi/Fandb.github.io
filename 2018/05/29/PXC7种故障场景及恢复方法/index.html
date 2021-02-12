@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>[译]pxc7中故障场景及恢复方法 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLPXC" />
+  
+  
+  
+  
+  <meta name="description" content="与标准的MySQL复制不同，PXC群集就像一个逻辑实体，它负责关注每个节点的状态和一致性以及群集状态。这样可以保持更好的数据完整性，然后您可以从传统的异步复制中获益，同时允许在同一时间在多个节点上进行安全写入.  假设我们有一个PXC集群包含3个节点 情景1 节点A正常停止, 例如需要停库做一些维护, 配置变更等操作. 在这种情况下，其他节点从该节点接收”good bye”消息, 因此集群大小将会">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[译]PXC7中故障场景及恢复方法">
+<meta property="og:url" content="http://fuxkdb.com/2018/05/29/PXC7%E7%A7%8D%E6%95%85%E9%9A%9C%E5%9C%BA%E6%99%AF%E5%8F%8A%E6%81%A2%E5%A4%8D%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="与标准的MySQL复制不同，PXC群集就像一个逻辑实体，它负责关注每个节点的状态和一致性以及群集状态。这样可以保持更好的数据完整性，然后您可以从传统的异步复制中获益，同时允许在同一时间在多个节点上进行安全写入.  假设我们有一个PXC集群包含3个节点 情景1 节点A正常停止, 例如需要停库做一些维护, 配置变更等操作. 在这种情况下，其他节点从该节点接收”good bye”消息, 因此集群大小将会">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.percona.com/blog/wp-content/uploads/2014/08/g1.png">
+<meta property="og:image" content="https://www.percona.com/blog/wp-content/uploads/2014/08/g2.png">
+<meta property="og:image" content="https://www.percona.com/blog/wp-content/uploads/2014/08/g3.png">
+<meta property="og:image" content="http://fuxkdb.com/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180530103739709.png">
+<meta property="og:image" content="https://www.percona.com/blog/wp-content/uploads/2014/08/g4.png">
+<meta property="og:image" content="https://www.percona.com/blog/wp-content/uploads/2014/08/g51.png">
+<meta property="og:image" content="http://fuxkdb.com/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180530113136726.png">
+<meta property="og:image" content="https://www.percona.com/blog/wp-content/uploads/2014/08/g6.png">
+<meta property="og:image" content="https://www.percona.com/blog/wp-content/uploads/2014/08/g7.png">
+<meta property="article:published_time" content="2018-05-29T04:23:00.000Z">
+<meta property="article:modified_time" content="2018-06-08T13:35:54.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="PXC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.percona.com/blog/wp-content/uploads/2014/08/g1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-PXC7种故障场景及恢复方法" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      [译]PXC7中故障场景及恢复方法
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/05/29/PXC7%E7%A7%8D%E6%95%85%E9%9A%9C%E5%9C%BA%E6%99%AF%E5%8F%8A%E6%81%A2%E5%A4%8D%E6%96%B9%E6%B3%95/" class="article-date">
+	  <time datetime="2018-05-29T04:23:00.000Z" itemprop="datePublished">2018-05-29</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>与标准的MySQL复制不同，PXC群集就像一个逻辑实体，它负责关注每个节点的状态和一致性以及群集状态。这样可以保持更好的数据完整性，然后您可以从传统的异步复制中获益，同时允许在同一时间在多个节点上进行安全写入. </p>
+<p>假设我们有一个PXC集群包含3个节点</p>
+<h2 id="情景1"><a href="#情景1" class="headerlink" title="情景1"></a>情景1</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g1.png" alt="情景1"></p>
+<p>节点A正常停止, 例如需要停库做一些维护, 配置变更等操作.</p>
+<p>在这种情况下，其他节点从该节点接收”good bye”消息, 因此集群大小将会缩小(在这个例子中缩小为2), 并且某些属性如quorum caculation和auto increment(我理解为auto_increment_increment和auto_increment_offset会由于集群扩缩动态调整).  一旦我们重新开始的一个节点，它会根据它的my.cnf中wsrep_cluster_address设置加入群集. 这个过程与普通的复制有很大的不同 - 在A节点再次与集群完全同步之前，A节点不会接受供任何请求，因此仅仅是与集群建立连接是不够的，而是必须要先完成state transfer. 如果B或C节点的writeset cache (<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/wsrep-provider-index.html#gcache.size">gcache.size</a>), 仍然有恢复A节点所需的所有事务, 那么将使用<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/statetransfer.html#incremental-state-transfer-ist">IST</a> 否则使用 <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/manual/state_snapshot_transfer.html">SST</a> . 因此，如<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2014/01/08/finding-good-ist-donor-percona-xtradb-cluster-5-6/">本文</a>所示，确定最佳donor很重要. 如果由于donor的gcache中缺少交易而导致IST不可用，则由donor作出回退决定，而SST自动启动。</p>
+<a id="more"></a>
+<h2 id="情景2"><a href="#情景2" class="headerlink" title="情景2"></a>情景2</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g2.png" alt="情景2"></p>
+<p>节点A和B正常停止. 与之前的情况类似, 集群size缩小至1, 因此即使单个剩余的节点C也是<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/weightedquorum.html#primary-component">主要组件</a>并且正在服务于客户端请求. 为了让节点回到集群中，你只需要启动它们. 然而，节点C将被切换到“Donor/Desynced”状态，因为它将不得不向至少第一加入节点提供state transfer。在这个过程中，它仍然可以读/写，但它可能会慢得多，这取决于它需要发送多大的state transfer. Also some load balancers may consider the donor node as not operational and remove it from the pool. So it is best to avoid situation when only one node is up.</p>
+<p>但请注意，如果您按顺序重新启动A然后B，则可能需要确保B不会使用A作为状态转移捐助者，因为A可能没有在它的gcache中包含所有需要的写入集。因此，只需以这种方式将C节点指定为捐助者即可（“nodeC”名称是您使用wsrep_node_name变量指定的名称）：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service mysql start --wsrep_sst_donor=nodeC</span><br></pre></td></tr></table></figure>
+<h2 id="情景3"><a href="#情景3" class="headerlink" title="情景3"></a>情景3</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g3.png" alt="情景3"></p>
+<p>三个节点都正常停止. 整个集群已经不可用了. 现在的问题是, 如何重新initialize集群. 有一个关键点需要知道的是, 在clean shutdown的过程中, PXC节点会将自己最后执行的位置记录到<code>grastate.dat</code>文件中. 通过对比<code>grastate.dat</code>中的<code>seqno</code>,  可以帮助我们找到the most advanced one(最有可能的是最后一个停止的节点). 集群必须 bootstrapped using this node, 换言之, seqno最大的节点需要执行full SST给其他joiner. To bootstrap the first node, invoke the startup script like this:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/etc/init.d/mysql bootstrap-pxc</span><br></pre></td></tr></table></figure>
+<p>或</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service mysql bootstrap-pxc</span><br></pre></td></tr></table></figure>
+<p>或</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service mysql start --wsrep_new_cluster</span><br></pre></td></tr></table></figure>
+<p>或</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service mysql start --wsrep-cluster-address=&quot;gcomm://&quot;</span><br></pre></td></tr></table></figure>
+<p>or in packages using <a target="_blank" rel="noopener" href="http://www.freedesktop.org/wiki/Software/systemd/">systemd</a> service manager (Centos7 at the moment):</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start mysql@bootstrap.service</span><br></pre></td></tr></table></figure>
+<p>In older PXC versions, to bootstrap cluster, you had to edit my.cnf and replace previous wsrep_cluster_address line with empty value like this: wsrep_cluster_address=gcomm:// and start mysql normally. More details to be found <a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/restartingcluster.html">here</a>.</p>
+<p>Please note that even if you bootstrap from the most advanced node, so the other nodes have lower sequence number, they will have to still join via full-SST because the Galera Cache is not retained on restart. For that reason, it is recommended to stop writes to the cluster <em>before</em> it’s full shutdown, so that all nodes stop in the same position. Edit: This changes since Galera 3.19 thanks to <a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/galeraparameters.html#gcache-recover">gcache-recover</a> option</p>
+<p><img src="/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180530103739709.png" alt="image-20180530103739709"></p>
+<h2 id="情景-4"><a href="#情景-4" class="headerlink" title="情景 4"></a>情景 4</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g4.png" alt="情景4"></p>
+<p>节点A从集群中消失(断电, 硬件故障, kernel panic, mysqld crash, kill -9 on mysqld pid, OOMkiller). B/C节点意识到与A节点连接中断, 会尝试重连. 重连超时后, both agree that node A is really down and remove it “officially” from the cluster. Quorum is saved ( 2 out of 3 nodes are up), so no service disruption happens. After restarting, A will join automatically the same way as in scenario 1.</p>
+<h2 id="情景5"><a href="#情景5" class="headerlink" title="情景5"></a>情景5</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g51.png" alt="情景5"></p>
+<p>A,B节点均从集群中消失. The node C is not able to form the quorum alone, 集群切换到non-primary模式, 拒绝所有应用请求. 在这种情景下, C节点的mysqld进程仍在运行, 你可以连接到C节点的mysql, 但是执行任何语句都将失败</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from test.t1;</span><br><span class="line">ERROR 1047 (08S01): Unknown command</span><br></pre></td></tr></table></figure>
+<p>事实上, A,B节点消失初时, C几点仍然可也以完成查询一些请求, 但当C几点意识到无法连接A,B节点后, 就无法完成查询请求了. 而写入请求在<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/certificationbasedreplication.html">certification based replication</a>保障下则会在A,B消失时就立即被拒绝. This is what we are going to see in the remaining node’s log:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">140814 0:42:13 [Note] WSREP: commit failed for reason: 3</span><br><span class="line">140814 0:42:13 [Note] WSREP: conflict state: 0</span><br><span class="line">140814 0:42:13 [Note] WSREP: cluster conflict due to certification failure for threads:</span><br><span class="line">140814 0:42:13 [Note] WSREP: Victim thread:</span><br><span class="line">THD: 7, mode: local, state: executing, conflict: cert failure, seqno: -1</span><br><span class="line">SQL: insert into t values (1)</span><br></pre></td></tr></table></figure>
+<p>然后单个节点C等待它的对等体再次出现，并且在某些情况下，如果发生这种情况，例如当网络中断和这些节点一直都在运行时，群集将自动再次形成.</p>
+<p>同样，如果节点B和C刚刚从第一个节点断开网络，但它们仍然可以到达对方，那么它们将继续运行，因为它们仍然构成法定人数。如果A和B由于停电而崩溃（由于数据不一致，错误等）或关闭，您需要执行手动操作才能在C节点上启用<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/weightedquorum.html#primary-component">primary component</a> ，before you can bring A and B back。这样，我们告诉C节点“嘿，你现在可以单独形成一个新的群集，忘记A和B！”。执行此操作的命令是<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/quorumreset.html?highlight=bootstrap">^1</a>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> wsrep_provider_options=<span class="string">&#x27;pc.bootstrap=true&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>However, you should double check in order to <strong>be very sure the other nodes are really down</strong> before doing that! Otherwise, you will most likely end up with two clusters having different data.</p>
+<p><img src="/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180530113136726.png" alt="image-20180530113136726"></p>
+<h2 id="情景6"><a href="#情景6" class="headerlink" title="情景6"></a>情景6</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g6.png" alt="情景6"></p>
+<p>所有节点意外宕机(All nodes went down without proper shutdown procedure)</p>
+<p>这种情况发生在例如数据中心挂了, 或者遇上了MySQL或Galera bug导致所有节点crash. 但也由于数据一致性的影响，集群检测到每个节点都有不同的数据导致所有节点挂了. In each of those cases, the grastate.dat file is not updated and does not contain valid sequence number (seqno). It may look like this:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cat /var/lib/mysql/grastate.dat</span><br><span class="line"><span class="meta">#</span><span class="bash"> GALERA saved state</span></span><br><span class="line">version: 2.1</span><br><span class="line">uuid: 220dcdcb-1629-11e4-add3-aec059ad3734</span><br><span class="line">seqno: -1</span><br><span class="line">cert_index:</span><br></pre></td></tr></table></figure>
+<p>在这种情况下，我们不确定所有节点是否彼此一致，因此找到最先进(most advanced one )的节点以便使用它来boostrap群集至关重要。在任何节点上启动mysql守护进程之前，您必须通过检查它的事务状态来提取最后一个序列号。你可以这样做：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@percona3 ~]# mysqld_safe --wsrep-recover</span><br><span class="line">140821 15:57:15 mysqld_safe Logging to &#x27;/var/lib/mysql/percona3_error.log&#x27;.</span><br><span class="line">140821 15:57:15 mysqld_safe Starting mysqld daemon with databases from /var/lib/mysql</span><br><span class="line">140821 15:57:15 mysqld_safe WSREP: Running position recovery with --log_error=&#x27;/var/lib/mysql/wsrep_recovery.6bUIqM&#x27; --pid-file=&#x27;/var/lib/mysql/percona3-recover.pid&#x27;</span><br><span class="line">140821 15:57:17 mysqld_safe WSREP: Recovered position 4b83bbe6-28bb-11e4-a885-4fc539d5eb6a:2</span><br><span class="line">140821 15:57:19 mysqld_safe mysqld from pid file /var/lib/mysql/percona3.pid ended</span><br></pre></td></tr></table></figure>
+<p>因此，此节点上最后提交的事务序列号为2.现在，您只需首先从最新节点引导，然后启动其他节点。</p>
+<p>So the last committed transaction sequence number on this node was 2. Now you just need to bootstrap from the latest node first and then start the others.</p>
+<p>However, the above procedure won’t be needed in the recent Galera versions (3.6+?), available since <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/release-notes/Percona-XtraDB-Cluster-5.6.19-25.6.html">PXC 5.6.19</a>. There is a new option – <strong>pc.recovery</strong> (enabled by default), which saves the cluster state into a file named <code>gvwstate.dat</code> on each member node. As the variable name says (pc – primary component), it saves only a cluster being in PRIMARY state. An example content of that file may look like this:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">cat /var/lib/mysql/gvwstate.dat</span><br><span class="line">my_uuid: 76de8ad9-2aac-11e4-8089-d27fd06893b9</span><br><span class="line"><span class="meta">#</span><span class="bash">vwbeg</span></span><br><span class="line">view_id: 3 6c821ecc-2aac-11e4-85a5-56fe513c651f 3</span><br><span class="line">bootstrap: 0</span><br><span class="line">member: 6c821ecc-2aac-11e4-85a5-56fe513c651f 0</span><br><span class="line">member: 6d80ec1b-2aac-11e4-8d1e-b2b2f6caf018 0</span><br><span class="line">member: 76de8ad9-2aac-11e4-8089-d27fd06893b9 0</span><br><span class="line"><span class="meta">#</span><span class="bash">vwend</span></span><br></pre></td></tr></table></figure>
+<p>We can see three node cluster above with all members being up. Thanks to this new feature, in the case of power outage in our datacenter, after power is back, the nodes will read the last state on startup and will try to restore primary component once all the members again start to see each other. This makes the PXC cluster to automatically recover from being powered down without any manual intervention!  In the logs we will see:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">140823 15:28:55 [Note] WSREP: restore pc from disk successfully</span><br><span class="line">(...)</span><br><span class="line">140823 15:29:59 [Note] WSREP: declaring 6c821ecc at tcp://192.168.90.3:4567 stable</span><br><span class="line">140823 15:29:59 [Note] WSREP: declaring 6d80ec1b at tcp://192.168.90.4:4567 stable</span><br><span class="line">140823 15:29:59 [Warning] WSREP: no nodes coming from prim view, prim not possible</span><br><span class="line">140823 15:29:59 [Note] WSREP: New COMPONENT: primary = no, bootstrap = no, my_idx = 2, memb_num = 3</span><br><span class="line">140823 15:29:59 [Note] WSREP: Flow-control interval: [28, 28]</span><br><span class="line">140823 15:29:59 [Note] WSREP: Received NON-PRIMARY.</span><br><span class="line">140823 15:29:59 [Note] WSREP: New cluster view: global state: 4b83bbe6-28bb-11e4-a885-4fc539d5eb6a:11, view# -1: non-Primary, number of nodes: 3, my index: 2, protocol version -1</span><br><span class="line">140823 15:29:59 [Note] WSREP: wsrep_notify_cmd is not defined, skipping notification.</span><br><span class="line">140823 15:29:59 [Note] WSREP: promote to primary component</span><br><span class="line">140823 15:29:59 [Note] WSREP: save pc into disk</span><br><span class="line">140823 15:29:59 [Note] WSREP: New COMPONENT: primary = yes, bootstrap = yes, my_idx = 2, memb_num = 3</span><br><span class="line">140823 15:29:59 [Note] WSREP: STATE EXCHANGE: Waiting for state UUID.</span><br><span class="line">140823 15:29:59 [Note] WSREP: clear restored view</span><br><span class="line">(...)</span><br><span class="line">140823 15:29:59 [Note] WSREP: Bootstrapped primary 00000000-0000-0000-0000-000000000000 found: 3.</span><br><span class="line">140823 15:29:59 [Note] WSREP: Quorum results:</span><br><span class="line">version = 3,</span><br><span class="line">component = PRIMARY,</span><br><span class="line">conf_id = -1,</span><br><span class="line">members = 3/3 (joined/total),</span><br><span class="line">act_id = 11,</span><br><span class="line">last_appl. = -1,</span><br><span class="line">protocols = 0/6/2 (gcs/repl/appl),</span><br><span class="line">group UUID = 4b83bbe6-28bb-11e4-a885-4fc539d5eb6a</span><br><span class="line">140823 15:29:59 [Note] WSREP: Flow-control interval: [28, 28]</span><br><span class="line">140823 15:29:59 [Note] WSREP: Restored state OPEN -&gt; JOINED (11)</span><br><span class="line">140823 15:29:59 [Note] WSREP: New cluster view: global state: 4b83bbe6-28bb-11e4-a885-4fc539d5eb6a:11, view# 0: Primary, number of nodes: 3, my index: 2, protocol version 2</span><br><span class="line">140823 15:29:59 [Note] WSREP: wsrep_notify_cmd is not defined, skipping notification.</span><br><span class="line">140823 15:29:59 [Note] WSREP: REPL Protocols: 6 (3, 2)</span><br><span class="line">140823 15:29:59 [Note] WSREP: Service thread queue flushed.</span><br><span class="line">140823 15:29:59 [Note] WSREP: Assign initial position for certification: 11, protocol version: 3</span><br><span class="line">140823 15:29:59 [Note] WSREP: Service thread queue flushed.</span><br><span class="line">140823 15:29:59 [Note] WSREP: Member 1.0 (percona3) synced with group.</span><br><span class="line">140823 15:29:59 [Note] WSREP: Member 2.0 (percona1) synced with group.</span><br><span class="line">140823 15:29:59 [Note] WSREP: Shifting JOINED -&gt; SYNCED (TO: 11)</span><br><span class="line">140823 15:29:59 [Note] WSREP: Synchronized with group, ready for connections</span><br></pre></td></tr></table></figure>
+<p>这个是说<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/release-notes/Percona-XtraDB-Cluster-5.6.19-25.6.html">PXC 5.6.19</a>以后, 每个节点都有一个gvwstate.dat 文件记录自己挂之前的执行进度, 我的实验kill一个节点后,这个节点</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@namenode-2 data]# cat gvwstate.dat </span><br><span class="line">my_uuid: 4db0c1c2-5fe0-11e8-9709-0be9bc3897c1</span><br><span class="line"><span class="meta">#</span><span class="bash">vwbeg</span></span><br><span class="line">view_id: 3 3561356d-5f11-11e8-bba0-82ddca1badfc 16</span><br><span class="line">bootstrap: 0</span><br><span class="line">member: 3561356d-5f11-11e8-bba0-82ddca1badfc 0</span><br><span class="line">member: 4db0c1c2-5fe0-11e8-9709-0be9bc3897c1 0</span><br><span class="line">member: 57b4144b-5f11-11e8-b442-47001a216bae 0</span><br><span class="line">member: 6af280fd-5f0f-11e8-9deb-9fe0e283dd49 0</span><br><span class="line"><span class="meta">#</span><span class="bash">vwend</span></span><br></pre></td></tr></table></figure>
+<p>其他正常节点</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@datanode-1 data]# cat gvwstate.dat </span><br><span class="line">my_uuid: 6af280fd-5f0f-11e8-9deb-9fe0e283dd49</span><br><span class="line"><span class="meta">#</span><span class="bash">vwbeg</span></span><br><span class="line">view_id: 3 3561356d-5f11-11e8-bba0-82ddca1badfc 17</span><br><span class="line">bootstrap: 0</span><br><span class="line">member: 3561356d-5f11-11e8-bba0-82ddca1badfc 0</span><br><span class="line">member: 57b4144b-5f11-11e8-b442-47001a216bae 0</span><br><span class="line">member: 6af280fd-5f0f-11e8-9deb-9fe0e283dd49 0</span><br><span class="line"><span class="meta">#</span><span class="bash">vwend</span></span><br></pre></td></tr></table></figure>
+<h2 id="情景7"><a href="#情景7" class="headerlink" title="情景7"></a>情景7</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g7.png" alt="情景7"></p>
+<p>Cluster lost it’s primary state due to <strong>split brain situation</strong>.为了举例, 我们假设由偶数个节点形成- 6个, ABC在一个机房, DEF在另一个机房, 两个机房之间的网络中断了. 当然最好的方案是避免这种拓扑结构, 如果没机器了实在不行还可以用<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/arbitrator.html">arbitrator</a> (garbd) node或者调整<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/wsrep-provider-index.html#pc.weight"><code>pc.weight</code></a>参数.但是，当分裂大脑以任何方式发生时，所有分离的组都不能维持法定人数 - 所有节点都必须停止提供请求，并且这两个部分只是不断尝试重新连接。如果要在恢复网络链接之前恢复服务，则可以使用与方案5中相同的命令使其中一个组再次成为主服务器：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> wsrep_provider_options=<span class="string">&#x27;pc.bootstrap=true&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>After that, you are able to work on the manually restored part of the cluster, and the second half should be able to automatically re-join using <a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/statetransfer.html#incremental-state-transfer-ist">incremental state transfer</a> (IST) once the network link is restored. <strong>But beware:</strong> if you set the bootstrap option on both the separated parts, you will end up with two living cluster instances, with data likely diverging away from each other. Restoring network link in that case won’t make them to re-join until nodes are restarted and try to re-connect to members specified in configuration file. Then, as Galera replication model truly cares about data consistency – once the inconsistency will be detected, nodes that cannot execute row change statement due to different data – will perform emergency shutdown and the only way to bring them back to the cluster will be via full SST.</p>
+<p>I hope I covered most of the possible failure scenarios of Galera-based clusters, and made the recovery procedures bit more clear.</p>
+<p><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2014/09/01/galera-replication-how-to-recover-a-pxc-cluster/">https://www.percona.com/blog/2014/09/01/galera-replication-how-to-recover-a-pxc-cluster/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2018/05/29/PXC7种故障场景及恢复方法/" target="_blank" title="[译]PXC7中故障场景及恢复方法">http://fuxkdb.com/2018/05/29/PXC7种故障场景及恢复方法/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PXC/" rel="tag">PXC</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/06/02/gcache.freeze_purge_at_seqno/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          Want IST Not SST for Node Rejoins? We Have a Solution!
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/04/28/%E5%A6%82%E4%BD%95%E5%81%9A%E5%A5%BDMySQL%E7%9A%84%E5%A4%87%E4%BB%BD/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">如何做好MySQL的备份</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E6%99%AF1"><span class="nav-number">1.</span> <span class="nav-text">情景1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E6%99%AF2"><span class="nav-number">2.</span> <span class="nav-text">情景2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E6%99%AF3"><span class="nav-number">3.</span> <span class="nav-text">情景3</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E6%99%AF-4"><span class="nav-number">4.</span> <span class="nav-text">情景 4</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E6%99%AF5"><span class="nav-number">5.</span> <span class="nav-text">情景5</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E6%99%AF6"><span class="nav-number">6.</span> <span class="nav-text">情景6</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E6%99%AF7"><span class="nav-number">7.</span> <span class="nav-text">情景7</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

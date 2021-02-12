@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>transportable tablespaces | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL传输表空间" />
+  
+  
+  
+  
+  <meta name="description" content="迁移File-Per-Table TablespacesTransportable Tablespace示例Transportable Tablespace Internals本节介绍如何将file-per-table tablespace从一个server迁移到另一个server,也称为可Transportable Tablespaces功能。 在MySQL 5.7.4之前,只支持非分区的Inn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Transportable Tablespaces">
+<meta property="og:url" content="http://fuxkdb.com/2017/08/22/Transportable-Tablespaces/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="迁移File-Per-Table TablespacesTransportable Tablespace示例Transportable Tablespace Internals本节介绍如何将file-per-table tablespace从一个server迁移到另一个server,也称为可Transportable Tablespaces功能。 在MySQL 5.7.4之前,只支持非分区的Inn">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-08-22T04:23:00.000Z">
+<meta property="article:modified_time" content="2017-08-22T04:35:14.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="传输表空间">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-Transportable-Tablespaces" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Transportable Tablespaces
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/22/Transportable-Tablespaces/" class="article-date">
+	  <time datetime="2017-08-22T04:23:00.000Z" itemprop="datePublished">2017-08-22</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="迁移File-Per-Table-Tablespaces"><a href="#迁移File-Per-Table-Tablespaces" class="headerlink" title="迁移File-Per-Table Tablespaces"></a>迁移File-Per-Table Tablespaces</h2><p><a href="http://fuxkdb.com/2017/08/22/Transportable-Tablespace%E7%A4%BA%E4%BE%8B/">Transportable Tablespace示例</a><br><a href="http://fuxkdb.com/2017/08/22/Transportable-Tablespace-Internals/">Transportable Tablespace Internals</a><br>本节介绍如何将file-per-table tablespace从一个server迁移到另一个server,也称为可Transportable Tablespaces功能。 在MySQL 5.7.4之前,只支持非分区的InnoDB表。 从MySQL 5.7.4开始,还支持分区的InnoDB表和各个InnoDB表分区和子分区。</p>
+<p>There are many reasons why you might copy an InnoDB file-per-table tablespace to a different database server:</p>
+<ul>
+<li>生成报告而不影响生产库</li>
+<li>为备库初始化数据</li>
+<li>用于数据恢复</li>
+<li>相对于mysqldump,传输表空间有个更快的速度</li>
+<li>将每个文件的表空间移动到具有更适合系统要求的存储介质的服务器.例如,您可能希望在SSD设备上拥有繁忙的表,或在大容量HDD设备上使用大型表.</li>
+</ul>
+<h3 id="限制和使用注意事项"><a href="#限制和使用注意事项" class="headerlink" title="限制和使用注意事项"></a>限制和使用注意事项</h3><ul>
+<li>仅当innodb_file_per_table设置为ON（这是MySQL 5.6.6的默认设置）时，传输表空间功能才可以使用。 驻留在共享系统表空间中的表不能使用此功能。</li>
+<li>在传输过程中,只有只读操作可以执行</li>
+<li>page size要相同.When importing a tablespace, the page size must match the page size of the importing instance.</li>
+<li>Prior to MySQL 5.7.4, DISCARD TABLESPACE is not supported for partitioned tables meaning that transportable tablespaces is also unsupported. If you run ALTER TABLE … DISCARD TABLESPACE on a partitioned table, the following error is returned: ERROR 1031 (HY000): Table storage engine for ‘part’ doesn’t have this option. As of MySQL 5.7.4, ALTER TABLE … DISCARD TABLESPACE is supported for partitioned InnoDB tables, and ALTER TABLE … DISCARD PARTITION … TABLESPACE is supported for InnoDB table partitions.</li>
+<li>当foreign_key_checks设置为1时，对于父 - 子（主键 - 外键）关系的表空间不支持DISCARD TABLESPACE。在放弃父子表的表空间之前，请设置foreign_key_checks = 0。 分区的InnoDB表不支持外键。</li>
+<li>ALTER TABLE … IMPORT TABLESPACE不会对导入的数据实施外键约束。 如果表之间存在外键约束，则应在相同（逻辑）时间点导出所有表。 分区的InnoDB表不支持外键。</li>
+<li><p>ALTER TABLE … IMPORT TABLESPACE和ALTER TABLE … IMPORT PARTITION … TABLESPACE不需要.cfg元数据文件来导入表空间。 但是，在不使用.cfg文件导入时，不会执行元数据检查，并且将发出类似于以下内容的警告：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Message: InnoDB: IO <span class="keyword">Read</span> error: (<span class="number">2</span>, <span class="keyword">No</span> such file <span class="keyword">or</span> directory) Error opening <span class="string">&#x27;.\</span></span><br><span class="line"><span class="string">test\t.cfg&#x27;</span>, will attempt <span class="keyword">to</span> <span class="keyword">import</span> <span class="keyword">without</span> <span class="keyword">schema</span> verification</span><br><span class="line"><span class="number">1</span> <span class="keyword">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>没有.cfg文件导入的能力可能更方便，当不需要模式不匹配。 此外，无法使用.cfg文件导入的能力在无法从.ibd文件收集元数据的崩溃恢复方案中很有用。</p>
+<blockquote>
+<p>The ability to import without a .cfg file may be more convenient when no schema mismatches are expected. Additionally, the ability to import without a .cfg file could be useful in crash recovery scenarios in which metadata cannot be collected from an .ibd file.</p>
+</blockquote>
+</li>
+<li><p>由于.cfg元数据文件限制，在为分区表导入表空间文件时，不会报告分区类型或分区定义差异的模式不匹配。但会报告列差异。</p>
+</li>
+<li><p>在子分区表上运行ALTER TABLE … DISCARD PARTITION … TABLESPACE和ALTER TABLE … IMPORT PARTITION … TABLESPACE时，允许使用分区表和子分区表名。指定分区名称时，该分区的子分区将包括在操作中。</p>
+</li>
+<li><p>在MySQL 5.6或更高版本中，如果两个服务器都具有GA（通用可用性）状态并且它们的版本在同一系列中，则从另一个服务器导入表空间文件是有效的。否则，该文件必须在导入它的服务器上创建。</p>
+</li>
+<li><p>在复制方案中，在主节点和从节点上必须将innodb_file_per_table设置为ON。</p>
+</li>
+<li><p>在Windows上，InnoDB以小写形式内部存储数据库，表空间和表名。要避免区分大小写操作系统（如Linux和UNIX）上的导入问题，请使用小写名称创建所有数据库，表空间和表。一种方便的方法是在创建数据库，表空间或表之前，在my.cnf或my.ini文件的[mysqld]节中添加以下行：</p>
+<a id="more"></a>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[mysqld]</span></span><br><span class="line"><span class="attr">lower_case_table_names</span>=<span class="number">1</span></span><br></pre></td></tr></table></figure></li>
+<li>ALTER TABLE … DISCARD TABLESPACE和ALTER TABLE … IMPORT TABLESPACE不支持general tablespace</li>
+<li>从MySQL 5.7.9开始，InnoDB表的默认行格式可以使用innodb_default_row_format配置选项配置。如果源服务器上的innodb_default_row_format设置与目标服务器上的设置不同，则试图导入未明确定义行格式（ROW_FORMAT）或使用ROW_FORMAT = DEFAULT的表可能会导致模式不匹配错误。有关相关信息，请参见第15.11.2节“指定表的行格式”。</li>
+</ul>
+<blockquote>
+<p>innodb_default_row_format<br>The innodb_default_row_format option, introduced in MySQL 5.7.9, defines the default row format for InnoDB tables (including user-created InnoDB temporary tables). The default setting is DYNAMIC. Other permitted values are COMPACT and REDUNDANT. The COMPRESSED row format, which is not supported for use in the system tablespace, cannot be defined as the default.</p>
+<p>Newly created tables use the row format defined by innodb_default_row_format when a ROW_FORMAT option is not specified explicitly or when ROW_FORMAT=DEFAULT is used.</p>
+<p>When a ROW_FORMAT option is not specified explicitly or when ROW_FORMAT=DEFAULT is used, any operation that rebuilds a table also silently changes the row format of the table to the format defined by innodb_default_row_format. For more information, see Section 15.11.2, “Specifying the Row Format for a Table”.</p>
+<p>Internal InnoDB temporary tables created by the server to process queries use the DYNAMIC row format, regardless of the innodb_default_row_format setting.</p>
+<p>In MySQL 5.7.8 and earlier, the default row format is COMPACT.<br>REDUNDANT和COMPACT行格式支持最大索引关键字前缀长度为767字节，而DYNAMIC和COMPRESSED行格式支持索引关键字前缀长度为3072字节，如果innodb_large_prefix配置选项启用。 在复制环境中，如果innodb_default_row_format在主服务器上设置为DYNAMIC，并在从服务器上设置为COMPACT，则以下没有显式定义行格式的DDL语句在主服务器上成功，但在从服务器上失败：<br><code>CREATE TABLE t1 (c1 INT PRIMARY KEY, c2 VARCHAR(5000), KEY i1(c2(3070)));</code><br>要查看表的行格式，请发出SHOW TABLE STATUS语句或查询INFORMATION_SCHEMA.TABLES。<br><code>SELECT * FROM INFORMATION_SCHEMA.INNODB_SYS_TABLES WHERE NAME LIKE &#39;test/t1&#39; \G</code></p>
+</blockquote>
+<ul>
+<li>当导出使用InnoDB表空间加密功能加密的表空间时，InnoDB除了生成.cfg元数据文件外还会生成.cfp文件。在目标服务器上执行ALTER TABLE … IMPORT TABLESPACE操作之前，必须将.cfp文件与.cfg文件和表空间文件一起复制到目标服务器。 .cfp文件包含传输密钥和加密的表空间密钥。在导入时，InnoDB使用传输密钥来解密表空间密钥。有关相关信息，请参见第15.7.10节“InnoDB表空间加密”。</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/08/22/Transportable-Tablespaces/" target="_blank" title="Transportable Tablespaces">http://fuxkdb.com/2017/08/22/Transportable-Tablespaces/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4/" rel="tag">传输表空间</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/08/22/Transportable-Tablespace%E7%A4%BA%E4%BE%8B/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          Transportable Tablespace示例
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/08/11/%E8%B0%83%E6%95%B4InnoDB%E7%B3%BB%E7%BB%9F%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">调整InnoDB系统表空间大小</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%81%E7%A7%BBFile-Per-Table-Tablespaces"><span class="nav-number">1.</span> <span class="nav-text">迁移File-Per-Table Tablespaces</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%90%E5%88%B6%E5%92%8C%E4%BD%BF%E7%94%A8%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">1.1.</span> <span class="nav-text">限制和使用注意事项</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

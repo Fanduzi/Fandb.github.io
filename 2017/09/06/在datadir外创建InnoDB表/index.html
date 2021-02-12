@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>在datadir外创建innodb表 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL" />
+  
+  
+  
+  
+  <meta name="description" content="在datadir外创建表要在MySQL datadir外的特定位置创建新的InnoDB file-per-table tablespace,请在create table时指定DATA DIRECTORY &#x3D; absolute_path_to_directory子句 提前规划好位置,因为无法使用alter语句修改一个表的DATA DIRECTORY属性. MySQL会在目标目录中创建一个对应于数据库">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在datadir外创建InnoDB表">
+<meta property="og:url" content="http://fuxkdb.com/2017/09/06/%E5%9C%A8datadir%E5%A4%96%E5%88%9B%E5%BB%BAInnoDB%E8%A1%A8/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="在datadir外创建表要在MySQL datadir外的特定位置创建新的InnoDB file-per-table tablespace,请在create table时指定DATA DIRECTORY &#x3D; absolute_path_to_directory子句 提前规划好位置,因为无法使用alter语句修改一个表的DATA DIRECTORY属性. MySQL会在目标目录中创建一个对应于数据库">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-09-06T03:20:00.000Z">
+<meta property="article:modified_time" content="2017-09-06T03:20:39.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-在datadir外创建InnoDB表" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      在datadir外创建InnoDB表
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/09/06/%E5%9C%A8datadir%E5%A4%96%E5%88%9B%E5%BB%BAInnoDB%E8%A1%A8/" class="article-date">
+	  <time datetime="2017-09-06T03:20:00.000Z" itemprop="datePublished">2017-09-06</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="在datadir外创建表"><a href="#在datadir外创建表" class="headerlink" title="在datadir外创建表"></a>在datadir外创建表</h2><p>要在MySQL datadir外的特定位置创建新的InnoDB file-per-table tablespace,请在create table时指定DATA DIRECTORY = absolute_path_to_directory子句</p>
+<p>提前规划好位置,因为无法使用alter语句修改一个表的DATA DIRECTORY属性.</p>
+<p>MySQL会在目标目录中创建一个对应于数据库名称的子目录,并在改目录中创建表的.ibd文件用于存储表数据.在MySQL datadir目录下的数据库目录中,MySQL创建一个包含表的路径名称的table_name.isl文件. .isl文件由MySQL处理,像一个符号链接(不过InnoDB表不支持实际的符号链接)</p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例:"></a>示例:</h3><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">版本</span><br><span class="line">[<span class="symbol">root@</span>test43100 ~]# cat /etc/redhat-release </span><br><span class="line">CentOS release <span class="number">6.4</span> (Final)</span><br><span class="line">[<span class="symbol">root@</span>test43100 ~]# mysql -e <span class="string">&quot;\s&quot;</span></span><br><span class="line">--------------</span><br><span class="line">mysql  Ver <span class="number">14.14</span> Distrib <span class="number">5.7</span><span class="number">.18</span>, <span class="keyword">for</span> linux-glibc2<span class="number">.5</span> (x86_64) using  EditLine wrapper</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="symbol">root@</span>mysqldb <span class="number">11</span>:<span class="number">00</span>:  [(none)]&gt; use fandb</span><br><span class="line">Database changed</span><br><span class="line"><span class="symbol">root@</span>mysqldb <span class="number">11</span>:<span class="number">00</span>:  [fandb]&gt; SHOW VARIABLES LIKE <span class="string">&#x27;innodb_file_per_table&#x27;</span>;</span><br><span class="line">+-----------------------+-------+</span><br><span class="line">| Variable_name         | Value |</span><br><span class="line">+-----------------------+-------+</span><br><span class="line">| innodb_file_per_table | ON    |</span><br><span class="line">+-----------------------+-------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="symbol">root@</span>mysqldb <span class="number">11</span>:<span class="number">00</span>:  [fandb]&gt; create table t_out(id <span class="built_in">int</span> <span class="built_in">auto</span>_increment primary key) data directory=<span class="string">&#x27;/data/outdir&#x27;</span>;</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.37</span> sec)</span><br><span class="line"></span><br><span class="line">查看目标目录</span><br><span class="line">[<span class="symbol">mysql@</span>test43100 data]$ tree outdir/</span><br><span class="line">outdir/</span><br><span class="line">└── fandb</span><br><span class="line">    └── t_out.ibd</span><br><span class="line"></span><br><span class="line">查看datadir</span><br><span class="line">[<span class="symbol">root@</span>test43100 fandb]# ls -lt</span><br><span class="line">total <span class="number">412</span></span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql    <span class="number">28</span> Sep  <span class="number">6</span> <span class="number">11</span>:<span class="number">03</span> t_out.isl</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql  <span class="number">8556</span> Sep  <span class="number">6</span> <span class="number">11</span>:<span class="number">03</span> t_out.frm</span><br><span class="line">包含.isl和.frm文件</span><br></pre></td></tr></table></figure>
+<p>您还可以将CREATE TABLE … TABLESPACE与DATA DIRECTORY子句结合使用，以便在MySQL数据目录之外创建一个file-per-table tablespace。 为此，您必须指定innodb_file_per_table作为表空间名称。<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">root@</span>mysqldb <span class="number">11</span>:<span class="number">03</span>:  [fandb]&gt; create table t_out2(id <span class="built_in">int</span> <span class="built_in">auto</span>_increment primary key) TABLESPACE = innodb_file_per_table data directory=<span class="string">&#x27;/data/outdir&#x27;</span>;</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.42</span> sec)</span><br><span class="line"></span><br><span class="line">查看目标目录</span><br><span class="line">[<span class="symbol">mysql@</span>test43100 data]$ tree outdir/</span><br><span class="line">outdir/</span><br><span class="line">└── fandb</span><br><span class="line">    ├── t_out2.ibd</span><br><span class="line">    └── t_out.ibd</span><br><span class="line"></span><br><span class="line">查看datadir</span><br><span class="line">[<span class="symbol">root@</span>test43100 fandb]# ls -lt</span><br><span class="line">total <span class="number">428</span></span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql    <span class="number">29</span> Sep  <span class="number">6</span> <span class="number">11</span>:<span class="number">08</span> t_out2.isl</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql  <span class="number">8556</span> Sep  <span class="number">6</span> <span class="number">11</span>:<span class="number">08</span> t_out2.frm</span><br></pre></td></tr></table></figure><br>使用第二章方法无需启用innodb_file_per_table</p>
+<h3 id="使用说明"><a href="#使用说明" class="headerlink" title="使用说明"></a>使用说明</h3><ul>
+<li><p>MySQL最初保持.ibd文件打开，阻止您卸载设备，但如果服务器正忙，最终可能会关闭该表。 当MySQL运行时，请注意不要意外卸载外部设备，或者在设备断开连接时启动MySQL。 当相关的.ibd文件丢失时尝试访问表会导致严重的错误，需要重新启动服务器。<br>如果.ibd文件仍然不在预期路径，服务器重新启动可能会失败。 在这种情况下，请手动删除数据库目录中的table_name.isl文件，并在重新启动后执行DROP TABLE以删除.frm文件，并从数据字典中删除有关该表的信息。</p>
+</li>
+<li><p>Before tables on an NFS-mounted volume, review potential issues outlined in <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/disk-issues.html#disk-issues-nfs">Using NFS with MySQL</a>.</p>
+</li>
+<li><p>If you use an LVM snapshot, file copy, or other file-based mechanism to back up the .ibd file, always use the FLUSH TABLES … FOR EXPORT statement first to make sure all changes that were buffered in memory are flushed to disk before the backup occurs.</p>
+</li>
+<li><p>DATA DIRECTORY子句是使用符号链接的一个支持的替代方法.InnoDB直接使用符号链接是不支持的</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/09/06/在datadir外创建InnoDB表/" target="_blank" title="在datadir外创建InnoDB表">http://fuxkdb.com/2017/09/06/在datadir外创建InnoDB表/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/09/11/%E9%80%9A%E8%BF%87mysqlbinlog---skip-gtids%E6%81%A2%E5%A4%8D%E5%90%8E%E5%86%8D%E5%A4%87%E4%BB%BD%E5%8F%AF%E8%83%BD%E9%80%A0%E6%88%90%E7%9A%84%E5%9D%91/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          通过mysqlbinlog --skip-gtids恢复后再备份可能造成的坑
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/08/31/innobackupex%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">innobackupex遇到的坑</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8datadir%E5%A4%96%E5%88%9B%E5%BB%BA%E8%A1%A8"><span class="nav-number">1.</span> <span class="nav-text">在datadir外创建表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.1.</span> <span class="nav-text">示例:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E"><span class="nav-number">1.2.</span> <span class="nav-text">使用说明</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

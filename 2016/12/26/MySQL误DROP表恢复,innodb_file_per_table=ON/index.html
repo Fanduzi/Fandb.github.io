@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mysql误drop表恢复,innodb_file_per_table=on | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL备份恢复" />
+  
+  
+  
+  
+  <meta name="description" content="MySQL误DROP表恢复,innodb_file_per_table&#x3D;ON 参考https:&#x2F;&#x2F;twindb.com&#x2F;recover-after-drop-table-innodb_file_per_table-is-on&#x2F;  Undrop-for-innodb安装详见https:&#x2F;&#x2F;github.com&#x2F;chhabhaiya&#x2F;undrop-for-innodb 删除Country表并恢复使用s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL误DROP表恢复,innodb_file_per_table&#x3D;ON">
+<meta property="og:url" content="http://fuxkdb.com/2016/12/26/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=ON/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="MySQL误DROP表恢复,innodb_file_per_table&#x3D;ON 参考https:&#x2F;&#x2F;twindb.com&#x2F;recover-after-drop-table-innodb_file_per_table-is-on&#x2F;  Undrop-for-innodb安装详见https:&#x2F;&#x2F;github.com&#x2F;chhabhaiya&#x2F;undrop-for-innodb 删除Country表并恢复使用s">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-12-26T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-05T16:02:05.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL备份恢复">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-MySQL误DROP表恢复,innodb_file_per_table=ON" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MySQL误DROP表恢复,innodb_file_per_table=ON
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/12/26/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=ON/" class="article-date">
+	  <time datetime="2016-12-26T14:00:00.000Z" itemprop="datePublished">2016-12-26</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL误DROP表恢复-innodb-file-per-table-ON"><a href="#MySQL误DROP表恢复-innodb-file-per-table-ON" class="headerlink" title="MySQL误DROP表恢复,innodb_file_per_table=ON"></a>MySQL误DROP表恢复,innodb_file_per_table=ON</h1><blockquote>
+<p>参考<br><a target="_blank" rel="noopener" href="https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-on/">https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-on/</a></p>
+</blockquote>
+<h2 id="Undrop-for-innodb安装"><a href="#Undrop-for-innodb安装" class="headerlink" title="Undrop-for-innodb安装"></a>Undrop-for-innodb安装</h2><p>详见<a target="_blank" rel="noopener" href="https://github.com/chhabhaiya/undrop-for-innodb">https://github.com/chhabhaiya/undrop-for-innodb</a></p>
+<h2 id="删除Country表并恢复"><a href="#删除Country表并恢复" class="headerlink" title="删除Country表并恢复"></a>删除Country表并恢复</h2><p>使用sakila示例数据库作为例子,sakila相当于Oracle的SCOTT<br>innodb每个表包含两个文件.frm文件包含建表语句.ibd文件包含数据<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">mysql@</span>master sakila]$ ll country.*</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql  <span class="number">8652</span> Aug <span class="number">26</span> <span class="number">14</span>:<span class="number">25</span> country.frm</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql <span class="number">98304</span> Aug <span class="number">26</span> <span class="number">14</span>:<span class="number">25</span> country.ibd</span><br></pre></td></tr></table></figure></p>
+<p>接下来删除country表,删之前看一下checksum<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt; use sakila</span></span><br><span class="line"><span class="emphasis">Database changed</span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt; select count(<span class="strong">*) from country;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|      109 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;checksum table country;</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| Table               | Checksum   |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| sakila.country      | 2039770088 |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>接下来删除country表<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">SESSION_A</span>&gt;drop table country;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">01</span> sec)</span><br></pre></td></tr></table></figure></p>
+<p>drop table后,.frm和.ibd文件也被删除了<br><figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysql@<span class="keyword">master</span> <span class="title">sakila</span>]$ ll country*</span><br><span class="line">ls: cannot access country*: No such file <span class="keyword">or</span> directory</span><br></pre></td></tr></table></figure><br><a id="more"></a></p>
+<h2 id="恢复表"><a href="#恢复表" class="headerlink" title="恢复表"></a>恢复表</h2><p>这是情况比较复杂,因为误删除了表,此时如果数据库还是活动的,那么很有可能country表的数据会被rewrite.此时应该立即停止数据库,并把曾经包含country表数据的磁盘分区设为read-only以免被覆盖.<br>在这里,我们只停止MySQL就好了<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master ~]$ mysqladmin -S /data/mysqldata/3306/mysql.sock -umysql -pmysql shutdown</span><br><span class="line">Warning: Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line"></span><br><span class="line">[mysql@master ~]$ ps -ef | grep mysqld | grep -v grep</span><br><span class="line">[mysql@master ~]$ </span><br></pre></td></tr></table></figure><br>尽管我们使用的是独立表空间,但是数据字典仍然存储在<code>ibdata1</code>中.</p>
+<h3 id="使用stream-parser解析数据文件"><a href="#使用stream-parser解析数据文件" class="headerlink" title="使用stream_parser解析数据文件"></a>使用stream_parser解析数据文件</h3><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">mysql@</span>master undrop-<span class="keyword">for</span>-innodb]$ ./stream_parser -f /data/mysqldata/<span class="number">3306</span>/data/ibdata1 </span><br><span class="line">Opening file: /data/mysqldata/<span class="number">3306</span>/data/ibdata1</span><br><span class="line">File information:</span><br><span class="line"></span><br><span class="line">ID of device containing file:        <span class="number">64768</span></span><br><span class="line">inode number:                    <span class="number">106448290</span></span><br><span class="line">protection:                         <span class="number">100640</span> (regular file)</span><br><span class="line">number of hard links:                    <span class="number">1</span></span><br><span class="line">user ID of owner:                       <span class="number">27</span></span><br><span class="line">group ID of owner:                      <span class="number">27</span></span><br><span class="line">device ID (<span class="keyword">if</span> special file):             <span class="number">0</span></span><br><span class="line">blocksize <span class="keyword">for</span> filesystem I/O:         <span class="number">4096</span></span><br><span class="line">number of blocks allocated:        <span class="number">4194304</span></span><br><span class="line">time of last access:            <span class="number">1482762932</span> Mon Dec <span class="number">26</span> <span class="number">22</span>:<span class="number">35</span>:<span class="number">32</span> <span class="number">2016</span></span><br><span class="line">time of last modification:      <span class="number">1482762932</span> Mon Dec <span class="number">26</span> <span class="number">22</span>:<span class="number">35</span>:<span class="number">32</span> <span class="number">2016</span></span><br><span class="line">time of last status change:     <span class="number">1482762932</span> Mon Dec <span class="number">26</span> <span class="number">22</span>:<span class="number">35</span>:<span class="number">32</span> <span class="number">2016</span></span><br><span class="line">total size, <span class="keyword">in</span> bytes:           <span class="number">2147483648</span> (<span class="number">2.000</span> GiB)</span><br><span class="line"></span><br><span class="line">Size to process:                <span class="number">2147483648</span> (<span class="number">2.000</span> GiB)</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">3.90</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">36</span>:<span class="number">46</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">27</span>). Processing speed: <span class="number">71.922</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">30.46</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">36</span>:<span class="number">22</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">02</span>). Processing speed: <span class="number">544.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">55.46</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">36</span>:<span class="number">22</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span>). Processing speed: <span class="number">512.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">75.39</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">36</span>:<span class="number">23</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span>). Processing speed: <span class="number">408.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">92.96</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">36</span>:<span class="number">23</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span>). Processing speed: <span class="number">360.000</span> MiB/sec</span><br><span class="line">All workers finished <span class="keyword">in</span> <span class="number">5</span> sec</span><br></pre></td></tr></table></figure>
+<p>解析之后会生成如下目录和文件<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">mysql@</span>master undrop-<span class="keyword">for</span>-innodb]$ tree pages-ibdata1/</span><br><span class="line">pages-ibdata1/</span><br><span class="line">├── FIL_PAGE_INDEX</span><br><span class="line">│   ├── <span class="number">0000000000000001.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000002.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000003.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000004.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000005.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000011.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000012.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000013.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000014.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000015.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000016.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000529.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000655.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000657.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000658.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000659.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000661.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000665.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000666.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000667.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000669.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000680.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000718.</span>page</span><br><span class="line">│   └── <span class="number">18446744069414584320.</span>page</span><br><span class="line">└── FIL_PAGE_TYPE_BLOB</span><br><span class="line"></span><br><span class="line"><span class="number">2</span> directories, <span class="number">24</span> files</span><br></pre></td></tr></table></figure><br>为了找出TABLE_ID和INDEX_ID,我们需要查看SYS_TABLES和SYS_INDEXES数据字典.我们会从ibdata1中取出数据.<br>因为数据字典记录总是冗余的,所以我们要执行 -4选项,同时我们假定mysql已经将变化刷到磁盘了.所以指定-D选项,表示找出删除的记录.SYS_TABLES表的信息存储在index_id=1的文件中,即<code>pages-ibdata1/FIL_PAGE_INDEX./0000000000000001.page</code><br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-for-innodb]$ ./c_parser -4Df ./pages-ibdata1/FIL_PAGE_INDEX/0000000000000001.page -t ./dictionary/SYS_TABLES.sql | grep country</span><br><span class="line"><span class="keyword">SET</span> FOREIGN_KEY_CHECKS=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">LOAD</span> <span class="keyword">DATA</span> <span class="keyword">LOCAL</span> <span class="keyword">INFILE</span> <span class="string">&#x27;/var/lib/mysql/undrop-for-innodb/dumps/default/SYS_TABLES&#x27;</span> <span class="keyword">REPLACE</span> <span class="keyword">INTO</span> <span class="keyword">TABLE</span> <span class="string">`SYS_TABLES`</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">&#x27;\t&#x27;</span> <span class="keyword">OPTIONALLY</span> <span class="keyword">ENCLOSED</span> <span class="keyword">BY</span> <span class="string">&#x27;&quot;&#x27;</span> <span class="keyword">LINES</span> <span class="keyword">STARTING</span> <span class="keyword">BY</span> <span class="string">&#x27;SYS_TABLES\t&#x27;</span> (<span class="string">`NAME`</span>, <span class="string">`ID`</span>, <span class="string">`N_COLS`</span>, <span class="string">`TYPE`</span>, <span class="string">`MIX_ID`</span>, <span class="string">`MIX_LEN`</span>, <span class="string">`CLUSTER_NAME`</span>, <span class="string">`SPACE`</span>);</span><br><span class="line">00000004FA1A    150000037222EC  SYS_TABLES      &quot;sakila/country&quot;  714     3       65      0       80      &quot;&quot;      703</span><br><span class="line">00000004FA1A    150000037222EC  SYS_TABLES      &quot;sakila/country&quot;  714     3       65      0       80      &quot;&quot;      703</span><br></pre></td></tr></table></figure><br>我们可以看到country表的table_id是714.接下来我们要找到country表的主键索引.<br>我们需要查看0000000000000003.page文件中的SYS_INDEXES表数据 (SYS_INDEXES table contains mapping between table_id and index_id).<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-for-innodb]$ ./c_parser -4Df ./pages-ibdata1/FIL_PAGE_INDEX/0000000000000003.page -t ./dictionary/SYS_INDEXES.sql | grep 714</span><br><span class="line"><span class="keyword">SET</span> FOREIGN_KEY_CHECKS=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">LOAD</span> <span class="keyword">DATA</span> <span class="keyword">LOCAL</span> <span class="keyword">INFILE</span> <span class="string">&#x27;/var/lib/mysql/undrop-for-innodb/dumps/default/SYS_INDEXES&#x27;</span> <span class="keyword">REPLACE</span> <span class="keyword">INTO</span> <span class="keyword">TABLE</span> <span class="string">`SYS_INDEXES`</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">&#x27;\t&#x27;</span> <span class="keyword">OPTIONALLY</span> <span class="keyword">ENCLOSED</span> <span class="keyword">BY</span> <span class="string">&#x27;&quot;&#x27;</span> <span class="keyword">LINES</span> <span class="keyword">STARTING</span> <span class="keyword">BY</span> <span class="string">&#x27;SYS_INDEXES\t&#x27;</span> (<span class="string">`TABLE_ID`</span>, <span class="string">`ID`</span>, <span class="string">`NAME`</span>, <span class="string">`N_FIELDS`</span>, <span class="string">`TYPE`</span>, <span class="string">`SPACE`</span>, <span class="string">`PAGE_NO`</span>);</span><br><span class="line">00000004FA1A    150000037221CC  SYS_INDEXES     714     729     &quot;PRIMARY&quot;       1       3       703     4294967295</span><br></pre></td></tr></table></figure><br>我们可以看到country表的index_id是729</p>
+<p>由于没有可用数据的文件，我们将扫描所有存储设备作为原始设备，并查找适合数据库页面的预期结构的数据。 顺便说一句，这种方法可以用于已经损坏的数据文件。 如果一些数据被损坏，恢复工具可以执行部分数据恢复。 在工具的选项中，我们指定设备的名称和设备大小（可以是近似值）。</p>
+<blockquote>
+<p>Since there is no file with data available, we will scan through all the storage device as raw device and look for data that fit in expected structure of the database pages. By the way, this approach can be taken in case we have corrupted data files. If some data is corrupted, recovery tool can perform partial data recovery. In the options of the tool we specify name of the device and device size (can be approximate).</p>
+</blockquote>
+<p>这里我的数据放在/dev/mapper/centos-oracle 下</p>
+<p>所以root用户scan 30G数据,磁盘要有足够空间,并且请注意不要在曾经包含被删除表.ibd文件所挂载的磁盘下执行下面的命令,因为他会生成大量文件,可能导致rewrite.<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>master undrop-<span class="keyword">for</span>-innodb]# ./stream_parser -f /dev/mapper/centos-oracle -t <span class="number">20000000</span>k</span><br><span class="line">Opening file: /dev/mapper/centos-oracle</span><br><span class="line">File information:</span><br><span class="line"></span><br><span class="line">ID of device containing file:            <span class="number">5</span></span><br><span class="line">inode number:                        <span class="number">15178</span></span><br><span class="line">protection:                          <span class="number">60660</span> (block device)</span><br><span class="line">number of hard links:                    <span class="number">1</span></span><br><span class="line">user ID of owner:                        <span class="number">0</span></span><br><span class="line">group ID of owner:                       <span class="number">6</span></span><br><span class="line">device ID (<span class="keyword">if</span> special file):         <span class="number">64770</span></span><br><span class="line">blocksize <span class="keyword">for</span> filesystem I/O:         <span class="number">4096</span></span><br><span class="line">number of blocks allocated:              <span class="number">0</span></span><br><span class="line">time of last access:            <span class="number">1482761058</span> Mon Dec <span class="number">26</span> <span class="number">22</span>:<span class="number">04</span>:<span class="number">18</span> <span class="number">2016</span></span><br><span class="line">time of last modification:      <span class="number">1481179251</span> Thu Dec  <span class="number">8</span> <span class="number">14</span>:<span class="number">40</span>:<span class="number">51</span> <span class="number">2016</span></span><br><span class="line">time of last status change:     <span class="number">1481179251</span> Thu Dec  <span class="number">8</span> <span class="number">14</span>:<span class="number">40</span>:<span class="number">51</span> <span class="number">2016</span></span><br><span class="line">total size, <span class="keyword">in</span> bytes:                    <span class="number">0</span> (<span class="number">0.000</span> exp(+<span class="number">0</span>))</span><br><span class="line"></span><br><span class="line">Size to process:               <span class="number">20480000000</span> (<span class="number">19.073</span> GiB)</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">1.06</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">41</span>:<span class="number">21</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">01</span>:<span class="number">36</span>). Processing speed: <span class="number">199.621</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">2.09</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">42</span>:<span class="number">58</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">03</span>:<span class="number">11</span>). Processing speed: <span class="number">99.806</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">3.11</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">41</span>:<span class="number">22</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">01</span>:<span class="number">34</span>). Processing speed: <span class="number">199.612</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">4.13</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">42</span>:<span class="number">57</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">03</span>:<span class="number">07</span>). Processing speed: <span class="number">99.807</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">5.15</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-26</span> <span class="number">22</span>:<span class="number">41</span>:<span class="number">23</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">01</span>:<span class="number">32</span>). Processing speed: <span class="number">199.617</span> MiB/sec</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">[<span class="symbol">mysql@</span>master undrop-<span class="keyword">for</span>-innodb]$ tree pages-centos-oracle/</span><br><span class="line">pages-centos-oracle/</span><br><span class="line">├── FIL_PAGE_INDEX</span><br><span class="line">│   ├── <span class="number">0000000000000001.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000002.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000003.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000004.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000005.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000011.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000012.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000013.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000014.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000015.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000016.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000092.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000347.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000400.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000407.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000511.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000529.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000655.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000657.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000658.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000659.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000661.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000665.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000666.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000667.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000669.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000680.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000718.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000729.</span>page</span><br><span class="line">│   └── <span class="number">18446744069414584320.</span>page</span><br><span class="line">└── FIL_PAGE_TYPE_BLOB</span><br><span class="line"></span><br><span class="line"><span class="number">2</span> directories, <span class="number">30</span> files</span><br></pre></td></tr></table></figure><br>0000000000000729.page使我们需要的.这里需要country的建表语句country.sql,所以说请备份好元数据.这里undrop-for-innodb自带了sakila的建表语句以供实验使用<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-for-innodb]$ ./c_parser -6f pages-centos-oracle/FIL_PAGE_INDEX/0000000000000729.page -t sakila/country.sql |  head -5</span><br><span class="line"><span class="keyword">SET</span> FOREIGN_KEY_CHECKS=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">LOAD</span> <span class="keyword">DATA</span> <span class="keyword">LOCAL</span> <span class="keyword">INFILE</span> <span class="string">&#x27;/var/lib/mysql/undrop-for-innodb/dumps/default/country&#x27;</span> <span class="keyword">REPLACE</span> <span class="keyword">INTO</span> <span class="keyword">TABLE</span> <span class="string">`country`</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">&#x27;\t&#x27;</span> <span class="keyword">OPTIONALLY</span> <span class="keyword">ENCLOSED</span> <span class="keyword">BY</span> <span class="string">&#x27;&quot;&#x27;</span> <span class="keyword">LINES</span> <span class="keyword">STARTING</span> <span class="keyword">BY</span> <span class="string">&#x27;country\t&#x27;</span> (<span class="string">`country_id`</span>, <span class="string">`country`</span>, <span class="string">`last_update`</span>);</span><br><span class="line"><span class="comment">-- Page id: 3, Format: COMPACT, Records list: Valid, Expected records: (109 109)</span></span><br><span class="line">00000004FA13    90000002820110  country 1       &quot;Afghanistan&quot;   &quot;2006-02-15 04:44:00&quot;</span><br><span class="line">00000004FA13    9000000282011B  country 2       &quot;Algeria&quot;       &quot;2006-02-15 04:44:00&quot;</span><br><span class="line">00000004FA13    90000002820126  country 3       &quot;American Samoa&quot;        &quot;2006-02-15 04:44:00&quot;</span><br><span class="line">00000004FA13    90000002820131  country 4       &quot;Angola&quot;        &quot;2006-02-15 04:44:00&quot;</span><br></pre></td></tr></table></figure><br>看起来我们找到了数据,下面通过c_parser生成load data infile语句和数据<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-for-innodb]$ mkdir -p dumps/default</span><br><span class="line">[mysql@master undrop-for-innodb]$ ./c_parser -6f pages-centos-oracle/FIL_PAGE_INDEX/0000000000000729.page -t sakila/country.sql &gt; dumps/default/country 2&gt; dumps/default/country_load.sql</span><br></pre></td></tr></table></figure><br>查看一下生成的文件<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-for-innodb]$ cd dumps/default/</span><br><span class="line">[mysql@master default]$ ls</span><br><span class="line">country  country_load.sql</span><br><span class="line"></span><br><span class="line">这是包含数据的文件</span><br><span class="line">[mysql@master default]$ more country  </span><br><span class="line"><span class="comment">-- Page id: 3, Format: COMPACT, Records list: Valid, Expected records: (109 109)</span></span><br><span class="line">00000004FA13    90000002820110  country 1       &quot;Afghanistan&quot;   &quot;2006-02-15 04:44:00&quot;</span><br><span class="line">00000004FA13    9000000282011B  country 2       &quot;Algeria&quot;       &quot;2006-02-15 04:44:00&quot;</span><br><span class="line">00000004FA13    90000002820126  country 3       &quot;American Samoa&quot;        &quot;2006-02-15 04:44:00&quot;</span><br><span class="line">00000004FA13    90000002820131  country 4       &quot;Angola&quot;        &quot;2006-02-15 04:44:00&quot;</span><br><span class="line">00000004FA13    9000000282013C  country 5       &quot;Anguilla&quot;      &quot;2006-02-15 04:44:00&quot;</span><br><span class="line">00000004FA13    90000002820147  country 6       &quot;Argentina&quot;     &quot;2006-02-15 04:44:00&quot;</span><br><span class="line"></span><br><span class="line">这是生成的写好的<span class="keyword">load</span> <span class="keyword">data</span> <span class="keyword">infile</span>语句</span><br><span class="line">[mysql@<span class="keyword">master</span> <span class="keyword">default</span>]$ more country_load.sql </span><br><span class="line"><span class="keyword">SET</span> FOREIGN_KEY_CHECKS=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">LOAD</span> <span class="keyword">DATA</span> <span class="keyword">LOCAL</span> <span class="keyword">INFILE</span> <span class="string">&#x27;/var/lib/mysql/undrop-for-innodb/dumps/default/country&#x27;</span> <span class="keyword">REPLACE</span> <span class="keyword">INTO</span> <span class="keyword">TABLE</span> <span class="string">`country`</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">&#x27;\t&#x27;</span> <span class="keyword">OPTIONALLY</span> <span class="keyword">ENCLOSED</span> <span class="keyword">BY</span> <span class="string">&#x27;&quot;&#x27;</span> <span class="keyword">LINES</span> <span class="keyword">STARTING</span> <span class="keyword">BY</span> <span class="string">&#x27;co</span></span><br><span class="line"><span class="string">untry\t&#x27;</span> (<span class="string">`country_id`</span>, <span class="string">`country`</span>, <span class="string">`last_update`</span>);</span><br></pre></td></tr></table></figure></p>
+<h3 id="开始恢复数据"><a href="#开始恢复数据" class="headerlink" title="开始恢复数据"></a>开始恢复数据</h3><p>启动数据库<br><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld_safe --defaults-<span class="keyword">file</span>=<span class="regexp">/data/my</span>sqldata<span class="regexp">/3306/my</span>.cnf &amp;</span><br></pre></td></tr></table></figure><br>创建表<br><figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(mysql<span class="variable">@localhost</span>) [(none)]&gt; <span class="keyword">use</span> sakila</span><br><span class="line">Database changed</span><br><span class="line">(mysql<span class="variable">@localhost</span>) [sakila]&gt; source sakila/country.sql</span><br></pre></td></tr></table></figure><br>load回数据<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">(mysql@localhost) [sakila]&gt; source dumps/default/country<span class="emphasis">_load.sql</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">Query OK, 109 rows affected (0.01 sec)</span></span><br><span class="line"><span class="emphasis">Records: 109  Deleted: 0  Skipped: 0  Warnings: 0</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">(mysql@localhost) [sakila]&gt; SELECT COUNT(*) FROM country;</span></span><br><span class="line"><span class="emphasis">+----------+</span></span><br><span class="line"><span class="emphasis">| COUNT(*) |</span></span><br><span class="line"><span class="emphasis">+----------+</span></span><br><span class="line"><span class="emphasis">|      109 |</span></span><br><span class="line"><span class="emphasis">+----------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">checksum和之前也是一样的</span></span><br><span class="line"><span class="emphasis">(mysql@localhost) [sakila]&gt; CHECKSUM TABLE country;</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| Table               | Checksum   |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| sakila.country      | 2039770088 |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2016/12/26/MySQL误DROP表恢复,innodb_file_per_table=ON/" target="_blank" title="MySQL误DROP表恢复,innodb_file_per_table=ON">http://fuxkdb.com/2016/12/26/MySQL误DROP表恢复,innodb_file_per_table=ON/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%A4%87%E4%BB%BD%E6%81%A2%E5%A4%8D/" rel="tag">MySQL备份恢复</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/12/27/%E6%81%A2%E5%A4%8D%E8%A1%A8%E7%BB%93%E6%9E%84/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          恢复表结构
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/12/20/Auto_increment-%E4%BA%A7%E7%94%9F-GAP%E7%9A%84%E5%8E%9F%E5%9B%A0/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Auto_increment 产生 GAP的原因</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D-innodb-file-per-table-ON"><span class="nav-number">1.</span> <span class="nav-text">MySQL误DROP表恢复,innodb_file_per_table&#x3D;ON</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Undrop-for-innodb%E5%AE%89%E8%A3%85"><span class="nav-number">1.1.</span> <span class="nav-text">Undrop-for-innodb安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A0%E9%99%A4Country%E8%A1%A8%E5%B9%B6%E6%81%A2%E5%A4%8D"><span class="nav-number">1.2.</span> <span class="nav-text">删除Country表并恢复</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E8%A1%A8"><span class="nav-number">1.3.</span> <span class="nav-text">恢复表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8stream-parser%E8%A7%A3%E6%9E%90%E6%95%B0%E6%8D%AE%E6%96%87%E4%BB%B6"><span class="nav-number">1.3.1.</span> <span class="nav-text">使用stream_parser解析数据文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%A7%8B%E6%81%A2%E5%A4%8D%E6%95%B0%E6%8D%AE"><span class="nav-number">1.3.2.</span> <span class="nav-text">开始恢复数据</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

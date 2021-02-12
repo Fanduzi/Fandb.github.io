@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mysql 5.5.x升级至5.7.21遇到的坑(一) | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL升级" />
+  
+  
+  
+  
+  <meta name="description" content="MySQL 5.5.X升级至5.7.21遇到的坑(一)发现问题将一个测试环境的5.5.x升级到5.7.21后,打算将5.7.21作为从库,开始同步主库数据(binlog_format&#x3D;statement),结果刚一start slave就报错1Coordinator stopped because there were error(s) in the worker(s). The most rec">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL 5.5.X升级至5.7.21遇到的坑(一)">
+<meta property="og:url" content="http://fuxkdb.com/2018/02/10/MySQL-5.5.X%E5%8D%87%E7%BA%A7%E8%87%B35.7.21%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91(%E4%B8%80)/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="MySQL 5.5.X升级至5.7.21遇到的坑(一)发现问题将一个测试环境的5.5.x升级到5.7.21后,打算将5.7.21作为从库,开始同步主库数据(binlog_format&#x3D;statement),结果刚一start slave就报错1Coordinator stopped because there were error(s) in the worker(s). The most rec">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-02-10T12:23:00.000Z">
+<meta property="article:modified_time" content="2018-02-11T01:24:30.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL升级">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-MySQL-5.5.X升级至5.7.21遇到的坑(一)" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MySQL 5.5.X升级至5.7.21遇到的坑(一)
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/02/10/MySQL-5.5.X%E5%8D%87%E7%BA%A7%E8%87%B35.7.21%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91(%E4%B8%80)/" class="article-date">
+	  <time datetime="2018-02-10T12:23:00.000Z" itemprop="datePublished">2018-02-10</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL-5-5-X升级至5-7-21遇到的坑-一"><a href="#MySQL-5-5-X升级至5-7-21遇到的坑-一" class="headerlink" title="MySQL 5.5.X升级至5.7.21遇到的坑(一)"></a>MySQL 5.5.X升级至5.7.21遇到的坑(一)</h1><h2 id="发现问题"><a href="#发现问题" class="headerlink" title="发现问题"></a>发现问题</h2><p>将一个测试环境的5.5.x升级到5.7.21后,打算将5.7.21作为从库,开始同步主库数据(binlog_format=statement),结果刚一start slave就报错<br><figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Coordinator stopped because there were error(s) in the worker(s). The most recent failure being: Worker 1 failed executing transaction &#x27;ANONYMOUS&#x27; at master log mysql-bin.000004, end_log_pos 812. See error log<span class="built_in"> and/or </span>performance_schema.replication_applier_status_by_worker table for more details about this failure<span class="built_in"> or </span>others,<span class="built_in"> if </span>any.</span><br></pre></td></tr></table></figure><br>查看error log<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">2018-02-10T19:52:52.347979+08:00 3 [Warning] Slave I/O for channel &#x27;&#x27;: Notifying master by <span class="keyword">SET</span> @master_binlog_checksum= @@global.binlog_checksum <span class="keyword">failed</span> <span class="keyword">with</span> er</span><br><span class="line">ror: <span class="literal">Unknown</span> <span class="keyword">system</span> <span class="keyword">variable</span> <span class="string">&#x27;binlog_checksum&#x27;</span>, Error_code: <span class="number">1193</span></span><br><span class="line"><span class="number">2018</span><span class="number">-02</span><span class="number">-10</span>T19:<span class="number">52</span>:<span class="number">52.348080</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3</span> [<span class="keyword">Warning</span>] <span class="keyword">Slave</span> I/O <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span>: <span class="literal">Unknown</span> <span class="keyword">system</span> <span class="keyword">variable</span> <span class="string">&#x27;SERVER_UUID&#x27;</span> <span class="keyword">on</span> master. A probable cause <span class="keyword">is</span> that the <span class="keyword">variable</span> i</span><br><span class="line">s <span class="keyword">not</span> supported <span class="keyword">on</span> the <span class="keyword">master</span> (<span class="keyword">version</span>: <span class="number">5.5</span><span class="number">.59</span>-<span class="keyword">log</span>), even though it <span class="keyword">is</span> <span class="keyword">on</span> the <span class="keyword">slave</span> (<span class="keyword">version</span>: <span class="number">5.7</span><span class="number">.21</span>-<span class="keyword">log</span>), Error_code: <span class="number">1193</span></span><br><span class="line"><span class="number">2018</span><span class="number">-02</span><span class="number">-10</span>T19:<span class="number">52</span>:<span class="number">52.445947</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">5</span> [<span class="keyword">ERROR</span>] <span class="keyword">Slave</span> <span class="keyword">SQL</span> <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span>: Worker <span class="number">1</span> <span class="keyword">failed</span> executing <span class="keyword">transaction</span> <span class="string">&#x27;ANONYMOUS&#x27;</span> <span class="keyword">at</span> <span class="keyword">master</span> <span class="keyword">log</span> , end_log_pos <span class="number">2651</span>; Error </span><br><span class="line">&#x27;You have an error in your SQL syntax; <span class="keyword">check</span> the <span class="keyword">manual</span> that corresponds <span class="keyword">to</span> your MySQL <span class="keyword">server</span> <span class="keyword">version</span> <span class="keyword">for</span> the <span class="keyword">right</span> syntax <span class="keyword">to</span> <span class="keyword">use</span> near <span class="string">&#x27;GET, POST, FILE, CLASS,</span></span><br><span class="line"><span class="string"> METHOD ) VALUES ( &#x27;</span>maokaixin<span class="string">&#x27;, 1518159802, 3395959414, &#x27;&#x27; at line 1&#x27;</span> <span class="keyword">on</span> query. <span class="keyword">Default</span> <span class="keyword">database</span>: <span class="string">&#x27;fandb&#x27;</span>. <span class="keyword">Query</span>: <span class="string">&#x27;INSERT INTO postlog ( USERNAME, TIME, IP, GE</span></span><br><span class="line"><span class="string">T, POST, FILE, CLASS, METHOD ) VALUES ( &#x27;</span>maokaixin<span class="string">&#x27;, 1518159802, 3395959414, &#x27;</span>gameid:<span class="number">0</span>;&#x27;, &#x27;&#x27;, &#x27;&#x27;, &#x27;api&#x27;, &#x27;ajaxGetServers&#x27; )&#x27;, Error_code: 1064</span><br><span class="line">2018-02-10T19:52:52.446217+08:00 4 [Warning] Slave SQL for channel &#x27;&#x27;: ... The slave coordinator and worker threads are stopped, possibly leaving data in incon</span><br><span class="line">sistent state. A restart should <span class="keyword">restore</span> consistency automatically, although <span class="keyword">using</span> non-<span class="keyword">transactional</span> <span class="keyword">storage</span> <span class="keyword">for</span> <span class="keyword">data</span> <span class="keyword">or</span> info <span class="keyword">tables</span> <span class="keyword">or</span> <span class="keyword">DDL</span> queries could <span class="keyword">lead</span> t</span><br><span class="line">o problems. <span class="keyword">In</span> such cases you have <span class="keyword">to</span> examine your <span class="keyword">data</span> (see documentation <span class="keyword">for</span> details). Error_code: <span class="number">1756</span></span><br><span class="line"><span class="number">2018</span><span class="number">-02</span><span class="number">-10</span>T19:<span class="number">52</span>:<span class="number">52.446235</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] <span class="keyword">Slave</span> <span class="keyword">SQL</span> <span class="keyword">thread</span> <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span> exiting, <span class="keyword">replication</span> stopped <span class="keyword">in</span> <span class="keyword">log</span> <span class="string">&#x27;mysql-bin.000003&#x27;</span> <span class="keyword">at</span> <span class="keyword">position</span> <span class="number">2313</span></span><br><span class="line"><span class="number">2018</span><span class="number">-02</span><span class="number">-10</span>T19:<span class="number">53</span>:<span class="number">15.708058</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">7</span> [Note] <span class="keyword">Slave</span> <span class="keyword">SQL</span> <span class="keyword">thread</span> <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span> <span class="keyword">initialized</span>, <span class="keyword">starting</span> <span class="keyword">replication</span> <span class="keyword">in</span> <span class="keyword">log</span> <span class="string">&#x27;mysql-bin.000003&#x27;</span> <span class="keyword">at</span> <span class="keyword">position</span> <span class="number">2313</span>, relay l</span><br><span class="line">og <span class="string">&#x27;./mysql-relay.000009&#x27;</span> <span class="keyword">position</span>: <span class="number">304</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="找出原因"><a href="#找出原因" class="headerlink" title="找出原因"></a>找出原因</h2><p>头两个<code>Warning</code>是由于主库没有binlog_checksum参数，也没有SERVER_UUID参数(看来从库开始同步时要先去主库查询这两个参数)<br>接着的<code>ERROR</code>报的错误竟然是<code>error in your SQL syntax</code>语法错误.</p>
+<p>解析binlog后查到SQL语句为<br><figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">INSERT <span class="keyword">INTO</span> postlog ( USERNAME, TIME, IP, GET, POST, FILE, <span class="keyword">CLASS</span>, <span class="function"><span class="keyword">METHOD</span> ) <span class="title">VALUES</span> <span class="params">( <span class="string">&#x27;maokaixin&#x27;</span>, 1518159802, 3395959414, <span class="string">&#x27;gameid:0;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;api&#x27;</span>, <span class="string">&#x27;ajaxGetServers&#x27;</span> )</span>;</span></span><br></pre></td></tr></table></figure><br>我依次在5.5和5.7的环境执行这个SQL发现该SQL在5.5可以正常执行，而在5.7执行就会报错语法错误<br>于是一点一点分析这个SQL哪有问题，说实话肉眼真没看出来<br>只好在5.7一点一点执行<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> postlog ( USERNAME, <span class="built_in">TIME</span>, IP) <span class="keyword">VALUES</span> ( <span class="string">&#x27;maokaixin&#x27;</span>, <span class="number">1518159802</span>, <span class="number">3395959414</span>);</span><br></pre></td></tr></table></figure><br>没问题可以执行<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> postlog ( USERNAME, <span class="built_in">TIME</span>, IP, <span class="keyword">GET</span>) <span class="keyword">VALUES</span> ( <span class="string">&#x27;maokaixin&#x27;</span>, <span class="number">1518159802</span>, <span class="number">3395959414</span>, <span class="string">&#x27;gameid:0;&#x27;</span>);</span><br></pre></td></tr></table></figure><br>报错了！,那显然就是<code>GET</code>有问题。 怀疑是保留字？</p>
+<a id="more"></a>
+<p>查看官方文档,发现还真是<br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/keywords.html">https://dev.mysql.com/doc/refman/5.7/en/keywords.html</a></p>
+<h3 id="新的问题"><a href="#新的问题" class="headerlink" title="新的问题"></a>新的问题</h3><p>这个保留字的问题还真蛋疼，说明开发不规范呗，只能让开发改了.<br>目前由于是测试，想要先跳过这个表，于是使用5.7的新特性动态更改replication filter<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">change replication<span class="built_in"> filter </span>REPLICATE_WILD_IGNORE_TABLE=(<span class="string">&#x27;mysql.%&#x27;</span>,<span class="string">&#x27;information_schema.%&#x27;</span>,<span class="string">&#x27;performance_schema.%&#x27;</span>,<span class="string">&#x27;union_log%.%&#x27;</span>,<span class="string">&#x27;test.%&#x27;</span>,<span class="string">&#x27;fandb.postlog&#x27;</span>);</span><br></pre></td></tr></table></figure><br>然后跳过这个错误<br>结果还是报错<br>奇怪了，我一度怀疑自己的复制过滤规则有问题。然后又搭建了一套5.7和一套5.5测试同样的复制过滤规则都管用<br>于是怀疑</p>
+<ol>
+<li>5.5做主5.7做从本身有问题，复制过滤规则不起作用</li>
+<li>复制过滤规则起作用，但是有别的问题</li>
+</ol>
+<p>5.5主库<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 19:54:  [fandb]&gt; show create table postlog\G</span><br><span class="line"><span class="builtin-name">ERROR</span> 2006 (HY000): MySQL<span class="built_in"> server </span>has gone away</span><br><span class="line"><span class="literal">No</span> connection. Trying <span class="keyword">to</span> reconnect<span class="built_in">..</span>.</span><br><span class="line">Connection id:    5</span><br><span class="line">Current database: fandb</span><br><span class="line"></span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">       Table: postlog</span><br><span class="line">Create Table: CREATE TABLE `postlog` (</span><br><span class="line">  `id` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT COMMENT <span class="string">&#x27;自增ID&#x27;</span>,</span><br><span class="line">  `username` char(50) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;&#x27;</span> COMMENT <span class="string">&#x27;管理员账号&#x27;</span>,</span><br><span class="line">  `time` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;时间&#x27;</span>,</span><br><span class="line">  `ip` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;IP&#x27;</span>,</span><br><span class="line">  `get` text <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;GET&#x27;</span>,</span><br><span class="line">  `post` text <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">  `file` text <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;FILE&#x27;</span>,</span><br><span class="line">  `class` char(50) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;&#x27;</span> COMMENT <span class="string">&#x27;CLASS&#x27;</span>,</span><br><span class="line">  `method` char(50) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;&#x27;</span> COMMENT <span class="string">&#x27;METHOD&#x27;</span>,</span><br><span class="line">  PRIMARY KEY (`id`),</span><br><span class="line">  KEY `username` (`username`),</span><br><span class="line">  KEY `c_m` (`class`,`method`),</span><br><span class="line">  KEY `time` (`time`)</span><br><span class="line">) <span class="attribute">ENGINE</span>=InnoDB <span class="attribute">AUTO_INCREMENT</span>=11<span class="built_in"> DEFAULT </span><span class="attribute">CHARSET</span>=utf8 <span class="attribute">COMMENT</span>=<span class="string">&#x27;提交日志表&#x27;</span></span><br><span class="line">1 row <span class="keyword">in</span> <span class="builtin-name">set</span> (0.00 sec)</span><br><span class="line"></span><br><span class="line">root@localhost 19:59:  [fandb]&gt; select * <span class="keyword">from</span> postlog;</span><br><span class="line">Empty <span class="builtin-name">set</span> (0.00 sec)</span><br></pre></td></tr></table></figure><br>5.7.21从库<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">root@localhost</span> <span class="attr">19:58:</span>  [<span class="string">fandb</span>]<span class="string">&gt;</span> <span class="string">select</span> <span class="string">*</span> <span class="string">from</span> <span class="string">postlog;</span></span><br><span class="line"><span class="string">Empty</span> <span class="string">set</span> <span class="string">(0.00</span> <span class="string">sec)</span></span><br><span class="line"></span><br><span class="line"><span class="string">root@localhost</span> <span class="attr">19:59:</span>  [<span class="string">fandb</span>]<span class="string">&gt;</span> <span class="string">show</span> <span class="string">slave</span> <span class="string">status\G</span></span><br><span class="line"><span class="string">***************************</span> <span class="number">1</span><span class="string">.</span> <span class="string">row</span> <span class="string">***************************</span></span><br><span class="line">               <span class="attr">Slave_IO_State:</span> <span class="string">Waiting</span> <span class="string">for</span> <span class="string">master</span> <span class="string">to</span> <span class="string">send</span> <span class="string">event</span></span><br><span class="line">                  <span class="attr">Master_Host:</span> <span class="number">10.105</span><span class="number">.118</span><span class="number">.10</span></span><br><span class="line">                  <span class="attr">Master_User:</span> <span class="string">repl</span></span><br><span class="line">                  <span class="attr">Master_Port:</span> <span class="number">3308</span></span><br><span class="line">                <span class="attr">Connect_Retry:</span> <span class="number">60</span></span><br><span class="line">              <span class="attr">Master_Log_File:</span> <span class="string">mysql-bin.000004</span></span><br><span class="line">          <span class="attr">Read_Master_Log_Pos:</span> <span class="number">1028</span></span><br><span class="line">               <span class="attr">Relay_Log_File:</span> <span class="string">mysql-relay.000010</span></span><br><span class="line">                <span class="attr">Relay_Log_Pos:</span> <span class="number">1217</span></span><br><span class="line">        <span class="attr">Relay_Master_Log_File:</span> <span class="string">mysql-bin.000004</span></span><br><span class="line">             <span class="attr">Slave_IO_Running:</span> <span class="literal">Yes</span></span><br><span class="line">            <span class="attr">Slave_SQL_Running:</span> <span class="literal">Yes</span></span><br><span class="line">              <span class="attr">Replicate_Do_DB:</span> </span><br><span class="line">          <span class="attr">Replicate_Ignore_DB:</span> </span><br><span class="line">           <span class="attr">Replicate_Do_Table:</span> </span><br><span class="line">       <span class="attr">Replicate_Ignore_Table:</span> </span><br><span class="line">      <span class="attr">Replicate_Wild_Do_Table:</span> </span><br><span class="line">  <span class="attr">Replicate_Wild_Ignore_Table:</span> <span class="string">mysql.%,information_schema.%,performance_schema.%,union_log%.%,test.%,fandb.postlog</span></span><br><span class="line">                   <span class="attr">Last_Errno:</span> <span class="number">0</span></span><br><span class="line">                   <span class="attr">Last_Error:</span> </span><br><span class="line">                 <span class="attr">Skip_Counter:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">Exec_Master_Log_Pos:</span> <span class="number">1028</span></span><br><span class="line">              <span class="attr">Relay_Log_Space:</span> <span class="number">2296</span></span><br><span class="line">              <span class="attr">Until_Condition:</span> <span class="string">None</span></span><br><span class="line">               <span class="attr">Until_Log_File:</span> </span><br><span class="line">                <span class="attr">Until_Log_Pos:</span> <span class="number">0</span></span><br><span class="line">           <span class="attr">Master_SSL_Allowed:</span> <span class="literal">No</span></span><br><span class="line">           <span class="attr">Master_SSL_CA_File:</span> </span><br><span class="line">           <span class="attr">Master_SSL_CA_Path:</span> </span><br><span class="line">              <span class="attr">Master_SSL_Cert:</span> </span><br><span class="line">            <span class="attr">Master_SSL_Cipher:</span> </span><br><span class="line">               <span class="attr">Master_SSL_Key:</span> </span><br><span class="line">        <span class="attr">Seconds_Behind_Master:</span> <span class="number">0</span></span><br><span class="line"><span class="attr">Master_SSL_Verify_Server_Cert:</span> <span class="literal">No</span></span><br><span class="line">                <span class="attr">Last_IO_Errno:</span> <span class="number">0</span></span><br><span class="line">                <span class="attr">Last_IO_Error:</span> </span><br><span class="line">               <span class="attr">Last_SQL_Errno:</span> <span class="number">0</span></span><br><span class="line">               <span class="attr">Last_SQL_Error:</span> </span><br><span class="line">  <span class="attr">Replicate_Ignore_Server_Ids:</span> </span><br><span class="line">             <span class="attr">Master_Server_Id:</span> <span class="number">323308</span></span><br><span class="line">                  <span class="attr">Master_UUID:</span> </span><br><span class="line">             <span class="attr">Master_Info_File:</span> <span class="string">mysql.slave_master_info</span></span><br><span class="line">                    <span class="attr">SQL_Delay:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">SQL_Remaining_Delay:</span> <span class="literal">NULL</span></span><br><span class="line">      <span class="attr">Slave_SQL_Running_State:</span> <span class="string">Slave</span> <span class="string">has</span> <span class="string">read</span> <span class="string">all</span> <span class="string">relay</span> <span class="string">log;</span> <span class="string">waiting</span> <span class="string">for</span> <span class="string">more</span> <span class="string">updates</span></span><br><span class="line">           <span class="attr">Master_Retry_Count:</span> <span class="number">86400</span></span><br><span class="line">                  <span class="attr">Master_Bind:</span> </span><br><span class="line">      <span class="attr">Last_IO_Error_Timestamp:</span> </span><br><span class="line">     <span class="attr">Last_SQL_Error_Timestamp:</span> </span><br><span class="line">               <span class="attr">Master_SSL_Crl:</span> </span><br><span class="line">           <span class="attr">Master_SSL_Crlpath:</span> </span><br><span class="line">           <span class="attr">Retrieved_Gtid_Set:</span> </span><br><span class="line">            <span class="attr">Executed_Gtid_Set:</span> <span class="string">3b6f4462-0190-11e8-ac03-525400a44d53:1-37445291</span></span><br><span class="line">                <span class="attr">Auto_Position:</span> <span class="number">0</span></span><br><span class="line">         <span class="attr">Replicate_Rewrite_DB:</span> </span><br><span class="line">                 <span class="attr">Channel_Name:</span> </span><br><span class="line">           <span class="attr">Master_TLS_Version:</span> </span><br><span class="line"><span class="number">1</span> <span class="string">row</span> <span class="string">in</span> <span class="string">set</span> <span class="string">(0.00</span> <span class="string">sec)</span></span><br></pre></td></tr></table></figure></p>
+<p>5.5主库以兼容的方式插入<br><figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">root@localhost <span class="number">19</span>:<span class="number">59</span>:  [fandb]&gt; INSERT <span class="keyword">INTO</span> postlog ( USERNAME, TIME, IP, `GET`, POST, FILE, <span class="keyword">CLASS</span>, <span class="function"><span class="keyword">METHOD</span> ) <span class="title">VALUES</span> <span class="params">( <span class="string">&#x27;maokaixin&#x27;</span>, 1518159802, 3395959414, <span class="string">&#x27;gameid:0;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;api&#x27;</span>, <span class="string">&#x27;ajaxGetServers&#x27;</span> )</span>;</span></span><br><span class="line">Query OK, <span class="number">1</span> row affected, <span class="number">1</span> warning (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">root@localhost <span class="number">20</span>:<span class="number">00</span>:  [fandb]&gt; <span class="keyword">select</span> * <span class="keyword">from</span> postlog;</span><br><span class="line">+----+-----------+------------+------------+-----------+------+------+-------+----------------+</span><br><span class="line">| id | username  | time       | ip         | get       | post | file | <span class="keyword">class</span> | <span class="function"><span class="keyword">method</span>         |</span></span><br><span class="line"><span class="function">+----+-----------+------------+------------+-----------+------+------+-------+----------------+</span></span><br><span class="line"><span class="function">| 11 | <span class="title">maokaixin</span> | 1518159802 | 2147483647 | <span class="title">gameid</span>:</span><span class="number">0</span>; |      |      | api   | ajaxGetServers |</span><br><span class="line">+----+-----------+------------+------------+-----------+------+------+-------+----------------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure></p>
+<p>5.7.21从库查看<br>没有插入数据,复制规律规则生效<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="string">root@localhost</span> <span class="attr">19:59:</span>  [<span class="string">fandb</span>]<span class="string">&gt;</span> <span class="string">show</span> <span class="string">slave</span> <span class="string">status\G</span></span><br><span class="line"><span class="string">***************************</span> <span class="number">1</span><span class="string">.</span> <span class="string">row</span> <span class="string">***************************</span></span><br><span class="line">               <span class="attr">Slave_IO_State:</span> <span class="string">Waiting</span> <span class="string">for</span> <span class="string">master</span> <span class="string">to</span> <span class="string">send</span> <span class="string">event</span></span><br><span class="line">                  <span class="attr">Master_Host:</span> <span class="number">10.105</span><span class="number">.118</span><span class="number">.10</span></span><br><span class="line">                  <span class="attr">Master_User:</span> <span class="string">repl</span></span><br><span class="line">                  <span class="attr">Master_Port:</span> <span class="number">3308</span></span><br><span class="line">                <span class="attr">Connect_Retry:</span> <span class="number">60</span></span><br><span class="line">              <span class="attr">Master_Log_File:</span> <span class="string">mysql-bin.000004</span></span><br><span class="line">          <span class="attr">Read_Master_Log_Pos:</span> <span class="number">1395</span></span><br><span class="line">               <span class="attr">Relay_Log_File:</span> <span class="string">mysql-relay.000010</span></span><br><span class="line">                <span class="attr">Relay_Log_Pos:</span> <span class="number">1584</span></span><br><span class="line">        <span class="attr">Relay_Master_Log_File:</span> <span class="string">mysql-bin.000004</span></span><br><span class="line">             <span class="attr">Slave_IO_Running:</span> <span class="literal">Yes</span></span><br><span class="line">            <span class="attr">Slave_SQL_Running:</span> <span class="literal">Yes</span></span><br><span class="line">              <span class="attr">Replicate_Do_DB:</span> </span><br><span class="line">          <span class="attr">Replicate_Ignore_DB:</span> </span><br><span class="line">           <span class="attr">Replicate_Do_Table:</span> </span><br><span class="line">       <span class="attr">Replicate_Ignore_Table:</span> </span><br><span class="line">      <span class="attr">Replicate_Wild_Do_Table:</span> </span><br><span class="line">  <span class="attr">Replicate_Wild_Ignore_Table:</span> <span class="string">mysql.%,information_schema.%,performance_schema.%,union_log%.%,test.%,fandb.postlog</span></span><br><span class="line">                   <span class="attr">Last_Errno:</span> <span class="number">0</span></span><br><span class="line">                   <span class="attr">Last_Error:</span> </span><br><span class="line">                 <span class="attr">Skip_Counter:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">Exec_Master_Log_Pos:</span> <span class="number">1395</span></span><br><span class="line">              <span class="attr">Relay_Log_Space:</span> <span class="number">2663</span></span><br><span class="line">              <span class="attr">Until_Condition:</span> <span class="string">None</span></span><br><span class="line">               <span class="attr">Until_Log_File:</span> </span><br><span class="line">                <span class="attr">Until_Log_Pos:</span> <span class="number">0</span></span><br><span class="line">           <span class="attr">Master_SSL_Allowed:</span> <span class="literal">No</span></span><br><span class="line">           <span class="attr">Master_SSL_CA_File:</span> </span><br><span class="line">           <span class="attr">Master_SSL_CA_Path:</span> </span><br><span class="line">              <span class="attr">Master_SSL_Cert:</span> </span><br><span class="line">            <span class="attr">Master_SSL_Cipher:</span> </span><br><span class="line">               <span class="attr">Master_SSL_Key:</span> </span><br><span class="line">        <span class="attr">Seconds_Behind_Master:</span> <span class="number">0</span></span><br><span class="line"><span class="attr">Master_SSL_Verify_Server_Cert:</span> <span class="literal">No</span></span><br><span class="line">                <span class="attr">Last_IO_Errno:</span> <span class="number">0</span></span><br><span class="line">                <span class="attr">Last_IO_Error:</span> </span><br><span class="line">               <span class="attr">Last_SQL_Errno:</span> <span class="number">0</span></span><br><span class="line">               <span class="attr">Last_SQL_Error:</span> </span><br><span class="line">  <span class="attr">Replicate_Ignore_Server_Ids:</span> </span><br><span class="line">             <span class="attr">Master_Server_Id:</span> <span class="number">323308</span></span><br><span class="line">                  <span class="attr">Master_UUID:</span> </span><br><span class="line">             <span class="attr">Master_Info_File:</span> <span class="string">mysql.slave_master_info</span></span><br><span class="line">                    <span class="attr">SQL_Delay:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">SQL_Remaining_Delay:</span> <span class="literal">NULL</span></span><br><span class="line">      <span class="attr">Slave_SQL_Running_State:</span> <span class="string">Slave</span> <span class="string">has</span> <span class="string">read</span> <span class="string">all</span> <span class="string">relay</span> <span class="string">log;</span> <span class="string">waiting</span> <span class="string">for</span> <span class="string">more</span> <span class="string">updates</span></span><br><span class="line">           <span class="attr">Master_Retry_Count:</span> <span class="number">86400</span></span><br><span class="line">                  <span class="attr">Master_Bind:</span> </span><br><span class="line">      <span class="attr">Last_IO_Error_Timestamp:</span> </span><br><span class="line">     <span class="attr">Last_SQL_Error_Timestamp:</span> </span><br><span class="line">               <span class="attr">Master_SSL_Crl:</span> </span><br><span class="line">           <span class="attr">Master_SSL_Crlpath:</span> </span><br><span class="line">           <span class="attr">Retrieved_Gtid_Set:</span> </span><br><span class="line">            <span class="attr">Executed_Gtid_Set:</span> <span class="string">3b6f4462-0190-11e8-ac03-525400a44d53:1-37445291</span></span><br><span class="line">                <span class="attr">Auto_Position:</span> <span class="number">0</span></span><br><span class="line">         <span class="attr">Replicate_Rewrite_DB:</span> </span><br><span class="line">                 <span class="attr">Channel_Name:</span> </span><br><span class="line">           <span class="attr">Master_TLS_Version:</span> </span><br><span class="line"><span class="number">1</span> <span class="string">row</span> <span class="string">in</span> <span class="string">set</span> <span class="string">(0.00</span> <span class="string">sec)</span></span><br><span class="line"></span><br><span class="line"><span class="string">root@localhost</span> <span class="attr">20:00:</span>  [<span class="string">fandb</span>]<span class="string">&gt;</span> <span class="string">select</span> <span class="string">*</span> <span class="string">from</span> <span class="string">postlog;</span></span><br><span class="line"><span class="string">Empty</span> <span class="string">set</span> <span class="string">(0.00</span> <span class="string">sec)</span></span><br></pre></td></tr></table></figure></p>
+<p>5.5主库以非兼容方式插入<br><figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">root@localhost <span class="number">20</span>:<span class="number">01</span>:  [fandb]&gt; INSERT <span class="keyword">INTO</span> postlog ( USERNAME, TIME, IP, GET, POST, FILE, <span class="keyword">CLASS</span>, <span class="function"><span class="keyword">METHOD</span> ) <span class="title">VALUES</span> <span class="params">( <span class="string">&#x27;maokaixin&#x27;</span>, 1518159802, 3395959414, <span class="string">&#x27;gameid:0;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;api&#x27;</span>, <span class="string">&#x27;ajaxGetServers&#x27;</span> )</span>;</span></span><br><span class="line">Query OK, <span class="number">1</span> row affected, <span class="number">1</span> warning (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">root@localhost <span class="number">20</span>:<span class="number">02</span>:  [fandb]&gt; <span class="keyword">select</span> * <span class="keyword">from</span> postlog;</span><br><span class="line">+----+-----------+------------+------------+-----------+------+------+-------+----------------+</span><br><span class="line">| id | username  | time       | ip         | get       | post | file | <span class="keyword">class</span> | <span class="function"><span class="keyword">method</span>         |</span></span><br><span class="line"><span class="function">+----+-----------+------------+------------+-----------+------+------+-------+----------------+</span></span><br><span class="line"><span class="function">| 11 | <span class="title">maokaixin</span> | 1518159802 | 2147483647 | <span class="title">gameid</span>:</span><span class="number">0</span>; |      |      | api   | ajaxGetServers |</span><br><span class="line">| <span class="number">13</span> | maokaixin | <span class="number">1518159802</span> | <span class="number">2147483647</span> | gameid:<span class="number">0</span>; |      |      | api   | ajaxGetServers |</span><br><span class="line">+----+-----------+------------+------------+-----------+------+------+-------+----------------+</span><br><span class="line"><span class="number">2</span> rows <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure><br>5.7.21从库复制sql thread报错<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">root@localhost</span> <span class="attr">20:02:</span>  [<span class="string">fandb</span>]<span class="string">&gt;</span> <span class="string">show</span> <span class="string">slave</span> <span class="string">status\G</span></span><br><span class="line"><span class="string">***************************</span> <span class="number">1</span><span class="string">.</span> <span class="string">row</span> <span class="string">***************************</span></span><br><span class="line">               <span class="attr">Slave_IO_State:</span> <span class="string">Waiting</span> <span class="string">for</span> <span class="string">master</span> <span class="string">to</span> <span class="string">send</span> <span class="string">event</span></span><br><span class="line">                  <span class="attr">Master_Host:</span> <span class="number">10.105</span><span class="number">.118</span><span class="number">.10</span></span><br><span class="line">                  <span class="attr">Master_User:</span> <span class="string">repl</span></span><br><span class="line">                  <span class="attr">Master_Port:</span> <span class="number">3308</span></span><br><span class="line">                <span class="attr">Connect_Retry:</span> <span class="number">60</span></span><br><span class="line">              <span class="attr">Master_Log_File:</span> <span class="string">mysql-bin.000004</span></span><br><span class="line">          <span class="attr">Read_Master_Log_Pos:</span> <span class="number">1760</span></span><br><span class="line">               <span class="attr">Relay_Log_File:</span> <span class="string">mysql-relay.000010</span></span><br><span class="line">                <span class="attr">Relay_Log_Pos:</span> <span class="number">1584</span></span><br><span class="line">        <span class="attr">Relay_Master_Log_File:</span> <span class="string">mysql-bin.000004</span></span><br><span class="line">             <span class="attr">Slave_IO_Running:</span> <span class="literal">Yes</span></span><br><span class="line">            <span class="attr">Slave_SQL_Running:</span> <span class="literal">No</span></span><br><span class="line">              <span class="attr">Replicate_Do_DB:</span> </span><br><span class="line">          <span class="attr">Replicate_Ignore_DB:</span> </span><br><span class="line">           <span class="attr">Replicate_Do_Table:</span> </span><br><span class="line">       <span class="attr">Replicate_Ignore_Table:</span> </span><br><span class="line">      <span class="attr">Replicate_Wild_Do_Table:</span> </span><br><span class="line">  <span class="attr">Replicate_Wild_Ignore_Table:</span> <span class="string">mysql.%,information_schema.%,performance_schema.%,union_log%.%,test.%,fandb.postlog</span></span><br><span class="line">                   <span class="attr">Last_Errno:</span> <span class="number">1064</span></span><br><span class="line">                   <span class="attr">Last_Error:</span> <span class="string">Coordinator</span> <span class="string">stopped</span> <span class="string">because</span> <span class="string">there</span> <span class="string">were</span> <span class="string">error(s)</span> <span class="string">in</span> <span class="string">the</span> <span class="string">worker(s).</span> <span class="attr">The most recent failure being:</span> <span class="string">Worker</span> <span class="number">1</span> <span class="string">failed</span> <span class="string">executing</span> <span class="string">transaction</span> <span class="string">&#x27;ANONYMOUS&#x27;</span> <span class="string">at</span> <span class="string">master</span> <span class="string">log</span> <span class="string">mysql-bin.000004,</span> <span class="string">end_log_pos</span> <span class="number">1733. </span><span class="string">See</span> <span class="string">error</span> <span class="string">log</span> <span class="string">and/or</span> <span class="string">performance_schema.replication_applier_status_by_worker</span> <span class="string">table</span> <span class="string">for</span> <span class="string">more</span> <span class="string">details</span> <span class="string">about</span> <span class="string">this</span> <span class="string">failure</span> <span class="string">or</span> <span class="string">others,</span> <span class="string">if</span> <span class="string">any.</span></span><br><span class="line">                 <span class="attr">Skip_Counter:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">Exec_Master_Log_Pos:</span> <span class="number">1395</span></span><br><span class="line">              <span class="attr">Relay_Log_Space:</span> <span class="number">3028</span></span><br><span class="line">              <span class="attr">Until_Condition:</span> <span class="string">None</span></span><br><span class="line">               <span class="attr">Until_Log_File:</span> </span><br><span class="line">                <span class="attr">Until_Log_Pos:</span> <span class="number">0</span></span><br><span class="line">           <span class="attr">Master_SSL_Allowed:</span> <span class="literal">No</span></span><br><span class="line">           <span class="attr">Master_SSL_CA_File:</span> </span><br><span class="line">           <span class="attr">Master_SSL_CA_Path:</span> </span><br><span class="line">              <span class="attr">Master_SSL_Cert:</span> </span><br><span class="line">            <span class="attr">Master_SSL_Cipher:</span> </span><br><span class="line">               <span class="attr">Master_SSL_Key:</span> </span><br><span class="line">        <span class="attr">Seconds_Behind_Master:</span> <span class="literal">NULL</span></span><br><span class="line"><span class="attr">Master_SSL_Verify_Server_Cert:</span> <span class="literal">No</span></span><br><span class="line">                <span class="attr">Last_IO_Errno:</span> <span class="number">0</span></span><br><span class="line">                <span class="attr">Last_IO_Error:</span> </span><br><span class="line">               <span class="attr">Last_SQL_Errno:</span> <span class="number">1064</span></span><br><span class="line">               <span class="attr">Last_SQL_Error:</span> <span class="string">Coordinator</span> <span class="string">stopped</span> <span class="string">because</span> <span class="string">there</span> <span class="string">were</span> <span class="string">error(s)</span> <span class="string">in</span> <span class="string">the</span> <span class="string">worker(s).</span> <span class="attr">The most recent failure being:</span> <span class="string">Worker</span> <span class="number">1</span> <span class="string">failed</span> <span class="string">executing</span> <span class="string">transaction</span> <span class="string">&#x27;ANONYMOUS&#x27;</span> <span class="string">at</span> <span class="string">master</span> <span class="string">log</span> <span class="string">mysql-bin.000004,</span> <span class="string">end_log_pos</span> <span class="number">1733. </span><span class="string">See</span> <span class="string">error</span> <span class="string">log</span> <span class="string">and/or</span> <span class="string">performance_schema.replication_applier_status_by_worker</span> <span class="string">table</span> <span class="string">for</span> <span class="string">more</span> <span class="string">details</span> <span class="string">about</span> <span class="string">this</span> <span class="string">failure</span> <span class="string">or</span> <span class="string">others,</span> <span class="string">if</span> <span class="string">any.</span></span><br><span class="line">  <span class="attr">Replicate_Ignore_Server_Ids:</span> </span><br><span class="line">             <span class="attr">Master_Server_Id:</span> <span class="number">323308</span></span><br><span class="line">                  <span class="attr">Master_UUID:</span> </span><br><span class="line">             <span class="attr">Master_Info_File:</span> <span class="string">mysql.slave_master_info</span></span><br><span class="line">                    <span class="attr">SQL_Delay:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">SQL_Remaining_Delay:</span> <span class="literal">NULL</span></span><br><span class="line">      <span class="attr">Slave_SQL_Running_State:</span> </span><br><span class="line">           <span class="attr">Master_Retry_Count:</span> <span class="number">86400</span></span><br><span class="line">                  <span class="attr">Master_Bind:</span> </span><br><span class="line">      <span class="attr">Last_IO_Error_Timestamp:</span> </span><br><span class="line">     <span class="attr">Last_SQL_Error_Timestamp:</span> <span class="number">180210</span> <span class="number">20</span><span class="string">:02:04</span></span><br><span class="line">               <span class="attr">Master_SSL_Crl:</span> </span><br><span class="line">           <span class="attr">Master_SSL_Crlpath:</span> </span><br><span class="line">           <span class="attr">Retrieved_Gtid_Set:</span> </span><br><span class="line">            <span class="attr">Executed_Gtid_Set:</span> <span class="string">3b6f4462-0190-11e8-ac03-525400a44d53:1-37445291</span></span><br><span class="line">                <span class="attr">Auto_Position:</span> <span class="number">0</span></span><br><span class="line">         <span class="attr">Replicate_Rewrite_DB:</span> </span><br><span class="line">                 <span class="attr">Channel_Name:</span> </span><br><span class="line">           <span class="attr">Master_TLS_Version:</span> </span><br><span class="line"><span class="number">1</span> <span class="string">row</span> <span class="string">in</span> <span class="string">set</span> <span class="string">(0.00</span> <span class="string">sec)</span></span><br></pre></td></tr></table></figure><br>由此推断,复制过滤规则没有问题,是生效的<br>但是判断时需要先解析sql,当解析时发现sql语法错误(实际为get为MySQL5.7保留字),导致sql thread报错</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2018/02/10/MySQL-5.5.X升级至5.7.21遇到的坑(一)/" target="_blank" title="MySQL 5.5.X升级至5.7.21遇到的坑(一)">http://fuxkdb.com/2018/02/10/MySQL-5.5.X升级至5.7.21遇到的坑(一)/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%8D%87%E7%BA%A7/" rel="tag">MySQL升级</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/02/11/5.5.x%E5%8D%87%E7%BA%A75.7.21%E6%AD%A5%E9%AA%A4/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          5.5.x升级5.7.21步骤
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/02/09/python2%20yum%20module%20is%20needed%20for%20this%20%20module/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title"></div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL-5-5-X%E5%8D%87%E7%BA%A7%E8%87%B35-7-21%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91-%E4%B8%80"><span class="nav-number">1.</span> <span class="nav-text">MySQL 5.5.X升级至5.7.21遇到的坑(一)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E7%8E%B0%E9%97%AE%E9%A2%98"><span class="nav-number">1.1.</span> <span class="nav-text">发现问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%BE%E5%87%BA%E5%8E%9F%E5%9B%A0"><span class="nav-number">1.2.</span> <span class="nav-text">找出原因</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.1.</span> <span class="nav-text">新的问题</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

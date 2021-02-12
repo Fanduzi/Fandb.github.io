@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>canal dynamictopic问题 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLCanal" />
+  
+  
+  
+  
+  <meta name="description" content="未来同事跑了几个月的canal突然报下面的错, 使用了dynamicTopic. 其实我没有用过dynamicTopic, 只能搜一搜issue  关于dynamicTopic和partitionHash的说明 canal.mq.dynamicTopic 表达式说明12345678910111213141516&gt;canal 1.1.3版本之后, 支持配置格式：schema 或 schema.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Canal dynamicTopic问题">
+<meta property="og:url" content="http://fuxkdb.com/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="未来同事跑了几个月的canal突然报下面的错, 使用了dynamicTopic. 其实我没有用过dynamicTopic, 只能搜一搜issue  关于dynamicTopic和partitionHash的说明 canal.mq.dynamicTopic 表达式说明12345678910111213141516&gt;canal 1.1.3版本之后, 支持配置格式：schema 或 schema.">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-01-12T04:23:00.000Z">
+<meta property="article:modified_time" content="2020-03-07T13:21:57.359Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Canal">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-01-12-Canal-dynamicTopic问题" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Canal dynamicTopic问题
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/" class="article-date">
+	  <time datetime="2020-01-12T04:23:00.000Z" itemprop="datePublished">2020-01-12</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>未来同事跑了几个月的canal突然报下面的错, 使用了dynamicTopic. 其实我没有用过dynamicTopic, 只能搜一搜issue</p>
+<blockquote>
+<p>关于dynamicTopic和partitionHash的说明</p>
+<h3 id="canal-mq-dynamicTopic-表达式说明"><a href="#canal-mq-dynamicTopic-表达式说明" class="headerlink" title="canal.mq.dynamicTopic 表达式说明"></a>canal.mq.dynamicTopic 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema 或 schema.table，多个配置之间使用逗号或分号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以test_test为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..* 匹配所有表，则每个表都会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到库名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：<span class="built_in">test</span>,test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到<span class="built_in">test</span>的topic上，test1\\.test1的表发送到对应的test1_test1 topic上，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">为满足更大的灵活性，允许对匹配条件的规则指定发送的topic名字，配置格式：topicName:schema 或 topicName:schema.table</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1: <span class="built_in">test</span>:<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以<span class="built_in">test</span>为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2: <span class="built_in">test</span>:.*\\..* 匹配所有表，因为有指定topic，则每个表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3: <span class="built_in">test</span>:<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：testA:<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到testA的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：test0:<span class="built_in">test</span>,test1:test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到test0的topic下，test1\\.test1的表发送到对应的test1的topic下，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">大家可以结合自己的业务需求，设置匹配规则，建议MQ开启自动创建topic的能力</span></span><br></pre></td></tr></table></figure>
+<h3 id="canal-mq-partitionHash-表达式说明"><a href="#canal-mq-partitionHash-表达式说明" class="headerlink" title="canal.mq.partitionHash 表达式说明"></a>canal.mq.partitionHash 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema.table:pk1^pk2，多个配置之间使用逗号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span>:pk1^pk2 指定匹配的单表，对应的<span class="built_in">hash</span>字段为pk1 + pk2</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..*:id 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为id</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：.*\\..*:<span class="variable">$pk</span>$ 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为表主键(自动查找)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4: 匹配规则啥都不写，则默认发到0这个partition上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：.*\\..* ，不指定pk信息的正则匹配，将所有正则匹配的表,对应的<span class="built_in">hash</span>字段为表名</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">按表<span class="built_in">hash</span>: 一张表的所有数据可以发到同一个分区，不同表之间会做散列 (会有热点表分区过大问题)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子6: <span class="built_in">test</span>\\.<span class="built_in">test</span>:id,.\\..* , 针对<span class="built_in">test</span>的表按照id散列,其余的表按照table散列</span></span><br></pre></td></tr></table></figure>
+<p>注意：大家可以结合自己的业务需求，设置匹配规则，多条匹配规则之间是按照顺序进行匹配(命中一条规则就返回)</p>
+<p>其他详细参数可参考<a target="_blank" rel="noopener" href="https://github.com/alibaba/canal/wiki/AdminGuide">Canal AdminGuide</a></p>
+</blockquote>
+<a id="more"></a>
+<p>canal.log报<code>INVALID_TOPIC_EXCEPTION</code></p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2020</span><span class="number">-01</span><span class="number">-10</span> <span class="number">15</span>:<span class="number">58</span>:<span class="number">31.552</span> [canal-instance-scan<span class="number">-0</span>] INFO  com.alibaba.otter.canal.deployer.CanalController - <span class="built_in">auto</span> notify start example successful.</span><br><span class="line"><span class="number">2020</span><span class="number">-01</span><span class="number">-10</span> <span class="number">16</span>:<span class="number">37</span>:<span class="number">26.946</span> [canal-instance-scan<span class="number">-0</span>] INFO  com.alibaba.otter.canal.deployer.CanalController - <span class="built_in">auto</span> notify start mgr_fanboshi successful.</span><br><span class="line"><span class="number">2020</span><span class="number">-01</span><span class="number">-10</span> <span class="number">16</span>:<span class="number">38</span>:<span class="number">03.992</span> [kafka-producer-network-thread | producer<span class="number">-1</span>] WARN  org.apache.kafka.clients.NetworkClient - [Producer clientId=producer<span class="number">-1</span>] Error <span class="keyword">while</span> fetching metadata with correlation id <span class="number">10</span> : &#123;=INVALID_TOPIC_EXCEPTION&#125;</span><br><span class="line"><span class="number">2020</span><span class="number">-01</span><span class="number">-10</span> <span class="number">16</span>:<span class="number">38</span>:<span class="number">04.096</span> [kafka-producer-network-thread | producer<span class="number">-1</span>] WARN  org.apache.kafka.clients.NetworkClient - [Producer clientId=producer<span class="number">-1</span>] Error <span class="keyword">while</span> fetching metadata with correlation id <span class="number">11</span> : &#123;=INVALID_TOPIC_EXCEPTION&#125;</span><br><span class="line"><span class="number">2020</span><span class="number">-01</span><span class="number">-10</span> <span class="number">16</span>:<span class="number">38</span>:<span class="number">04.200</span> [kafka-producer-network-thread | producer<span class="number">-1</span>] WARN  org.apache.kafka.clients.NetworkClient - [Producer clientId=producer<span class="number">-1</span>] Error <span class="keyword">while</span> fetching metadata with correlation id <span class="number">12</span> : &#123;=INVALID_TOPIC_EXCEPTION&#125;</span><br><span class="line"><span class="number">2020</span><span class="number">-01</span><span class="number">-10</span> <span class="number">16</span>:<span class="number">38</span>:<span class="number">04.304</span> [kafka-producer-network-thread | producer<span class="number">-1</span>] WARN  org.apache.kafka.clients.NetworkClient - [Producer clientId=producer<span class="number">-1</span>] Error <span class="keyword">while</span> fetching metadata with correlation id <span class="number">13</span> : &#123;=INVALID_TOPIC_EXCEPTION&#125;</span><br><span class="line"><span class="number">2020</span><span class="number">-01</span><span class="number">-10</span> <span class="number">16</span>:<span class="number">38</span>:<span class="number">04.409</span> [kafka-producer-network-thread | producer<span class="number">-1</span>] WARN  org.apache.kafka.clients.NetworkClient - [Producer clientId=producer<span class="number">-1</span>] Error <span class="keyword">while</span> fetching metadata with correlation id <span class="number">14</span> : &#123;=INVALID_TOPIC_EXCEPTION&#125;</span><br></pre></td></tr></table></figure>
+<p>instance的log中会报错</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2020</span><span class="number">-01</span><span class="number">-10</span> <span class="number">16</span>:<span class="number">37</span>:<span class="number">27.159</span> [destination = mgr_fanboshi , address = /<span class="number">172.18</span><span class="number">.8</span><span class="number">.200</span>:<span class="number">3399</span> , EventParser] WARN  c.a.o.c.p.inbound.mysql.rds.RdsBinlogEventParserProxy - ---&gt; find start position successfully, EntryPosition[included=<span class="literal">false</span>,journalName=<span class="number">0080323399</span>-mysql-bin<span class="number">.000004</span>,position=<span class="number">1065960584</span>,serverId=&lt;<span class="literal">null</span>&gt;,gtid=<span class="number">69</span>ce1dcb<span class="number">-1</span>b67<span class="number">-5e4</span>b<span class="number">-9945</span><span class="number">-7</span>cc64c64a14f:<span class="number">1</span><span class="number">-566281</span>:<span class="number">1000009</span><span class="number">-2590159</span>:<span class="number">3005066</span><span class="number">-3017688</span>,</span><br><span class="line">ce947b65<span class="number">-6</span>b70<span class="number">-539</span>b<span class="number">-8e6</span>a<span class="number">-59e9</span>bcde28a0:<span class="number">206083443</span><span class="number">-206083524</span>:<span class="number">207812793</span><span class="number">-207825891</span>:<span class="number">207921053</span><span class="number">-207921085</span>,</span><br><span class="line">d58aa5c2-b773<span class="number">-5944</span>-bfe9<span class="number">-0</span>a1142ef87f4:<span class="number">1706527</span>:<span class="number">2447252</span><span class="number">-2447264</span>,</span><br><span class="line">f5d4a39c<span class="number">-7800</span><span class="number">-52</span>ec-b181<span class="number">-8</span>c751ba2d078:<span class="number">868915</span><span class="number">-869106</span>:<span class="number">1968590</span><span class="number">-1968591</span>,timestamp=&lt;<span class="literal">null</span>&gt;] cost : <span class="number">2</span>ms , the next step <span class="keyword">is</span> binlog dump</span><br><span class="line"><span class="number">2020</span><span class="number">-01</span><span class="number">-10</span> <span class="number">16</span>:<span class="number">39</span>:<span class="number">03.987</span> [pool<span class="number">-3</span>-thread<span class="number">-2</span>] ERROR com.alibaba.otter.canal.kafka.CanalKafkaProducer - java.util.concurrent.ExecutionException: org.apache.kafka.common.errors.TimeoutException: Failed to update metadata after <span class="number">60000</span> ms.</span><br><span class="line">java.lang.RuntimeException: java.util.concurrent.ExecutionException: org.apache.kafka.common.errors.TimeoutException: Failed to update metadata after <span class="number">60000</span> ms.</span><br><span class="line">        at com.alibaba.otter.canal.kafka.CanalKafkaProducer.produce(CanalKafkaProducer.java:<span class="number">215</span>) ~[canal.server<span class="number">-1.1</span><span class="number">.4</span>.jar:na]</span><br><span class="line">        at com.alibaba.otter.canal.kafka.CanalKafkaProducer.send(CanalKafkaProducer.java:<span class="number">179</span>) ~[canal.server<span class="number">-1.1</span><span class="number">.4</span>.jar:na]</span><br><span class="line">        at com.alibaba.otter.canal.kafka.CanalKafkaProducer.send(CanalKafkaProducer.java:<span class="number">117</span>) ~[canal.server<span class="number">-1.1</span><span class="number">.4</span>.jar:na]</span><br><span class="line">        at com.alibaba.otter.canal.server.CanalMQStarter.worker(CanalMQStarter.java:<span class="number">183</span>) [canal.server<span class="number">-1.1</span><span class="number">.4</span>.jar:na]</span><br><span class="line">        at com.alibaba.otter.canal.server.CanalMQStarter.access$<span class="number">500</span>(CanalMQStarter.java:<span class="number">23</span>) [canal.server<span class="number">-1.1</span><span class="number">.4</span>.jar:na]</span><br><span class="line">        at com.alibaba.otter.canal.server.CanalMQStarter$CanalMQRunnable.run(CanalMQStarter.java:<span class="number">225</span>) [canal.server<span class="number">-1.1</span><span class="number">.4</span>.jar:na]</span><br><span class="line">        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:<span class="number">1142</span>) [na:<span class="number">1.8</span><span class="number">.0</span>_111]</span><br><span class="line">        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:<span class="number">617</span>) [na:<span class="number">1.8</span><span class="number">.0</span>_111]</span><br><span class="line">        at java.lang.Thread.run(Thread.java:<span class="number">745</span>) [na:<span class="number">1.8</span><span class="number">.0</span>_111]</span><br><span class="line">Caused by: java.util.concurrent.ExecutionException: org.apache.kafka.common.errors.TimeoutException: Failed to update metadata after <span class="number">60000</span> ms.</span><br><span class="line">        at org.apache.kafka.clients.producer.KafkaProducer$FutureFailure.&lt;init&gt;(KafkaProducer.java:<span class="number">1150</span>) ~[kafka-clients<span class="number">-1.1</span><span class="number">.1</span>.jar:na]</span><br><span class="line">        at org.apache.kafka.clients.producer.KafkaProducer.doSend(KafkaProducer.java:<span class="number">846</span>) ~[kafka-clients<span class="number">-1.1</span><span class="number">.1</span>.jar:na]</span><br><span class="line">        at org.apache.kafka.clients.producer.KafkaProducer.send(KafkaProducer.java:<span class="number">784</span>) ~[kafka-clients<span class="number">-1.1</span><span class="number">.1</span>.jar:na]</span><br><span class="line">        at org.apache.kafka.clients.producer.KafkaProducer.send(KafkaProducer.java:<span class="number">671</span>) ~[kafka-clients<span class="number">-1.1</span><span class="number">.1</span>.jar:na]</span><br><span class="line">        at com.alibaba.otter.canal.kafka.CanalKafkaProducer.produce(CanalKafkaProducer.java:<span class="number">199</span>) ~[canal.server<span class="number">-1.1</span><span class="number">.4</span>.jar:na]</span><br><span class="line">        ... <span class="number">8</span> common frames omitted</span><br><span class="line">Caused by: org.apache.kafka.common.errors.TimeoutException: Failed to update metadata after <span class="number">60000</span> ms.</span><br></pre></td></tr></table></figure>
+<p>搜到一个issue给了我一些启发<a target="_blank" rel="noopener" href="https://github.com/alibaba/canal/issues/1716">https://github.com/alibaba/canal/issues/1716</a></p>
+<blockquote>
+<p>在instance.properties里面配置<br><strong>同步库配置</strong><br><code>canal.instance.filter.regex=A\\..*,B\\..*,C\\..*</code></p>
+<p><strong>消息队列配置</strong><br><strong>使用正则路由schema和table</strong><br>格式topic:schema.table,topic:schema.table,topic:schema.table<br><code>canal.mq.dynamicTopic=topic_A:A,topic_B:B,topic_C:C</code><br><strong>最好配置</strong>一个canal.mq.topic作为默认的topic，在实践中发现，有一些mysql schema的binlog也会读进来（建表语句，grant语句等），如果没有这个默认的topic，会报找不到分区的错误，从而导致canal停止写入。<br><code>canal.mq.topic=a_default_topic</code></p>
+<p><strong>分区设置</strong></p>
+<ol>
+<li>如果每个topic只有一个分区设置如下<br><code>canal.mq.partition=0</code></li>
+<li>如果每个topic有多个分区，且希望按照表名做hash进行如下配置<br><code># hash partition config</code><br><code>canal.mq.partitionsNum=3</code><br><code>canal.mq.partitionHash=.*\\..*</code></li>
+</ol>
+<p>是不是canal.mq.topic这个参数随便写一个存在的topic，然后主要设置在这里对吧？canal.mq.dynamicTopic=topic_A:A,topic_B:B,topic_C:C</p>
+<p>是的。canal.mq.topic算是一个默认的，没有匹配到的schema和table的日志都会输入到那个默认的里面去。消费的时候只关心你设置的动态分区。</p>
+</blockquote>
+<p>我的理解就是一些不是我们匹配规则所需要的消息因为没有配置默认topic而找不到topic可写, 于是才会报错INVALID_TOPIC_EXCEPTION</p>
+<p>虽然未来同事配置了<code>canal.instance.filter.regex=broker\\..*</code> 但是有可能grant之类的语句还是会有问题吧</p>
+<p>最后附上自己1.1.4的配置吧</p>
+<p>canal.properties</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br></pre></td><td class="code"><pre><span class="line">#################################################</span><br><span class="line">#########               common argument         #############</span><br><span class="line">#################################################</span><br><span class="line"># tcp bind ip</span><br><span class="line">canal.ip = <span class="number">172.18</span><span class="number">.8</span><span class="number">.32</span></span><br><span class="line"># register ip to zookeeper</span><br><span class="line">canal.register.ip = <span class="number">172.18</span><span class="number">.8</span><span class="number">.32</span></span><br><span class="line">canal.port = <span class="number">11111</span></span><br><span class="line">canal.metrics.pull.port = <span class="number">11112</span></span><br><span class="line"># canal <span class="keyword">instance</span> user/passwd</span><br><span class="line"># canal.user = canal</span><br><span class="line"># canal.passwd = E3619321C1A937C46A0D8BD1DAC39F93B27D4458</span><br><span class="line"></span><br><span class="line"># canal admin config</span><br><span class="line">#canal.admin.manager = <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">8089</span></span><br><span class="line">canal.admin.port = <span class="number">11110</span></span><br><span class="line">canal.admin.user = admin</span><br><span class="line">canal.admin.passwd = <span class="number">4</span>ACFE3202A5FF5CF467898FC58AAB1D615029441</span><br><span class="line"></span><br><span class="line">canal.zkServers = <span class="number">172.18</span><span class="number">.12</span><span class="number">.212</span>:<span class="number">2181</span>,<span class="number">172.18</span><span class="number">.12</span><span class="number">.213</span>:<span class="number">2181</span></span><br><span class="line"># flush data to zk</span><br><span class="line">canal.zookeeper.flush.period = <span class="number">1000</span></span><br><span class="line">canal.withoutNetty = true</span><br><span class="line"># tcp, kafka, RocketMQ</span><br><span class="line">canal.serverMode = kafka</span><br><span class="line"># flush meta cursor/parse position to file</span><br><span class="line">canal.file.data.dir = $&#123;canal.conf.dir&#125;</span><br><span class="line">canal.file.flush.period = <span class="number">1000</span></span><br><span class="line">## memory store RingBuffer size, should be Math.pow(<span class="number">2</span>,n)</span><br><span class="line">canal.<span class="keyword">instance</span>.memory.buffer.size = <span class="number">16384</span></span><br><span class="line">## memory store RingBuffer used memory unit size , default <span class="number">1</span>kb</span><br><span class="line">canal.<span class="keyword">instance</span>.memory.buffer.memunit = <span class="number">1024</span> </span><br><span class="line">## meory store gets mode used MEMSIZE or ITEMSIZE</span><br><span class="line">canal.<span class="keyword">instance</span>.memory.batch.mode = MEMSIZE</span><br><span class="line">canal.<span class="keyword">instance</span>.memory.rawEntry = true</span><br><span class="line"></span><br><span class="line">## detecing config</span><br><span class="line">canal.<span class="keyword">instance</span>.detecting.enable = false</span><br><span class="line">#canal.<span class="keyword">instance</span>.detecting.sql = insert into retl.xdual values(<span class="number">1</span>,now()) on duplicate key update x=now()</span><br><span class="line">canal.<span class="keyword">instance</span>.detecting.sql = select <span class="number">1</span></span><br><span class="line">canal.<span class="keyword">instance</span>.detecting.interval.time = <span class="number">3</span></span><br><span class="line">canal.<span class="keyword">instance</span>.detecting.retry.threshold = <span class="number">3</span></span><br><span class="line">canal.<span class="keyword">instance</span>.detecting.heartbeatHaEnable = false</span><br><span class="line"></span><br><span class="line"># support maximum transaction size, more than the size <span class="keyword">of</span> the transaction will be cut into multiple transactions delivery</span><br><span class="line">canal.<span class="keyword">instance</span>.transaction.size =  <span class="number">1024</span></span><br><span class="line"># mysql fallback connected to new master should fallback times</span><br><span class="line">canal.<span class="keyword">instance</span>.fallbackIntervalInSeconds = <span class="number">60</span></span><br><span class="line"></span><br><span class="line"># network config</span><br><span class="line">canal.<span class="keyword">instance</span>.network.receiveBufferSize = <span class="number">16384</span></span><br><span class="line">canal.<span class="keyword">instance</span>.network.sendBufferSize = <span class="number">16384</span></span><br><span class="line">canal.<span class="keyword">instance</span>.network.soTimeout = <span class="number">30</span></span><br><span class="line"></span><br><span class="line"># binlog filter config</span><br><span class="line">canal.<span class="keyword">instance</span>.filter.druid.ddl = true</span><br><span class="line">canal.<span class="keyword">instance</span>.filter.query.dcl = false</span><br><span class="line">canal.<span class="keyword">instance</span>.filter.query.dml = false</span><br><span class="line">canal.<span class="keyword">instance</span>.filter.query.ddl = false</span><br><span class="line">canal.<span class="keyword">instance</span>.filter.table.error = false</span><br><span class="line">canal.<span class="keyword">instance</span>.filter.rows = false</span><br><span class="line">canal.<span class="keyword">instance</span>.filter.transaction.entry = false</span><br><span class="line"></span><br><span class="line"># binlog format/image check</span><br><span class="line">canal.<span class="keyword">instance</span>.binlog.format = ROW,STATEMENT,MIXED </span><br><span class="line">canal.<span class="keyword">instance</span>.binlog.image = FULL,MINIMAL,NOBLOB</span><br><span class="line"></span><br><span class="line"># binlog ddl isolation</span><br><span class="line">canal.<span class="keyword">instance</span>.get.ddl.isolation = false</span><br><span class="line"></span><br><span class="line"># parallel parser config</span><br><span class="line">canal.<span class="keyword">instance</span>.parser.parallel = true</span><br><span class="line">## concurrent thread number, default <span class="number">60</span>% available processors, suggest not to exceed Runtime.getRuntime().availableProcessors()</span><br><span class="line">#canal.<span class="keyword">instance</span>.parser.parallelThreadSize = <span class="number">16</span></span><br><span class="line">## disruptor ringbuffer size, must be power <span class="keyword">of</span> <span class="number">2</span></span><br><span class="line">canal.<span class="keyword">instance</span>.parser.parallelBufferSize = <span class="number">256</span></span><br><span class="line"></span><br><span class="line"># table meta tsdb info</span><br><span class="line">canal.<span class="keyword">instance</span>.tsdb.enable = false</span><br><span class="line">canal.<span class="keyword">instance</span>.tsdb.dir = $&#123;canal.file.data.dir:../conf&#125;/$&#123;canal.<span class="keyword">instance</span>.destination:&#125;</span><br><span class="line">canal.<span class="keyword">instance</span>.tsdb.url = jdbc:h2:$&#123;canal.<span class="keyword">instance</span>.tsdb.dir&#125;/h2;CACHE_SIZE=<span class="number">1000</span>;MODE=MYSQL;</span><br><span class="line">canal.<span class="keyword">instance</span>.tsdb.dbUsername = canal</span><br><span class="line">canal.<span class="keyword">instance</span>.tsdb.dbPassword = canal</span><br><span class="line"># dump snapshot interval, default <span class="number">24</span> hour</span><br><span class="line">canal.<span class="keyword">instance</span>.tsdb.snapshot.interval = <span class="number">24</span></span><br><span class="line"># purge snapshot expire , default <span class="number">360</span> hour(<span class="number">15</span> days)</span><br><span class="line">canal.<span class="keyword">instance</span>.tsdb.snapshot.expire = <span class="number">360</span></span><br><span class="line"></span><br><span class="line"># aliyun ak/sk , support rds/mq</span><br><span class="line">canal.aliyun.accessKey =</span><br><span class="line">canal.aliyun.secretKey =</span><br><span class="line"></span><br><span class="line">#################################################</span><br><span class="line">#########               destinations            #############</span><br><span class="line">#################################################</span><br><span class="line">canal.destinations =</span><br><span class="line"># conf root dir</span><br><span class="line">canal.conf.dir = ../conf</span><br><span class="line"># auto scan <span class="keyword">instance</span> dir add/remove and start/stop <span class="keyword">instance</span></span><br><span class="line">canal.auto.scan = true</span><br><span class="line">canal.auto.scan.interval = <span class="number">5</span></span><br><span class="line"></span><br><span class="line">canal.<span class="keyword">instance</span>.tsdb.spring.xml = classpath:spring/tsdb/h2-tsdb.xml</span><br><span class="line">#canal.<span class="keyword">instance</span>.tsdb.spring.xml = classpath:spring/tsdb/mysql-tsdb.xml</span><br><span class="line"></span><br><span class="line">canal.<span class="keyword">instance</span>.global.mode = spring</span><br><span class="line">canal.<span class="keyword">instance</span>.global.lazy = false</span><br><span class="line">canal.<span class="keyword">instance</span>.global.manager.address = $&#123;canal.admin.manager&#125;</span><br><span class="line">#canal.<span class="keyword">instance</span>.global.spring.xml = classpath:spring/memory-<span class="keyword">instance</span>.xml</span><br><span class="line">#canal.<span class="keyword">instance</span>.global.spring.xml = classpath:spring/file-<span class="keyword">instance</span>.xml</span><br><span class="line">canal.<span class="keyword">instance</span>.global.spring.xml = classpath:spring/default-<span class="keyword">instance</span>.xml</span><br><span class="line"></span><br><span class="line">##################################################</span><br><span class="line">#########                    MQ                      #############</span><br><span class="line">##################################################</span><br><span class="line">canal.mq.servers = <span class="number">172.18</span><span class="number">.12</span><span class="number">.212</span>:<span class="number">9092</span></span><br><span class="line">canal.mq.retries = <span class="number">0</span></span><br><span class="line">canal.mq.batchSize = <span class="number">16384</span></span><br><span class="line">canal.mq.maxRequestSize = <span class="number">33554432</span></span><br><span class="line">canal.mq.lingerMs = <span class="number">100</span></span><br><span class="line">canal.mq.bufferMemory = <span class="number">33554432</span></span><br><span class="line">canal.mq.canalBatchSize = <span class="number">50</span></span><br><span class="line">canal.mq.canalGetTimeout = <span class="number">100</span></span><br><span class="line">canal.mq.flatMessage = true</span><br><span class="line">canal.mq.compressionType = none</span><br><span class="line">canal.mq.acks = all</span><br><span class="line">#canal.mq.properties. =</span><br><span class="line">canal.mq.transaction = false</span><br><span class="line">canal.mq.extraParams.enable.idempotence=true</span><br><span class="line">canal.mq.extraParams.max.<span class="keyword">in</span>.flight.requests.per.connection=<span class="number">1</span></span><br><span class="line">#canal.mq.producerGroup = test</span><br><span class="line"># Set this value to <span class="string">&quot;cloud&quot;</span>, <span class="keyword">if</span> you want open message trace feature <span class="keyword">in</span> aliyun.</span><br><span class="line">#canal.mq.accessChannel = local</span><br><span class="line"># aliyun mq namespace</span><br><span class="line">#canal.mq.namespace =</span><br><span class="line"></span><br><span class="line">##################################################</span><br><span class="line">#########     Kafka Kerberos Info    #############</span><br><span class="line">##################################################</span><br><span class="line">#canal.mq.kafka.kerberos.enable = false</span><br><span class="line">#canal.mq.kafka.kerberos.krb5FilePath = <span class="string">&quot;../conf/kerberos/krb5.conf&quot;</span></span><br><span class="line">#canal.mq.kafka.kerberos.jaasFilePath = <span class="string">&quot;../conf/kerberos/jaas.conf&quot;</span></span><br></pre></td></tr></table></figure>
+<p>instance.properties</p>
+<figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">#################################################</span><br><span class="line">## mysql serverId , v1<span class="number">.0</span><span class="number">.26</span>+ will autoGen</span><br><span class="line"># canal.<span class="keyword">instance</span>.mysql.slaveId=<span class="number">0</span></span><br><span class="line"></span><br><span class="line"># enable gtid use true/false</span><br><span class="line">canal.<span class="keyword">instance</span>.gtidon=true</span><br><span class="line"></span><br><span class="line"># position info</span><br><span class="line">canal.<span class="keyword">instance</span>.master.address=<span class="number">172.18</span><span class="number">.8</span><span class="number">.200</span>:<span class="number">3372</span></span><br><span class="line">canal.<span class="keyword">instance</span>.master.journal.name=</span><br><span class="line">canal.<span class="keyword">instance</span>.master.position=</span><br><span class="line">canal.<span class="keyword">instance</span>.master.timestamp=</span><br><span class="line">canal.<span class="keyword">instance</span>.master.gtid=</span><br><span class="line"></span><br><span class="line"># rds oss binlog</span><br><span class="line">canal.<span class="keyword">instance</span>.rds.accesskey=</span><br><span class="line">canal.<span class="keyword">instance</span>.rds.secretkey=</span><br><span class="line">canal.<span class="keyword">instance</span>.rds.instanceId=</span><br><span class="line"></span><br><span class="line"># table meta tsdb info</span><br><span class="line">canal.<span class="keyword">instance</span>.tsdb.enable=false</span><br><span class="line">#canal.<span class="keyword">instance</span>.tsdb.url=jdbc:mysql:<span class="comment">//127.0.0.1:3306/canal_tsdb</span></span><br><span class="line">#canal.<span class="keyword">instance</span>.tsdb.dbUsername=canal</span><br><span class="line">#canal.<span class="keyword">instance</span>.tsdb.dbPassword=canal</span><br><span class="line"></span><br><span class="line">#canal.<span class="keyword">instance</span>.standby.address =</span><br><span class="line">#canal.<span class="keyword">instance</span>.standby.journal.name =</span><br><span class="line">#canal.<span class="keyword">instance</span>.standby.position =</span><br><span class="line">#canal.<span class="keyword">instance</span>.standby.timestamp =</span><br><span class="line">#canal.<span class="keyword">instance</span>.standby.gtid=</span><br><span class="line"></span><br><span class="line"># username/password</span><br><span class="line">canal.<span class="keyword">instance</span>.dbUsername=canal_r</span><br><span class="line">canal.<span class="keyword">instance</span>.dbPassword=canal1234!@#$</span><br><span class="line">canal.<span class="keyword">instance</span>.connectionCharset = UTF<span class="number">-8</span></span><br><span class="line"># enable druid Decrypt database password</span><br><span class="line">canal.<span class="keyword">instance</span>.enableDruid=false</span><br><span class="line">#canal.<span class="keyword">instance</span>.pwdPublicKey=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALK4BUxdDltRRE5/zXpVEVPUgunvscYFtEip3pmLlhrWpacX7y7GCMo2/JM6LeHmiiNdH1FWgGCpUfircSwlWKUCAwEAAQ==</span><br><span class="line"></span><br><span class="line"># table regex</span><br><span class="line">canal.<span class="keyword">instance</span>.filter.regex=fanboshi\\..*</span><br><span class="line"># table black regex</span><br><span class="line">canal.<span class="keyword">instance</span>.filter.black.regex=</span><br><span class="line"># table field filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span><br><span class="line">#canal.<span class="keyword">instance</span>.filter.field=test1.t_product:id/subject/keywords,test2.t_company:id/name/contact/ch</span><br><span class="line"># table field black filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span><br><span class="line">#canal.<span class="keyword">instance</span>.filter.black.field=test1.t_product:subject/product_image,test2.t_company:id/name/contact/ch</span><br><span class="line"></span><br><span class="line"># mq config</span><br><span class="line">canal.mq.topic=</span><br><span class="line">#canal.mq.topic=cherry_default</span><br><span class="line"># dynamic topic route by schema or table regex</span><br><span class="line">#canal.mq.dynamicTopic=mytest1.user,mytest2\\..*,.*\\..*</span><br><span class="line">canal.mq.dynamicTopic= cherry:fanboshi</span><br><span class="line">#canal.mq.partition=<span class="number">0</span></span><br><span class="line"># hash partition config</span><br><span class="line">#canal.mq.partitionsNum=<span class="number">3</span></span><br><span class="line">#canal.mq.partitionHash=test.table:id^name,.*\\..*</span><br><span class="line">#################################################</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/01/12/2020-01-12-Canal-dynamicTopic问题/" target="_blank" title="Canal dynamicTopic问题">http://fuxkdb.com/2020/01/12/2020-01-12-Canal-dynamicTopic问题/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Canal/" rel="tag">Canal</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/01/21/2020-01-21-mlanuch%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          mlanuch文档翻译
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/01/09/2020-01-09-%E8%AF%91%E6%96%87-Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">译文 Streaming MySQL Backups with Percona XtraBackup – Another Alternative</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#canal-mq-dynamicTopic-%E8%A1%A8%E8%BE%BE%E5%BC%8F%E8%AF%B4%E6%98%8E"><span class="nav-number">1.</span> <span class="nav-text">canal.mq.dynamicTopic 表达式说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#canal-mq-partitionHash-%E8%A1%A8%E8%BE%BE%E5%BC%8F%E8%AF%B4%E6%98%8E"><span class="nav-number">2.</span> <span class="nav-text">canal.mq.partitionHash 表达式说明</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

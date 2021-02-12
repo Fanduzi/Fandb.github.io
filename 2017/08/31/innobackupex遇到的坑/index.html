@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>innobackupex遇到的坑 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL备份恢复" />
+  
+  
+  
+  
+  <meta name="description" content="stream选择使用tar方式压缩到时slave_info信息不完整版本123456789101112131415161718192021222324252627282930313233343536[root@test1 backup]# innobackupex --versioninnobackupex version 2.4.8 Linux (x86_64) (revision id: 97">
+<meta property="og:type" content="article">
+<meta property="og:title" content="innobackupex遇到的坑">
+<meta property="og:url" content="http://fuxkdb.com/2017/08/31/innobackupex%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="stream选择使用tar方式压缩到时slave_info信息不完整版本123456789101112131415161718192021222324252627282930313233343536[root@test1 backup]# innobackupex --versioninnobackupex version 2.4.8 Linux (x86_64) (revision id: 97">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-08-31T10:19:00.000Z">
+<meta property="article:modified_time" content="2017-08-31T10:21:25.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL备份恢复">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-innobackupex遇到的坑" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      innobackupex遇到的坑
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/31/innobackupex%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" class="article-date">
+	  <time datetime="2017-08-31T10:19:00.000Z" itemprop="datePublished">2017-08-31</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="stream选择使用tar方式压缩到时slave-info信息不完整"><a href="#stream选择使用tar方式压缩到时slave-info信息不完整" class="headerlink" title="stream选择使用tar方式压缩到时slave_info信息不完整"></a>stream选择使用tar方式压缩到时slave_info信息不完整</h2><p>版本<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># innobackupex --version</span></span><br><span class="line">innobackupex <span class="keyword">version</span> <span class="number">2.4</span><span class="number">.8</span> Linux (x86_64) (revision <span class="keyword">id</span>: <span class="number">97330</span>f7)</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># cat /etc/redhat-release </span></span><br><span class="line">CentOS <span class="keyword">release</span> <span class="number">6.4</span> (<span class="keyword">Final</span>)</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># gzip --version</span></span><br><span class="line">gzip <span class="number">1.3</span><span class="number">.12</span></span><br><span class="line">Copyright (C) <span class="number">2007</span> Free Software Foundation, Inc.</span><br><span class="line">Copyright (C) <span class="number">1993</span> Jean-loup Gailly.</span><br><span class="line">This <span class="keyword">is</span> free software.  You may redistribute copies <span class="keyword">of</span> it <span class="keyword">under</span> the terms <span class="keyword">of</span></span><br><span class="line">the GNU <span class="keyword">General</span> <span class="keyword">Public</span> License &lt;<span class="keyword">http</span>://www.gnu.org/licenses/gpl.html&gt;.</span><br><span class="line">There <span class="keyword">is</span> <span class="keyword">NO</span> WARRANTY, <span class="keyword">to</span> the <span class="keyword">extent</span> permitted <span class="keyword">by</span> law.</span><br><span class="line"></span><br><span class="line">Written <span class="keyword">by</span> Jean-loup Gailly.</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># mysql -e&quot;\s&quot;</span></span><br><span class="line"><span class="comment">--------------</span></span><br><span class="line">mysql  Ver <span class="number">14.14</span> Distrib <span class="number">5.7</span><span class="number">.18</span>, <span class="keyword">for</span> linux-glibc2<span class="number">.5</span> (x86_64) <span class="keyword">using</span>  EditLine wrapper</span><br><span class="line"></span><br><span class="line"><span class="keyword">Connection</span> <span class="keyword">id</span>:          <span class="number">11</span></span><br><span class="line"><span class="keyword">Current</span> <span class="keyword">database</span>:</span><br><span class="line"><span class="keyword">Current</span> <span class="keyword">user</span>:           root@localhost</span><br><span class="line">SSL:                    <span class="keyword">Not</span> <span class="keyword">in</span> <span class="keyword">use</span></span><br><span class="line"><span class="keyword">Current</span> pager:          stdout</span><br><span class="line"><span class="keyword">Using</span> <span class="keyword">outfile</span>:          <span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">Using</span> delimiter:        ;</span><br><span class="line">Server version:         5.7.18-log MySQL Community Server (GPL)</span><br><span class="line">Protocol version:       10</span><br><span class="line">Connection:             Localhost via UNIX socket</span><br><span class="line">Server characterset:    utf8mb4</span><br><span class="line">Db     characterset:    utf8mb4</span><br><span class="line">Client characterset:    utf8mb4</span><br><span class="line">Conn.  characterset:    utf8mb4</span><br><span class="line">UNIX socket:            /data/mysqldata/3306/mysql.sock</span><br><span class="line">Uptime:                 15 min 52 sec</span><br><span class="line"></span><br><span class="line">Threads: 3  Questions: 61  Slow queries: 0  Opens: 116  <span class="keyword">Flush</span> <span class="keyword">tables</span>: <span class="number">5</span>  <span class="keyword">Open</span> <span class="keyword">tables</span>: <span class="number">0</span>  Queries per <span class="keyword">second</span> <span class="keyword">avg</span>: <span class="number">0.064</span></span><br><span class="line"><span class="comment">--------------</span></span><br></pre></td></tr></table></figure><br>备份命令<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innobackupex <span class="attribute">--user</span>=backup <span class="attribute">--password</span>=<span class="string">&#x27;backup&#x27;</span> --slave-<span class="builtin-name">info</span> <span class="attribute">--stream</span>=tar /tmp | gzip -&gt; /data/mysqldata/backup/xtra_full.tar.gz</span><br></pre></td></tr></table></figure><br>期望得到的完整信息<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@test1 slave_info]<span class="comment"># more xtrabackup_slave_info </span></span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> gtid_purged=<span class="string">&#x27;5c351518-78ec-11e7-8e7a-005056a610c3:1-1164&#x27;</span>;</span><br><span class="line"><span class="keyword">CHANGE</span> <span class="keyword">MASTER</span> <span class="keyword">TO</span> MASTER_AUTO_POSITION=<span class="number">1</span>;</span><br></pre></td></tr></table></figure><br><a id="more"></a><br>实际得到的<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># more xtrabackup_slave_info </span></span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> gtid_purged=<span class="string">&#x27;5c3</span></span><br></pre></td></tr></table></figure><br>如果使用stream=xbstream同时指定了–slave-info,则根本不会按照期望的得到full.xbstream压缩文件,而是会直接将备份输出到<code>timestamp</code>文件夹,并产生一个empty的full.xbstream. 看下面例子<br>innobackupex –user=backup –password=’backup’ \<br>–stream=xbstream ./ &gt; /data/mysqldata/backup/full.xbstream<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">10</span> innobackupex: Starting the backup operation</span><br><span class="line"></span><br><span class="line">IMPORTANT: Please check that the backup run completes successfully.</span><br><span class="line">           At the end of a successful backup run innobackupex</span><br><span class="line">           prints <span class="string">&quot;completed OK!&quot;</span>.</span><br><span class="line"></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">10</span>  version_check Connecting to MySQL server with DSN <span class="string">&#x27;dbi:mysql:;mysql_read_default_group=xtrabackup;mysql_socket=/data/mysqldata/3306/mysql.sock&#x27;</span> as <span class="string">&#x27;backup&#x27;</span>  (using password: YES).</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">10</span>  version_check Connected to MySQL server</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">10</span>  version_check Executing a version check against the server...</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">10</span>  version_check Done.</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">10</span> Connecting to MySQL server host: localhost, user: backup, password: <span class="keyword">set</span>, port: <span class="keyword">not</span> <span class="keyword">set</span>, socket: /data/mysqldata/<span class="number">3306</span>/mysql.sock</span><br><span class="line">Using server version <span class="number">5.7</span><span class="number">.18</span>-log</span><br><span class="line">innobackupex version <span class="number">2.4</span><span class="number">.8</span> based on MySQL server <span class="number">5.7</span><span class="number">.13</span> Linux (x86_64) (revision id: <span class="number">97330f</span>7)</span><br><span class="line">xtrabackup: uses posix_fadvise().</span><br><span class="line">xtrabackup: cd to /data/mysqldata/<span class="number">3306</span>/data</span><br><span class="line">xtrabackup: open files limit requested <span class="number">65535</span>, <span class="keyword">set</span> to <span class="number">65535</span></span><br><span class="line">xtrabackup: using the following InnoDB configuration:</span><br><span class="line">xtrabackup:   innodb_data_home_dir = .</span><br><span class="line">xtrabackup:   innodb_data_file_path = ibdata1:<span class="number">1024</span>M:<span class="built_in">auto</span>extend</span><br><span class="line">xtrabackup:   innodb_log_group_home_dir = /data/mysqldata/<span class="number">3306</span>/redolog</span><br><span class="line">xtrabackup:   innodb_log_files_in_group = <span class="number">2</span></span><br><span class="line">xtrabackup:   innodb_log_file_size = <span class="number">134217728</span></span><br><span class="line">xtrabackup: using O_DIRECT</span><br><span class="line">InnoDB: Number of pools: <span class="number">1</span></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">10</span> &gt;&gt; log scanned up to (<span class="number">2937521</span>)</span><br><span class="line">InnoDB: Opened <span class="number">3</span> undo tablespaces</span><br><span class="line">InnoDB: <span class="number">0</span> undo tablespaces made active</span><br><span class="line">xtrabackup: Generating a list of tablespaces</span><br><span class="line">InnoDB: Allocated tablespace ID <span class="number">27</span> <span class="keyword">for</span> sms/SMS_DETAIL_INFO, old maximum was <span class="number">3</span></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">11</span> [<span class="number">01</span>] Streaming ./ibdata1 </span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">11</span> &gt;&gt; log scanned up to (<span class="number">2937521</span>)</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">12</span> &gt;&gt; log scanned up to (<span class="number">2937521</span>)</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">40</span> [<span class="number">00</span>]        ...done</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">40</span> Executing FLUSH NO_WRITE_TO_BINLOG ENGINE LOGS...</span><br><span class="line">xtrabackup: The latest check point (<span class="keyword">for</span> incremental): <span class="string">&#x27;2937512&#x27;</span></span><br><span class="line">xtrabackup: Stopping log copying thread.</span><br><span class="line"><span class="number">.170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">40</span> &gt;&gt; log scanned up to (<span class="number">2937521</span>)</span><br><span class="line"></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> Executing UNLOCK TABLES</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> All tables unlocked</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> [<span class="number">00</span>] Streaming ib_buffer_pool to &lt;STDOUT&gt;</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> [<span class="number">00</span>]        ...done</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> Backup created <span class="keyword">in</span> directory <span class="string">&#x27;/data/mysqldata/backup/&#x27;</span>  --注意一会对比这里</span><br><span class="line">MySQL binlog position: filename <span class="string">&#x27;mysql-bin.000002&#x27;</span>, position <span class="string">&#x27;154&#x27;</span>, GTID of the last change <span class="string">&#x27;5c351518-78ec-11e7-8e7a-005056a610c3:1-1164&#x27;</span></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> [<span class="number">00</span>] Streaming &lt;STDOUT&gt;</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> [<span class="number">00</span>]        ...done</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> [<span class="number">00</span>] Streaming &lt;STDOUT&gt;</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> [<span class="number">00</span>]        ...done</span><br><span class="line">xtrabackup: Transaction log of lsn (<span class="number">2937512</span>) to (<span class="number">2937521</span>) was copied.</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">17</span>:<span class="number">41</span> completed OK!</span><br></pre></td></tr></table></figure><br>正常的备份,生成了.xbstream文件<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># ls</span></span><br><span class="line">full.xbstream</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># file full.xbstream </span></span><br><span class="line">full.xbstream: <span class="keyword">data</span></span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># rm full.xbstream </span></span><br><span class="line">rm: remove regular <span class="keyword">file</span> <span class="string">`full.xbstream&#x27;? y</span></span><br></pre></td></tr></table></figure><br>加上–slave-info的<br>innobackupex –user=backup –password=’backup’ –slave-info\<br> –stream=xbstream ./ &gt; /data/mysqldata/backup/full.xbstream<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">18</span>:<span class="number">43</span> innobackupex: Starting the backup operation</span><br><span class="line"></span><br><span class="line">IMPORTANT: Please check that the backup run completes successfully.</span><br><span class="line">           At the end of a successful backup run innobackupex</span><br><span class="line">           prints <span class="string">&quot;completed OK!&quot;</span>.</span><br><span class="line"></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">18</span>:<span class="number">43</span>  version_check Connecting to MySQL server with DSN <span class="string">&#x27;dbi:mysql:;mysql_read_default_group=xtrabackup;mysql_socket=/data/mysqldata/3306/mysql.sock&#x27;</span> as <span class="string">&#x27;backup&#x27;</span>  (using password: YES).</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">18</span>:<span class="number">43</span>  version_check Connected to MySQL server</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">18</span>:<span class="number">43</span>  version_check Executing a version check against the server...</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">18</span>:<span class="number">43</span>  version_check Done.</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">18</span>:<span class="number">43</span> Connecting to MySQL server host: localhost, user: backup, password: <span class="keyword">set</span>, port: <span class="keyword">not</span> <span class="keyword">set</span>, socket: /data/mysqldata/<span class="number">3306</span>/mysql.sock</span><br><span class="line">Using server version <span class="number">5.7</span><span class="number">.18</span>-log</span><br><span class="line">innobackupex version <span class="number">2.4</span><span class="number">.8</span> based on MySQL server <span class="number">5.7</span><span class="number">.13</span> Linux (x86_64) (revision id: <span class="number">97330f</span>7)</span><br><span class="line">xtrabackup: uses posix_fadvise().</span><br><span class="line">xtrabackup: cd to /data/mysqldata/<span class="number">3306</span>/data</span><br><span class="line">xtrabackup: open files limit requested <span class="number">65535</span>, <span class="keyword">set</span> to <span class="number">65535</span></span><br><span class="line">xtrabackup: using the following InnoDB configuration:</span><br><span class="line">xtrabackup:   innodb_data_home_dir = .</span><br><span class="line">xtrabackup:   innodb_data_file_path = ibdata1:<span class="number">1024</span>M:<span class="built_in">auto</span>extend</span><br><span class="line">xtrabackup:   innodb_log_group_home_dir = /data/mysqldata/<span class="number">3306</span>/redolog</span><br><span class="line">xtrabackup:   innodb_log_files_in_group = <span class="number">2</span></span><br><span class="line">xtrabackup:   innodb_log_file_size = <span class="number">134217728</span></span><br><span class="line">xtrabackup: using O_DIRECT</span><br><span class="line">InnoDB: Number of pools: <span class="number">1</span></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">18</span>:<span class="number">43</span> &gt;&gt; log scanned up to (<span class="number">2937521</span>)</span><br><span class="line">InnoDB: Opened <span class="number">3</span> undo tablespaces</span><br><span class="line">InnoDB: <span class="number">0</span> undo tablespaces made active</span><br><span class="line">xtrabackup: Generating a list of tablespaces</span><br><span class="line">InnoDB: Allocated tablespace ID <span class="number">27</span> <span class="keyword">for</span> sms/SMS_DETAIL_INFO, old maximum was <span class="number">3</span></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">18</span>:<span class="number">44</span> [<span class="number">01</span>] Copying ./ibdata1 to /data/mysqldata/backup/<span class="number">2017</span><span class="number">-08</span><span class="number">-31</span>_17<span class="number">-18</span><span class="number">-43</span>/ibdata1 --注意</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">05</span> Finished backing up non-InnoDB tables <span class="keyword">and</span> files</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">05</span> [<span class="number">00</span>] Writing /data/mysqldata/backup/<span class="number">2017</span><span class="number">-08</span><span class="number">-31</span>_17<span class="number">-18</span><span class="number">-43</span>/xtrabackup_binlog_info --注意</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">05</span> [<span class="number">00</span>]        ...done</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> Executing FLUSH NO_WRITE_TO_BINLOG ENGINE LOGS...</span><br><span class="line">xtrabackup: The latest check point (<span class="keyword">for</span> incremental): <span class="string">&#x27;2937512&#x27;</span></span><br><span class="line">xtrabackup: Stopping log copying thread.</span><br><span class="line"><span class="number">.170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> &gt;&gt; log scanned up to (<span class="number">2937521</span>)</span><br><span class="line"></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> Executing UNLOCK TABLES</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> All tables unlocked</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> [<span class="number">00</span>] Copying ib_buffer_pool to /data/mysqldata/backup/<span class="number">2017</span><span class="number">-08</span><span class="number">-31</span>_17<span class="number">-18</span><span class="number">-43</span>/ib_buffer_pool</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> [<span class="number">00</span>]        ...done</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> Backup created <span class="keyword">in</span> directory <span class="string">&#x27;/data/mysqldata/backup/2017-08-31_17-18-43/&#x27;</span></span><br><span class="line">MySQL binlog position: filename <span class="string">&#x27;mysql-bin.000002&#x27;</span>, position <span class="string">&#x27;154&#x27;</span>, GTID of the last change <span class="string">&#x27;5c351518-78ec-11e7-8e7a-005056a610c3:1-1164&#x27;</span></span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> [<span class="number">00</span>] Writing /data/mysqldata/backup/<span class="number">2017</span><span class="number">-08</span><span class="number">-31</span>_17<span class="number">-18</span><span class="number">-43</span>/backup-my.cnf</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> [<span class="number">00</span>]        ...done</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> [<span class="number">00</span>] Writing /data/mysqldata/backup/<span class="number">2017</span><span class="number">-08</span><span class="number">-31</span>_17<span class="number">-18</span><span class="number">-43</span>/xtrabackup_info</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> [<span class="number">00</span>]        ...done</span><br><span class="line">xtrabackup: Transaction log of lsn (<span class="number">2937512</span>) to (<span class="number">2937521</span>) was copied.</span><br><span class="line"><span class="number">170831</span> <span class="number">17</span>:<span class="number">19</span>:<span class="number">06</span> completed OK!</span><br></pre></td></tr></table></figure><br>生成一个时间戳目录,和full.xbstream,full.xbstream是空的<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>test1 backup]# ls</span><br><span class="line"><span class="number">2017</span><span class="number">-08</span><span class="number">-31</span>_17<span class="number">-18</span><span class="number">-43</span>  full.xbstream</span><br><span class="line">[<span class="symbol">root@</span>test1 backup]# file full.xbstream</span><br><span class="line">full.xbstream: empty</span><br></pre></td></tr></table></figure><br>并且<code>2017-08-31_17-18-43</code>目录下也没有xtrabackup_slave_info<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>test1 backup]# cd <span class="number">2017</span><span class="number">-08</span><span class="number">-31</span>_17<span class="number">-18</span><span class="number">-43</span></span><br><span class="line">[<span class="symbol">root@</span>test1 <span class="number">2017</span><span class="number">-08</span><span class="number">-31</span>_17<span class="number">-18</span><span class="number">-43</span>]# ls</span><br><span class="line">backup-my.cnf  fandb  ib_buffer_pool  ibdata1  mysql  performance_schema  sms  sys  undo001  undo002  undo003  xtrabackup_binlog_info  xtrabackup_checkpoints  xtrabackup_info  xtrabackup_logfile  yydb</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/08/31/innobackupex遇到的坑/" target="_blank" title="innobackupex遇到的坑">http://fuxkdb.com/2017/08/31/innobackupex遇到的坑/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%A4%87%E4%BB%BD%E6%81%A2%E5%A4%8D/" rel="tag">MySQL备份恢复</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/09/06/%E5%9C%A8datadir%E5%A4%96%E5%88%9B%E5%BB%BAInnoDB%E8%A1%A8/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          在datadir外创建InnoDB表
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/08/22/%E4%B8%BB%E4%BB%8E%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">主从传输表空间的坑</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#stream%E9%80%89%E6%8B%A9%E4%BD%BF%E7%94%A8tar%E6%96%B9%E5%BC%8F%E5%8E%8B%E7%BC%A9%E5%88%B0%E6%97%B6slave-info%E4%BF%A1%E6%81%AF%E4%B8%8D%E5%AE%8C%E6%95%B4"><span class="nav-number">1.</span> <span class="nav-text">stream选择使用tar方式压缩到时slave_info信息不完整</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

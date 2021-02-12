@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>译文 streaming mysql backups with percona xtrabackup – another alternative | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL备份恢复" />
+  
+  
+  
+  
+  <meta name="description" content="Streaming MySQL Backups with Percona XtraBackup – Another Alternative使用Percona XtraBackup流式传输MySQL备份-另一种选择 今天我将向你介绍另一种使用Percona XtraBackup在服务器间创建并传递备份的方式. 这个方法和网上的其他方法有什么不同吗? 其实并没有很大不同, 但是在性能和可用性方面很有趣">
+<meta property="og:type" content="article">
+<meta property="og:title" content="译文 Streaming MySQL Backups with Percona XtraBackup – Another Alternative">
+<meta property="og:url" content="http://fuxkdb.com/2020/01/09/2020-01-09-%E8%AF%91%E6%96%87-Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Streaming MySQL Backups with Percona XtraBackup – Another Alternative使用Percona XtraBackup流式传输MySQL备份-另一种选择 今天我将向你介绍另一种使用Percona XtraBackup在服务器间创建并传递备份的方式. 这个方法和网上的其他方法有什么不同吗? 其实并没有很大不同, 但是在性能和可用性方面很有趣">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-01-09T02:01:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T02:01:55.650Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL备份恢复">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-01-09-译文-Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      译文 Streaming MySQL Backups with Percona XtraBackup – Another Alternative
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/01/09/2020-01-09-%E8%AF%91%E6%96%87-Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative/" class="article-date">
+	  <time datetime="2020-01-09T02:01:00.000Z" itemprop="datePublished">2020-01-09</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative"><a href="#Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative" class="headerlink" title="Streaming MySQL Backups with Percona XtraBackup – Another Alternative"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2021/01/08/streaming-mysql-backups-with-percona-xtrabackup-another-alternative/">Streaming MySQL Backups with Percona XtraBackup – Another Alternative</a></h1><p>使用Percona XtraBackup流式传输MySQL备份-另一种选择</p>
+<p>今天我将向你介绍另一种使用<a target="_blank" rel="noopener" href="https://www.percona.com/software/mysql-database/percona-xtrabackup">Percona XtraBackup</a>在服务器间创建并传递备份的方式. 这个方法和网上的其他方法有什么不同吗? 其实并没有很大不同, 但是在性能和可用性方面很有趣.</p>
+<p>我们将xbstream实用程序与pigz和socat的功能结合在一起, 以在拥有多个处理器的情况下利用多处理功能, 同时在此组件成为瓶颈的情况下, 减少对网络带宽的使用. 因此, 让我们解释每个组件: </p>
+<p><strong>socat: </strong>代表SOcket CAT. 它是一个用于在两个地址之间进行数据传输的实用程序. </p>
+<p>使socat如此通用的原因是地址可以代表网络套接字, 任何文件描述符, Unix域数据报或流套接字, TCP和UDP（在IPv4和IPv6上）, 在IPv4 / IPv6上的SOCKS 4 / 4a, SCTP , PTY, 数据报和流套接字, 命名管道和未命名管道, 原始IP套接字, OpenSSL, 或者在Linux上甚至任何任意网络设备上</p>
+<p><strong>Pigz: </strong>它代表gzip的并行实现, 它是gzip的全功能替代品, 在压缩数据时利用了多个处理器和多个内核. </p>
+<p><strong>xbstream : （</strong>具有并行性）并行处理多个文件. </p>
+<p>所需软件包: pigz, socat, 当然还有 Percona XtraBackup</p>
+<a id="more"></a>
+<h2 id="以下示例操作中的环境信息"><a href="#以下示例操作中的环境信息" class="headerlink" title="以下示例操作中的环境信息"></a>以下示例操作中的环境信息</h2><p><strong>Source:</strong> 进行备份的来源数据库(MySQL 5.7 installed on CentOS 7.8)</p>
+<p><strong>Target:</strong> 备份将发送到的目的地(MySQL 5.7 installed on CentOS 7.8)</p>
+<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><ol>
+<li>在<strong>Source</strong>和<strong>Target</strong>安装依赖包</li>
+</ol>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Source <span class="comment"># yum install -y pigz socat</span></span><br><span class="line">Target <span class="comment"># yum install -y pigz socat</span></span><br></pre></td></tr></table></figure>
+<p>   如果你尚未在源端和目标端安装Percona XtraBackup, 请参照以下步骤<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtrabackup/2.4/index.html#installation">https://www.percona.com/doc/percona-xtrabackup/2.4/index.html#installation</a></p>
+<p>   确保您拥有一个具有适当特权的用户, 可以在<strong>源</strong>数据库上进行备份:</p>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">+---------------------------------------------------------------------------+</span><br><span class="line">| Grants <span class="keyword">for</span> bkpuser@localhost |</span><br><span class="line">+---------------------------------------------------------------------------+</span><br><span class="line">| GRANT RELOAD, PROCESS, REPLICATION CLIENT ON *.* TO <span class="string">&#x27;bkpuser&#x27;</span>@<span class="string">&#x27;localhost&#x27;</span> |</span><br><span class="line">+---------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+<ol>
+<li>在<strong>Target</strong>执行:</li>
+</ol>
+<p>   停止当前的数据库服务(如果有):</p>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Target <span class="comment"># systemctl stop mysqld</span></span><br></pre></td></tr></table></figure>
+<p>   删除datadir内容（假设它已使用默认设置安装）, 并确保您已登录到目标服务器！</p>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Target <span class="comment"># rm -rf /var/lib/mysql/*</span></span><br></pre></td></tr></table></figure>
+<p>   最后, 我们将执行命令以从源（<strong>Source</strong>）接收备份: </p>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Target <span class="comment"># socat -u TCP-LISTEN:4444,reuseaddr stdio | pigz -dc -p 4 - | xbstream —p 4 -x -C /var/lib/mysql</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>在<strong>Source</strong>执行命令以将备份发送到目标（<strong>Target</strong>）.</li>
+</ol>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Source <span class="comment"># xtrabackup --defaults-file=/etc/my.cnf --backup --user=bkpuser --password=Bkpuser123! --stream=xbstream --parallel 4 --no-timestamp --target-dir=/tmp | pigz -k -1 -p4 - | socat -u stdio TCP:Target:4444</span></span><br></pre></td></tr></table></figure>
+<p>   您将看到类似以下的输出: </p>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">xtrabackup: recognized server arguments: --datadir=/var/lib/mysql --server-id=<span class="number">1</span> --log_bin=/var/lib/mysql/mysql-bin --innodb_log_file_size=<span class="number">200</span>M --innodb_log_files_in_group=<span class="number">2</span> --open_files_limit=<span class="number">65535</span> --parallel=<span class="number">4</span></span><br><span class="line">xtrabackup: recognized client arguments: --backup=<span class="number">1</span> --user=bkpuser --password=* --stream=xbstream --target-dir=/tmp</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">16</span> version_check Connecting to MySQL server <span class="keyword">with</span> DSN <span class="string">&#x27;dbi:mysql:;mysql_read_default_group=xtrabackup&#x27;</span> <span class="keyword">as</span> <span class="string">&#x27;bkpuser&#x27;</span> (using password: YES).</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">16</span> version_check Connected to MySQL server</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">16</span> version_check Executing a version check against the server...</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">16</span> version_check Done.</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">16</span> Connecting to MySQL server host: localhost, user: bkpuser, password: set, port: <span class="keyword">not</span> set, socket: <span class="keyword">not</span> set</span><br><span class="line">Using server version <span class="number">5.7</span><span class="number">.30</span>-log</span><br><span class="line">xtrabackup version <span class="number">2.4</span><span class="number">.20</span> based on MySQL server <span class="number">5.7</span><span class="number">.26</span> Linux (x86_64) (revision id: c8b4056)</span><br><span class="line">xtrabackup: uses posix_fadvise().</span><br><span class="line">xtrabackup: cd to /var/lib/mysql</span><br><span class="line">xtrabackup: open files limit requested <span class="number">65535</span>, set to <span class="number">65535</span></span><br><span class="line">xtrabackup: using the following InnoDB configuration:</span><br><span class="line">xtrabackup: innodb_data_home_dir = .</span><br><span class="line">xtrabackup: innodb_data_file_path = ibdata1:<span class="number">12</span>M:autoextend</span><br><span class="line">xtrabackup: innodb_log_group_home_dir = ./</span><br><span class="line">xtrabackup: innodb_log_files_in_group = <span class="number">2</span></span><br><span class="line">xtrabackup: innodb_log_file_size = <span class="number">209715200</span></span><br><span class="line">InnoDB: Number of pools: <span class="number">1</span></span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">16</span> &gt;&gt; log scanned up to (<span class="number">6724690490</span>)</span><br><span class="line">xtrabackup: Generating a list of tablespaces</span><br><span class="line">InnoDB: Allocated tablespace ID <span class="number">2</span> <span class="keyword">for</span> mysql/plugin, old maximum was <span class="number">0</span></span><br><span class="line">xtrabackup: Starting <span class="number">4</span> threads <span class="keyword">for</span> parallel data files transfer</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">16</span> [<span class="number">01</span>] Streaming ./ibdata1</span><br><span class="line">...etc</span><br></pre></td></tr></table></figure>
+<ol>
+<li>完成第3步后, 您将在<strong>Target</strong>节点上看到如下输出: </li>
+</ol>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">MySQL binlog position: filename <span class="string">&#x27;mysql-bin.000091&#x27;</span>, position <span class="string">&#x27;102205647&#x27;</span></span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">21</span> [<span class="number">00</span>] Streaming &lt;STDOUT&gt;</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">21</span> [<span class="number">00</span>] ...done</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">21</span> [<span class="number">00</span>] Streaming &lt;STDOUT&gt;</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">21</span> [<span class="number">00</span>] ...done</span><br><span class="line">xtrabackup: Transaction log of lsn (<span class="number">4308505553</span>) to (<span class="number">4308505562</span>) was copied.</span><br><span class="line"><span class="number">200822</span> <span class="number">11</span>:<span class="number">10</span>:<span class="number">21</span> completed OK!</span><br></pre></td></tr></table></figure>
+<p>   第2步也将完成, 因此您必须在<strong>Target</strong>节点中执行以下命令: </p>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Target <span class="comment"># xtrabackup --prepare --use-memory=1G --target-dir=/var/lib/mysql/</span></span><br></pre></td></tr></table></figure>
+<p>   从文档中: </p>
+<p>   使用<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtrabackup/2.4/xtrabackup_bin/xbk_option_reference.html#cmdoption-xtrabackup-backup">xtrabackup –backup</a>选项<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtrabackup/2.4/xtrabackup_bin/xbk_option_reference.html#cmdoption-xtrabackup-backup">进行备份后</a>, 首先需要准备它以进行还原. 在准备好数据文件之前, 它们在时间点上是不一致的, 因为它们是在程序运行时在不同的时间复制的, 并且在此过程中它们可能已被更改. 如果您尝试使用这些数据文件启动InnoDB, 它将检测到损坏并自身崩溃, 以防止您在损坏的数据上运行. 该<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtrabackup/2.4/xtrabackup_bin/xbk_option_reference.html#cmdoption-xtrabackup-prepare">xtrabackup -prepare</a>步骤使得文件在单个时间瞬间完全一致, 这样你就可以在上面运行的InnoDB. </p>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Target <span class="comment"># chown -R mysql:mysql /var/lib/mysql/*</span></span><br><span class="line">Target <span class="comment"># systemctl start mysqld</span></span><br></pre></td></tr></table></figure>
+<p>   您已经克隆了一个新数据库！</p>
+<p>   当然, 您可以将新数据库设置为副本, 并在<strong>目标</strong>节点中执行以下附加步骤: </p>
+<p>   查看文件xtrabackup_binlog_info的内容, 它将类似于: </p>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Target <span class="comment"># cat /var/lib/mysql/xtrabackup_binlog_info</span></span><br><span class="line"></span><br><span class="line">mysql-bin<span class="number">.000091</span> <span class="number">102205647</span></span><br></pre></td></tr></table></figure>
+<p>   <em>（我们假设在<strong>源</strong>数据库中创建了以下用户/授权, 如果没有, 请创建它）</em></p>
+   <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show grants for replicator;</span><br><span class="line">+<span class="comment">----------------------------------------------------+</span></span><br><span class="line">| Grants for replicator@% |</span><br><span class="line">+<span class="comment">----------------------------------------------------+</span></span><br><span class="line">| <span class="keyword">GRANT</span> <span class="keyword">REPLICATION</span> <span class="keyword">SLAVE</span> <span class="keyword">ON</span> *.* <span class="keyword">TO</span> <span class="string">&#x27;replicator&#x27;</span>@<span class="string">&#x27;%&#x27;</span> |</span><br><span class="line">+<span class="comment">----------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+<p>   连接到数据库, 然后运行: </p>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Target <span class="comment"># mysql -u root -p</span></span><br></pre></td></tr></table></figure>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; change master to master_host=<span class="string">&#x27;Source&#x27;</span>,master_port=<span class="number">3306</span>,master_user=<span class="string">&#x27;replicator&#x27;</span>,master_password=<span class="string">&#x27;R3pl1c4t10n!&#x27;</span>,master_log_file=<span class="string">&#x27;mysql-bin.000091&#x27;</span>,master_log_pos=<span class="number">102205647</span>;</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; start slave;</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; pager egrep -i <span class="string">&quot;Master_Host|Master_User|Master_Port|file|behind&quot;</span></span><br></pre></td></tr></table></figure>
+   <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show slave status\G</span><br><span class="line">                  Master_Host: master</span><br><span class="line">                  Master_User: replicator</span><br><span class="line">                  Master_Port: <span class="number">3306</span></span><br><span class="line">              Master_Log_File: mysql-bin<span class="number">.000091</span></span><br><span class="line">               Relay_Log_File: relay<span class="number">.000001</span></span><br><span class="line">        Relay_Master_Log_File: mysql-bin<span class="number">.000091</span></span><br><span class="line">               Until_Log_File:</span><br><span class="line">           Master_SSL_CA_File:</span><br><span class="line">        Seconds_Behind_Master: <span class="number">0</span></span><br><span class="line">             Master_Info_File: mysql.slave_master_info</span><br><span class="line"></span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> set (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>   就这样. 直播愉快！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/01/09/2020-01-09-译文-Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative/" target="_blank" title="译文 Streaming MySQL Backups with Percona XtraBackup – Another Alternative">http://fuxkdb.com/2020/01/09/2020-01-09-译文-Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%A4%87%E4%BB%BD%E6%81%A2%E5%A4%8D/" rel="tag">MySQL备份恢复</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          Canal dynamicTopic问题
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">TiDB Syncer不同表名库名同步且支持pt-osc改表</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative"><span class="nav-number">1.</span> <span class="nav-text">Streaming MySQL Backups with Percona XtraBackup – Another Alternative</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A5%E4%B8%8B%E7%A4%BA%E4%BE%8B%E6%93%8D%E4%BD%9C%E4%B8%AD%E7%9A%84%E7%8E%AF%E5%A2%83%E4%BF%A1%E6%81%AF"><span class="nav-number">1.1.</span> <span class="nav-text">以下示例操作中的环境信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A4"><span class="nav-number">1.2.</span> <span class="nav-text">步骤</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

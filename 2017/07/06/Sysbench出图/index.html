@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>sysbench出图 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLSysbench" />
+  
+  
+  
+  
+  <meta name="description" content="Plot-Sysbenchprepare12345678910111213141516171819202122232425262728293031323334353637383940sysbench &#x2F;tmp&#x2F;sysbench-master&#x2F;src&#x2F;lua&#x2F;oltp_read_write.lua  --mysql-user&#x3D;root --mysql-password&#x3D;mysql --mysql-p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sysbench出图">
+<meta property="og:url" content="http://fuxkdb.com/2017/07/06/Sysbench%E5%87%BA%E5%9B%BE/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Plot-Sysbenchprepare12345678910111213141516171819202122232425262728293031323334353637383940sysbench &#x2F;tmp&#x2F;sysbench-master&#x2F;src&#x2F;lua&#x2F;oltp_read_write.lua  --mysql-user&#x3D;root --mysql-password&#x3D;mysql --mysql-p">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Plot-Sysbench/master/image/Snip20170706_70.png">
+<meta property="article:published_time" content="2017-07-06T14:00:00.000Z">
+<meta property="article:modified_time" content="2018-04-24T09:59:31.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Sysbench">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Plot-Sysbench/master/image/Snip20170706_70.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-Sysbench出图" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Sysbench出图
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/06/Sysbench%E5%87%BA%E5%9B%BE/" class="article-date">
+	  <time datetime="2017-07-06T14:00:00.000Z" itemprop="datePublished">2017-07-06</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Plot-Sysbench"><a href="#Plot-Sysbench" class="headerlink" title="Plot-Sysbench"></a>Plot-Sysbench</h1><p>prepare<br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">sysbench /tmp/sysbench-master/src/lua/oltp_read_write.lua  <span class="comment">--mysql-user=root --mysql-password=mysql --mysql-port=3306 \</span></span><br><span class="line"><span class="comment">--mysql-socket=/data/mysql55/mysql.sock  --mysql-host=localhost \</span></span><br><span class="line"><span class="comment">--mysql-db=sysbenchtest  --tables=10 --table-size=5000000  --threads=30 \</span></span><br><span class="line"><span class="comment">--events=5000000 --report-interval=5 prepare</span></span><br><span class="line"></span><br><span class="line"><span class="comment">##--table-size=五百万,一个表五百万 10个表 五千万</span></span><br><span class="line"><span class="comment">##--threads=30 开30个线程并发prepare</span></span><br><span class="line"></span><br><span class="line">Initializing worker threads...</span><br><span class="line"></span><br><span class="line">Creating table <span class="string">&#x27;sbtest6&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest4&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest5&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest10&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest8&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest3&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest9&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest1&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest2&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest7&#x27;</span>...</span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest4&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest5&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest6&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest8&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest3&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest9&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest10&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest7&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest1&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest2&#x27;</span></span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest6&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest9&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest4&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest8&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest3&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest7&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest2&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest1&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest5&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest10&#x27;</span>...</span><br></pre></td></tr></table></figure><br><a id="more"></a><br>sysbenchtest库大小<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>uz6535 mysql55]# du -sh sysbenchtest/</span><br><span class="line"><span class="number">12</span>G     sysbenchtest/</span><br></pre></td></tr></table></figure></p>
+<p>run<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sysbench \</span><br><span class="line">/tmp/sysbench-master/src/lua/oltp_read_write.lua \</span><br><span class="line"><span class="attribute">--mysql-user</span>=root  <span class="attribute">--mysql-password</span>=mysql <span class="attribute">--mysql-port</span>=3306 \</span><br><span class="line"><span class="attribute">--mysql-socket</span>=/data/mysql55/mysql.sock  <span class="attribute">--mysql-host</span>=localhost \</span><br><span class="line"><span class="attribute">--mysql-db</span>=sysbenchtest  <span class="attribute">--tables</span>=10 <span class="attribute">--table-size</span>=5000000 \</span><br><span class="line"><span class="attribute">--threads</span>=30 <span class="attribute">--report-interval</span>=5 <span class="attribute">--time</span>=300 <span class="builtin-name">run</span> &gt; binlog_off.txt</span><br></pre></td></tr></table></figure><br>输出的原始结果<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line">[ <span class="number">5</span>s ] thds: <span class="number">30</span> tps: <span class="number">73.76</span> qps: <span class="number">1538.67</span> (r/w/o: <span class="number">1084.35</span>/<span class="number">300.82</span>/<span class="number">153.51</span>) lat (ms,<span class="number">95</span>%): <span class="number">733.00</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">10</span>s ] thds: <span class="number">30</span> tps: <span class="number">75.80</span> qps: <span class="number">1519.27</span> (r/w/o: <span class="number">1062.85</span>/<span class="number">304.81</span>/<span class="number">151.61</span>) lat (ms,<span class="number">95</span>%): <span class="number">590.56</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">15</span>s ] thds: <span class="number">30</span> tps: <span class="number">58.39</span> qps: <span class="number">1183.57</span> (r/w/o: <span class="number">831.24</span>/<span class="number">235.55</span>/<span class="number">116.78</span>) lat (ms,<span class="number">95</span>%): <span class="number">926.33</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">20</span>s ] thds: <span class="number">30</span> tps: <span class="number">48.21</span> qps: <span class="number">961.19</span> (r/w/o: <span class="number">672.13</span>/<span class="number">192.64</span>/<span class="number">96.42</span>) lat (ms,<span class="number">95</span>%): <span class="number">1129.24</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">25</span>s ] thds: <span class="number">30</span> tps: <span class="number">43.57</span> qps: <span class="number">863.96</span> (r/w/o: <span class="number">606.66</span>/<span class="number">170.15</span>/<span class="number">87.14</span>) lat (ms,<span class="number">95</span>%): <span class="number">1109.09</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">30</span>s ] thds: <span class="number">30</span> tps: <span class="number">21.70</span> qps: <span class="number">418.24</span> (r/w/o: <span class="number">291.07</span>/<span class="number">83.77</span>/<span class="number">43.41</span>) lat (ms,<span class="number">95</span>%): <span class="number">2585.31</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">35</span>s ] thds: <span class="number">30</span> tps: <span class="number">19.99</span> qps: <span class="number">420.45</span> (r/w/o: <span class="number">299.09</span>/<span class="number">81.37</span>/<span class="number">39.99</span>) lat (ms,<span class="number">95</span>%): <span class="number">3267.19</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">40</span>s ] thds: <span class="number">30</span> tps: <span class="number">26.41</span> qps: <span class="number">511.99</span> (r/w/o: <span class="number">352.53</span>/<span class="number">106.64</span>/<span class="number">52.82</span>) lat (ms,<span class="number">95</span>%): <span class="number">2198.52</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">45</span>s ] thds: <span class="number">30</span> tps: <span class="number">30.20</span> qps: <span class="number">608.26</span> (r/w/o: <span class="number">427.04</span>/<span class="number">120.81</span>/<span class="number">60.41</span>) lat (ms,<span class="number">95</span>%): <span class="number">2279.14</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">50</span>s ] thds: <span class="number">30</span> tps: <span class="number">20.58</span> qps: <span class="number">438.48</span> (r/w/o: <span class="number">308.03</span>/<span class="number">89.29</span>/<span class="number">41.15</span>) lat (ms,<span class="number">95</span>%): <span class="number">1973.38</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">55</span>s ] thds: <span class="number">30</span> tps: <span class="number">26.03</span> qps: <span class="number">486.74</span> (r/w/o: <span class="number">338.97</span>/<span class="number">95.71</span>/<span class="number">52.06</span>) lat (ms,<span class="number">95</span>%): <span class="number">2279.14</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">60</span>s ] thds: <span class="number">30</span> tps: <span class="number">46.98</span> qps: <span class="number">955.28</span> (r/w/o: <span class="number">670.77</span>/<span class="number">190.54</span>/<span class="number">93.97</span>) lat (ms,<span class="number">95</span>%): <span class="number">1170.65</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">65</span>s ] thds: <span class="number">30</span> tps: <span class="number">40.62</span> qps: <span class="number">803.33</span> (r/w/o: <span class="number">562.03</span>/<span class="number">160.06</span>/<span class="number">81.23</span>) lat (ms,<span class="number">95</span>%): <span class="number">1533.66</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">70</span>s ] thds: <span class="number">30</span> tps: <span class="number">40.49</span> qps: <span class="number">814.29</span> (r/w/o: <span class="number">569.19</span>/<span class="number">164.13</span>/<span class="number">80.97</span>) lat (ms,<span class="number">95</span>%): <span class="number">1903.57</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">75</span>s ] thds: <span class="number">30</span> tps: <span class="number">38.90</span> qps: <span class="number">779.99</span> (r/w/o: <span class="number">550.83</span>/<span class="number">151.36</span>/<span class="number">77.80</span>) lat (ms,<span class="number">95</span>%): <span class="number">1589.90</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">80</span>s ] thds: <span class="number">30</span> tps: <span class="number">30.30</span> qps: <span class="number">617.64</span> (r/w/o: <span class="number">428.84</span>/<span class="number">128.19</span>/<span class="number">60.61</span>) lat (ms,<span class="number">95</span>%): <span class="number">2009.23</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">85</span>s ] thds: <span class="number">30</span> tps: <span class="number">21.46</span> qps: <span class="number">418.45</span> (r/w/o: <span class="number">292.27</span>/<span class="number">83.25</span>/<span class="number">42.93</span>) lat (ms,<span class="number">95</span>%): <span class="number">2449.36</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">90</span>s ] thds: <span class="number">30</span> tps: <span class="number">37.61</span> qps: <span class="number">755.12</span> (r/w/o: <span class="number">527.08</span>/<span class="number">152.82</span>/<span class="number">75.21</span>) lat (ms,<span class="number">95</span>%): <span class="number">1771.29</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">95</span>s ] thds: <span class="number">30</span> tps: <span class="number">32.54</span> qps: <span class="number">651.63</span> (r/w/o: <span class="number">457.56</span>/<span class="number">128.98</span>/<span class="number">65.08</span>) lat (ms,<span class="number">95</span>%): <span class="number">1869.60</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">100</span>s ] thds: <span class="number">30</span> tps: <span class="number">42.28</span> qps: <span class="number">826.39</span> (r/w/o: <span class="number">577.77</span>/<span class="number">164.27</span>/<span class="number">84.36</span>) lat (ms,<span class="number">95</span>%): <span class="number">1453.01</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">105</span>s ] thds: <span class="number">30</span> tps: <span class="number">30.84</span> qps: <span class="number">653.14</span> (r/w/o: <span class="number">460.72</span>/<span class="number">130.55</span>/<span class="number">61.87</span>) lat (ms,<span class="number">95</span>%): <span class="number">2198.52</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">110</span>s ] thds: <span class="number">30</span> tps: <span class="number">49.66</span> qps: <span class="number">975.39</span> (r/w/o: <span class="number">684.23</span>/<span class="number">191.85</span>/<span class="number">99.31</span>) lat (ms,<span class="number">95</span>%): <span class="number">1149.76</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">115</span>s ] thds: <span class="number">30</span> tps: <span class="number">39.18</span> qps: <span class="number">779.72</span> (r/w/o: <span class="number">540.44</span>/<span class="number">160.93</span>/<span class="number">78.35</span>) lat (ms,<span class="number">95</span>%): <span class="number">1376.60</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">120</span>s ] thds: <span class="number">30</span> tps: <span class="number">19.13</span> qps: <span class="number">370.96</span> (r/w/o: <span class="number">258.79</span>/<span class="number">74.11</span>/<span class="number">38.05</span>) lat (ms,<span class="number">95</span>%): <span class="number">3095.38</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">125</span>s ] thds: <span class="number">30</span> tps: <span class="number">21.44</span> qps: <span class="number">460.58</span> (r/w/o: <span class="number">325.15</span>/<span class="number">92.36</span>/<span class="number">43.07</span>) lat (ms,<span class="number">95</span>%): <span class="number">3267.19</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">130</span>s ] thds: <span class="number">30</span> tps: <span class="number">29.84</span> qps: <span class="number">581.09</span> (r/w/o: <span class="number">404.44</span>/<span class="number">116.97</span>/<span class="number">59.68</span>) lat (ms,<span class="number">95</span>%): <span class="number">3040.14</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">135</span>s ] thds: <span class="number">30</span> tps: <span class="number">23.97</span> qps: <span class="number">467.19</span> (r/w/o: <span class="number">328.38</span>/<span class="number">90.86</span>/<span class="number">47.95</span>) lat (ms,<span class="number">95</span>%): <span class="number">3326.55</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">140</span>s ] thds: <span class="number">30</span> tps: <span class="number">25.41</span> qps: <span class="number">516.94</span> (r/w/o: <span class="number">363.70</span>/<span class="number">102.43</span>/<span class="number">50.81</span>) lat (ms,<span class="number">95</span>%): <span class="number">2449.36</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">145</span>s ] thds: <span class="number">30</span> tps: <span class="number">26.00</span> qps: <span class="number">518.58</span> (r/w/o: <span class="number">363.19</span>/<span class="number">103.40</span>/<span class="number">52.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">2778.39</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">150</span>s ] thds: <span class="number">30</span> tps: <span class="number">22.56</span> qps: <span class="number">447.75</span> (r/w/o: <span class="number">314.40</span>/<span class="number">88.25</span>/<span class="number">45.11</span>) lat (ms,<span class="number">95</span>%): <span class="number">2539.17</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">155</span>s ] thds: <span class="number">30</span> tps: <span class="number">23.66</span> qps: <span class="number">485.03</span> (r/w/o: <span class="number">333.80</span>/<span class="number">103.92</span>/<span class="number">47.31</span>) lat (ms,<span class="number">95</span>%): <span class="number">2405.65</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">160</span>s ] thds: <span class="number">30</span> tps: <span class="number">22.00</span> qps: <span class="number">427.88</span> (r/w/o: <span class="number">305.20</span>/<span class="number">78.68</span>/<span class="number">44.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">2932.60</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">165</span>s ] thds: <span class="number">30</span> tps: <span class="number">25.84</span> qps: <span class="number">521.81</span> (r/w/o: <span class="number">362.14</span>/<span class="number">108.00</span>/<span class="number">51.68</span>) lat (ms,<span class="number">95</span>%): <span class="number">2632.28</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">170</span>s ] thds: <span class="number">30</span> tps: <span class="number">40.39</span> qps: <span class="number">818.20</span> (r/w/o: <span class="number">575.66</span>/<span class="number">161.76</span>/<span class="number">80.78</span>) lat (ms,<span class="number">95</span>%): <span class="number">2082.91</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">175</span>s ] thds: <span class="number">30</span> tps: <span class="number">35.98</span> qps: <span class="number">697.47</span> (r/w/o: <span class="number">485.77</span>/<span class="number">139.73</span>/<span class="number">71.97</span>) lat (ms,<span class="number">95</span>%): <span class="number">2045.74</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">180</span>s ] thds: <span class="number">30</span> tps: <span class="number">18.50</span> qps: <span class="number">391.91</span> (r/w/o: <span class="number">277.32</span>/<span class="number">77.59</span>/<span class="number">37.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">2680.11</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">185</span>s ] thds: <span class="number">30</span> tps: <span class="number">26.36</span> qps: <span class="number">520.54</span> (r/w/o: <span class="number">363.80</span>/<span class="number">104.03</span>/<span class="number">52.72</span>) lat (ms,<span class="number">95</span>%): <span class="number">1973.38</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">190</span>s ] thds: <span class="number">30</span> tps: <span class="number">32.40</span> qps: <span class="number">641.60</span> (r/w/o: <span class="number">447.40</span>/<span class="number">129.40</span>/<span class="number">64.80</span>) lat (ms,<span class="number">95</span>%): <span class="number">1903.57</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">195</span>s ] thds: <span class="number">30</span> tps: <span class="number">32.60</span> qps: <span class="number">668.65</span> (r/w/o: <span class="number">465.04</span>/<span class="number">138.41</span>/<span class="number">65.21</span>) lat (ms,<span class="number">95</span>%): <span class="number">2405.65</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">200</span>s ] thds: <span class="number">30</span> tps: <span class="number">23.99</span> qps: <span class="number">469.08</span> (r/w/o: <span class="number">328.12</span>/<span class="number">92.98</span>/<span class="number">47.99</span>) lat (ms,<span class="number">95</span>%): <span class="number">2985.89</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">205</span>s ] thds: <span class="number">30</span> tps: <span class="number">35.41</span> qps: <span class="number">715.31</span> (r/w/o: <span class="number">506.48</span>/<span class="number">138.02</span>/<span class="number">70.81</span>) lat (ms,<span class="number">95</span>%): <span class="number">1903.57</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">210</span>s ] thds: <span class="number">30</span> tps: <span class="number">28.97</span> qps: <span class="number">571.75</span> (r/w/o: <span class="number">396.95</span>/<span class="number">116.87</span>/<span class="number">57.93</span>) lat (ms,<span class="number">95</span>%): <span class="number">1836.24</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">215</span>s ] thds: <span class="number">30</span> tps: <span class="number">27.81</span> qps: <span class="number">538.34</span> (r/w/o: <span class="number">374.30</span>/<span class="number">108.43</span>/<span class="number">55.61</span>) lat (ms,<span class="number">95</span>%): <span class="number">2539.17</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">220</span>s ] thds: <span class="number">30</span> tps: <span class="number">41.66</span> qps: <span class="number">855.75</span> (r/w/o: <span class="number">605.81</span>/<span class="number">166.62</span>/<span class="number">83.31</span>) lat (ms,<span class="number">95</span>%): <span class="number">1213.57</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">225</span>s ] thds: <span class="number">30</span> tps: <span class="number">43.58</span> qps: <span class="number">844.54</span> (r/w/o: <span class="number">584.88</span>/<span class="number">172.51</span>/<span class="number">87.15</span>) lat (ms,<span class="number">95</span>%): <span class="number">2120.76</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">230</span>s ] thds: <span class="number">30</span> tps: <span class="number">29.80</span> qps: <span class="number">613.46</span> (r/w/o: <span class="number">433.04</span>/<span class="number">120.81</span>/<span class="number">59.61</span>) lat (ms,<span class="number">95</span>%): <span class="number">1533.66</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">235</span>s ] thds: <span class="number">30</span> tps: <span class="number">35.47</span> qps: <span class="number">716.43</span> (r/w/o: <span class="number">503.19</span>/<span class="number">142.29</span>/<span class="number">70.95</span>) lat (ms,<span class="number">95</span>%): <span class="number">2198.52</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">240</span>s ] thds: <span class="number">30</span> tps: <span class="number">35.54</span> qps: <span class="number">702.84</span> (r/w/o: <span class="number">487.17</span>/<span class="number">144.58</span>/<span class="number">71.09</span>) lat (ms,<span class="number">95</span>%): <span class="number">1506.29</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">245</span>s ] thds: <span class="number">30</span> tps: <span class="number">28.79</span> qps: <span class="number">581.14</span> (r/w/o: <span class="number">410.41</span>/<span class="number">113.15</span>/<span class="number">57.57</span>) lat (ms,<span class="number">95</span>%): <span class="number">1938.16</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">250</span>s ] thds: <span class="number">30</span> tps: <span class="number">19.20</span> qps: <span class="number">393.79</span> (r/w/o: <span class="number">272.59</span>/<span class="number">82.80</span>/<span class="number">38.40</span>) lat (ms,<span class="number">95</span>%): <span class="number">3151.62</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">255</span>s ] thds: <span class="number">30</span> tps: <span class="number">31.60</span> qps: <span class="number">608.62</span> (r/w/o: <span class="number">427.62</span>/<span class="number">117.80</span>/<span class="number">63.20</span>) lat (ms,<span class="number">95</span>%): <span class="number">2493.86</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">260</span>s ] thds: <span class="number">30</span> tps: <span class="number">29.00</span> qps: <span class="number">588.06</span> (r/w/o: <span class="number">411.64</span>/<span class="number">118.41</span>/<span class="number">58.01</span>) lat (ms,<span class="number">95</span>%): <span class="number">2159.29</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">265</span>s ] thds: <span class="number">30</span> tps: <span class="number">34.99</span> qps: <span class="number">705.06</span> (r/w/o: <span class="number">494.30</span>/<span class="number">140.77</span>/<span class="number">69.99</span>) lat (ms,<span class="number">95</span>%): <span class="number">1836.24</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">270</span>s ] thds: <span class="number">30</span> tps: <span class="number">16.41</span> qps: <span class="number">333.18</span> (r/w/o: <span class="number">229.72</span>/<span class="number">70.64</span>/<span class="number">32.82</span>) lat (ms,<span class="number">95</span>%): <span class="number">2778.39</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">275</span>s ] thds: <span class="number">30</span> tps: <span class="number">32.99</span> qps: <span class="number">670.70</span> (r/w/o: <span class="number">472.39</span>/<span class="number">132.34</span>/<span class="number">65.97</span>) lat (ms,<span class="number">95</span>%): <span class="number">3040.14</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">280</span>s ] thds: <span class="number">30</span> tps: <span class="number">38.99</span> qps: <span class="number">755.84</span> (r/w/o: <span class="number">527.09</span>/<span class="number">150.77</span>/<span class="number">77.98</span>) lat (ms,<span class="number">95</span>%): <span class="number">1771.29</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">285</span>s ] thds: <span class="number">30</span> tps: <span class="number">36.41</span> qps: <span class="number">720.35</span> (r/w/o: <span class="number">503.91</span>/<span class="number">143.63</span>/<span class="number">72.82</span>) lat (ms,<span class="number">95</span>%): <span class="number">1561.52</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">290</span>s ] thds: <span class="number">30</span> tps: <span class="number">35.80</span> qps: <span class="number">740.01</span> (r/w/o: <span class="number">523.00</span>/<span class="number">145.40</span>/<span class="number">71.60</span>) lat (ms,<span class="number">95</span>%): <span class="number">1678.14</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">295</span>s ] thds: <span class="number">30</span> tps: <span class="number">32.94</span> qps: <span class="number">662.28</span> (r/w/o: <span class="number">466.61</span>/<span class="number">129.78</span>/<span class="number">65.89</span>) lat (ms,<span class="number">95</span>%): <span class="number">1973.38</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">300</span>s ] thds: <span class="number">30</span> tps: <span class="number">32.27</span> qps: <span class="number">639.95</span> (r/w/o: <span class="number">439.33</span>/<span class="number">136.09</span>/<span class="number">64.54</span>) lat (ms,<span class="number">95</span>%): <span class="number">1869.60</span> err/s: <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">SQL statistics:</span><br><span class="line">    queries performed:</span><br><span class="line">        read:                            <span class="number">139958</span></span><br><span class="line">        write:                           <span class="number">39988</span></span><br><span class="line">        other:                           <span class="number">19994</span></span><br><span class="line">        total:                           <span class="number">199940</span></span><br><span class="line">    transactions:                        <span class="number">9997</span>   (<span class="number">33.18</span> per sec.)</span><br><span class="line">    queries:                             <span class="number">199940</span> (<span class="number">663.60</span> per sec.)</span><br><span class="line">    ignored errors:                      <span class="number">0</span>      (<span class="number">0.00</span> per sec.)</span><br><span class="line">    reconnects:                          <span class="number">0</span>      (<span class="number">0.00</span> per sec.)</span><br><span class="line"></span><br><span class="line">General statistics:</span><br><span class="line">    total time:                          <span class="number">301.2969</span>s</span><br><span class="line">    total number of events:              <span class="number">9997</span></span><br><span class="line"></span><br><span class="line">Latency (ms):</span><br><span class="line">         min:                                 <span class="number">13.53</span></span><br><span class="line">         avg:                                <span class="number">901.57</span></span><br><span class="line">         max:                               <span class="number">5107.53</span></span><br><span class="line">         <span class="number">95</span>th percentile:                   <span class="number">2238.47</span></span><br><span class="line">         sum:                            <span class="number">9012972.28</span></span><br><span class="line"></span><br><span class="line">Threads fairness:</span><br><span class="line">    events (avg/stddev):           <span class="number">333.2333</span>/<span class="number">6.55</span></span><br><span class="line">    execution time (avg/stddev):   <span class="number">300.4324</span>/<span class="number">0.32</span></span><br><span class="line"></span><br></pre></td></tr></table></figure><br>shell处理一下,文件名 最好为测试的条件  比如binlog_off binlog_on   thread_30 thread90<br><figure class="highlight scilab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">grep <span class="string">&quot;^\[&quot;</span> binlog_off.txt |awk -F&#x27;(<span class="string">&#x27; &#x27;</span>&#123;print $<span class="number">1</span>&#125;<span class="string">&#x27;|sed -e &quot;</span>s/\[\ /\&#123;<span class="string">&#x27;time&#x27;</span>:<span class="string">&#x27;/g&quot;</span> -e <span class="string">&quot;s/\ \]//g&quot;</span> -e <span class="string">&quot;s/:\ /&#x27;</span>:<span class="string">&#x27;/g&quot;</span> -e <span class="string">&quot;s/\ /&#x27;</span>,<span class="string">&#x27;/g&quot;</span> -e <span class="string">&quot;s/,&#x27;</span>$/\&#125;/g<span class="string">&quot;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&#123;&#x27;</span>time<span class="string">&#x27;:&#x27;</span><span class="number">5</span>s<span class="string">&#x27;,&#x27;</span>thds<span class="string">&#x27;:&#x27;</span><span class="number">30</span><span class="string">&#x27;,&#x27;</span>tps<span class="string">&#x27;:&#x27;</span><span class="number">14.95</span><span class="string">&#x27;,&#x27;</span>qps<span class="string">&#x27;:&#x27;</span><span class="number">391.01</span><span class="string">&#x27;&#125;</span></span><br><span class="line"><span class="string">&#123;&#x27;</span>time<span class="string">&#x27;:&#x27;</span><span class="number">10</span>s<span class="string">&#x27;,&#x27;</span>thds<span class="string">&#x27;:&#x27;</span><span class="number">30</span><span class="string">&#x27;,&#x27;</span>tps<span class="string">&#x27;:&#x27;</span><span class="number">27.33</span><span class="string">&#x27;,&#x27;</span>qps<span class="string">&#x27;:&#x27;</span><span class="number">549.58</span><span class="string">&#x27;&#125;</span></span><br><span class="line"><span class="string">&#123;&#x27;</span>time<span class="string">&#x27;:&#x27;</span><span class="number">15</span>s<span class="string">&#x27;,&#x27;</span>thds<span class="string">&#x27;:&#x27;</span><span class="number">30</span><span class="string">&#x27;,&#x27;</span>tps<span class="string">&#x27;:&#x27;</span><span class="number">29.01</span><span class="string">&#x27;,&#x27;</span>qps<span class="string">&#x27;:&#x27;</span><span class="number">585.07</span><span class="string">&#x27;&#125;</span></span><br><span class="line"><span class="string">&#123;&#x27;</span>time<span class="string">&#x27;:&#x27;</span><span class="number">20</span>s<span class="string">&#x27;,&#x27;</span>thds<span class="string">&#x27;:&#x27;</span><span class="number">30</span><span class="string">&#x27;,&#x27;</span>tps<span class="string">&#x27;:&#x27;</span><span class="number">27.51</span><span class="string">&#x27;,&#x27;</span>qps<span class="string">&#x27;:&#x27;</span><span class="number">528.04</span><span class="string">&#x27;&#125;</span></span><br><span class="line"><span class="string">&#123;&#x27;</span>time<span class="string">&#x27;:&#x27;</span><span class="number">25</span>s<span class="string">&#x27;,&#x27;</span>thds<span class="string">&#x27;:&#x27;</span><span class="number">30</span><span class="string">&#x27;,&#x27;</span>tps<span class="string">&#x27;:&#x27;</span><span class="number">24.80</span><span class="string">&#x27;,&#x27;</span>qps<span class="string">&#x27;:&#x27;</span><span class="number">503.08</span><span class="string">&#x27;&#125;</span></span><br><span class="line"><span class="string">&#123;&#x27;</span>time<span class="string">&#x27;:&#x27;</span><span class="number">30</span>s<span class="string">&#x27;,&#x27;</span>thds<span class="string">&#x27;:&#x27;</span><span class="number">30</span><span class="string">&#x27;,&#x27;</span>tps<span class="string">&#x27;:&#x27;</span><span class="number">34.22</span><span class="string">&#x27;,&#x27;</span>qps<span class="string">&#x27;:&#x27;</span><span class="number">688.40</span><span class="string">&#x27;&#125;</span></span><br></pre></td></tr></table></figure><br>处理成字典的样子,然后用python的 eval函数就能转换成字典了.我这里只取了输出结果的tps qps thds部分数据</p>
+<h3 id="出图用charts库-我用的jupyter-notebook直接执行的"><a href="#出图用charts库-我用的jupyter-notebook直接执行的" class="headerlink" title="出图用charts库,我用的jupyter notebook直接执行的"></a>出图用charts库,我用的jupyter notebook直接执行的</h3><p>测试机跑完文件那下来,统一命名测试机跑出来的结果为.txt,处理完的为.out<br><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> charts</span><br><span class="line"><span class="keyword">import</span> subprocess</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">class</span> MyCharts:</span><br><span class="line">    <span class="keyword">def</span> __init__(self,file_list,qpsortps,title,interval=None):</span><br><span class="line">        self.file_list=file_list</span><br><span class="line">        self.qpsortps=qpsortps</span><br><span class="line">        self.interval=interval</span><br><span class="line">        self.title=title</span><br><span class="line">        self.<span class="keyword">options</span> = &#123;</span><br><span class="line">        <span class="string">&#x27;title&#x27;</span>:&#123;<span class="string">&#x27;text&#x27;</span>:self.title&#125;,</span><br><span class="line">        <span class="string">&#x27;xAxis&#x27;</span>:&#123;</span><br><span class="line">            <span class="string">&#x27;labels&#x27;</span>:&#123;</span><br><span class="line">                <span class="string">&#x27;step&#x27;</span>:<span class="number">1</span></span><br><span class="line">            &#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&#x27;yAxis&#x27;</span>:&#123;</span><br><span class="line">            <span class="string">&#x27;title&#x27;</span>:&#123;<span class="string">&#x27;text&#x27;</span>:self.qpsortps&#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&#x27;chart&#x27;</span>: &#123;</span><br><span class="line">                <span class="string">&#x27;type&#x27;</span>: <span class="string">&#x27;line&#x27;</span>,</span><br><span class="line">                <span class="string">&#x27;zoomType&#x27;</span>: <span class="string">&#x27;x&#x27;</span>,</span><br><span class="line">                <span class="string">&#x27;panning&#x27;</span>: <span class="string">&#x27;true&#x27;</span>,</span><br><span class="line">                <span class="string">&#x27;panKey&#x27;</span>: <span class="string">&#x27;shift&#x27;</span></span><br><span class="line">            &#125;,</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> getOne(self,<span class="keyword">file</span>):</span><br><span class="line">        with open(<span class="keyword">file</span>,<span class="string">&#x27;r&#x27;</span>) as data:</span><br><span class="line">            dicList=[]</span><br><span class="line">            <span class="keyword">for</span> line in data:</span><br><span class="line">                dic=eval(line.strip())</span><br><span class="line">                <span class="keyword">if</span> self.interval:</span><br><span class="line">                    <span class="keyword">if</span> <span class="keyword">int</span>(dic[<span class="string">&#x27;time&#x27;</span>][:-<span class="number">1</span>])%self.interval == <span class="number">0</span>:</span><br><span class="line">                        dicList.<span class="keyword">append</span>(dic)</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    dicList.<span class="keyword">append</span>(dic) </span><br><span class="line"></span><br><span class="line">        timeList,qpsortpsList=[],[]</span><br><span class="line">        <span class="keyword">for</span> i in dicList:</span><br><span class="line">            timeList.<span class="keyword">append</span>(<span class="keyword">int</span>(i[<span class="string">&#x27;time&#x27;</span>][:-<span class="number">1</span>]))</span><br><span class="line">            <span class="keyword">if</span> self.qpsortps == <span class="string">&#x27;qps&#x27;</span>:</span><br><span class="line">                qpsortpsList.<span class="keyword">append</span>(<span class="keyword">float</span>(i[<span class="string">&#x27;qps&#x27;</span>]))</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                qpsortpsList.<span class="keyword">append</span>(<span class="keyword">float</span>(i[<span class="string">&#x27;tps&#x27;</span>]))</span><br><span class="line"></span><br><span class="line">        qpsortpsData=list(zip(timeList,qpsortpsList))</span><br><span class="line">        temp = <span class="keyword">file</span>[<span class="keyword">file</span>.rindex(<span class="string">&#x27;/&#x27;</span>)+<span class="number">1</span>:<span class="keyword">file</span>.rindex(<span class="string">&#x27;.&#x27;</span>)]</span><br><span class="line">        <span class="keyword">return</span> &#123;<span class="string">&#x27;data&#x27;</span>:qpsortpsData,<span class="string">&#x27;name&#x27;</span>:temp&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> getMulti(self):</span><br><span class="line">        s1List = []</span><br><span class="line">        <span class="keyword">for</span> <span class="keyword">file</span> in self.file_list:</span><br><span class="line">            s1List.<span class="keyword">append</span>(self.getOne(<span class="keyword">file</span>))</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> s1List</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> etl(file_list):</span><br><span class="line">    <span class="keyword">for</span> <span class="keyword">file</span> in file_list:</span><br><span class="line">        file_txt=<span class="string">&#x27;/Users/TiM/sysbench_file/&#x27;</span>+<span class="keyword">file</span>+<span class="string">&#x27;.txt&#x27;</span></span><br><span class="line">        file_out=<span class="string">&#x27;/Users/TiM/sysbench_file/&#x27;</span>+<span class="keyword">file</span>+<span class="string">&#x27;.out&#x27;</span></span><br><span class="line">        <span class="keyword">if</span> not os.path.exists(file_out):</span><br><span class="line">            cmd=<span class="string">&#x27;&#x27;</span><span class="string">&#x27;grep &quot;^\[&quot; %s \</span></span><br><span class="line"><span class="string">            |awk -F&#x27;</span>(<span class="string">&#x27; &#x27;</span>&#123;<span class="keyword">print</span> $<span class="number">1</span>&#125;<span class="string">&#x27;|sed -e &quot;s/\[\ /\&#123;&#x27;</span>time<span class="string">&#x27;:&#x27;</span>/g<span class="string">&quot; -e \</span></span><br><span class="line"><span class="string">            &quot;</span>s<span class="regexp">/\ \]/</span><span class="regexp">/g&quot; -e &quot;s/</span>:\ <span class="regexp">/&#x27;:&#x27;/g</span><span class="string">&quot; -e &quot;</span>s<span class="regexp">/\ /</span><span class="string">&#x27;,&#x27;</span><span class="regexp">/g&quot; -e &quot;s/</span>,<span class="string">&#x27;$/\&#125;/g&quot; \</span></span><br><span class="line"><span class="string">            &gt; %s&#x27;</span><span class="string">&#x27;&#x27;</span> % (file_txt,file_out)</span><br><span class="line">            subprocess.<span class="keyword">call</span>(cmd,shell=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line">etl([<span class="string">&#x27;oltp_point_select&#x27;</span>,<span class="string">&#x27;oltp_read_only&#x27;</span>,<span class="string">&#x27;oltp_read_write&#x27;</span>])            </span><br><span class="line"></span><br><span class="line">file_list = [</span><br><span class="line">            <span class="string">&#x27;/Users/TiM/sysbench_file/oltp_read_write.out&#x27;</span>,</span><br><span class="line">            <span class="string">&#x27;/Users/TiM/sysbench_file/oltp_point_select.out&#x27;</span>,</span><br><span class="line">            <span class="string">&#x27;/Users/TiM/sysbench_file/oltp_read_only.out&#x27;</span></span><br><span class="line">            ]</span><br><span class="line">char_1=MyCharts(file_list,<span class="string">&#x27;qps&#x27;</span>,<span class="string">&#x27;16G 4core Benchmark&#x27;</span>)</span><br><span class="line">res=char_1.getMulti()</span><br><span class="line"></span><br><span class="line">charts.plot(res,<span class="keyword">options</span>=char_1.<span class="keyword">options</span>,show=<span class="string">&#x27;inline&#x27;</span>,)</span><br></pre></td></tr></table></figure><br><img src="https://raw.githubusercontent.com/Fanduzi/Plot-Sysbench/master/image/Snip20170706_70.png" alt="image"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/07/06/Sysbench出图/" target="_blank" title="Sysbench出图">http://fuxkdb.com/2017/07/06/Sysbench出图/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Sysbench/" rel="tag">Sysbench</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/07/19/MHA%20Overview/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          MHA Overview
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/06/28/docopt%E8%AF%A6%E8%A7%A3/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">docopt详解</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Plot-Sysbench"><span class="nav-number">1.</span> <span class="nav-text">Plot-Sysbench</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BA%E5%9B%BE%E7%94%A8charts%E5%BA%93-%E6%88%91%E7%94%A8%E7%9A%84jupyter-notebook%E7%9B%B4%E6%8E%A5%E6%89%A7%E8%A1%8C%E7%9A%84"><span class="nav-number">1.0.1.</span> <span class="nav-text">出图用charts库,我用的jupyter notebook直接执行的</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>译文 galera 4 streaming replication in percona xtradb cluster 8.0 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLPXCMySQL 8.0Galera 4.0" />
+  
+  
+  
+  
+  <meta name="description" content="Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0我正在测试最新的Percona XtraDB Cluster 8.0 (PXC)版本, 其中包含了Galera 4插件, 我想分享一下到目前为止我在Streaming Replication特性方面的经验和想法,  What Is Streaming Replication, i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="译文 Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0">
+<meta property="og:url" content="http://fuxkdb.com/2020/05/16/2020-05-16-[%E8%AF%91%E6%96%87]Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0我正在测试最新的Percona XtraDB Cluster 8.0 (PXC)版本, 其中包含了Galera 4插件, 我想分享一下到目前为止我在Streaming Replication特性方面的经验和想法,  What Is Streaming Replication, i">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-16T14:40:00.000Z">
+<meta property="article:modified_time" content="2020-05-16T15:06:34.937Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="PXC">
+<meta property="article:tag" content="MySQL 8.0">
+<meta property="article:tag" content="Galera 4.0">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-05-16-[译文]Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      译文 Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/05/16/2020-05-16-%5B%E8%AF%91%E6%96%87%5DGalera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/" class="article-date">
+	  <time datetime="2020-05-16T14:40:00.000Z" itemprop="datePublished">2020-05-16</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8-0"><a href="#Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8-0" class="headerlink" title="Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/05/13/galera-4-streaming-replication-in-percona-xtradb-cluster-8-0/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=88003187&amp;_hsenc=p2ANqtz-8AwEjtYpEuWSlNMk6OX4QGFsnPUWMEcW9o9FWOjQI_UGqkjKzcXPvfKm7evqRE0EuwXnrLs-tTDdcMby4ADbQWg5nLqw&amp;_hsmi=88003187">Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0</a></h1><p>我正在测试最新的<a target="_blank" rel="noopener" href="https://www.percona.com/software/mysql-database/percona-xtradb-cluster">Percona XtraDB Cluster</a> 8.0 (PXC)版本, 其中包含了Galera 4插件, 我想分享一下到目前为止我在<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>特性方面的经验和想法, </p>
+<h3 id="What-Is-Streaming-Replication-in-One-Sentence"><a href="#What-Is-Streaming-Replication-in-One-Sentence" class="headerlink" title="What Is Streaming Replication, in One Sentence?"></a>What Is Streaming Replication, in One Sentence?</h3><p>在Galera 4中, 大型事务可以分割成更小的片段, 甚至在提交之前, 这些片段就已经被复制到其他节点, 并且已经开始了认证(certification)和应用(apply)过程.</p>
+<p>手册描述了所有的优点和缺点, 但是让我们看看它是如何工作的. 我已经创建了一个包含1千万行的表, 我将在这个表上运行一些大的update语句, </p>
+<p>首先, 我在不使用Streaming Replication的情况下运行更新, 由于默认情况下Streaming Replication是disabled, 所以我们不需要做任何事情, 只需运行更新即可. 在<code>node1</code>上, 我记录更新之前和之后的时间, 在<code>node2</code>上, 我每秒钟运行一次select,   以查看这个更新在其他节点上实际提交的时间.<br><a id="more"></a><br>On the writer:</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">node1-T1 mysql&gt; select now();update sbtest1 set k=1 where id &lt; 1000000;select now();</span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">| now()               |</span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">| 2020-03-24 14:25:20 |</span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">Query OK, 999997 rows affected (34.53 sec)</span><br><span class="line">Rows matched: 999997 Changed: 999997 Warnings: 0</span><br><span class="line"></span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">| now()               |</span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">| 2020-03-24 14:25:54 |</span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>运行和这个update语句花费了大约34秒</p>
+<p>Check the other node:</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">| now()               |</span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">| 2020-03-24 14:26:22 |</span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line"><span class="code">+---+</span></span><br><span class="line">| k |</span><br><span class="line"><span class="code">+---+</span></span><br><span class="line">| 1 |</span><br><span class="line"><span class="code">+---+</span></span><br></pre></td></tr></table></figure>
+<p>正如我所说, 我每秒钟都在运行一个查询, 以查看<code>k</code>何时变为1. <code>node2</code>花了<code>28秒</code>的时间来验证、应用和提交这个更新. 重要的是要理解, 当节点正在验证这个大更新时, 任何其他表上的所有其他更改都将被阻塞, 因此该节点将停滞/冻结近30秒.</p>
+<h3 id="Will-Streaming-Replication-Decrease-This-Delay"><a href="#Will-Streaming-Replication-Decrease-This-Delay" class="headerlink" title="Will Streaming Replication Decrease This Delay?"></a>Will Streaming Replication Decrease This Delay?</h3><p>理论上, 其他节点应该可以更快地进行更新, 因为当更新在<code>node1</code>上运行时, 片段(fragments 指事务的部分binlog)已经被复制并应用到其他节点上, </p>
+<p>我将把片段大小设置为1MB, </p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> session wsrep_trx_fragment_size=<span class="number">1048576</span>;</span><br><span class="line"> </span><br><span class="line">node1-T1 mysql&gt; select now();update sbtest1 <span class="keyword">set</span> k=<span class="number">2</span> where id &lt; <span class="number">1000000</span>;select now();</span><br><span class="line">+---------------------+</span><br><span class="line">| now()               |</span><br><span class="line">+---------------------+</span><br><span class="line">| <span class="number">2020</span><span class="number">-03</span><span class="number">-24</span> <span class="number">14</span>:<span class="number">44</span>:<span class="number">08</span> |</span><br><span class="line">+---------------------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"> </span><br><span class="line">Query OK, <span class="number">999997</span> rows affected (<span class="number">40.08</span> sec)</span><br><span class="line">Rows matched: <span class="number">999997</span> Changed: <span class="number">999997</span> Warnings: <span class="number">0</span></span><br><span class="line"> </span><br><span class="line">+---------------------+</span><br><span class="line">| now()               |</span><br><span class="line">+---------------------+</span><br><span class="line">| <span class="number">2020</span><span class="number">-03</span><span class="number">-24</span> <span class="number">14</span>:<span class="number">44</span>:<span class="number">48</span> |</span><br><span class="line">+---------------------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>现在这个更新要跑40s, 我们看看其他节点.</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">| now()               |</span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line">| 2020-03-24 14:44:48 |</span><br><span class="line"><span class="code">+---------------------+</span></span><br><span class="line"><span class="code">+---+</span></span><br><span class="line">| k |</span><br><span class="line"><span class="code">+---+</span></span><br><span class="line">| 2 |</span><br><span class="line"><span class="code">+---+</span></span><br></pre></td></tr></table></figure>
+<p>在同一秒内, <code>k</code>在<code>node2</code>上也已经是<code>2</code>了, 我们不再有<code>28秒</code>的延迟, 这很好, 但是这个uupdate语句本身变慢了一点, 我多次运行这些更新, 在没有Streaming Replication的情况下总是更快, 但是对于大型事务, 我更喜欢流复制, 因为其他节点不会与写节点(执行更新语句的节点)差的太远.</p>
+<h3 id="Why-Could-It-Be-Slower-With-Streaming-Replication"><a href="#Why-Could-It-Be-Slower-With-Streaming-Replication" class="headerlink" title="Why Could It Be Slower With Streaming Replication?"></a>Why Could It Be Slower With Streaming Replication?</h3><p>其中一个原因可能是, 使用<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>时, Galera基本上会写两份write-sets.它在mysql.wsrep_streaming_log中记录write-sets, 以确保在发生崩溃的情况下也可以进行Streaming Replication updates.这就是为什么为所有查询启用流复制不是一个好主意的原因.</p>
+<h3 id="Does-the-Fragment-Size-Matter"><a href="#Does-the-Fragment-Size-Matter" class="headerlink" title="Does the Fragment Size Matter?"></a>Does the Fragment Size Matter?</h3><p>Let’s change the fragment size to 0.1MB:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">node1-T1 mysql&gt; <span class="keyword">set</span> session wsrep_trx_fragment_size=<span class="number">104857</span>;</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.01</span> sec)</span><br><span class="line"> </span><br><span class="line">node1-T1 mysql&gt; select now();update sbtest1 <span class="keyword">set</span> k=<span class="number">5</span> where id &lt; <span class="number">1000000</span>;select now();</span><br><span class="line">+---------------------+</span><br><span class="line">| now()               |</span><br><span class="line">+---------------------+</span><br><span class="line">| <span class="number">2020</span><span class="number">-03</span><span class="number">-24</span> <span class="number">15</span>:<span class="number">28</span>:<span class="number">30</span> |</span><br><span class="line">+---------------------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"> </span><br><span class="line">Query OK, <span class="number">999997</span> rows affected (<span class="number">51.21</span> sec)</span><br><span class="line">Rows matched: <span class="number">999997</span> Changed: <span class="number">999997</span> Warnings: <span class="number">0</span></span><br><span class="line"> </span><br><span class="line">+---------------------+</span><br><span class="line">| now()               |</span><br><span class="line">+---------------------+</span><br><span class="line">| <span class="number">2020</span><span class="number">-03</span><span class="number">-24</span> <span class="number">15</span>:<span class="number">29</span>:<span class="number">21</span> |</span><br><span class="line">+---------------------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>现在花了50多秒钟, 因此我们可以看到gragment size很重要. 当我将片段大小增加到100MB时, 我也进行了测试, 在这种情况下, 查询又花了40秒钟左右, 但其他节点需要更多时间才能赶上, 差不多10秒钟左右.</p>
+<p>找到正确的片段大小很重要, 在我的测试中1MB是可以接受的, 但是您也可以定义行数, 如每10000行之后创建片段.</p>
+<h3 id="Locking"><a href="#Locking" class="headerlink" title="Locking"></a>Locking</h3><p>在Galera 4之前, 锁没有传播到其他节点. 如果您在<code>node1</code>上运行查询, 则InnoDB仅在<code>node1</code>上锁定了必要的行, 但是<code>node2</code>和<code>node3</code>不知道哪些行被锁定. 如果有人在写<code>node2</code>和<code>node3</code>, 那么Galera必须处理这些冲突, 基本上是先提交的事务获胜. 如果要在多个节点进行写入, 则可能会有很多冲突.</p>
+<p>但随着Streaming Replication的出现, 这种情况也发生了变化.片段被复制到其他节点, 它们也将在那里持有必要的锁.</p>
+<p><strong>Let’s see how this works, first without Streaming Replication, step by step.</strong></p>
+<p>在<code>node1</code>和<code>node2</code>上启动事务, 在<code>node1</code>上运行大型更新, 在<code>node2</code>上删除单个行, 然后在<code>node2</code>上提交事务.当我在<code>node1</code>上提交时, 我得到一个死锁:</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">node1</span>-T<span class="number">1</span> mysql&gt; begin;</span><br><span class="line"><span class="attribute">node2</span>-T<span class="number">1</span> mysql&gt; begin;</span><br><span class="line"></span><br><span class="line"><span class="attribute">node1</span>-T<span class="number">1</span> mysql&gt; update sbtest<span class="number">1</span> set k=<span class="number">8</span> where id &lt; <span class="number">1000000</span>;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">999997</span> rows affected (<span class="number">27</span>.<span class="number">87</span> sec)</span><br><span class="line"><span class="attribute">Rows</span> matched: <span class="number">999997</span> Changed: <span class="number">999997</span> Warnings: <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="attribute">node2</span>-T<span class="number">1</span> mysql&gt; delete from sbtest<span class="number">1</span> where id=<span class="number">12</span>;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">1</span> row affected (<span class="number">0</span>.<span class="number">01</span> sec)</span><br><span class="line"><span class="attribute">node2</span>-T<span class="number">1</span> mysql&gt; commit;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="attribute">node1</span>-T<span class="number">1</span> mysql&gt; commit;</span><br><span class="line"><span class="attribute">ERROR</span> <span class="number">1213</span> (<span class="number">40001</span>): Deadlock found when trying to get lock; try restarting transaction</span><br></pre></td></tr></table></figure>
+<p>因为没有集群范围的锁定, 所以在本例中, 它将使用乐观锁定, 并在认证过程中获得一个错误.</p>
+<p><strong>How Does This Work With Streaming Replication?</strong></p>
+<p>Repeat the same steps:</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">node1</span>-T<span class="number">1</span> mysql&gt; set session wsrep_trx_fragment_size=<span class="number">1048570</span>;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br><span class="line"><span class="attribute">node1</span>-T<span class="number">1</span> mysql&gt; begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="attribute">node2</span>-T<span class="number">1</span> mysql&gt; begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="attribute">node2</span>-T<span class="number">1</span> mysql&gt; update sbtest<span class="number">1</span> set k=<span class="number">9</span> where id &lt; <span class="number">1000000</span>;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">999996</span> rows affected (<span class="number">38</span>.<span class="number">15</span> sec)</span><br><span class="line"><span class="attribute">Rows</span> matched: <span class="number">999996</span> Changed: <span class="number">999996</span> Warnings: <span class="number">0</span></span><br><span class="line"><span class="attribute">node2</span>-T<span class="number">1</span> mysql&gt; delete from sbtest<span class="number">1</span> where id=<span class="number">13</span>;</span><br><span class="line"><span class="attribute">Waiting</span>.....</span><br><span class="line"></span><br><span class="line"><span class="attribute">node1</span>-T<span class="number">1</span> mysql&gt; commit;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">2</span>.<span class="number">46</span> sec)</span><br><span class="line"><span class="attribute">node2</span>-T<span class="number">1</span> mysql&gt; commit;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>同样的步骤, 但是当我们试图在<code>node2</code>上运行delete时, 它只是hang在那里, 等待获取锁, 但是被来自node1的更新语句产生的锁阻塞了, 这正是因为<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>.当我在<code>node1</code>上提交事务时, <code>node2</code>可以继续运行delete语句了.这可以将我们从许多僵局和冲突中解救出来.查询可能必须等待锁, 但最终它们仍然会完成.</p>
+<p>这听起来很好, 但我仍然不建议将<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>作为默认设置启用, 因为它会影响性能, 而且它会将所有内容重复写入mysql.wsrep_streaming_log表.此外, 如果您想回滚一个大事务, 那么它必须在所有节点上执行, 而不是只在一个节点上执行.</p>
+<h3 id="Metrics-Monitoring"><a href="#Metrics-Monitoring" class="headerlink" title="Metrics/Monitoring"></a>Metrics/Monitoring</h3><p>有一个表叫做<code>mysql.wsrep_streaming_log</code>, 其中包含关于当前正在运行的流的信息.</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">node1-T1 mysql&gt; SELECT node<span class="emphasis">_uuid, trx_</span>id, seqno, flags FROM mysql.wsrep<span class="emphasis">_streaming_</span>log;</span><br><span class="line"><span class="code">+--------------------------------------+</span>--------<span class="code">+-------+</span>-------+</span><br><span class="line">| node<span class="emphasis">_uuid                            | trx_</span>id | seqno | flags |</span><br><span class="line"><span class="code">+--------------------------------------+</span>--------<span class="code">+-------+</span>-------+</span><br><span class="line">| 9d7f7e09-6d20-11ea-842b-26b6d24e606d |   8571 | 24712 |     1 |</span><br><span class="line"><span class="code">+--------------------------------------+</span>--------<span class="code">+-------+</span>-------+</span><br></pre></td></tr></table></figure>
+<p>但是要小心, 因为名为<code>frag</code>的列包含整个二进制日志复制事件, 这个事件可能非常大.在我意识到这一点之前, 我得到了以下错误:</p>
+<figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node1-T1 mysql&gt; select * from mysql.wsrep_streaming_log;</span><br><span class="line"><span class="keyword">ERROR </span>2020 (HY000): Got packet bigger than &#x27;max_allowed_packet&#x27; bytes</span><br></pre></td></tr></table></figure>
+<p>不幸的是, 据我所知, 没有计数器来监视通过<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>复制了多少语句.为此, 我创建了一个<a target="_blank" rel="noopener" href="https://jira.percona.com/browse/PXC-3099">feature request</a>.</p>
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>到目前为止, <a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>效果很好, 我认为它具有巨大的潜力. 因为我们可以在会话级启用它, 所以您自己或应用程序可以在需要时轻松打开它, but I am also waiting to see real-life experiences with it.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/05/16/2020-05-16-[译文]Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/" target="_blank" title="译文 Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0">http://fuxkdb.com/2020/05/16/2020-05-16-[译文]Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Galera-4-0/" rel="tag">Galera 4.0</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL-8-0/" rel="tag">MySQL 8.0</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PXC/" rel="tag">PXC</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/05/16/2020-05-16-%E8%AF%91%E6%96%87-New-Feature-in-Percona-XtraDB-Cluster-8.0-%E2%80%93-Streaming-Replication/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          译文 New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/05/03/2020-05-03-A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">译文-A Simple Approach to Troubleshooting High CPU in MySQL</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8-0"><span class="nav-number">1.</span> <span class="nav-text">Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What-Is-Streaming-Replication-in-One-Sentence"><span class="nav-number">1.0.1.</span> <span class="nav-text">What Is Streaming Replication, in One Sentence?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Will-Streaming-Replication-Decrease-This-Delay"><span class="nav-number">1.0.2.</span> <span class="nav-text">Will Streaming Replication Decrease This Delay?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Why-Could-It-Be-Slower-With-Streaming-Replication"><span class="nav-number">1.0.3.</span> <span class="nav-text">Why Could It Be Slower With Streaming Replication?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Does-the-Fragment-Size-Matter"><span class="nav-number">1.0.4.</span> <span class="nav-text">Does the Fragment Size Matter?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Locking"><span class="nav-number">1.0.5.</span> <span class="nav-text">Locking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Metrics-Monitoring"><span class="nav-number">1.0.6.</span> <span class="nav-text">Metrics&#x2F;Monitoring</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Conclusion"><span class="nav-number">1.0.7.</span> <span class="nav-text">Conclusion</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

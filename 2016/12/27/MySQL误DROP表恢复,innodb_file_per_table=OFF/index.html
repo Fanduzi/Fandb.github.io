@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mysql误drop表恢复,innodb_file_per_table=off | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL备份恢复" />
+  
+  
+  
+  
+  <meta name="description" content="MySQL误DROP表恢复,innodb_file_per_table&#x3D;OFF原文https:&#x2F;&#x2F;twindb.com&#x2F;recover-after-drop-table-innodb_file_per_table-is-off&#x2F; Undrop-for-innodb安装详见https:&#x2F;&#x2F;github.com&#x2F;chhabhaiya&#x2F;undrop-for-innodb 介绍误操作是不可避免的.错误的D">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL误DROP表恢复,innodb_file_per_table&#x3D;OFF">
+<meta property="og:url" content="http://fuxkdb.com/2016/12/27/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=OFF/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="MySQL误DROP表恢复,innodb_file_per_table&#x3D;OFF原文https:&#x2F;&#x2F;twindb.com&#x2F;recover-after-drop-table-innodb_file_per_table-is-off&#x2F; Undrop-for-innodb安装详见https:&#x2F;&#x2F;github.com&#x2F;chhabhaiya&#x2F;undrop-for-innodb 介绍误操作是不可避免的.错误的D">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-12-27T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-05T16:01:57.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL备份恢复">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-MySQL误DROP表恢复,innodb_file_per_table=OFF" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MySQL误DROP表恢复,innodb_file_per_table=OFF
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/12/27/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=OFF/" class="article-date">
+	  <time datetime="2016-12-27T14:00:00.000Z" itemprop="datePublished">2016-12-27</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL误DROP表恢复-innodb-file-per-table-OFF"><a href="#MySQL误DROP表恢复-innodb-file-per-table-OFF" class="headerlink" title="MySQL误DROP表恢复,innodb_file_per_table=OFF"></a>MySQL误DROP表恢复,innodb_file_per_table=OFF</h1><p>原文<a target="_blank" rel="noopener" href="https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-off/">https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-off/</a></p>
+<h2 id="Undrop-for-innodb安装"><a href="#Undrop-for-innodb安装" class="headerlink" title="Undrop-for-innodb安装"></a>Undrop-for-innodb安装</h2><p>详见<a target="_blank" rel="noopener" href="https://github.com/chhabhaiya/undrop-for-innodb">https://github.com/chhabhaiya/undrop-for-innodb</a></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>误操作是不可避免的.错误的DROP DATABASE或DROP TABLE会摧毁重要的数据,更悲剧的是备份又不可用.<br>恢复方法取决于InnoDB是将所有数据保存在单个ibdata1中还是每个表都有自己的表空间.在这篇文章中,我们将考虑innodb_file_per_table = OFF的情况.此选项假定所有表都存储在通用文件中,通常位于/var/lib/mysql/ibdata1.</p>
+<h2 id="误删表恢复"><a href="#误删表恢复" class="headerlink" title="误删表恢复"></a>误删表恢复</h2><p>这里使用sakila库,假设我们误删除了actor表<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM actor LIMIT 10;</span><br><span class="line"><span class="code">+----------+</span>------------<span class="code">+--------------+</span>---------------------+</span><br><span class="line">| actor<span class="emphasis">_id | first_</span>name | last<span class="emphasis">_name    | last_</span>update         |</span><br><span class="line"><span class="code">+----------+</span>------------<span class="code">+--------------+</span>---------------------+</span><br><span class="line">|        1 | PENELOPE   | GUINESS      | 2006-02-15 04:34:33 |</span><br><span class="line">|        2 | NICK       | WAHLBERG     | 2006-02-15 04:34:33 |</span><br><span class="line">|        3 | ED         | CHASE        | 2006-02-15 04:34:33 |</span><br><span class="line">|        4 | JENNIFER   | DAVIS        | 2006-02-15 04:34:33 |</span><br><span class="line">|        5 | JOHNNY     | LOLLOBRIGIDA | 2006-02-15 04:34:33 |</span><br><span class="line">|        6 | BETTE      | NICHOLSON    | 2006-02-15 04:34:33 |</span><br><span class="line">|        7 | GRACE      | MOSTEL       | 2006-02-15 04:34:33 |</span><br><span class="line">|        8 | MATTHEW    | JOHANSSON    | 2006-02-15 04:34:33 |</span><br><span class="line">|        9 | JOE        | SWANK        | 2006-02-15 04:34:33 |</span><br><span class="line">|       10 | CHRISTIAN  | GABLE        | 2006-02-15 04:34:33 |</span><br><span class="line"><span class="code">+----------+</span>------------<span class="code">+--------------+</span>---------------------+</span><br><span class="line">10 rows in set (0.02 sec)</span><br><span class="line"></span><br><span class="line">查看一下checksum</span><br><span class="line">mysql&gt; CHECKSUM TABLE actor;</span><br><span class="line"><span class="code">+--------------+</span>------------+</span><br><span class="line">| Table        | Checksum   |</span><br><span class="line"><span class="code">+--------------+</span>------------+</span><br><span class="line">| sakila.actor | 1702520518 |</span><br><span class="line"><span class="code">+--------------+</span>------------+</span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select count(<span class="strong">*) from actor;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|      200 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; DROP TABLE actor;</span><br><span class="line">Query OK, 0 rows affected (0.03 sec)</span><br></pre></td></tr></table></figure><br><a id="more"></a></p>
+<h2 id="从ibdata1恢复误删除表"><a href="#从ibdata1恢复误删除表" class="headerlink" title="从ibdata1恢复误删除表"></a>从ibdata1恢复误删除表</h2><p>虽然表被删了,但是数据可能依然存在于ibdata1中,直到这部分数据被覆盖.所以要赶紧停止MySQL<br><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master <span class="number">3307</span>]$ mysqladmin -umysql -p -S <span class="regexp">/data/my</span>sqldata<span class="regexp">/3307/my</span>sql.sock shutdown</span><br><span class="line">Enter password: </span><br><span class="line"><span class="number">161227</span> <span class="number">14</span>:<span class="number">13</span>:<span class="number">59</span> mysqld_safe mysqld <span class="keyword">from</span> pid <span class="keyword">file</span> <span class="regexp">/data/my</span>sqldata<span class="regexp">/3307/my</span>sql.pid ended</span><br><span class="line">[<span class="number">1</span>]+  Done                    mysqld_safe --defaults-<span class="keyword">file</span>=<span class="regexp">/data/my</span>sqldata<span class="regexp">/3307/my</span>.cnf</span><br></pre></td></tr></table></figure></p>
+<h3 id="解析InnoDB-tablespace"><a href="#解析InnoDB-tablespace" class="headerlink" title="解析InnoDB tablespace"></a>解析InnoDB tablespace</h3><p>InnoDB通过B+树存储数据.每个表都通过主键聚簇,所有字段数据都存储在索引叶块中.如果表有secondary index,则每个键具有索引.每个索引通过<code>index_id</code>标识.<br>如果我们想要恢复一个表,就要找出属于特定index_id的所有page<br>stream_parser读取InnoDB tablespace,并按照type和index_id排序InnoDB pages</p>
+<blockquote>
+<p>stream_parser reads InnoDB tablespace and sorts InnoDB pages per type and per index_id.</p>
+</blockquote>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">mysql@</span>master undrop-<span class="keyword">for</span>-innodb]$ ./stream_parser -f /data/mysqldata/<span class="number">3307</span>/data/ibdata1 </span><br><span class="line">Opening file: /data/mysqldata/<span class="number">3307</span>/data/ibdata1</span><br><span class="line">File information:</span><br><span class="line"></span><br><span class="line">ID of device containing file:        <span class="number">64768</span></span><br><span class="line">inode number:                    <span class="number">104900755</span></span><br><span class="line">protection:                         <span class="number">100660</span> (regular file)</span><br><span class="line">number of hard links:                    <span class="number">1</span></span><br><span class="line">user ID of owner:                       <span class="number">27</span></span><br><span class="line">group ID of owner:                      <span class="number">27</span></span><br><span class="line">device ID (<span class="keyword">if</span> special file):             <span class="number">0</span></span><br><span class="line">blocksize <span class="keyword">for</span> filesystem I/O:         <span class="number">4096</span></span><br><span class="line">number of blocks allocated:        <span class="number">4194304</span></span><br><span class="line">time of last access:            <span class="number">1482819237</span> Tue Dec <span class="number">27</span> <span class="number">14</span>:<span class="number">13</span>:<span class="number">57</span> <span class="number">2016</span></span><br><span class="line">time of last modification:      <span class="number">1482819237</span> Tue Dec <span class="number">27</span> <span class="number">14</span>:<span class="number">13</span>:<span class="number">57</span> <span class="number">2016</span></span><br><span class="line">time of last status change:     <span class="number">1482819237</span> Tue Dec <span class="number">27</span> <span class="number">14</span>:<span class="number">13</span>:<span class="number">57</span> <span class="number">2016</span></span><br><span class="line">total size, <span class="keyword">in</span> bytes:           <span class="number">2147483648</span> (<span class="number">2.000</span> GiB)</span><br><span class="line"></span><br><span class="line">Size to process:                <span class="number">2147483648</span> (<span class="number">2.000</span> GiB)</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">5.47</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">21</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">18</span>). Processing speed: <span class="number">104.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">13.67</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">14</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">10</span>). Processing speed: <span class="number">168.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">22.66</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">13</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">08</span>). Processing speed: <span class="number">184.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">28.52</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">18</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">12</span>). Processing speed: <span class="number">120.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">35.94</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">15</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">08</span>). Processing speed: <span class="number">152.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">43.75</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">15</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">07</span>). Processing speed: <span class="number">160.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">51.17</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">15</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">06</span>). Processing speed: <span class="number">152.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">57.81</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">16</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">06</span>). Processing speed: <span class="number">136.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">64.45</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">16</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">05</span>). Processing speed: <span class="number">136.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">71.48</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">16</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">04</span>). Processing speed: <span class="number">144.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">78.91</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">15</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">02</span>). Processing speed: <span class="number">152.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">85.16</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">16</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">02</span>). Processing speed: <span class="number">128.000</span> MiB/sec</span><br><span class="line">Worker(<span class="number">0</span>): <span class="number">92.19</span>% done. <span class="number">2016</span><span class="number">-12</span><span class="number">-27</span> <span class="number">14</span>:<span class="number">24</span>:<span class="number">16</span> ETA(<span class="keyword">in</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">01</span>). Processing speed: <span class="number">144.000</span> MiB/sec</span><br><span class="line">All workers finished <span class="keyword">in</span> <span class="number">13</span> sec</span><br><span class="line"></span><br><span class="line">Data <span class="keyword">from</span> database pages <span class="keyword">is</span> saved by the stream_parser to folder pages-ibdata1:</span><br><span class="line">[<span class="symbol">mysql@</span>master undrop-<span class="keyword">for</span>-innodb]$ tree pages-ibdata1/</span><br><span class="line">pages-ibdata1/</span><br><span class="line">├── FIL_PAGE_INDEX</span><br><span class="line">│   ├── <span class="number">0000000000000001.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000002.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000003.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000004.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000005.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000011.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000012.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000013.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000014.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000015.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000016.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000017.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000018.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000019.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000020.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000021.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000022.</span>page</span><br><span class="line">│   ├── <span class="number">0000000000000023.</span>page</span><br><span class="line">│   └── <span class="number">18446744069414584320.</span>page</span><br><span class="line">└── FIL_PAGE_TYPE_BLOB</span><br><span class="line"></span><br><span class="line"><span class="number">2</span> directories, <span class="number">19</span> files</span><br></pre></td></tr></table></figure>
+<p>现在从InnoDB tablespace取出的每个index_id都被保存在单独的文件中.我们可以使用c_parser从page中取回数据,但是我们需要知道actor表的index_id是多少.我们可以通过字典表SYS_TABLES和SYS_INDEXES中查出actor表的信息</p>
+<p>SYS_TABLES字典表总是存储在index_id为1的文件中,即<code>pages-ibdata1/FIL_PAGE_INDEX./0000000000000001.page</code></p>
+<blockquote>
+<p>If MySQL had enough time to flush changes to disk then add -D option which means “find deleted records”. The dictionary is always in REDUNDANT format, so we specify option -4:</p>
+</blockquote>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-for-innodb]$ ./c_parser -4Df pages-ibdata1/FIL_PAGE_INDEX/0000000000000001.page -t dictionary/SYS_TABLES.sql | grep sakila/actor</span><br><span class="line"><span class="keyword">SET</span> FOREIGN_KEY_CHECKS=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">LOAD</span> <span class="keyword">DATA</span> <span class="keyword">LOCAL</span> <span class="keyword">INFILE</span> <span class="string">&#x27;/var/lib/mysql/undrop-for-innodb/dumps/default/SYS_TABLES&#x27;</span> <span class="keyword">REPLACE</span> <span class="keyword">INTO</span> <span class="keyword">TABLE</span> <span class="string">`SYS_TABLES`</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">&#x27;\t&#x27;</span> <span class="keyword">OPTIONALLY</span> <span class="keyword">ENCLOSED</span> <span class="keyword">BY</span> <span class="string">&#x27;&quot;&#x27;</span> <span class="keyword">LINES</span> <span class="keyword">STARTING</span> <span class="keyword">BY</span> <span class="string">&#x27;SYS_TABLES\t&#x27;</span> (<span class="string">`NAME`</span>, <span class="string">`ID`</span>, <span class="string">`N_COLS`</span>, <span class="string">`TYPE`</span>, <span class="string">`MIX_ID`</span>, <span class="string">`MIX_LEN`</span>, <span class="string">`CLUSTER_NAME`</span>, <span class="string">`SPACE`</span>);</span><br><span class="line">000000000712    0F0000014802C8  SYS_TABLES      &quot;sakila/actor&quot;  20      4       1       0       64      &quot;&quot;      0</span><br><span class="line">000000000712    0F0000014802C8  SYS_TABLES      &quot;sakila/actor&quot;  20      4       1       0       64      &quot;&quot;      0</span><br></pre></td></tr></table></figure>
+<p>在表名”sakila/actor”后面的列就是table_id列,这里查出actor表的table_id是20<br>接着要查出actor表的主键索引的index_id,通过解析0000000000000003.page文件可以取出<code>SYS_INDEXES</code>字典表的数据(这个表包含index_id和table_id信息).<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">mysql@</span>master undrop-<span class="keyword">for</span>-innodb]$ ./c_parser <span class="number">-4</span>Df pages-ibdata1/FIL_PAGE_INDEX/<span class="number">0000000000000003.</span>page -t <span class="built_in">dictionary</span>/SYS_INDEXES.sql | grep <span class="number">20</span></span><br><span class="line">SET FOREIGN_KEY_CHECKS=<span class="number">0</span>;</span><br><span class="line">LOAD DATA LOCAL INFILE <span class="string">&#x27;/var/lib/mysql/undrop-for-innodb/dumps/default/SYS_INDEXES&#x27;</span> REPLACE INTO TABLE `SYS_INDEXES` FIELDS TERMINATED BY <span class="string">&#x27;\t&#x27;</span> OPTIONALLY ENCLOSED BY <span class="string">&#x27;&quot;&#x27;</span> LINES STARTING BY <span class="string">&#x27;SYS_INDEXES\t&#x27;</span> (`TABLE_ID`, `ID`, `NAME`, `N_FIELDS`, `TYPE`, `SPACE`, `PAGE_NO`);</span><br><span class="line"><span class="number">000000000712</span>    <span class="number">0</span>F000001480145  SYS_INDEXES     <span class="number">20</span>      <span class="number">22</span>      <span class="string">&quot;PRIMARY&quot;</span>       <span class="number">1</span>       <span class="number">3</span>       <span class="number">0</span>       <span class="number">4294967295</span></span><br><span class="line"><span class="number">000000000712</span>    <span class="number">0</span>F0000014801B7  SYS_INDEXES     <span class="number">20</span>      <span class="number">23</span>      <span class="string">&quot;idx\_actor\_last\_name&quot;</span>        <span class="number">1</span>       <span class="number">0</span>       <span class="number">0</span>       <span class="number">4294967295</span></span><br><span class="line"><span class="number">000000000712</span>    <span class="number">0</span>F000001480145  SYS_INDEXES     <span class="number">20</span>      <span class="number">22</span>      <span class="string">&quot;PRIMARY&quot;</span>       <span class="number">1</span>       <span class="number">3</span>       <span class="number">0</span>       <span class="number">4294967295</span></span><br><span class="line"><span class="number">000000000712</span>    <span class="number">0</span>F0000014801B7  SYS_INDEXES     <span class="number">20</span>      <span class="number">23</span>      <span class="string">&quot;idx\_actor\_last\_name&quot;</span>        <span class="number">1</span>       <span class="number">0</span>       <span class="number">0</span>       <span class="number">4294967295</span></span><br></pre></td></tr></table></figure><br>从结果可以看出,主键的index_id是22.因此我们将从0000000000000022.page文件中取回actor表的数据,需要actor表的建表语句<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-for-innodb]$ ./c_parser -6f pages-ibdata1/FIL_PAGE_INDEX/0000000000000022.page -t sakila/actor.sql |  head -5</span><br><span class="line">--<span class="built_in"> Page </span>id: 320, Format: COMPACT, Records list: Valid, Expected records: (200 200)</span><br><span class="line">000000000709    89000001430110  actor   1       <span class="string">&quot;PENELOPE&quot;</span>      <span class="string">&quot;GUINESS&quot;</span>       <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line">000000000709    8900000143011A  actor   2       <span class="string">&quot;NICK&quot;</span>  <span class="string">&quot;WAHLBERG&quot;</span>      <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line">000000000709    89000001430124  actor   3       <span class="string">&quot;ED&quot;</span>    <span class="string">&quot;CHASE&quot;</span> <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line">000000000709    8900000143012E  actor   4       <span class="string">&quot;JENNIFER&quot;</span>      <span class="string">&quot;DAVIS&quot;</span> <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br></pre></td></tr></table></figure><br>从结果来看我们找到了数据,下面通过c_parser生成load data infile语句和数据<br><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-<span class="keyword">for</span>-innodb]$ mkdir -p dumps/<span class="keyword">default</span></span><br><span class="line">[mysql@master undrop-<span class="keyword">for</span>-innodb]$ .<span class="regexp">/c_parser -6f pages-ibdata1/</span>FIL_PAGE_INDEX<span class="regexp">/0000000000000022.page -t sakila/</span>actor.sql &gt; dumps<span class="regexp">/default/</span>actor <span class="number">2</span>&gt; dumps<span class="regexp">/default/</span>actor_load.sql</span><br><span class="line">[mysql@master undrop-<span class="keyword">for</span>-innodb]$ ls dumps<span class="regexp">/default/</span></span><br><span class="line">actor  actor_load.sql</span><br></pre></td></tr></table></figure><br>.sql文件包含load data语句<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-for-innodb]$ cat dumps/default/actor_load.sql</span><br><span class="line"><span class="keyword">SET</span> FOREIGN_KEY_CHECKS=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">LOAD</span> <span class="keyword">DATA</span> <span class="keyword">LOCAL</span> <span class="keyword">INFILE</span> <span class="string">&#x27;/var/lib/mysql/undrop-for-innodb/dumps/default/actor&#x27;</span> <span class="keyword">REPLACE</span> <span class="keyword">INTO</span> <span class="keyword">TABLE</span> <span class="string">`actor`</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">&#x27;\t&#x27;</span> <span class="keyword">OPTIONALLY</span> <span class="keyword">ENCLOSED</span> <span class="keyword">BY</span> <span class="string">&#x27;&quot;&#x27;</span> <span class="keyword">LINES</span> <span class="keyword">STARTING</span> <span class="keyword">BY</span> <span class="string">&#x27;actor\t&#x27;</span> (<span class="string">`actor_id`</span>, <span class="string">`first_name`</span>, <span class="string">`last_name`</span>, <span class="string">`last_update`</span>);</span><br></pre></td></tr></table></figure><br>另一个文件包含数据<br><figure class="highlight pony"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master undrop-<span class="keyword">for</span>-innodb]$ more dumps/default/<span class="keyword">actor</span></span><br><span class="line">-- <span class="type">Page</span> id: <span class="number">320</span>, <span class="type">Format</span>: <span class="type">COMPACT</span>, <span class="type">Records</span> list: <span class="type">Valid</span>, <span class="type">Expected</span> records: (<span class="number">200</span> <span class="number">200</span>)</span><br><span class="line"><span class="number">000000000709</span>    <span class="number">89000001430110</span>  <span class="keyword">actor</span>   <span class="number">1</span>       <span class="string">&quot;PENELOPE&quot;</span>      <span class="string">&quot;GUINESS&quot;</span>       <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">8900000143011</span>A  <span class="keyword">actor</span>   <span class="number">2</span>       <span class="string">&quot;NICK&quot;</span>  <span class="string">&quot;WAHLBERG&quot;</span>      <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">89000001430124</span>  <span class="keyword">actor</span>   <span class="number">3</span>       <span class="string">&quot;ED&quot;</span>    <span class="string">&quot;CHASE&quot;</span> <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">8900000143012</span>E  <span class="keyword">actor</span>   <span class="number">4</span>       <span class="string">&quot;JENNIFER&quot;</span>      <span class="string">&quot;DAVIS&quot;</span> <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">89000001430138</span>  <span class="keyword">actor</span>   <span class="number">5</span>       <span class="string">&quot;JOHNNY&quot;</span>        <span class="string">&quot;LOLLOBRIGIDA&quot;</span>  <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">89000001430142</span>  <span class="keyword">actor</span>   <span class="number">6</span>       <span class="string">&quot;BETTE&quot;</span> <span class="string">&quot;NICHOLSON&quot;</span>     <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">8900000143014</span>C  <span class="keyword">actor</span>   <span class="number">7</span>       <span class="string">&quot;GRACE&quot;</span> <span class="string">&quot;MOSTEL&quot;</span>        <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">89000001430156</span>  <span class="keyword">actor</span>   <span class="number">8</span>       <span class="string">&quot;MATTHEW&quot;</span>       <span class="string">&quot;JOHANSSON&quot;</span>     <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">89000001430160</span>  <span class="keyword">actor</span>   <span class="number">9</span>       <span class="string">&quot;JOE&quot;</span>   <span class="string">&quot;SWANK&quot;</span> <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">8900000143016</span>A  <span class="keyword">actor</span>   <span class="number">10</span>      <span class="string">&quot;CHRISTIAN&quot;</span>     <span class="string">&quot;GABLE&quot;</span> <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br><span class="line"><span class="number">000000000709</span>    <span class="number">89000001430174</span>  <span class="keyword">actor</span>   <span class="number">11</span>      <span class="string">&quot;ZERO&quot;</span>  <span class="string">&quot;CAGE&quot;</span>  <span class="string">&quot;2006-02-15 04:34:33&quot;</span></span><br></pre></td></tr></table></figure></p>
+<p>##恢复数据<br>启动数据库<br><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld_safe --defaults-<span class="keyword">file</span>=<span class="regexp">/data/my</span>sqldata<span class="regexp">/3307/my</span>.cnf &amp;</span><br></pre></td></tr></table></figure><br>创建表<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">mysql&gt;</span><span class="bash"> use sakila</span></span><br><span class="line">Database changed</span><br><span class="line"><span class="meta">mysql&gt;</span><span class="bash"> <span class="built_in">source</span> sakila/actor.sql</span></span><br></pre></td></tr></table></figure><br>load回数据<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; source dumps/default/actor<span class="emphasis">_load.sql</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">Query OK, 400 rows affected (0.01 sec)</span></span><br><span class="line"><span class="emphasis">Records: 400  Deleted: 0  Skipped: 0  Warnings: 0</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; select count(*) from actor;</span></span><br><span class="line"><span class="emphasis">+----------+</span></span><br><span class="line"><span class="emphasis">| count(*) |</span></span><br><span class="line"><span class="emphasis">+----------+</span></span><br><span class="line"><span class="emphasis">|      200 |</span></span><br><span class="line"><span class="emphasis">+----------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">checksum和之前也是一样的</span></span><br><span class="line"><span class="emphasis">mysql&gt; CHECKSUM TABLE actor;</span></span><br><span class="line"><span class="emphasis">+--------------+------------+</span></span><br><span class="line"><span class="emphasis">| Table        | Checksum   |</span></span><br><span class="line"><span class="emphasis">+--------------+------------+</span></span><br><span class="line"><span class="emphasis">| sakila.actor | 1702520518 |</span></span><br><span class="line"><span class="emphasis">+--------------+------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2016/12/27/MySQL误DROP表恢复,innodb_file_per_table=OFF/" target="_blank" title="MySQL误DROP表恢复,innodb_file_per_table=OFF">http://fuxkdb.com/2016/12/27/MySQL误DROP表恢复,innodb_file_per_table=OFF/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%A4%87%E4%BB%BD%E6%81%A2%E5%A4%8D/" rel="tag">MySQL备份恢复</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/03/03/MySQL%E5%8D%87%E7%BA%A7/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          MySQL升级
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/12/27/%E6%81%A2%E5%A4%8D%E8%A1%A8%E7%BB%93%E6%9E%84/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">恢复表结构</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D-innodb-file-per-table-OFF"><span class="nav-number">1.</span> <span class="nav-text">MySQL误DROP表恢复,innodb_file_per_table&#x3D;OFF</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Undrop-for-innodb%E5%AE%89%E8%A3%85"><span class="nav-number">1.1.</span> <span class="nav-text">Undrop-for-innodb安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.2.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AF%E5%88%A0%E8%A1%A8%E6%81%A2%E5%A4%8D"><span class="nav-number">1.3.</span> <span class="nav-text">误删表恢复</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8Eibdata1%E6%81%A2%E5%A4%8D%E8%AF%AF%E5%88%A0%E9%99%A4%E8%A1%A8"><span class="nav-number">1.4.</span> <span class="nav-text">从ibdata1恢复误删除表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90InnoDB-tablespace"><span class="nav-number">1.4.1.</span> <span class="nav-text">解析InnoDB tablespace</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>innodb_status_file innodb_status_output innodb_status_output_locks和innodb_show_verbose_locks | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL" />
+  
+  
+  
+  
+  <meta name="description" content="innodb_status_file这个参数官方文档https:&#x2F;&#x2F;dev.mysql.com&#x2F;doc&#x2F;refman&#x2F;5.7&#x2F;en&#x2F;server-system-variable-reference.html 中没有 在https:&#x2F;&#x2F;dev.mysql.com&#x2F;doc&#x2F;refman&#x2F;5.7&#x2F;en&#x2F;innodb-parameters.html 中有 --innodb-status-file    P">
+<meta property="og:type" content="article">
+<meta property="og:title" content="innodb_status_file innodb_status_output innodb_status_output_locks和innodb_show_verbose_locks">
+<meta property="og:url" content="http://fuxkdb.com/2020/09/13/2020-09-13-innodb_status_file-innodb_status_output-innodb_status_output_locks%E5%92%8Cinnodb_show_verbose_locks/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="innodb_status_file这个参数官方文档https:&#x2F;&#x2F;dev.mysql.com&#x2F;doc&#x2F;refman&#x2F;5.7&#x2F;en&#x2F;server-system-variable-reference.html 中没有 在https:&#x2F;&#x2F;dev.mysql.com&#x2F;doc&#x2F;refman&#x2F;5.7&#x2F;en&#x2F;innodb-parameters.html 中有 --innodb-status-file    P">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/innodb_status_file.png">
+<meta property="article:published_time" content="2020-09-13T02:33:00.000Z">
+<meta property="article:modified_time" content="2020-09-13T02:34:06.383Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/innodb_status_file.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-09-13-innodb_status_file-innodb_status_output-innodb_status_output_locks和innodb_show_verbose_locks" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      innodb_status_file innodb_status_output innodb_status_output_locks和innodb_show_verbose_locks
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/09/13/2020-09-13-innodb_status_file-innodb_status_output-innodb_status_output_locks%E5%92%8Cinnodb_show_verbose_locks/" class="article-date">
+	  <time datetime="2020-09-13T02:33:00.000Z" itemprop="datePublished">2020-09-13</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="innodb-status-file"><a href="#innodb-status-file" class="headerlink" title="innodb_status_file"></a>innodb_status_file</h1><p>这个参数官方文档<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-system-variable-reference.html">https://dev.mysql.com/doc/refman/5.7/en/server-system-variable-reference.html</a> 中没有</p>
+<p>在<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html">https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html</a> 中有</p>
+<p><code>--innodb-status-file</code></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Command-Line Format</td>
+<td>`–innodb-status-file[={OFF</td>
+<td>ON}]`</td>
+</tr>
+<tr>
+<td>Type</td>
+<td>Boolean</td>
+</tr>
+<tr>
+<td>Default Value</td>
+<td><code>OFF</code></td>
+</tr>
+</tbody>
+</table>
+<p>The <code>--innodb-status-file</code> startup option controls whether <code>InnoDB</code> creates a file named <code>innodb_status.*</code>pid<code>*</code> in the data directory and writes <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/show-engine.html"><code>SHOW ENGINE INNODB STATUS</code></a> output to it every 15 seconds, approximately.</p>
+<p>The <code>innodb_status.*</code>pid<code>*</code> file is not created by default. To create it, start <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/mysqld.html"><strong>mysqld</strong></a> with the <code>--innodb-status-file</code> option. <code>InnoDB</code> removes the file when the server is shut down normally. If an abnormal shutdown occurs, the status file may have to be removed manually.</p>
+<p>The <code>--innodb-status-file</code> option is intended for temporary use, as <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/show-engine.html"><code>SHOW ENGINE INNODB STATUS</code></a> output generation can affect performance, and the <code>innodb_status.*</code>pid<code>*</code> file can become quite large over time.</p>
+<p>For related information, see <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-enabling-monitors.html">Section 14.18.2, “Enabling InnoDB Monitors”</a>.</p>
+<a id="more"></a>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-enabling-monitors.html">Section 14.18.2, “Enabling InnoDB Monitors”</a>.</p>
+<h4 id="Directing-Standard-InnoDB-Monitor-Output-to-a-Status-File"><a href="#Directing-Standard-InnoDB-Monitor-Output-to-a-Status-File" class="headerlink" title="Directing Standard InnoDB Monitor Output to a Status File"></a>Directing Standard InnoDB Monitor Output to a Status File</h4><p>Standard <code>InnoDB</code> Monitor output can be enabled and directed to a status file by specifying the <code>--innodb-status-file</code> option at startup. When this option is used, <code>InnoDB</code> creates a file named <code>innodb_status.*</code>pid<code>*</code> in the data directory and writes output to it every 15 seconds, approximately.</p>
+<p><code>InnoDB</code> removes the status file when the server is shut down normally. If an abnormal shutdown occurs, the status file may have to be removed manually.</p>
+<p>The <code>--innodb-status-file</code> option is intended for temporary use, as output generation can affect performance, and the <code>innodb_status.*</code>pid<code>*</code> file can become quite large over time.</p>
+</blockquote>
+<p>非动态参数, 可以再my.cnf中添加<code>innodb_status_file=1</code>启用</p>
+<p>开启后会在datadir下生成一个innodb_status.pid文件, 周期性15秒向这个文件输出<code>show engine innodb status</code>. 如果异常关闭数据库, 这个文件不会被删除</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/innodb_status_file.png" alt=""></p>
+<p>看文档意思<code>the</code>innodb_status.<em><code>pid</code></em><code>file can become quite large over time.</code>, 但我看不会表达, 他不是追加写入, 起码percona分支是这样, 上面的图是官方分支, 也没有追加</p>
+<h1 id="innodb-status-output"><a href="#innodb-status-output" class="headerlink" title="innodb_status_output"></a>innodb_status_output</h1><p>开启后会周期性向error log输出<code>show engine innodb status</code></p>
+<h1 id="innodb-status-output-locks"><a href="#innodb-status-output-locks" class="headerlink" title="innodb_status_output_locks"></a>innodb_status_output_locks</h1><p>单独开这个影响<code>show engine innodb status</code>. 这个参数参数配合<code>innodb_status_file</code>或<code>innodb_status_output</code>使用时, 当前两者开启, 则会向前两者输出位置输出锁信息</p>
+<p><code>innodb_status_output_locks=off</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">5781</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">5776 </span><span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">33</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421976761960688</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421976761961816</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">5780</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">36</span> <span class="string">sec</span></span><br><span class="line"><span class="number">3</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">2</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">13</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140502089910016</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">257</span> <span class="string">localhost</span> <span class="string">root</span></span><br></pre></td></tr></table></figure>
+<p><code>innodb_status_output_locks=on</code>, <code>innodb_show_verbose_locks=0</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">5781</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">5776 </span><span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">33</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421976761960688</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421976761961816</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">5780</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">185</span> <span class="string">sec</span></span><br><span class="line"><span class="number">3</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">2</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">13</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140502089910016</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">257</span> <span class="string">localhost</span> <span class="string">root</span></span><br><span class="line"><span class="string">TABLE</span> <span class="string">LOCK</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5780 </span><span class="string">lock</span> <span class="string">mode</span> <span class="string">IX</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">133</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">4</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">DealerAndBrokerAndDropped</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5780 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">133</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">3</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">PRIMARY</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5780 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br></pre></td></tr></table></figure>
+<p><code>innodb_status_output_locks=on</code>, <code>innodb_show_verbose_locks=1</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">5781</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">5776 </span><span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">33</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421976761960688</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421976761961816</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">5780</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">48</span> <span class="string">sec</span></span><br><span class="line"><span class="number">3</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">2</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">13</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140502089910016</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">257</span> <span class="string">localhost</span> <span class="string">root</span></span><br><span class="line"><span class="string">TABLE</span> <span class="string">LOCK</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5780 </span><span class="string">lock</span> <span class="string">mode</span> <span class="string">IX</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">133</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">4</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">DealerAndBrokerAndDropped</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5780 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"><span class="string">Record</span> <span class="string">lock,</span> <span class="attr">heap no 2 PHYSICAL RECORD:</span> <span class="string">n_fields</span> <span class="number">4</span><span class="string">;</span> <span class="string">compact</span> <span class="string">format;</span> <span class="string">info</span> <span class="string">bits</span> <span class="number">0</span></span><br><span class="line"> <span class="attr">0:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">1:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">2:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">80</span><span class="string">;</span> <span class="string">asc</span>  <span class="string">;;</span></span><br><span class="line"> <span class="attr">3:</span> <span class="string">len</span> <span class="number">8</span><span class="string">;</span> <span class="string">hex</span> <span class="number">8000000000000001</span><span class="string">;</span> <span class="string">asc</span>         <span class="string">;;</span></span><br><span class="line"></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">133</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">3</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">PRIMARY</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5780 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"><span class="string">Record</span> <span class="string">lock,</span> <span class="attr">heap no 2 PHYSICAL RECORD:</span> <span class="string">n_fields</span> <span class="number">7</span><span class="string">;</span> <span class="string">compact</span> <span class="string">format;</span> <span class="string">info</span> <span class="string">bits</span> <span class="number">0</span></span><br><span class="line"> <span class="attr">0:</span> <span class="string">len</span> <span class="number">8</span><span class="string">;</span> <span class="string">hex</span> <span class="number">8000000000000001</span><span class="string">;</span> <span class="string">asc</span>         <span class="string">;;</span></span><br><span class="line"> <span class="attr">1:</span> <span class="string">len</span> <span class="number">6</span><span class="string">;</span> <span class="string">hex</span> <span class="number">000000001647</span><span class="string">;</span> <span class="string">asc</span>      <span class="string">G;;</span></span><br><span class="line"> <span class="attr">2:</span> <span class="string">len</span> <span class="number">7</span><span class="string">;</span> <span class="string">hex</span> <span class="string">b6000000040110;</span> <span class="string">asc</span>        <span class="string">;;</span></span><br><span class="line"> <span class="attr">3:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">4:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">5:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">80</span><span class="string">;</span> <span class="string">asc</span>  <span class="string">;;</span></span><br><span class="line"> <span class="attr">6:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">61</span><span class="string">;</span> <span class="string">asc</span> <span class="string">a;;</span></span><br></pre></td></tr></table></figure>
+<h1 id="innodb-show-verbose-locks"><a href="#innodb-show-verbose-locks" class="headerlink" title="innodb_show_verbose_locks"></a>innodb_show_verbose_locks</h1><p>percona分支参数</p>
+<ul>
+<li><p><em>variable</em> <code>innodb_show_verbose_locks</code></p>
+<p>Command Line:YesConfig File:YesScope:GlobalDynamic:YesVariable Type:ULONGDefault Value:0Range:0 - 1</p>
+</li>
+</ul>
+<p>Specifies to show records locked in <code>SHOW ENGINE INNODB STATUS</code>. The default is <code>0</code>, which means only the higher-level information about the lock (which table and index is locked, etc.) is printed. If set to <code>1</code>, then traditional <em>InnoDB</em> behavior is enabled: the records that are locked are dumped to the output.</p>
+<p>官方分支没这个参数, 这个参数影响<code>innodb_print_all_deadlocks</code>和前面三个参数. </p>
+<p>例如<code>innodb_show_verbose_locks=0</code>, <code>innodb_print_all_deadlocks=1</code>, 则error log中死锁信息为</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">24</span>:<span class="number">29.703878</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: Transactions deadlock detected, dumping detailed information.</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">24</span>:<span class="number">29.703949</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: </span><br><span class="line">*** (<span class="number">1</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">5127</span>, ACTIVE <span class="number">5</span> sec starting index read</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line">LOCK WAIT <span class="number">2</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">1</span> row lock(s)</span><br><span class="line">MySQL thread id <span class="number">3</span>, OS thread handle <span class="number">140073055278848</span>, query id <span class="number">26</span> localhost root statistics</span><br><span class="line">select u_c <span class="keyword">from</span> t8 where d_id=<span class="string">&#x27;1&#x27;</span> <span class="keyword">and</span> b_id=<span class="string">&#x27;1&#x27;</span> <span class="keyword">and</span> is_dropped=<span class="number">0</span> <span class="keyword">for</span> update</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">24</span>:<span class="number">29.703987</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** (<span class="number">1</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">128</span> page no <span class="number">4</span> n bits <span class="number">80</span> index DealerAndBrokerAndDropped of table `fanboshi`.`t8` trx id <span class="number">5127</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">24</span>:<span class="number">29.704003</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** (<span class="number">2</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">5126</span>, ACTIVE <span class="number">9</span> sec starting index read</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line"><span class="number">4</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">3</span> row lock(s)</span><br><span class="line">MySQL thread id <span class="number">4</span>, OS thread handle <span class="number">140073055008512</span>, query id <span class="number">27</span> localhost root updating</span><br><span class="line">update t8 <span class="keyword">set</span> u_c=<span class="string">&#x27;b&#x27;</span> where d_id=<span class="string">&#x27;1&#x27;</span> <span class="keyword">and</span> b_id=<span class="string">&#x27;1&#x27;</span></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">24</span>:<span class="number">29.704016</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** (<span class="number">2</span>) HOLDS THE LOCK(S):</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">128</span> page no <span class="number">4</span> n bits <span class="number">80</span> index DealerAndBrokerAndDropped of table `fanboshi`.`t8` trx id <span class="number">5126</span> lock_mode X locks rec but <span class="keyword">not</span> gap</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">24</span>:<span class="number">29.704025</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** (<span class="number">2</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">128</span> page no <span class="number">4</span> n bits <span class="number">80</span> index DealerAndBrokerAndDropped of table `fanboshi`.`t8` trx id <span class="number">5126</span> lock_mode X waiting</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">24</span>:<span class="number">29.704034</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** WE ROLL BACK TRANSACTION (<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<p><code>innodb_show_verbose_locks=1</code>, <code>innodb_print_all_deadlocks=1</code>, 则error log中死锁信息为</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">54</span>:<span class="number">23.575868</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: Transactions deadlock detected, dumping detailed information.</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">54</span>:<span class="number">23.575923</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: </span><br><span class="line">*** (<span class="number">1</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">5130</span>, ACTIVE <span class="number">6</span> sec starting index read</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line">LOCK WAIT <span class="number">2</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">1</span> row lock(s)</span><br><span class="line">MySQL thread id <span class="number">3</span>, OS thread handle <span class="number">140073055278848</span>, query id <span class="number">38</span> localhost root statistics</span><br><span class="line">select u_c <span class="keyword">from</span> t8 where d_id=<span class="string">&#x27;1&#x27;</span> <span class="keyword">and</span> b_id=<span class="string">&#x27;1&#x27;</span> <span class="keyword">and</span> is_dropped=<span class="number">0</span> <span class="keyword">for</span> update</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">54</span>:<span class="number">23.575945</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** (<span class="number">1</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">128</span> page no <span class="number">4</span> n bits <span class="number">80</span> index DealerAndBrokerAndDropped of table `fanboshi`.`t8` trx id <span class="number">5130</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br><span class="line">Record lock, heap no <span class="number">2</span> PHYSICAL RECORD: n_fields <span class="number">4</span>; compact format; info bits <span class="number">0</span></span><br><span class="line"> <span class="number">0</span>: len <span class="number">1</span>; hex <span class="number">31</span>; asc <span class="number">1</span>;;</span><br><span class="line"> <span class="number">1</span>: len <span class="number">1</span>; hex <span class="number">31</span>; asc <span class="number">1</span>;;</span><br><span class="line"> <span class="number">2</span>: len <span class="number">1</span>; hex <span class="number">80</span>; asc  ;;</span><br><span class="line"> <span class="number">3</span>: len <span class="number">8</span>; hex <span class="number">8000000000000001</span>; asc         ;;</span><br><span class="line"></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">54</span>:<span class="number">23.576779</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** (<span class="number">2</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">5129</span>, ACTIVE <span class="number">8</span> sec starting index read</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line"><span class="number">4</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">3</span> row lock(s)</span><br><span class="line">MySQL thread id <span class="number">4</span>, OS thread handle <span class="number">140073055008512</span>, query id <span class="number">39</span> localhost root updating</span><br><span class="line">update t8 <span class="keyword">set</span> u_c=<span class="string">&#x27;b&#x27;</span> where d_id=<span class="string">&#x27;1&#x27;</span> <span class="keyword">and</span> b_id=<span class="string">&#x27;1&#x27;</span></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">54</span>:<span class="number">23.576798</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** (<span class="number">2</span>) HOLDS THE LOCK(S):</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">128</span> page no <span class="number">4</span> n bits <span class="number">80</span> index DealerAndBrokerAndDropped of table `fanboshi`.`t8` trx id <span class="number">5129</span> lock_mode X locks rec but <span class="keyword">not</span> gap</span><br><span class="line">Record lock, heap no <span class="number">2</span> PHYSICAL RECORD: n_fields <span class="number">4</span>; compact format; info bits <span class="number">0</span></span><br><span class="line"> <span class="number">0</span>: len <span class="number">1</span>; hex <span class="number">31</span>; asc <span class="number">1</span>;;</span><br><span class="line"> <span class="number">1</span>: len <span class="number">1</span>; hex <span class="number">31</span>; asc <span class="number">1</span>;;</span><br><span class="line"> <span class="number">2</span>: len <span class="number">1</span>; hex <span class="number">80</span>; asc  ;;</span><br><span class="line"> <span class="number">3</span>: len <span class="number">8</span>; hex <span class="number">8000000000000001</span>; asc         ;;</span><br><span class="line"></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">54</span>:<span class="number">23.576847</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** (<span class="number">2</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">128</span> page no <span class="number">4</span> n bits <span class="number">80</span> index DealerAndBrokerAndDropped of table `fanboshi`.`t8` trx id <span class="number">5129</span> lock_mode X waiting</span><br><span class="line">Record lock, heap no <span class="number">2</span> PHYSICAL RECORD: n_fields <span class="number">4</span>; compact format; info bits <span class="number">0</span></span><br><span class="line"> <span class="number">0</span>: len <span class="number">1</span>; hex <span class="number">31</span>; asc <span class="number">1</span>;;</span><br><span class="line"> <span class="number">1</span>: len <span class="number">1</span>; hex <span class="number">31</span>; asc <span class="number">1</span>;;</span><br><span class="line"> <span class="number">2</span>: len <span class="number">1</span>; hex <span class="number">80</span>; asc  ;;</span><br><span class="line"> <span class="number">3</span>: len <span class="number">8</span>; hex <span class="number">8000000000000001</span>; asc         ;;</span><br><span class="line"></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-15</span>T10:<span class="number">54</span>:<span class="number">23.576896</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] InnoDB: *** WE ROLL BACK TRANSACTION (<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<p><code>innodb_status_output=1</code>,<code>innodb_show_verbose_locks=0或1</code>, <code>innodb_status_output_locks=off</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">5134</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">5132 </span><span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">2</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421547726605656</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421547726604528</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">5132</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">93</span> <span class="string">sec</span></span><br><span class="line"><span class="number">3</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">2</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">6</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140073054738176</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">60</span> <span class="string">localhost</span> <span class="string">root</span></span><br></pre></td></tr></table></figure>
+<p><code>innodb_status_output=1</code>,<code>innodb_show_verbose_locks=0</code>, <code>innodb_status_output_locks=on</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">5134</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">5132 </span><span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">2</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421547726605656</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421547726604528</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">5132</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">287</span> <span class="string">sec</span></span><br><span class="line"><span class="number">3</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">2</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">6</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140073054738176</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">60</span> <span class="string">localhost</span> <span class="string">root</span></span><br><span class="line"><span class="string">TABLE</span> <span class="string">LOCK</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5132 </span><span class="string">lock</span> <span class="string">mode</span> <span class="string">IX</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">128</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">4</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">DealerAndBrokerAndDropped</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5132 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">128</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">3</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">PRIMARY</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5132 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br></pre></td></tr></table></figure>
+<p><code>innodb_status_output=1</code>,<code>innodb_show_verbose_locks=1</code>, <code>innodb_status_output_locks=on</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">5134</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">5132 </span><span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">2</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421547726605656</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421547726604528</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">5132</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">132</span> <span class="string">sec</span></span><br><span class="line"><span class="number">3</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">2</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">6</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140073054738176</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">60</span> <span class="string">localhost</span> <span class="string">root</span></span><br><span class="line"><span class="string">TABLE</span> <span class="string">LOCK</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5132 </span><span class="string">lock</span> <span class="string">mode</span> <span class="string">IX</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">128</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">4</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">DealerAndBrokerAndDropped</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5132 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"><span class="string">Record</span> <span class="string">lock,</span> <span class="attr">heap no 2 PHYSICAL RECORD:</span> <span class="string">n_fields</span> <span class="number">4</span><span class="string">;</span> <span class="string">compact</span> <span class="string">format;</span> <span class="string">info</span> <span class="string">bits</span> <span class="number">0</span></span><br><span class="line"> <span class="attr">0:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">1:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">2:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">80</span><span class="string">;</span> <span class="string">asc</span>  <span class="string">;;</span></span><br><span class="line"> <span class="attr">3:</span> <span class="string">len</span> <span class="number">8</span><span class="string">;</span> <span class="string">hex</span> <span class="number">8000000000000001</span><span class="string">;</span> <span class="string">asc</span>         <span class="string">;;</span></span><br><span class="line"></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">128</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">3</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">PRIMARY</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5132 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"><span class="string">Record</span> <span class="string">lock,</span> <span class="attr">heap no 2 PHYSICAL RECORD:</span> <span class="string">n_fields</span> <span class="number">7</span><span class="string">;</span> <span class="string">compact</span> <span class="string">format;</span> <span class="string">info</span> <span class="string">bits</span> <span class="number">0</span></span><br><span class="line"> <span class="attr">0:</span> <span class="string">len</span> <span class="number">8</span><span class="string">;</span> <span class="string">hex</span> <span class="number">8000000000000001</span><span class="string">;</span> <span class="string">asc</span>         <span class="string">;;</span></span><br><span class="line"> <span class="attr">1:</span> <span class="string">len</span> <span class="number">6</span><span class="string">;</span> <span class="string">hex</span> <span class="string">00000000103f;</span> <span class="string">asc</span>      <span class="string">?;;</span></span><br><span class="line"> <span class="attr">2:</span> <span class="string">len</span> <span class="number">7</span><span class="string">;</span> <span class="string">hex</span> <span class="string">b0000000040110;</span> <span class="string">asc</span>        <span class="string">;;</span></span><br><span class="line"> <span class="attr">3:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">4:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">5:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">80</span><span class="string">;</span> <span class="string">asc</span>  <span class="string">;;</span></span><br><span class="line"> <span class="attr">6:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">61</span><span class="string">;</span> <span class="string">asc</span> <span class="string">a;;</span></span><br></pre></td></tr></table></figure>
+<p>对于status_file一样</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">status_file</span> <span class="string">v0</span> <span class="string">v1</span> <span class="string">off</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">5640</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">0</span> <span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">0</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421976761961816</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">5639</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">301</span> <span class="string">sec</span></span><br><span class="line"><span class="number">3</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">2</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">3</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140502089639680</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">23</span> <span class="string">localhost</span> <span class="string">root</span></span><br><span class="line"></span><br><span class="line"><span class="string">status_file</span> <span class="string">v0</span> <span class="string">on</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">5640</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">0</span> <span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">0</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421976761961816</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">5639</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">901</span> <span class="string">sec</span></span><br><span class="line"><span class="number">3</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">2</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">3</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140502089639680</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">23</span> <span class="string">localhost</span> <span class="string">root</span></span><br><span class="line"><span class="string">TABLE</span> <span class="string">LOCK</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5639 </span><span class="string">lock</span> <span class="string">mode</span> <span class="string">IX</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">128</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">4</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">DealerAndBrokerAndDropped</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5639 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">128</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">3</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">PRIMARY</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5639 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"></span><br><span class="line"><span class="string">status_file</span>  <span class="string">v1</span> <span class="string">on</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">TRANSACTIONS</span></span><br><span class="line"><span class="string">------------</span></span><br><span class="line"><span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">5640</span></span><br><span class="line"><span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">0</span> <span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line"><span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">0</span></span><br><span class="line"><span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">421976761961816</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">---TRANSACTION</span> <span class="number">5639</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">561</span> <span class="string">sec</span></span><br><span class="line"><span class="number">3</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">2</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line"><span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">3</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140502089639680</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">23</span> <span class="string">localhost</span> <span class="string">root</span></span><br><span class="line"><span class="string">TABLE</span> <span class="string">LOCK</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5639 </span><span class="string">lock</span> <span class="string">mode</span> <span class="string">IX</span></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">128</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">4</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">DealerAndBrokerAndDropped</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5639 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"><span class="string">Record</span> <span class="string">lock,</span> <span class="attr">heap no 2 PHYSICAL RECORD:</span> <span class="string">n_fields</span> <span class="number">4</span><span class="string">;</span> <span class="string">compact</span> <span class="string">format;</span> <span class="string">info</span> <span class="string">bits</span> <span class="number">0</span></span><br><span class="line"> <span class="attr">0:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">1:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">2:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">80</span><span class="string">;</span> <span class="string">asc</span>  <span class="string">;;</span></span><br><span class="line"> <span class="attr">3:</span> <span class="string">len</span> <span class="number">8</span><span class="string">;</span> <span class="string">hex</span> <span class="number">8000000000000001</span><span class="string">;</span> <span class="string">asc</span>         <span class="string">;;</span></span><br><span class="line"></span><br><span class="line"><span class="string">RECORD</span> <span class="string">LOCKS</span> <span class="string">space</span> <span class="string">id</span> <span class="number">128</span> <span class="string">page</span> <span class="literal">no</span> <span class="number">3</span> <span class="string">n</span> <span class="string">bits</span> <span class="number">80</span> <span class="string">index</span> <span class="string">PRIMARY</span> <span class="string">of</span> <span class="string">table</span> <span class="string">`fanboshi`.`t8`</span> <span class="string">trx</span> <span class="string">id</span> <span class="number">5639 </span><span class="string">lock_mode</span> <span class="string">X</span> <span class="string">locks</span> <span class="string">rec</span> <span class="string">but</span> <span class="string">not</span> <span class="string">gap</span></span><br><span class="line"><span class="string">Record</span> <span class="string">lock,</span> <span class="attr">heap no 2 PHYSICAL RECORD:</span> <span class="string">n_fields</span> <span class="number">7</span><span class="string">;</span> <span class="string">compact</span> <span class="string">format;</span> <span class="string">info</span> <span class="string">bits</span> <span class="number">0</span></span><br><span class="line"> <span class="attr">0:</span> <span class="string">len</span> <span class="number">8</span><span class="string">;</span> <span class="string">hex</span> <span class="number">8000000000000001</span><span class="string">;</span> <span class="string">asc</span>         <span class="string">;;</span></span><br><span class="line"> <span class="attr">1:</span> <span class="string">len</span> <span class="number">6</span><span class="string">;</span> <span class="string">hex</span> <span class="string">00000000103f;</span> <span class="string">asc</span>      <span class="string">?;;</span></span><br><span class="line"> <span class="attr">2:</span> <span class="string">len</span> <span class="number">7</span><span class="string">;</span> <span class="string">hex</span> <span class="string">b0000000040110;</span> <span class="string">asc</span>        <span class="string">;;</span></span><br><span class="line"> <span class="attr">3:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">4:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">31</span><span class="string">;</span> <span class="string">asc</span> <span class="number">1</span><span class="string">;;</span></span><br><span class="line"> <span class="attr">5:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">80</span><span class="string">;</span> <span class="string">asc</span>  <span class="string">;;</span></span><br><span class="line"> <span class="attr">6:</span> <span class="string">len</span> <span class="number">1</span><span class="string">;</span> <span class="string">hex</span> <span class="number">61</span><span class="string">;</span> <span class="string">asc</span> <span class="string">a;;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/09/13/2020-09-13-innodb_status_file-innodb_status_output-innodb_status_output_locks和innodb_show_verbose_locks/" target="_blank" title="innodb_status_file innodb_status_output innodb_status_output_locks和innodb_show_verbose_locks">http://fuxkdb.com/2020/09/13/2020-09-13-innodb_status_file-innodb_status_output-innodb_status_output_locks和innodb_show_verbose_locks/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/09/20/2020-09-20-%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B8%A2%E6%95%B0%E6%8D%AE/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          增强半同步会不会丢数据
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/08/28/2020-08-28-ClickHouse%E6%9F%A5%E8%AF%A2%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8LEFT-JOIN%E6%94%B9RIGHT-JOIN%E7%9A%84%E5%A4%A7%E5%9D%91/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">ClickHouse查询分布式表LEFT JOIN改RIGHT JOIN的大坑</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#innodb-status-file"><span class="nav-number">1.</span> <span class="nav-text">innodb_status_file</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Directing-Standard-InnoDB-Monitor-Output-to-a-Status-File"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">Directing Standard InnoDB Monitor Output to a Status File</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#innodb-status-output"><span class="nav-number">2.</span> <span class="nav-text">innodb_status_output</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#innodb-status-output-locks"><span class="nav-number">3.</span> <span class="nav-text">innodb_status_output_locks</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#innodb-show-verbose-locks"><span class="nav-number">4.</span> <span class="nav-text">innodb_show_verbose_locks</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

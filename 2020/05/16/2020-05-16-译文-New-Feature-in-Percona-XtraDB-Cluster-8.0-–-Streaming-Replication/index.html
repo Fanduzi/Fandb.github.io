@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>译文 new feature in percona xtradb cluster 8.0 – streaming replication | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLPXCMySQL 8.0Galera 4.0" />
+  
+  
+  
+  
+  <meta name="description" content="New Feature in Percona XtraDB Cluster 8.0 – Streaming ReplicationPercona XtraDB Cluster 8.0附带了一个升级的Galera 4.0库, 它提供了一个新特性—Streaming Replication.让我们回顾一下它是什么, 什么时候可能有用 以前版本的Percona XtraDB集群和Galera 3.x在处">
+<meta property="og:type" content="article">
+<meta property="og:title" content="译文 New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication">
+<meta property="og:url" content="http://fuxkdb.com/2020/05/16/2020-05-16-%E8%AF%91%E6%96%87-New-Feature-in-Percona-XtraDB-Cluster-8.0-%E2%80%93-Streaming-Replication/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="New Feature in Percona XtraDB Cluster 8.0 – Streaming ReplicationPercona XtraDB Cluster 8.0附带了一个升级的Galera 4.0库, 它提供了一个新特性—Streaming Replication.让我们回顾一下它是什么, 什么时候可能有用 以前版本的Percona XtraDB集群和Galera 3.x在处">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-16T14:56:00.000Z">
+<meta property="article:modified_time" content="2020-05-17T03:10:38.334Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="PXC">
+<meta property="article:tag" content="MySQL 8.0">
+<meta property="article:tag" content="Galera 4.0">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-05-16-译文-New-Feature-in-Percona-XtraDB-Cluster-8.0-–-Streaming-Replication" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      译文 New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/05/16/2020-05-16-%E8%AF%91%E6%96%87-New-Feature-in-Percona-XtraDB-Cluster-8.0-%E2%80%93-Streaming-Replication/" class="article-date">
+	  <time datetime="2020-05-16T14:56:00.000Z" itemprop="datePublished">2020-05-16</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication"><a href="#New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication" class="headerlink" title="New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/05/15/new-feature-in-percona-xtradb-cluster-8-0-streaming-replication/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=88003187&amp;_hsenc=p2ANqtz-8AwEjtYpEuWSlNMk6OX4QGFsnPUWMEcW9o9FWOjQI_UGqkjKzcXPvfKm7evqRE0EuwXnrLs-tTDdcMby4ADbQWg5nLqw&amp;_hsmi=88003187">New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication</a></h1><p>Percona XtraDB Cluster 8.0附带了一个升级的Galera 4.0库, 它提供了一个新特性—<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>.让我们回顾一下它是什么, 什么时候可能有用</p>
+<p>以前版本的Percona XtraDB集群和Galera 3.x在处理大事务方面有限制.</p>
+<p>让我们看一下sysbench-tpcc工作负载下的性能, 与此同时, 我们对一个表执行了一个大的更新语句, 该更新甚至与主工作负载中的表都不相关.<br><a id="more"></a></p>
+<h2 id="Without-Streaming-Replication"><a href="#Without-Streaming-Replication" class="headerlink" title="Without Streaming Replication"></a>Without Streaming Replication</h2><p>Let’s run two workloads.</p>
+<ol>
+<li>sysbench-tpcc workload with 1 sec resolution</li>
+<li>In parallel run UPDATE oltp.sbtest SET k=k+1 LIMIT 1000000</li>
+</ol>
+<p>Running update:</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">mysql</span>&gt; update sbtest<span class="number">1</span> set k=k+<span class="number">1</span> limit <span class="number">1000000</span>;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">1000000</span> rows affected (<span class="number">34</span>.<span class="number">48</span> sec)</span><br><span class="line"><span class="attribute">Rows</span> matched: <span class="number">1000000</span>  Changed: <span class="number">1000000</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>Check what is happening in sysbench-tpcc:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">[ <span class="number">77</span>s ] thds: <span class="number">100</span> tps: <span class="number">7011.97</span> qps: <span class="number">198248.21</span> (r/w/o: <span class="number">90469.64</span>/<span class="number">93758.63</span>/<span class="number">14019.94</span>) lat (ms,<span class="number">95</span>%): <span class="number">25.28</span> err/s <span class="number">31.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">78</span>s ] thds: <span class="number">100</span> tps: <span class="number">6779.94</span> qps: <span class="number">196129.34</span> (r/w/o: <span class="number">89462.24</span>/<span class="number">93103.21</span>/<span class="number">13563.88</span>) lat (ms,<span class="number">95</span>%): <span class="number">26.20</span> err/s <span class="number">30.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">79</span>s ] thds: <span class="number">100</span> tps: <span class="number">6948.01</span> qps: <span class="number">199157.35</span> (r/w/o: <span class="number">90878.16</span>/<span class="number">94383.16</span>/<span class="number">13896.02</span>) lat (ms,<span class="number">95</span>%): <span class="number">26.20</span> err/s <span class="number">28.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">80</span>s ] thds: <span class="number">100</span> tps: <span class="number">3920.09</span> qps: <span class="number">113882.48</span> (r/w/o: <span class="number">51940.13</span>/<span class="number">54102.18</span>/<span class="number">7840.17</span>) lat (ms,<span class="number">95</span>%): <span class="number">27.17</span> err/s <span class="number">15.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">81</span>s ] thds: <span class="number">100</span> tps: <span class="number">67.00</span> qps: <span class="number">1956.02</span> (r/w/o: <span class="number">899.01</span>/<span class="number">923.01</span>/<span class="number">134.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">623.33</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">82</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">83</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">84</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">85</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">86</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">87</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">88</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">89</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">90</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">91</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">92</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">93</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">94</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">95</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">96</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">97</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">98</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">99</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">100</span>s ] thds: <span class="number">100</span> tps: <span class="number">0.00</span> qps: <span class="number">0.00</span> (r/w/o: <span class="number">0.00</span>/<span class="number">0.00</span>/<span class="number">0.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">0.00</span> err/s <span class="number">0.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">101</span>s ] thds: <span class="number">100</span> tps: <span class="number">3501.85</span> qps: <span class="number">99695.66</span> (r/w/o: <span class="number">45473.02</span>/<span class="number">47218.94</span>/<span class="number">7003.70</span>) lat (ms,<span class="number">95</span>%): <span class="number">257.95</span> err/s <span class="number">14.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">102</span>s ] thds: <span class="number">100</span> tps: <span class="number">6980.06</span> qps: <span class="number">197777.73</span> (r/w/o: <span class="number">90228.79</span>/<span class="number">93588.82</span>/<span class="number">13960.12</span>) lat (ms,<span class="number">95</span>%): <span class="number">25.74</span> err/s <span class="number">33.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">103</span>s ] thds: <span class="number">100</span> tps: <span class="number">6745.15</span> qps: <span class="number">196518.25</span> (r/w/o: <span class="number">89717.94</span>/<span class="number">93310.02</span>/<span class="number">13490.29</span>) lat (ms,<span class="number">95</span>%): <span class="number">26.68</span> err/s <span class="number">46.00</span> reconn/s: <span class="number">0.00</span></span><br></pre></td></tr></table></figure>
+<p>更新本身花了<em>34秒</em>.</p>
+<p>在这种情况下, 主工作负载停止了<code>22秒</code>. 基本上所有语句在这段时间都被暂停/阻塞了</p>
+<h2 id="With-Streaming-Replication"><a href="#With-Streaming-Replication" class="headerlink" title="With Streaming Replication"></a>With Streaming Replication</h2><p>如何通过streaming replication改进这一点?</p>
+<ol>
+<li>让我们在执行更新语句的会话中启用streaming replication</li>
+</ol>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="builtin-name">SET</span> SESSION <span class="attribute">wsrep_trx_fragment_unit</span>=<span class="string">&#x27;rows&#x27;</span>;</span><br><span class="line"><span class="builtin-name">SET</span> SESSION <span class="attribute">wsrep_trx_fragment_size</span>=1000;</span><br></pre></td></tr></table></figure>
+<p>基本上, 我们说集群应该将大事务分割成多个块, 每个块1000行, 然后在这些较小的块中进行复制.<code>wsrep_trx_fragment_unit</code>还可以设置为 ‘rows’ , ‘bytes’ 或 ‘statements’, 就是可以按行数, binlog字节数, 语句数量进行控制</p>
+<blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">wsrep_trx_fragment_unit</span></span><br></pre></td></tr></table></figure>
+<p>Defines the replication unit type to use in Streaming Replication.</p>
+<table>
+<thead>
+<tr>
+<th>Command-line Format</th>
+<th><code>--wsrep-trx-fragment-unit</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>System Variable</td>
+<td><code>wsrep_trx_fragment_unit</code></td>
+</tr>
+<tr>
+<td>Variable Scope</td>
+<td>Session</td>
+</tr>
+<tr>
+<td>Dynamic Variable</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Permitted Values</td>
+<td>String</td>
+</tr>
+<tr>
+<td>Default Value</td>
+<td><code>bytes</code></td>
+</tr>
+<tr>
+<td>Valid Values</td>
+<td><code>bytes</code>, <code>events</code>, <code>rows</code>, <code>statements</code></td>
+</tr>
+<tr>
+<td>Initial Version</td>
+<td>Version 4.0</td>
+</tr>
+</tbody>
+</table>
+<p>In <a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/glossary.html#term-streaming-replication">Streaming Replication</a>, the node breaks transactions down into fragments, then replicates and certifies them while the transaction is in progress. Once certified, a fragment can no longer be aborted due to conflicting transactions. This parameter determines the unit to use in determining the size of the fragment. To define the number of replication units to use in the fragment, use <a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/mysql-wsrep-options.html#wsrep-trx-fragment-size">wsrep_trx_fragment_size</a>.</p>
+<p>Supported replication units are:</p>
+<ul>
+<li><strong>bytes</strong>: Refers to the fragment size in bytes.</li>
+<li><strong>events</strong>: Refers to the number of binary log events in the fragment.</li>
+<li><strong>rows</strong>: Refers to the number of rows updated in the fragment.</li>
+<li><strong>statements</strong>: Refers to the number of SQL statements in the fragment.</li>
+</ul>
+</blockquote>
+<p>And run the query:</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">mysql</span>&gt; update sbtest<span class="number">1</span> set k=k+<span class="number">1</span> limit <span class="number">1000000</span>;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">1000000</span> rows affected (<span class="number">39</span>.<span class="number">76</span> sec)</span><br><span class="line"><span class="attribute">Rows</span> matched: <span class="number">1000000</span>  Changed: <span class="number">1000000</span>  Warnings: <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>In sysbench-tpcc:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">[ <span class="number">81</span>s ] thds: <span class="number">100</span> tps: <span class="number">6682.94</span> qps: <span class="number">188552.70</span> (r/w/o: <span class="number">85967.65</span>/<span class="number">89221.16</span>/<span class="number">13363.88</span>) lat (ms,<span class="number">95</span>%): <span class="number">26.68</span> err/s <span class="number">32.98</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">82</span>s ] thds: <span class="number">100</span> tps: <span class="number">6700.92</span> qps: <span class="number">192216.77</span> (r/w/o: <span class="number">87715.23</span>/<span class="number">91103.70</span>/<span class="number">13397.84</span>) lat (ms,<span class="number">95</span>%): <span class="number">27.17</span> err/s <span class="number">27.01</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">83</span>s ] thds: <span class="number">100</span> tps: <span class="number">3835.05</span> qps: <span class="number">108387.43</span> (r/w/o: <span class="number">49408.65</span>/<span class="number">51302.68</span>/<span class="number">7676.10</span>) lat (ms,<span class="number">95</span>%): <span class="number">82.96</span> err/s <span class="number">15.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">84</span>s ] thds: <span class="number">100</span> tps: <span class="number">2210.13</span> qps: <span class="number">63161.58</span> (r/w/o: <span class="number">28852.64</span>/<span class="number">29888.70</span>/<span class="number">4420.25</span>) lat (ms,<span class="number">95</span>%): <span class="number">95.81</span> err/s <span class="number">9.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">85</span>s ] thds: <span class="number">100</span> tps: <span class="number">2558.00</span> qps: <span class="number">72592.08</span> (r/w/o: <span class="number">33093.04</span>/<span class="number">34383.04</span>/<span class="number">5116.01</span>) lat (ms,<span class="number">95</span>%): <span class="number">87.56</span> err/s <span class="number">9.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">86</span>s ] thds: <span class="number">100</span> tps: <span class="number">2617.99</span> qps: <span class="number">75127.81</span> (r/w/o: <span class="number">34299.91</span>/<span class="number">35591.91</span>/<span class="number">5235.99</span>) lat (ms,<span class="number">95</span>%): <span class="number">78.60</span> err/s <span class="number">9.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">87</span>s ] thds: <span class="number">100</span> tps: <span class="number">2887.75</span> qps: <span class="number">81760.97</span> (r/w/o: <span class="number">37312.79</span>/<span class="number">38672.68</span>/<span class="number">5775.50</span>) lat (ms,<span class="number">95</span>%): <span class="number">73.13</span> err/s <span class="number">15.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">88</span>s ] thds: <span class="number">100</span> tps: <span class="number">3024.00</span> qps: <span class="number">84461.96</span> (r/w/o: <span class="number">38606.98</span>/<span class="number">39806.98</span>/<span class="number">6048.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">69.29</span> err/s <span class="number">15.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">89</span>s ] thds: <span class="number">100</span> tps: <span class="number">3119.27</span> qps: <span class="number">91128.99</span> (r/w/o: <span class="number">41566.65</span>/<span class="number">43323.80</span>/<span class="number">6238.55</span>) lat (ms,<span class="number">95</span>%): <span class="number">63.32</span> err/s <span class="number">9.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">90</span>s ] thds: <span class="number">100</span> tps: <span class="number">3385.74</span> qps: <span class="number">98314.42</span> (r/w/o: <span class="number">44883.54</span>/<span class="number">46659.40</span>/<span class="number">6771.48</span>) lat (ms,<span class="number">95</span>%): <span class="number">56.84</span> err/s <span class="number">14.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">91</span>s ] thds: <span class="number">100</span> tps: <span class="number">3641.08</span> qps: <span class="number">103916.20</span> (r/w/o: <span class="number">47422.00</span>/<span class="number">49212.04</span>/<span class="number">7282.15</span>) lat (ms,<span class="number">95</span>%): <span class="number">54.83</span> err/s <span class="number">21.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">92</span>s ] thds: <span class="number">100</span> tps: <span class="number">3850.12</span> qps: <span class="number">106013.43</span> (r/w/o: <span class="number">48296.56</span>/<span class="number">50021.62</span>/<span class="number">7695.25</span>) lat (ms,<span class="number">95</span>%): <span class="number">57.87</span> err/s <span class="number">23.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">93</span>s ] thds: <span class="number">100</span> tps: <span class="number">3828.07</span> qps: <span class="number">111682.90</span> (r/w/o: <span class="number">51005.87</span>/<span class="number">53015.90</span>/<span class="number">7661.13</span>) lat (ms,<span class="number">95</span>%): <span class="number">54.83</span> err/s <span class="number">22.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">94</span>s ] thds: <span class="number">100</span> tps: <span class="number">4358.95</span> qps: <span class="number">122173.63</span> (r/w/o: <span class="number">55746.37</span>/<span class="number">57709.35</span>/<span class="number">8717.90</span>) lat (ms,<span class="number">95</span>%): <span class="number">42.61</span> err/s <span class="number">14.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">95</span>s ] thds: <span class="number">100</span> tps: <span class="number">4367.09</span> qps: <span class="number">123297.63</span> (r/w/o: <span class="number">56193.20</span>/<span class="number">58370.24</span>/<span class="number">8734.19</span>) lat (ms,<span class="number">95</span>%): <span class="number">44.98</span> err/s <span class="number">16.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">96</span>s ] thds: <span class="number">100</span> tps: <span class="number">4272.92</span> qps: <span class="number">118822.67</span> (r/w/o: <span class="number">54076.94</span>/<span class="number">56201.90</span>/<span class="number">8543.83</span>) lat (ms,<span class="number">95</span>%): <span class="number">46.63</span> err/s <span class="number">24.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">97</span>s ] thds: <span class="number">100</span> tps: <span class="number">4697.88</span> qps: <span class="number">133071.68</span> (r/w/o: <span class="number">60676.49</span>/<span class="number">62997.43</span>/<span class="number">9397.77</span>) lat (ms,<span class="number">95</span>%): <span class="number">38.25</span> err/s <span class="number">17.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">98</span>s ] thds: <span class="number">100</span> tps: <span class="number">4742.21</span> qps: <span class="number">135167.87</span> (r/w/o: <span class="number">61693.68</span>/<span class="number">63989.78</span>/<span class="number">9484.41</span>) lat (ms,<span class="number">95</span>%): <span class="number">37.56</span> err/s <span class="number">21.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">99</span>s ] thds: <span class="number">100</span> tps: <span class="number">4949.89</span> qps: <span class="number">139343.00</span> (r/w/o: <span class="number">63616.63</span>/<span class="number">65826.58</span>/<span class="number">9899.79</span>) lat (ms,<span class="number">95</span>%): <span class="number">36.24</span> err/s <span class="number">21.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">100</span>s ] thds: <span class="number">100</span> tps: <span class="number">4766.10</span> qps: <span class="number">139554.99</span> (r/w/o: <span class="number">63695.37</span>/<span class="number">66327.42</span>/<span class="number">9532.20</span>) lat (ms,<span class="number">95</span>%): <span class="number">36.89</span> err/s <span class="number">18.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">101</span>s ] thds: <span class="number">100</span> tps: <span class="number">5069.91</span> qps: <span class="number">143318.44</span> (r/w/o: <span class="number">65310.83</span>/<span class="number">67867.79</span>/<span class="number">10139.82</span>) lat (ms,<span class="number">95</span>%): <span class="number">35.59</span> err/s <span class="number">13.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">102</span>s ] thds: <span class="number">100</span> tps: <span class="number">4947.06</span> qps: <span class="number">140053.63</span> (r/w/o: <span class="number">63820.74</span>/<span class="number">66338.77</span>/<span class="number">9894.12</span>) lat (ms,<span class="number">95</span>%): <span class="number">36.24</span> err/s <span class="number">23.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">103</span>s ] thds: <span class="number">100</span> tps: <span class="number">5045.00</span> qps: <span class="number">145397.93</span> (r/w/o: <span class="number">66328.97</span>/<span class="number">68978.97</span>/<span class="number">10090.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.33</span> err/s <span class="number">18.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">104</span>s ] thds: <span class="number">100</span> tps: <span class="number">5139.02</span> qps: <span class="number">141954.54</span> (r/w/o: <span class="number">64723.25</span>/<span class="number">66953.25</span>/<span class="number">10278.04</span>) lat (ms,<span class="number">95</span>%): <span class="number">36.24</span> err/s <span class="number">28.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">105</span>s ] thds: <span class="number">100</span> tps: <span class="number">5214.90</span> qps: <span class="number">147582.10</span> (r/w/o: <span class="number">67371.68</span>/<span class="number">69780.63</span>/<span class="number">10429.80</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.33</span> err/s <span class="number">25.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">106</span>s ] thds: <span class="number">100</span> tps: <span class="number">4924.08</span> qps: <span class="number">139603.33</span> (r/w/o: <span class="number">63673.06</span>/<span class="number">66082.10</span>/<span class="number">9848.16</span>) lat (ms,<span class="number">95</span>%): <span class="number">36.24</span> err/s <span class="number">23.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">107</span>s ] thds: <span class="number">100</span> tps: <span class="number">5202.97</span> qps: <span class="number">147199.09</span> (r/w/o: <span class="number">67176.58</span>/<span class="number">69616.57</span>/<span class="number">10405.94</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.33</span> err/s <span class="number">30.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">108</span>s ] thds: <span class="number">100</span> tps: <span class="number">5219.91</span> qps: <span class="number">147677.47</span> (r/w/o: <span class="number">67416.84</span>/<span class="number">69820.80</span>/<span class="number">10439.82</span>) lat (ms,<span class="number">95</span>%): <span class="number">33.72</span> err/s <span class="number">28.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">109</span>s ] thds: <span class="number">100</span> tps: <span class="number">5018.99</span> qps: <span class="number">143211.61</span> (r/w/o: <span class="number">65365.82</span>/<span class="number">67808.81</span>/<span class="number">10036.97</span>) lat (ms,<span class="number">95</span>%): <span class="number">36.24</span> err/s <span class="number">23.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">110</span>s ] thds: <span class="number">100</span> tps: <span class="number">5070.16</span> qps: <span class="number">142049.54</span> (r/w/o: <span class="number">64817.07</span>/<span class="number">67091.15</span>/<span class="number">10141.32</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.95</span> err/s <span class="number">17.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">111</span>s ] thds: <span class="number">100</span> tps: <span class="number">4954.87</span> qps: <span class="number">141476.26</span> (r/w/o: <span class="number">64529.29</span>/<span class="number">67037.23</span>/<span class="number">9909.74</span>) lat (ms,<span class="number">95</span>%): <span class="number">35.59</span> err/s <span class="number">25.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">112</span>s ] thds: <span class="number">100</span> tps: <span class="number">4827.12</span> qps: <span class="number">140426.46</span> (r/w/o: <span class="number">64103.58</span>/<span class="number">66668.64</span>/<span class="number">9654.24</span>) lat (ms,<span class="number">95</span>%): <span class="number">35.59</span> err/s <span class="number">19.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">113</span>s ] thds: <span class="number">100</span> tps: <span class="number">5027.00</span> qps: <span class="number">145229.08</span> (r/w/o: <span class="number">66179.04</span>/<span class="number">68996.04</span>/<span class="number">10054.01</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.33</span> err/s <span class="number">26.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">114</span>s ] thds: <span class="number">100</span> tps: <span class="number">5099.87</span> qps: <span class="number">144585.36</span> (r/w/o: <span class="number">65976.34</span>/<span class="number">68409.28</span>/<span class="number">10199.74</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.33</span> err/s <span class="number">26.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">115</span>s ] thds: <span class="number">100</span> tps: <span class="number">5010.11</span> qps: <span class="number">143316.08</span> (r/w/o: <span class="number">65356.40</span>/<span class="number">67939.46</span>/<span class="number">10020.22</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.95</span> err/s <span class="number">26.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">116</span>s ] thds: <span class="number">100</span> tps: <span class="number">5056.00</span> qps: <span class="number">143686.98</span> (r/w/o: <span class="number">65621.99</span>/<span class="number">67952.99</span>/<span class="number">10112.00</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.95</span> err/s <span class="number">31.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">117</span>s ] thds: <span class="number">100</span> tps: <span class="number">4908.95</span> qps: <span class="number">141669.49</span> (r/w/o: <span class="number">64653.31</span>/<span class="number">67198.28</span>/<span class="number">9817.90</span>) lat (ms,<span class="number">95</span>%): <span class="number">36.24</span> err/s <span class="number">21.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">118</span>s ] thds: <span class="number">100</span> tps: <span class="number">5039.07</span> qps: <span class="number">142667.01</span> (r/w/o: <span class="number">65056.92</span>/<span class="number">67531.95</span>/<span class="number">10078.14</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.33</span> err/s <span class="number">24.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">119</span>s ] thds: <span class="number">100</span> tps: <span class="number">5076.89</span> qps: <span class="number">143205.79</span> (r/w/o: <span class="number">65195.54</span>/<span class="number">67856.48</span>/<span class="number">10153.77</span>) lat (ms,<span class="number">95</span>%): <span class="number">35.59</span> err/s <span class="number">18.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">120</span>s ] thds: <span class="number">100</span> tps: <span class="number">4909.09</span> qps: <span class="number">137380.48</span> (r/w/o: <span class="number">62539.13</span>/<span class="number">65024.17</span>/<span class="number">9817.18</span>) lat (ms,<span class="number">95</span>%): <span class="number">34.95</span> err/s <span class="number">13.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">121</span>s ] thds: <span class="number">100</span> tps: <span class="number">5024.93</span> qps: <span class="number">144610.91</span> (r/w/o: <span class="number">66027.05</span>/<span class="number">68533.01</span>/<span class="number">10050.85</span>) lat (ms,<span class="number">95</span>%): <span class="number">35.59</span> err/s <span class="number">23.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">122</span>s ] thds: <span class="number">100</span> tps: <span class="number">4874.10</span> qps: <span class="number">138066.96</span> (r/w/o: <span class="number">62942.35</span>/<span class="number">65376.40</span>/<span class="number">9748.21</span>) lat (ms,<span class="number">95</span>%): <span class="number">35.59</span> err/s <span class="number">16.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">123</span>s ] thds: <span class="number">100</span> tps: <span class="number">6745.83</span> qps: <span class="number">187288.34</span> (r/w/o: <span class="number">85354.88</span>/<span class="number">88441.80</span>/<span class="number">13491.66</span>) lat (ms,<span class="number">95</span>%): <span class="number">28.67</span> err/s <span class="number">27.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">124</span>s ] thds: <span class="number">100</span> tps: <span class="number">6132.03</span> qps: <span class="number">172854.73</span> (r/w/o: <span class="number">78867.33</span>/<span class="number">81723.34</span>/<span class="number">12264.05</span>) lat (ms,<span class="number">95</span>%): <span class="number">29.19</span> err/s <span class="number">18.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">125</span>s ] thds: <span class="number">100</span> tps: <span class="number">6114.99</span> qps: <span class="number">175777.68</span> (r/w/o: <span class="number">80098.85</span>/<span class="number">83448.85</span>/<span class="number">12229.98</span>) lat (ms,<span class="number">95</span>%): <span class="number">30.26</span> err/s <span class="number">39.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">126</span>s ] thds: <span class="number">100</span> tps: <span class="number">6206.87</span> qps: <span class="number">179830.22</span> (r/w/o: <span class="number">82043.28</span>/<span class="number">85374.21</span>/<span class="number">12412.74</span>) lat (ms,<span class="number">95</span>%): <span class="number">29.72</span> err/s <span class="number">29.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">127</span>s ] thds: <span class="number">100</span> tps: <span class="number">6441.25</span> qps: <span class="number">181759.03</span> (r/w/o: <span class="number">82799.20</span>/<span class="number">86076.33</span>/<span class="number">12883.50</span>) lat (ms,<span class="number">95</span>%): <span class="number">28.67</span> err/s <span class="number">28.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">128</span>s ] thds: <span class="number">100</span> tps: <span class="number">5925.87</span> qps: <span class="number">169978.30</span> (r/w/o: <span class="number">77565.31</span>/<span class="number">80561.24</span>/<span class="number">11851.74</span>) lat (ms,<span class="number">95</span>%): <span class="number">30.81</span> err/s <span class="number">32.00</span> reconn/s: <span class="number">0.00</span></span><br><span class="line">[ <span class="number">129</span>s ] thds: <span class="number">100</span> tps: <span class="number">6614.92</span> qps: <span class="number">186834.71</span> (r/w/o: <span class="number">85216.96</span>/<span class="number">88388.92</span>/<span class="number">13228.84</span>) lat (ms,<span class="number">95</span>%): <span class="number">27.66</span> err/s <span class="number">24.00</span> reconn/s: <span class="number">0.00</span></span><br></pre></td></tr></table></figure>
+<p>so 这里发生了什么:</p>
+<p>更新查询花了更长的时间(<strong>39秒</strong>而不是<strong>34秒</strong>).主要工作负载也受到了一些影响(从6700 tps下降到最坏时期的2210 tps), 但并没有完全停止, 这是一个巨大的改进.</p>
+<p>为什么我们不应该默认为所有事务启用streaming replication?原因是它可能会对常规的小事务产生负面影响, 所以建议只对大型或长时间运行的事务使用streaming replication.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/05/16/2020-05-16-译文-New-Feature-in-Percona-XtraDB-Cluster-8.0-–-Streaming-Replication/" target="_blank" title="译文 New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication">http://fuxkdb.com/2020/05/16/2020-05-16-译文-New-Feature-in-Percona-XtraDB-Cluster-8.0-–-Streaming-Replication/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Galera-4-0/" rel="tag">Galera 4.0</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL-8-0/" rel="tag">MySQL 8.0</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PXC/" rel="tag">PXC</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/06/18/2020-06-18-MGR%E5%8D%95%E4%B8%BB%E5%88%B0%E5%BA%95%E5%81%9A%E4%B8%8D%E5%81%9A%E5%86%B2%E7%AA%81%E6%A3%80%E6%B5%8B/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          MGR单主到底做不做冲突检测?
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/05/16/2020-05-16-%5B%E8%AF%91%E6%96%87%5DGalera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">译文 Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#New-Feature-in-Percona-XtraDB-Cluster-8-0-%E2%80%93-Streaming-Replication"><span class="nav-number">1.</span> <span class="nav-text">New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Without-Streaming-Replication"><span class="nav-number">1.1.</span> <span class="nav-text">Without Streaming Replication</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#With-Streaming-Replication"><span class="nav-number">1.2.</span> <span class="nav-text">With Streaming Replication</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

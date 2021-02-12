@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>innodb事务隔离级别 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL" />
+  
+  
+  
+  
+  <meta name="description" content="Innodb事务隔离级别REPEATABLE READ This is the default isolation level for InnoDB. Consistent reads within the same transaction read the snapshot established by the first read. This means that if you issue s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Innodb事务隔离级别">
+<meta property="og:url" content="http://fuxkdb.com/2016/12/13/Innodb%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Innodb事务隔离级别REPEATABLE READ This is the default isolation level for InnoDB. Consistent reads within the same transaction read the snapshot established by the first read. This means that if you issue s">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-12-13T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-17T07:37:52.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-Innodb事务隔离级别" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Innodb事务隔离级别
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/12/13/Innodb%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" class="article-date">
+	  <time datetime="2016-12-13T14:00:00.000Z" itemprop="datePublished">2016-12-13</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Innodb事务隔离级别"><a href="#Innodb事务隔离级别" class="headerlink" title="Innodb事务隔离级别"></a>Innodb事务隔离级别</h2><h3 id="REPEATABLE-READ"><a href="#REPEATABLE-READ" class="headerlink" title="REPEATABLE READ"></a>REPEATABLE READ</h3><blockquote>
+<p>This is the default isolation level for InnoDB. Consistent reads within the same transaction read the snapshot established by the first read. This means that if you issue several plain (nonlocking) SELECT statements within the same transaction, these SELECT statements are consistent also with respect to each other.</p>
+</blockquote>
+<p>这是 InnoDB 默认的事务隔离级别,同一事物通过第一次创建的快照来构造一致性读.这意味着如果你在同一会话执行多次查询(非锁定读),那么每次获取的结果都是彼此相等的</p>
+<blockquote>
+<p>For locking reads (SELECT with FOR UPDATE or LOCK IN SHARE MODE), UPDATE, and DELETE statements, locking depends on whether the statement uses a unique index with a unique search condition, or a range-type search condition.</p>
+</blockquote>
+<p>对于锁定读,(SELECT with FOR UPDATE or LOCK IN SHARE MODE), UPDATE, 和 DELETE语句,是否锁定取决于此次查询(UPDATE DELETE 也是一种查询)是否通过唯一条件或范围条件查询使用唯一索引</p>
+<blockquote>
+<p>For a unique index with a unique search condition, InnoDB locks only the index record found, not the gap before it.</p>
+</blockquote>
+<ul>
+<li>For a unique index with a unique search condition,InnoDB只锁索引记录,不锁 gap<ul>
+<li>For other search conditions, InnoDB locks the index range scanned, using gap locks or next-key locks to block insertions by other sessions into the gaps covered by the range</li>
+</ul>
+</li>
+</ul>
+<h3 id="READ-COMMITTED"><a href="#READ-COMMITTED" class="headerlink" title="READ COMMITTED"></a>READ COMMITTED</h3><blockquote>
+<p>Each consistent read, even within the same transaction, sets and reads its own fresh snapshot. For information about consistent reads</p>
+</blockquote>
+<p>read view在 innodb 如何避免幻读中已经介绍过</p>
+<blockquote>
+<p>For locking reads (SELECT with FOR UPDATE or LOCK IN SHARE MODE), UPDATE statements, and DELETE statements, InnoDB locks only index records, not the gaps before them, and thus permits the free insertion of new records next to locked records. Gap locking is only used for foreign-key constraint checking and duplicate-key checking.</p>
+</blockquote>
+<p>locking reads(SELECT with FOR UPDATE or LOCK IN SHARE MODE),UPDATE 语句,DELETE语句,InnoDB 都只会锁index records(也就是 record lock),不会产生 gap lock,因此允许在 gap 中插入新的 records.Gap locking只在外键约束检查和重复值检查时产生</p>
+<blockquote>
+<p>Because gap locking is disabled, phantom problems may occur, as other sessions can insert new rows into the gaps</p>
+</blockquote>
+<p>因为gap locking被 disabled,幻读问题可能会产生,其他会话可以在 gap 中插入新的记录</p>
+<a id="more"></a>
+<blockquote>
+<p>If you use READ COMMITTED, you must use row-based binary logging.</p>
+</blockquote>
+<p>如果使用READ COMMITTED隔离级别,必须设置binlog_format为row<br>举个例子,假设两张表 T1和 T2<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE t1 (</span><br><span class="line"><span class="code">  id int(11) NOT NULL</span></span><br><span class="line">) ENGINE=InnoDB</span><br><span class="line"></span><br><span class="line">CREATE TABLE t2 (</span><br><span class="line"><span class="code">  id int(11) NOT NULL</span></span><br><span class="line">) ENGINE=InnoDB</span><br><span class="line"></span><br><span class="line">select * from t1;</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">| id |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">|  1 |</span><br><span class="line">|  2 |</span><br><span class="line"><span class="code">+----+</span> </span><br><span class="line"></span><br><span class="line">select * from t2;</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">| id |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">|  2 |</span><br><span class="line"><span class="code">+----+</span> </span><br></pre></td></tr></table></figure><br>假设事务隔离级别为read commited,假设发生如下顺序的事务<br><code>begin;</code>//事务1<br><code>insert into t2 select max(id) from t1;</code>//事务1，t2增加了一个2<br><code>begin;</code>//事务2<br><code>insert into t1(id) values(10);</code>//事务2，t1增加了一个10<br><code>commit;</code>//事务2<br><code>commit;</code>//事务1<br>此时<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">select * from t1;</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">| id |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">|  1 |</span><br><span class="line">|  2 |</span><br><span class="line">| 10 |</span><br><span class="line"><span class="code">+----+</span> </span><br><span class="line"></span><br><span class="line">select * from t2;</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">| id |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">|  2 |</span><br><span class="line">|  2 |</span><br><span class="line"><span class="code">+----+</span> </span><br></pre></td></tr></table></figure><br>假如binlog模式是statement模式，因为事务2先提交，且binlog是串行的，那么在binlog看来，整体事务为<br><code>begin;</code>//事务2<br><code>insert into t1(id) values(10);</code>//事务2，t1增加了一个10<br><code>commit;</code>//事务2<br><code>begin;</code>//事务1<br><code>insert into t2 select from max(id) from t1;</code>//事务1，t2增加了一个10<br><code>commit;</code>//事务1</p>
+<p>此时<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">select * from t1;</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">| id |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">|  1 |</span><br><span class="line">|  2 |</span><br><span class="line">| 10 |</span><br><span class="line"><span class="code">+----+</span> </span><br><span class="line"></span><br><span class="line">select * from t2;</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">| id |</span><br><span class="line"><span class="code">+----+</span></span><br><span class="line">|  2 |</span><br><span class="line">| 10 |</span><br><span class="line"><span class="code">+----+</span></span><br></pre></td></tr></table></figure><br>这就造成了主从不一致,因此read commited事务隔离级别下要使用 RBR 模式</p>
+<p>使用READ COMMITTED隔离级别产生的额外影响:</p>
+<blockquote>
+<p>For UPDATE or DELETE statements, InnoDB holds locks only for rows that it updates or deletes. Record locks for nonmatching rows are released after MySQL has evaluated the WHERE condition. This greatly reduces the probability of deadlocks, but they can still happen.</p>
+</blockquote>
+<ul>
+<li>对于 UPDATE 和 DELETE 语句,InnoDB只对更新和删除涉及到的行持有锁,而对于在 where 条件过滤后不匹配的行源会释放锁(释放Record locks).这显著的减少了发生死锁的可能性,但并不是说不会再出现死锁.</li>
+</ul>
+<blockquote>
+<p>For UPDATE statements, if a row is already locked, InnoDB performs a “semi-consistent” read, returning the latest committed version to MySQL so that MySQL can determine whether the row matches the WHERE condition of the UPDATE. If the row matches (must be updated), MySQL reads the row again and this time InnoDB either locks it or waits for a lock on it.</p>
+</blockquote>
+<ul>
+<li>对于 UPDATE 语句,如果一行记录已经被锁定, InnoDB会执行一个”semi-consistent”读MySQL+InnoDB semi-consitent read原理及实现分析<br>,获取最后一次提交的数据版本,MySQL以这一版本的数据过滤where 条件判断是否匹配UPDATE语句,如果匹配,那么这些行将被更新, MySQL再次读取行源并对这些匹配的行加锁或者等待别人释放锁以加锁</li>
+</ul>
+<p>考虑下面的例子:<br>创建表<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> t (a <span class="built_in">INT</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>, b <span class="built_in">INT</span>) <span class="keyword">ENGINE</span> = <span class="keyword">InnoDB</span>;</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> t <span class="keyword">VALUES</span> (<span class="number">1</span>,<span class="number">2</span>),(<span class="number">2</span>,<span class="number">3</span>),(<span class="number">3</span>,<span class="number">2</span>),(<span class="number">4</span>,<span class="number">3</span>),(<span class="number">5</span>,<span class="number">2</span>);</span><br><span class="line"><span class="keyword">COMMIT</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>In this case, table has no indexes, so searches and index scans use the hidden clustered index for record locking<br>在这个例子中,表 t 没有索引,所以查询和索引扫描使用隐藏的聚簇索引来进行加锁</p>
+</blockquote>
+<p>SESSION_A<br><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> autocommit <span class="comment">= 0</span>;</span><br><span class="line">UPDATE t <span class="keyword">SET</span> b <span class="comment">= 5 WHERE b = 3</span>;</span><br></pre></td></tr></table></figure><br>SESSION_B<br><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> autocommit <span class="comment">= 0</span>;</span><br><span class="line">UPDATE t <span class="keyword">SET</span> b <span class="comment">= 4 WHERE b = 2</span>;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>As InnoDB executes each UPDATE, it first acquires an exclusive lock for each row, and then determines whether to modify it. If InnoDB does not modify the row, it releases the lock. Otherwise, InnoDB retains the lock until the end of the transaction. This affects transaction processing as follows.</p>
+</blockquote>
+<p>InnoDB 执行每次UPDATE操作,都会首先对每一行获取排它锁,然后再决定是否修改.如果InnoDB不修改这一行,就会释放锁,否则InnoDB会持有锁直到事物结束</p>
+<p>当时使用默认的<code>REPEATABLE READ</code>事务隔离级别,SESSION_A的更细获取 x-locks(排它锁)且不会释放锁:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">x-<span class="keyword">lock</span>(<span class="number">1</span>,<span class="number">2</span>); retain x-<span class="keyword">lock</span></span><br><span class="line">x-<span class="keyword">lock</span>(<span class="number">2</span>,<span class="number">3</span>); <span class="keyword">update</span>(<span class="number">2</span>,<span class="number">3</span>) <span class="keyword">to</span> (<span class="number">2</span>,<span class="number">5</span>); retain x-<span class="keyword">lock</span></span><br><span class="line">x-<span class="keyword">lock</span>(<span class="number">3</span>,<span class="number">2</span>); retain x-<span class="keyword">lock</span></span><br><span class="line">x-<span class="keyword">lock</span>(<span class="number">4</span>,<span class="number">3</span>); <span class="keyword">update</span>(<span class="number">4</span>,<span class="number">3</span>) <span class="keyword">to</span> (<span class="number">4</span>,<span class="number">5</span>); retain x-<span class="keyword">lock</span></span><br><span class="line">x-<span class="keyword">lock</span>(<span class="number">5</span>,<span class="number">2</span>); retain x-<span class="keyword">lock</span></span><br></pre></td></tr></table></figure><br>SESSION_B的更新此时就会被阻塞(因为SESSION_A在每一行都加了排它锁),直到SESSION_A提交或回滚<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x-<span class="keyword">lock</span>(<span class="number">1</span>,<span class="number">2</span>); block and wait for first <span class="keyword">UPDATE</span> <span class="keyword">to</span> <span class="keyword">commit</span> <span class="keyword">or</span> roll back</span><br></pre></td></tr></table></figure></p>
+<p>如果事务隔离级别为<code>READ COMMITTED</code>,SESSION_A获取x-locks(排它锁)后会释放那些不被修改的行的锁:<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">x-lock(<span class="number">1</span>,<span class="number">2</span>); unlock(<span class="number">1</span>,<span class="number">2</span>)</span><br><span class="line">x-lock(<span class="number">2</span>,<span class="number">3</span>); update(<span class="number">2</span>,<span class="number">3</span>) to (<span class="number">2</span>,<span class="number">5</span>); retain x-lock</span><br><span class="line">x-lock(<span class="number">3</span>,<span class="number">2</span>); unlock(<span class="number">3</span>,<span class="number">2</span>)</span><br><span class="line">x-lock(<span class="number">4</span>,<span class="number">3</span>); update(<span class="number">4</span>,<span class="number">3</span>) to (<span class="number">4</span>,<span class="number">5</span>); retain x-lock</span><br><span class="line">x-lock(<span class="number">5</span>,<span class="number">2</span>); unlock(<span class="number">5</span>,<span class="number">2</span>)</span><br></pre></td></tr></table></figure><br>SESSION_B执行更新语句,此时InnoDB做了一个“semi-consistent” read,获取并返回了最后一次提交的数据版本给 MySQL,so MySQL 可以判断 where 条件过滤后的数据是否需要被更新,找到匹配的行后,MySQL再次读取行源并对这些匹配的行加锁<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">x-lock(<span class="number">1</span>,<span class="number">2</span>); update(<span class="number">1</span>,<span class="number">2</span>) to (<span class="number">1</span>,<span class="number">4</span>); retain x-lock</span><br><span class="line">x-lock(<span class="number">2</span>,<span class="number">3</span>); unlock(<span class="number">2</span>,<span class="number">3</span>)</span><br><span class="line">x-lock(<span class="number">3</span>,<span class="number">2</span>); update(<span class="number">3</span>,<span class="number">2</span>) to (<span class="number">3</span>,<span class="number">4</span>); retain x-lock</span><br><span class="line">x-lock(<span class="number">4</span>,<span class="number">3</span>); unlock(<span class="number">4</span>,<span class="number">3</span>)</span><br><span class="line">x-lock(<span class="number">5</span>,<span class="number">2</span>); update(<span class="number">5</span>,<span class="number">2</span>) to (<span class="number">5</span>,<span class="number">4</span>); retain x-lock</span><br></pre></td></tr></table></figure></p>
+<p>使用<code>READ COMMITTED</code>事务隔离级别与启用废弃的参数<code>innodb_locks_unsafe_for_binlog</code>是一样的,除了一下几点:</p>
+<ul>
+<li><code>innodb_locks_unsafe_for_binlog</code>是一个 GLOBAL 参数,会影响所有会话,然后事务隔离级别既可以针对全局也可以针对单独会话进行设置</li>
+<li><code>innodb_locks_unsafe_for_binlog</code>只可以在MySQL 启动时设置,然后事务隔离级别级别既可以在启动时设置也可以在运行时设置</li>
+</ul>
+<p>所以设置事务隔离级别为<code>READ COMMITTED</code>相比修改参数<code>innodb_locks_unsafe_for_binlog</code>具有更好的灵活性</p>
+<h3 id="READ-UNCOMMITTED"><a href="#READ-UNCOMMITTED" class="headerlink" title="READ UNCOMMITTED"></a>READ UNCOMMITTED</h3><blockquote>
+<p>SELECT statements are performed in a nonlocking fashion, but a possible earlier version of a row might be used. Thus, using this isolation level, such reads are not consistent. This is also called a dirty read. Otherwise, this isolation level works like READ COMMITTED.</p>
+</blockquote>
+<p>###SERIALIZABLE</p>
+<blockquote>
+<p>This level is like REPEATABLE READ, but InnoDB implicitly converts all plain SELECT statements to SELECT … LOCK IN SHARE MODE if autocommit is disabled. If autocommit is enabled, the SELECT is its own transaction. It therefore is known to be read only and can be serialized if performed as a consistent (nonlocking) read and need not block for other transactions. (To force a plain SELECT to block if other transactions have modified the selected rows, disable autocommit.)</p>
+</blockquote>
+<p>这个级别有点像REPEATABLE READ,但是当<code>autocommit</code>禁用时时InnoDB明确的转换所有 SELECT 语句为<code>SELECT ... LOCK IN SHARE MODE</code>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2016/12/13/Innodb事务隔离级别/" target="_blank" title="Innodb事务隔离级别">http://fuxkdb.com/2016/12/13/Innodb事务隔离级别/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/12/15/AUTO-INC%E9%94%81%E5%92%8CAUTO_INCREMENT%E5%9C%A8InnoDB%E4%B8%AD%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          AUTO-INC锁和AUTO_INCREMENT在InnoDB中处理方式
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/12/12/MySQL(InnoDB)%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E5%B9%BB%E8%AF%BB/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">MySQL(InnoDB)如何避免幻读</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Innodb%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="nav-number">1.</span> <span class="nav-text">Innodb事务隔离级别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#REPEATABLE-READ"><span class="nav-number">1.1.</span> <span class="nav-text">REPEATABLE READ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#READ-COMMITTED"><span class="nav-number">1.2.</span> <span class="nav-text">READ COMMITTED</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#READ-UNCOMMITTED"><span class="nav-number">1.3.</span> <span class="nav-text">READ UNCOMMITTED</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

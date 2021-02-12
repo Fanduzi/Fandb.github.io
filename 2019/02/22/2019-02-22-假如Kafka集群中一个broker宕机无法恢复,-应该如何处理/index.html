@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>假如kafka集群中一个broker宕机无法恢复, 应该如何处理? | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="Kafka" />
+  
+  
+  
+  
+  <meta name="description" content="假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?坐地铁时想到这个问题, 印象中书中说添加新的broker, 是不会自动同步旧数据的. 笨办法环境介绍三个broker的集群, zk,kafka装在一起12345| broker | IP | broker.id ||---------|---------------|-----------|| broker1 | 172.18.12">
+<meta property="og:type" content="article">
+<meta property="og:title" content="假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?">
+<meta property="og:url" content="http://fuxkdb.com/2019/02/22/2019-02-22-%E5%81%87%E5%A6%82Kafka%E9%9B%86%E7%BE%A4%E4%B8%AD%E4%B8%80%E4%B8%AAbroker%E5%AE%95%E6%9C%BA%E6%97%A0%E6%B3%95%E6%81%A2%E5%A4%8D,-%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?坐地铁时想到这个问题, 印象中书中说添加新的broker, 是不会自动同步旧数据的. 笨办法环境介绍三个broker的集群, zk,kafka装在一起12345| broker | IP | broker.id ||---------|---------------|-----------|| broker1 | 172.18.12">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-02-22T03:58:00.000Z">
+<meta property="article:modified_time" content="2019-02-22T03:58:58.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="Kafka">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2019-02-22-假如Kafka集群中一个broker宕机无法恢复,-应该如何处理" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/02/22/2019-02-22-%E5%81%87%E5%A6%82Kafka%E9%9B%86%E7%BE%A4%E4%B8%AD%E4%B8%80%E4%B8%AAbroker%E5%AE%95%E6%9C%BA%E6%97%A0%E6%B3%95%E6%81%A2%E5%A4%8D,-%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86/" class="article-date">
+	  <time datetime="2019-02-22T03:58:00.000Z" itemprop="datePublished">2019-02-22</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="假如Kafka集群中一个broker宕机无法恢复-应该如何处理"><a href="#假如Kafka集群中一个broker宕机无法恢复-应该如何处理" class="headerlink" title="假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?"></a>假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?</h1><p>坐地铁时想到这个问题, 印象中书中说添加新的broker, 是不会自动同步旧数据的.</p>
+<h2 id="笨办法"><a href="#笨办法" class="headerlink" title="笨办法"></a>笨办法</h2><h3 id="环境介绍"><a href="#环境介绍" class="headerlink" title="环境介绍"></a>环境介绍</h3><p>三个broker的集群, zk,kafka装在一起<br><figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">|<span class="string"> broker </span>|<span class="string"> IP </span>|<span class="string"> broker.id </span>|</span><br><span class="line">|<span class="string">---------</span>|<span class="string">---------------</span>|<span class="string">-----------</span>|</span><br><span class="line">|<span class="string"> broker1 </span>|<span class="string"> 172.18.12.211 </span>|<span class="string"> 211 </span>|</span><br><span class="line">|<span class="string"> broker2 </span>|<span class="string"> 172.18.12.212 </span>|<span class="string"> 212 </span>|</span><br><span class="line">|<span class="string"> broker3 </span>|<span class="string"> 172.18.12.213 </span>|<span class="string"> 213 </span>|</span><br></pre></td></tr></table></figure><br><a id="more"></a></p>
+<h3 id="创建测试topic"><a href="#创建测试topic" class="headerlink" title="创建测试topic"></a>创建测试topic</h3><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#./bin/kafka-topics.sh --zookeeper <span class="number">172.18</span><span class="number">.12</span><span class="number">.212</span>:<span class="number">2181</span> --create --topic test1 --replication-factor <span class="number">3</span> --partitions <span class="number">1</span></span><br><span class="line">Created topic <span class="string">&quot;test1&quot;</span>.</span><br></pre></td></tr></table></figure>
+<p>查看<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#./bin/kafka-topics.sh --zookeeper <span class="number">172.18</span><span class="number">.12</span><span class="number">.212</span>:<span class="number">2181</span> --describe --topic test1</span><br><span class="line">Topic:test1 PartitionCount:<span class="number">1</span> ReplicationFactor:<span class="number">3</span> Configs:</span><br><span class="line">        Topic: test1 Partition: <span class="number">0</span> Leader: <span class="number">213</span> Replicas: <span class="number">213</span>,<span class="number">212</span>,<span class="number">211</span> Isr: <span class="number">213</span>,<span class="number">212</span>,<span class="number">211</span></span><br></pre></td></tr></table></figure><br>注意当前<br><code>Replicas: 213,212,211</code><br><code>Isr: 213,212,211</code></p>
+<p>造一些消息<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#./bin/kafka-console-producer.sh --broker-list <span class="number">172.18</span><span class="number">.12</span><span class="number">.212</span>:<span class="number">9092</span> --topic test1</span><br><span class="line">&gt;<span class="number">1</span></span><br><span class="line">&gt;<span class="number">2</span></span><br><span class="line">&gt;<span class="number">3</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="kill-broker2"><a href="#kill-broker2" class="headerlink" title="kill broker2"></a>kill broker2</h3><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node024212 ~]# ps -ef| <span class="keyword">grep</span> kafka</span><br><span class="line">root <span class="number">17633</span> <span class="number">1</span> <span class="number">1</span> Feb17 ? <span class="number">00</span>:<span class="number">55</span>:<span class="number">18</span> <span class="regexp">/usr/</span>local<span class="regexp">/java/</span>bin<span class="regexp">/java -server -Xmx2g -Xms2g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=85 -server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true -Xloggc:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/logs/</span>kafkaServer-gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=<span class="number">10</span> -XX:GCLogFileSize=<span class="number">100</span>M -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=<span class="keyword">false</span> -Dcom.sun.management.jmxremote.ssl=<span class="keyword">false</span> -Dcom.sun.management.jmxremote.port=<span class="number">9966</span> -Dkafka.logs.dir=<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>logs -Dlog4j.configuration=<span class="keyword">file</span>:.<span class="regexp">/bin/</span>..<span class="regexp">/config/</span>log4j.properties -cp .:<span class="regexp">/usr/</span>local<span class="regexp">/java/</span>lib:<span class="regexp">/usr/</span>local<span class="regexp">/java/</span>jre<span class="regexp">/lib:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>activation-<span class="number">1.1</span>.<span class="number">1</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/aopalliance-repackaged-2.5.0-b42.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>argparse4j-<span class="number">0.7</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/audience-annotations-0.5.0.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>commons-lang3-<span class="number">3.5</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/compileScala.mapping:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>compileScala.mapping.asc:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/connect-api-2.1.0.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>connect-basic-auth-extension-<span class="number">2.1</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/connect-file-2.1.0.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>connect-json-<span class="number">2.1</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/connect-runtime-2.1.0.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>connect-transforms-<span class="number">2.1</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/guava-20.0.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>hk2-api-<span class="number">2.5</span>.<span class="number">0</span>-b42.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/hk2-locator-2.5.0-b42.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>hk2-utils-<span class="number">2.5</span>.<span class="number">0</span>-b42.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jackson-annotations-2.9.7.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jackson-core-<span class="number">2.9</span>.<span class="number">7</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jackson-databind-2.9.7.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jackson-jaxrs-base-<span class="number">2.9</span>.<span class="number">7</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jackson-jaxrs-json-provider-2.9.7.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jackson-module-jaxb-annotations-<span class="number">2.9</span>.<span class="number">7</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/javassist-3.22.0-CR2.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>javax.annotation-api-<span class="number">1.2</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/javax.inject-1.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>javax.<span class="keyword">inject</span>-<span class="number">2.5</span>.<span class="number">0</span>-b42.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/javax.servlet-api-3.1.0.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>javax.ws.rs-api-<span class="number">2.1</span>.<span class="number">1</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/javax.ws.rs-api-2.1.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jaxb-api-<span class="number">2.3</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jersey-client-2.27.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jersey-common-<span class="number">2.27</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jersey-container-servlet-2.27.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jersey-container-servlet-core-<span class="number">2.27</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jersey-hk2-2.27.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jersey-media-jaxb-<span class="number">2.27</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jersey-server-2.27.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jetty-client-<span class="number">9.4</span>.<span class="number">12</span>.v20180830.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jetty-continuation-9.4.12.v20180830.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jetty-http-<span class="number">9.4</span>.<span class="number">12</span>.v20180830.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jetty-io-9.4.12.v20180830.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jetty-security-<span class="number">9.4</span>.<span class="number">12</span>.v20180830.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jetty-server-9.4.12.v20180830.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jetty-servlet-<span class="number">9.4</span>.<span class="number">12</span>.v20180830.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jetty-servlets-9.4.12.v20180830.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>jetty-util-<span class="number">9.4</span>.<span class="number">12</span>.v20180830.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/jopt-simple-5.0.4.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>kafka_2.<span class="number">12</span>-<span class="number">2.1</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/kafka_2.12-2.1.0-sources.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>kafka-clients-<span class="number">2.1</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/kafka-log4j-appender-2.1.0.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>kafka-streams-<span class="number">2.1</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/kafka-streams-examples-2.1.0.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>kafka-streams-scala_2.<span class="number">12</span>-<span class="number">2.1</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/kafka-streams-test-utils-2.1.0.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>kafka-tools-<span class="number">2.1</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/log4j-1.2.17.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>lz4-java-<span class="number">1.5</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/maven-artifact-3.5.4.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/m</span>etrics-core-<span class="number">2.2</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/osgi-resource-locator-1.0.1.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>plexus-utils-<span class="number">3.1</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/reflections-0.9.11.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>rocksdbjni-<span class="number">5.14</span>.<span class="number">2</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/scala-library-2.12.7.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>scala-logging_2.<span class="number">12</span>-<span class="number">3.9</span>.<span class="number">0</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/scala-reflect-2.12.7.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>slf4j-api-<span class="number">1.7</span>.<span class="number">25</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/slf4j-log4j12-1.7.25.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>snappy-java-<span class="number">1.1</span>.<span class="number">7.2</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/validation-api-1.1.0.Final.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>zkclient-<span class="number">0.10</span>.jar:<span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>bin<span class="regexp">/../</span>libs<span class="regexp">/zookeeper-3.4.13.jar:/u</span>sr<span class="regexp">/local/</span>kafka<span class="regexp">/bin/</span>..<span class="regexp">/libs/</span>zstd-jni-<span class="number">1.3</span>.<span class="number">5</span>-<span class="number">4</span>.jar kafka.Kafka config/server.properties</span><br><span class="line">root <span class="number">21806</span> <span class="number">21651</span> <span class="number">0</span> <span class="number">11</span>:<span class="number">27</span> pts/<span class="number">2</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> <span class="keyword">grep</span> --color=auto kafka</span><br><span class="line">[root@node024212 ~]# kill -<span class="number">9</span> <span class="number">17633</span></span><br><span class="line">[root@node024212 ~]# ps -ef| <span class="keyword">grep</span> kafka</span><br><span class="line">root <span class="number">21875</span> <span class="number">21651</span> <span class="number">0</span> <span class="number">11</span>:<span class="number">27</span> pts/<span class="number">2</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> <span class="keyword">grep</span> --color=auto kafka</span><br></pre></td></tr></table></figure>
+<p>稍等一会, 再次describe test1<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#./bin/kafka-topics.sh --zookeeper <span class="number">172.18</span><span class="number">.12</span><span class="number">.212</span>:<span class="number">2181</span> --describe --topic test1</span><br><span class="line">Topic:test1 PartitionCount:<span class="number">1</span> ReplicationFactor:<span class="number">3</span> Configs:</span><br><span class="line">        Topic: test1 Partition: <span class="number">0</span> Leader: <span class="number">213</span> Replicas: <span class="number">213</span>,<span class="number">212</span>,<span class="number">211</span> Isr: <span class="number">213</span>,<span class="number">211</span></span><br></pre></td></tr></table></figure><br>可看到副本仍然是<code>Replicas: 213,212,211</code><br>ISR已经变为<code>Isr: 213,211</code></p>
+<h3 id="在212启动新broker"><a href="#在212启动新broker" class="headerlink" title="在212启动新broker"></a>在212启动新broker</h3><p>创建一份新的配置文件, 自动一个新的broker<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># cp server.properties server2.properties </span></span><br><span class="line"><span class="comment"># vim server2.properties </span></span><br><span class="line">只修改这两个参数</span><br><span class="line">broker.id=<span class="number">218</span></span><br><span class="line">log.dirs=<span class="regexp">/DATA21/</span>kafka<span class="regexp">/kafka-logs,/</span>DATA22<span class="regexp">/kafka/</span>kafka-logs,<span class="regexp">/DATA23/</span>kafka<span class="regexp">/kafka-logs,/</span>DATA24<span class="regexp">/kafka/</span>kafka-logs</span><br></pre></td></tr></table></figure><br>创建相应目录<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p <span class="regexp">/DATA21/</span>kafka/kafka-logs</span><br><span class="line">mkdir -p <span class="regexp">/DATA22/</span>kafka/kafka-logs</span><br><span class="line">mkdir -p <span class="regexp">/DATA23/</span>kafka/kafka-logs</span><br><span class="line">mkdir -p <span class="regexp">/DATA24/</span>kafka/kafka-logs</span><br></pre></td></tr></table></figure><br>启动新broker<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.<span class="regexp">/bin/</span>kafka-server-start.sh -daemon config/server2.properties </span><br></pre></td></tr></table></figure></p>
+<p>稍等, 查看 test1 状态</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#./bin/kafka-topics.sh --zookeeper <span class="number">172.18</span><span class="number">.12</span><span class="number">.212</span>:<span class="number">2181</span> --describe --topic test1</span><br><span class="line">Topic:test1 PartitionCount:<span class="number">1</span> ReplicationFactor:<span class="number">3</span> Configs:</span><br><span class="line">        Topic: test2 Partition: <span class="number">0</span> Leader: <span class="number">213</span> Replicas: <span class="number">213</span>,<span class="number">212</span>,<span class="number">211</span> Isr: <span class="number">213</span>,<span class="number">218</span>,<span class="number">211</span></span><br></pre></td></tr></table></figure>
+<p>可以看到 test1 副本仍然是<code>Replicas: 213,212,211</code><br>ISR为<code>Isr: 213,218,211</code>. 也就是说缺失的副本不会自动迁移到新broker上. </p>
+<h3 id="使用kafka-reassign-partitions-sh重分配分区"><a href="#使用kafka-reassign-partitions-sh重分配分区" class="headerlink" title="使用kafka-reassign-partitions.sh重分配分区"></a>使用kafka-reassign-partitions.sh重分配分区</h3><p>将212删除,添加218<br><figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@node024211 12:04:48 /usr/<span class="keyword">local</span>/kafka]</span><br><span class="line">#echo &#x27;&#123;<span class="string">&quot;version&quot;</span>:1,<span class="string">&quot;partitions&quot;</span>:[&#123;<span class="string">&quot;topic&quot;</span>:<span class="string">&quot;test1&quot;</span>,<span class="string">&quot;partition&quot;</span>:0,<span class="string">&quot;replicas&quot;</span>:[211,213,218]&#125;]&#125;&#x27; &gt; increase-replication-<span class="keyword">factor</span>.json</span><br><span class="line"></span><br><span class="line">[root@node024211 12:58:30 /usr/<span class="keyword">local</span>/kafka]</span><br><span class="line">#./bin/kafka-reassign-partitions.<span class="keyword">sh</span> --zookeeper 172.18.12.211:2181 --reassignment-json-<span class="keyword">file</span> increase-replication-<span class="keyword">factor</span>.json --execute</span><br><span class="line">Current partition replica assignment</span><br><span class="line"></span><br><span class="line">&#123;<span class="string">&quot;version&quot;</span>:1,<span class="string">&quot;partitions&quot;</span>:[&#123;<span class="string">&quot;topic&quot;</span>:<span class="string">&quot;test1&quot;</span>,<span class="string">&quot;partition&quot;</span>:0,<span class="string">&quot;replicas&quot;</span>:[213,212,211],<span class="string">&quot;log_dirs&quot;</span>:[<span class="string">&quot;any&quot;</span>,<span class="string">&quot;any&quot;</span>,<span class="string">&quot;any&quot;</span>]&#125;]&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">Save</span> this to <span class="keyword">use</span> <span class="keyword">as</span> the --reassignment-json-<span class="keyword">file</span> option during rollback</span><br><span class="line">Successfully started reassignment of partitions.</span><br><span class="line"></span><br><span class="line">[root@node024211 12:58:49 /usr/<span class="keyword">local</span>/kafka]</span><br><span class="line">#./bin/kafka-reassign-partitions.<span class="keyword">sh</span> --zookeeper 172.18.12.211:2181 --reassignment-json-<span class="keyword">file</span> increase-replication-<span class="keyword">factor</span>.json --verify</span><br><span class="line">Status of partition reassignment: </span><br><span class="line">Reassignment of partition test1-0 completed successfully</span><br></pre></td></tr></table></figure><br>查看topic信息<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#./bin/kafka-topics.sh --zookeeper <span class="number">172.18</span><span class="number">.12</span><span class="number">.212</span>:<span class="number">2181</span> --describe --topic test1</span><br><span class="line">Topic:test1 PartitionCount:<span class="number">1</span> ReplicationFactor:<span class="number">3</span> Configs:</span><br><span class="line">        Topic: test1 Partition: <span class="number">0</span> Leader: <span class="number">213</span> Replicas: <span class="number">211</span>,<span class="number">213</span>,<span class="number">218</span> Isr: <span class="number">213</span>,<span class="number">211</span>,<span class="number">218</span></span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<h3 id="验证218是否有全部数据"><a href="#验证218是否有全部数据" class="headerlink" title="验证218是否有全部数据"></a>验证218是否有全部数据</h3><p>虽然看副本信息中已经有了218, 但是218是否包含旧消息呢?<br>我的办法是, kill 211,213, 然后–from-beginning 消费218数据, 实际测试也是可以的<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#./bin/kafka-console-consumer.sh --bootstrap-server <span class="number">172.18</span><span class="number">.12</span><span class="number">.212</span>:<span class="number">9092</span> --topic test1 --<span class="keyword">from</span>-beginning</span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">5</span></span><br><span class="line"><span class="number">6</span></span><br><span class="line"><span class="number">7</span></span><br><span class="line"><span class="number">8</span></span><br><span class="line"><span class="number">9</span></span><br><span class="line"><span class="number">10</span></span><br><span class="line"><span class="number">11</span></span><br><span class="line"><span class="number">11</span></span><br></pre></td></tr></table></figure><br>看了下211 218的log文件大小也是一样的<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[<span class="number">2019</span><span class="number">-02</span><span class="number">-21</span> <span class="number">13</span>:<span class="number">29</span>:<span class="number">19</span>]#ls -l /DATA22/kafka/kafka-logs/test1<span class="number">-0</span>/</span><br><span class="line">[<span class="number">2019</span><span class="number">-02</span><span class="number">-21</span> <span class="number">13</span>:<span class="number">29</span>:<span class="number">19</span>]total <span class="number">8</span></span><br><span class="line">[<span class="number">2019</span><span class="number">-02</span><span class="number">-21</span> <span class="number">13</span>:<span class="number">29</span>:<span class="number">19</span>]-rw-r--r--. <span class="number">1</span> root root <span class="number">10485760</span> Feb <span class="number">21</span> <span class="number">12</span>:<span class="number">58</span> <span class="number">00000000000000000000.</span>index</span><br><span class="line">[<span class="number">2019</span><span class="number">-02</span><span class="number">-21</span> <span class="number">13</span>:<span class="number">29</span>:<span class="number">19</span>]-rw-r--r--. <span class="number">1</span> root root <span class="number">381</span> Feb <span class="number">21</span> <span class="number">13</span>:<span class="number">00</span> <span class="number">00000000000000000000.</span>log</span><br><span class="line">[<span class="number">2019</span><span class="number">-02</span><span class="number">-21</span> <span class="number">13</span>:<span class="number">29</span>:<span class="number">19</span>]-rw-r--r--. <span class="number">1</span> root root <span class="number">10485756</span> Feb <span class="number">21</span> <span class="number">12</span>:<span class="number">58</span> <span class="number">00000000000000000000.</span>timeindex</span><br><span class="line">[<span class="number">2019</span><span class="number">-02</span><span class="number">-21</span> <span class="number">13</span>:<span class="number">29</span>:<span class="number">19</span>]-rw-r--r--. <span class="number">1</span> root root <span class="number">16</span> Feb <span class="number">21</span> <span class="number">13</span>:<span class="number">00</span> leader-epoch-checkpoint</span><br></pre></td></tr></table></figure></p>
+<h2 id="更简单的办法"><a href="#更简单的办法" class="headerlink" title="更简单的办法"></a>更简单的办法</h2><p>通过阅读文档发现<br><a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/KAFKA/FAQ#FAQ-Howtoreplaceafailedbroker?">https://cwiki.apache.org/confluence/display/KAFKA/FAQ#FAQ-Howtoreplaceafailedbroker?</a></p>
+<blockquote>
+<p>How to replace a failed broker?<br>When a broker fails, Kafka doesn’t automatically re-replicate the data on the failed broker to other brokers. This is because in the common case, one brings down a broker to apply code or config changes, and will bring up the broker quickly afterward. Re-replicating the data in this case will be wasteful. In the rarer case that a broker fails completely, one will need to bring up another broker with the same broker id on a new server. The new broker will automatically replicate the missing data.</p>
+</blockquote>
+<p>这上面说的,如果服务器真的坏了, 只需要新启动一个broker, 把broker.id设置为 损坏的那个broker的id, 就会自动复制过去丢失的数据</p>
+<p>我实际测试了一下, 确实可以恢复</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2019/02/22/2019-02-22-假如Kafka集群中一个broker宕机无法恢复,-应该如何处理/" target="_blank" title="假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?">http://fuxkdb.com/2019/02/22/2019-02-22-假如Kafka集群中一个broker宕机无法恢复,-应该如何处理/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/03/08/%E4%BD%BFconfluent_kafka%E6%94%AF%E6%8C%81SASL_PLAINTEXT/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          使confluent_kafka支持SASL_PLAINTEXT
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/01/26/2019-01-26-Kafka-SASL_SCRAM+ACL%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E5%8F%8A%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Kafka SASL_SCRAM+ACL实现动态创建用户及权限控制</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%81%87%E5%A6%82Kafka%E9%9B%86%E7%BE%A4%E4%B8%AD%E4%B8%80%E4%B8%AAbroker%E5%AE%95%E6%9C%BA%E6%97%A0%E6%B3%95%E6%81%A2%E5%A4%8D-%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%A8%E5%8A%9E%E6%B3%95"><span class="nav-number">1.1.</span> <span class="nav-text">笨办法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.1.1.</span> <span class="nav-text">环境介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95topic"><span class="nav-number">1.1.2.</span> <span class="nav-text">创建测试topic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kill-broker2"><span class="nav-number">1.1.3.</span> <span class="nav-text">kill broker2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8212%E5%90%AF%E5%8A%A8%E6%96%B0broker"><span class="nav-number">1.1.4.</span> <span class="nav-text">在212启动新broker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8kafka-reassign-partitions-sh%E9%87%8D%E5%88%86%E9%85%8D%E5%88%86%E5%8C%BA"><span class="nav-number">1.1.5.</span> <span class="nav-text">使用kafka-reassign-partitions.sh重分配分区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81218%E6%98%AF%E5%90%A6%E6%9C%89%E5%85%A8%E9%83%A8%E6%95%B0%E6%8D%AE"><span class="nav-number">1.1.6.</span> <span class="nav-text">验证218是否有全部数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E7%AE%80%E5%8D%95%E7%9A%84%E5%8A%9E%E6%B3%95"><span class="nav-number">1.2.</span> <span class="nav-text">更简单的办法</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

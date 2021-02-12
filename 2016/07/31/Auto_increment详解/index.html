@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>auto_increment详解 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL" />
+  
+  
+  
+  
+  <meta name="description" content="Auto_incrementMysql AUTO_INCREMENT 1.Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值1234567891011121314151617181920212223242526mysql&gt; create table t1(id int not null auto_increment primary key,na">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Auto_increment详解">
+<meta property="og:url" content="http://fuxkdb.com/2016/07/31/Auto_increment%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Auto_incrementMysql AUTO_INCREMENT 1.Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值1234567891011121314151617181920212223242526mysql&gt; create table t1(id int not null auto_increment primary key,na">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-07-31T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-05T16:00:59.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-Auto_increment详解" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Auto_increment详解
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/07/31/Auto_increment%E8%AF%A6%E8%A7%A3/" class="article-date">
+	  <time datetime="2016-07-31T14:00:00.000Z" itemprop="datePublished">2016-07-31</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Auto-increment"><a href="#Auto-increment" class="headerlink" title="Auto_increment"></a>Auto_increment</h2><p>Mysql AUTO_INCREMENT</p>
+<h3 id="1-Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值"><a href="#1-Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值" class="headerlink" title="1.Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值"></a>1.Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create table t1(id int not null auto<span class="emphasis">_increment primary key,name varchar(10));</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.06 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; desc t1;</span></span><br><span class="line"><span class="emphasis">+-------+-------------+------+-----+---------+----------------+</span></span><br><span class="line"><span class="emphasis">| Field | Type        | Null | Key | Default | Extra          |</span></span><br><span class="line"><span class="emphasis">+-------+-------------+------+-----+---------+----------------+</span></span><br><span class="line"><span class="emphasis">| id    | int(11)     | NO   | PRI | NULL    | auto_</span>increment |</span><br><span class="line">| name  | varchar(10) | YES  |     | NULL    |                |</span><br><span class="line"><span class="code">+-------+</span>-------------<span class="code">+------+</span>-----<span class="code">+---------+</span>----------------+</span><br><span class="line">2 rows in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into t1 values(0,<span class="emphasis">&#x27;fanboshi&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into t1 values(null,<span class="emphasis">&#x27;duyalan&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t1;</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">| id | name     |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">|  1 | fanboshi |</span><br><span class="line">|  2 | duyalan  |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h3 id="2-可以通过alter-table-t1-auto-incremenrt-n-语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置"><a href="#2-可以通过alter-table-t1-auto-incremenrt-n-语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置" class="headerlink" title="2.可以通过alter table t1 auto_incremenrt=n 语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置"></a>2.可以通过alter table t1 auto_incremenrt=n 语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; alter table t1 auto<span class="emphasis">_increment=5;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis">Records: 0  Duplicates: 0  Warnings: 0</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; insert into t1 values(null,&#x27;handudu&#x27;);</span></span><br><span class="line"><span class="emphasis">Query OK, 1 row affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; select * from t1;</span></span><br><span class="line"><span class="emphasis">+----+----------+</span></span><br><span class="line"><span class="emphasis">| id | name     |</span></span><br><span class="line"><span class="emphasis">+----+----------+</span></span><br><span class="line"><span class="emphasis">|  1 | fanboshi |</span></span><br><span class="line"><span class="emphasis">|  2 | duyalan  |</span></span><br><span class="line"><span class="emphasis">|  5 | handudu  |</span></span><br><span class="line"><span class="emphasis">+----+----------+</span></span><br><span class="line"><span class="emphasis">3 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-可以是用last-insert-id-查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。"><a href="#3-可以是用last-insert-id-查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。" class="headerlink" title="3.可以是用last_insert_id()查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。"></a>3.可以是用last_insert_id()查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。</h3><a id="more"></a>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select last<span class="emphasis">_insert_</span>id();</span><br><span class="line"><span class="code">+------------------+</span></span><br><span class="line">| last<span class="emphasis">_insert_</span>id() |</span><br><span class="line"><span class="code">+------------------+</span></span><br><span class="line">|                5 |</span><br><span class="line"><span class="code">+------------------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line">注意last<span class="emphasis">_insert_</span>id()是所有表auto<span class="emphasis">_increment的最新插入值，</span></span><br><span class="line"><span class="emphasis">因此在并发的情况下，获取某表的最新插入auto_</span>increment可能出现错误</span><br></pre></td></tr></table></figure>
+<h3 id="4-对于innodb表，自动增长列必须是索引，且必须是组合索引的第一列，且一个表只能有一个auto-increment属性。"><a href="#4-对于innodb表，自动增长列必须是索引，且必须是组合索引的第一列，且一个表只能有一个auto-increment属性。" class="headerlink" title="4.对于innodb表，自动增长列必须是索引，且必须是组合索引的第一列，且一个表只能有一个auto_increment属性。"></a>4.对于innodb表，自动增长列必须是索引，且必须是组合索引的第一列，且一个表只能有一个auto_increment属性。</h3><p>mysql&gt; create table t2(id int not null auto_increment,name varchar(10));<br>ERROR 1075 (42000): Incorrect table definition; there can be only one auto column and it must be defined as a key<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">非主键</span><br><span class="line">mysql&gt; create table t2(id int not null auto<span class="emphasis">_increment,name varchar(10),index(id));</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.09 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; mysql&gt; show index from t2;</span></span><br><span class="line"><span class="emphasis">+-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+</span></span><br><span class="line"><span class="emphasis">| Table | Non_</span>unique | Key<span class="emphasis">_name | Seq_</span>in<span class="emphasis">_index | Column_</span>name | Collation | Cardinality | Sub<span class="emphasis">_part | Packed | Null | Index_</span>type | Comment | Index<span class="emphasis">_comment |</span></span><br><span class="line"><span class="emphasis">+-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+</span></span><br><span class="line"><span class="emphasis">| t2    |          1 | id       |            1 | id          | A         |           0 |     NULL | NULL   |      | BTREE      |         |               |</span></span><br><span class="line"><span class="emphasis">+-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; show index from t2;</span></span><br><span class="line"><span class="emphasis">+-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+</span></span><br><span class="line"><span class="emphasis">| Table | Non_</span>unique | Key<span class="emphasis">_name | Seq_</span>in<span class="emphasis">_index | Column_</span>name | Collation | Cardinality | Sub<span class="emphasis">_part | Packed | Null | Index_</span>type | Comment | Index<span class="emphasis">_comment |</span></span><br><span class="line"><span class="emphasis">+-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+</span></span><br><span class="line"><span class="emphasis">| t2    |          1 | id       |            1 | id          | A         |           0 |     NULL | NULL   |      | BTREE      |         |               |</span></span><br><span class="line"><span class="emphasis">+-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">不是主键，只是有索引</span></span><br><span class="line"><span class="emphasis">mysql&gt; insert into t2 values(1,&#x27;fan&#x27;);</span></span><br><span class="line"><span class="emphasis">Query OK, 1 row affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; insert into t2 values(2,&#x27;fan&#x27;);</span></span><br><span class="line"><span class="emphasis">Query OK, 1 row affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; select * from t2;</span></span><br><span class="line"><span class="emphasis">+----+------+</span></span><br><span class="line"><span class="emphasis">| id | name |</span></span><br><span class="line"><span class="emphasis">+----+------+</span></span><br><span class="line"><span class="emphasis">|  1 | fan  |</span></span><br><span class="line"><span class="emphasis">|  2 | fan  |</span></span><br><span class="line"><span class="emphasis">+----+------+</span></span><br><span class="line"><span class="emphasis">2 rows in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">如果是组合索引，也必须是组合索引的第一列</span></span><br><span class="line"><span class="emphasis">mysql&gt; create table t3(id1 int not null auto_</span>increment,id2 int,name varchar(10),index(id2,id1));</span><br><span class="line">ERROR 1075 (42000): Incorrect table definition; there can be only one auto column and it must be defined as a key</span><br></pre></td></tr></table></figure><br>但是对于MyISAM表，自动增长列可以使组合索引的其他列，这样插入记录后，自动增长列是按照组合索引的前面几列进行排序后递增的。<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create table t3_myisam(id1 <span class="built_in">int</span> <span class="keyword">not</span> <span class="literal">null</span> <span class="built_in">auto</span>_increment,id2 <span class="built_in">int</span>,name varchar(<span class="number">10</span>),index(id2,id1)) engine=myisam;</span><br><span class="line">Query OK, <span class="number">0</span> rows affected (<span class="number">0.04</span> sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert <span class="built_in">int</span>o t3_myisam(id2,name) values(<span class="number">3</span>,<span class="string">&#x27;fanboshi&#x27;</span>),(<span class="number">1</span>,<span class="string">&#x27;duyalan&#x27;</span>),(<span class="number">1</span>,<span class="string">&#x27;daduzi&#x27;</span>),(<span class="number">2</span>,<span class="string">&#x27;fan&#x27;</span>),(<span class="number">5</span>,<span class="string">&#x27;hehe&#x27;</span>),(<span class="number">6</span>,<span class="string">&#x27;keke&#x27;</span>);</span><br><span class="line">Query OK, <span class="number">6</span> rows affected (<span class="number">0.03</span> sec)</span><br><span class="line">Records: <span class="number">6</span>  Duplicates: <span class="number">0</span>  Warnings: <span class="number">0</span></span><br><span class="line"></span><br><span class="line">mysql&gt; select * <span class="keyword">from</span> t3_myisam;</span><br><span class="line">+-----+------+----------+</span><br><span class="line">| id1 | id2  | name     |</span><br><span class="line">+-----+------+----------+</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">3</span> | fanboshi |</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">1</span> | duyalan  |</span><br><span class="line">|   <span class="number">2</span> |    <span class="number">1</span> | daduzi   |</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">2</span> | fan      |</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">5</span> | hehe     |</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">6</span> | keke     |</span><br><span class="line">+-----+------+----------+</span><br><span class="line"><span class="number">6</span> rows <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line">好像看不出啥规律</span><br><span class="line">再插入一次</span><br><span class="line">mysql&gt; insert <span class="built_in">int</span>o t3_myisam(id2,name) values(<span class="number">3</span>,<span class="string">&#x27;fanboshi&#x27;</span>),(<span class="number">1</span>,<span class="string">&#x27;duyalan&#x27;</span>),(<span class="number">1</span>,<span class="string">&#x27;daduzi&#x27;</span>),(<span class="number">2</span>,<span class="string">&#x27;fan&#x27;</span>),(<span class="number">5</span>,<span class="string">&#x27;hehe&#x27;</span>),(<span class="number">6</span>,<span class="string">&#x27;keke&#x27;</span>);</span><br><span class="line">Query OK, <span class="number">6</span> rows affected (<span class="number">0.00</span> sec)</span><br><span class="line">Records: <span class="number">6</span>  Duplicates: <span class="number">0</span>  Warnings: <span class="number">0</span></span><br><span class="line">mysql&gt; select * <span class="keyword">from</span> t3_myisam order by id2,id1;</span><br><span class="line">+-----+------+----------+</span><br><span class="line">| id1 | id2  | name     |</span><br><span class="line">+-----+------+----------+</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">1</span> | duyalan  |</span><br><span class="line">|   <span class="number">2</span> |    <span class="number">1</span> | daduzi   |</span><br><span class="line">|   <span class="number">3</span> |    <span class="number">1</span> | duyalan  |</span><br><span class="line">|   <span class="number">4</span> |    <span class="number">1</span> | daduzi   |</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">2</span> | fan      |</span><br><span class="line">|   <span class="number">2</span> |    <span class="number">2</span> | fan      |</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">3</span> | fanboshi |</span><br><span class="line">|   <span class="number">2</span> |    <span class="number">3</span> | fanboshi |</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">5</span> | hehe     |</span><br><span class="line">|   <span class="number">2</span> |    <span class="number">5</span> | hehe     |</span><br><span class="line">|   <span class="number">1</span> |    <span class="number">6</span> | keke     |</span><br><span class="line">|   <span class="number">2</span> |    <span class="number">6</span> | keke     |</span><br><span class="line">+-----+------+----------+</span><br><span class="line"><span class="number">12</span> rows <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line">id2=<span class="number">1</span>有四个，所以id1有<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span></span><br><span class="line">id2=<span class="number">2</span>有俩，id1=<span class="number">1</span>,<span class="number">2</span></span><br><span class="line">自动增长列id1作为组合索引的第二列，对该表插入一些记录后，可以发现自动增长列是按照组合索引第一列id2进行排序后分组递增的</span><br></pre></td></tr></table></figure></p>
+<h3 id="5-MyISAM-及INNODB表，表中auto-increment最大值被删除，将不会被重用。就是说会跳号"><a href="#5-MyISAM-及INNODB表，表中auto-increment最大值被删除，将不会被重用。就是说会跳号" class="headerlink" title="5.MyISAM 及INNODB表，表中auto_increment最大值被删除，将不会被重用。就是说会跳号"></a>5.MyISAM 及INNODB表，表中auto_increment最大值被删除，将不会被重用。就是说会跳号</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; insert into t1(name) values(<span class="emphasis">&#x27;hehe&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.02 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t1;</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">| id | name     |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">|  1 | fanboshi |</span><br><span class="line">|  2 | duyalan  |</span><br><span class="line">|  5 | handudu  |</span><br><span class="line">|  6 | hehe     |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">4 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; delete from t1 where id=6;</span><br><span class="line">Query OK, 1 row affected (0.08 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into t1(name) values(<span class="emphasis">&#x27;keke&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t1;</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">| id | name     |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">|  1 | fanboshi |</span><br><span class="line">|  2 | duyalan  |</span><br><span class="line">|  5 | handudu  |</span><br><span class="line">|  7 | keke     |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">4 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h3 id="6-用”WHERE-auto-col-IS-NULL”条件选择出新插入的行，即在INSERT后马上用"><a href="#6-用”WHERE-auto-col-IS-NULL”条件选择出新插入的行，即在INSERT后马上用" class="headerlink" title="6.用”WHERE auto_col IS NULL”条件选择出新插入的行，即在INSERT后马上用:"></a>6.用”WHERE auto_col IS NULL”条件选择出新插入的行，即在INSERT后马上用:</h3><p>  SELECT * FROM t4 WHERE id IS NULL;<br>选择出来的将是新插入的行，而非真正的满足”id IS NULL”条件的行。<br>但你要是再执行一次上述查询，则返回的又变成了真正的满足”a IS NULL”条件的行，<br>由于a是主键，因此肯定会返回空集。这看上去很诡异是吗，不过MySQL也不想这么干，为了支持 ODBC标准<br>不过可以将SQL_AUTO_IS_NULL设为0来禁止这一用法。<br>此方法获取last_insert_id不推荐<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; insert into t1(name) values(<span class="emphasis">&#x27;new&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t1 where id is null;</span><br><span class="line">Empty set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; show variables like <span class="emphasis">&#x27;sql_auto_is_null&#x27;</span>;</span><br><span class="line"><span class="code">+------------------+</span>-------+</span><br><span class="line">| Variable<span class="emphasis">_name    | Value |</span></span><br><span class="line"><span class="emphasis">+------------------+-------+</span></span><br><span class="line"><span class="emphasis">| sql_</span>auto<span class="emphasis">_is_</span>null | OFF   |</span><br><span class="line"><span class="code">+------------------+</span>-------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set session sql<span class="emphasis">_auto_</span>is<span class="emphasis">_null=on;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.02 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; show variables like &#x27;sql_</span>auto<span class="emphasis">_is_</span>null&#x27;;</span><br><span class="line"><span class="code">+------------------+</span>-------+</span><br><span class="line">| Variable<span class="emphasis">_name    | Value |</span></span><br><span class="line"><span class="emphasis">+------------------+-------+</span></span><br><span class="line"><span class="emphasis">| sql_</span>auto<span class="emphasis">_is_</span>null | ON    |</span><br><span class="line"><span class="code">+------------------+</span>-------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t1 where id is null;</span><br><span class="line"><span class="code">+----+</span>------+</span><br><span class="line">| id | name |</span><br><span class="line"><span class="code">+----+</span>------+</span><br><span class="line">|  8 | new  |</span><br><span class="line"><span class="code">+----+</span>------+</span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t1 where id is null;</span><br><span class="line">Empty set (0.00 sec)</span><br></pre></td></tr></table></figure></p>
+<h3 id="7-AUTO-INCREMENT属性也给复制带来了麻烦。一般情况下复制AUTO-INCREMENT属性能正确工作，但以下情况还是有问题："><a href="#7-AUTO-INCREMENT属性也给复制带来了麻烦。一般情况下复制AUTO-INCREMENT属性能正确工作，但以下情况还是有问题：" class="headerlink" title="7.AUTO_INCREMENT属性也给复制带来了麻烦。一般情况下复制AUTO_INCREMENT属性能正确工作，但以下情况还是有问题："></a>7.AUTO_INCREMENT属性也给复制带来了麻烦。一般情况下复制AUTO_INCREMENT属性能正确工作，但以下情况还是有问题：</h3><ol>
+<li>INSERT DELAYED … VALUES(LAST_INSERT_ID())不能被正确复制</li>
+<li>存储过程插入的使用AUTO_INCREMENT属性的记录不能被正确复制</li>
+<li>通过”ALTER TABLE”命令增加AUTO_INCREMENT属性时在主从节点上产生的值可能是不一样的，因为这个各行AUTO_INCREMENT属性的值取决于物理上的存储顺序。</li>
+</ol>
+<h3 id="8-对于replication的master-master方式-为防止auto-increment字段的重复，可做如下设置"><a href="#8-对于replication的master-master方式-为防止auto-increment字段的重复，可做如下设置" class="headerlink" title="8.对于replication的master-master方式 为防止auto_increment字段的重复，可做如下设置"></a>8.对于replication的master-master方式 为防止auto_increment字段的重复，可做如下设置</h3><p>A服务器的my.cnf设置如下：</p>
+<p>auto_increment_offset = 1<br>auto_increment_increment = 2</p>
+<p>这样A的auto_increment字段产生的数值是：1, 3, 5, 7, …</p>
+<p>B服务器的my.cnf设置如下：</p>
+<p>auto_increment_offset = 2<br>auto_increment_increment = 2</p>
+<p>这样B的auto_increment字段产生的数值是：2, 4, 6, 8, …</p>
+<p>3和节点<br>A offset=1 incr=3<br>B offset=2 incr=3<br>C offset=3 incr=3</p>
+<p>8.根据官方的说明：If the value of auto_increment_offset is greater than that of auto_increment_increment, the value of auto_increment_offset is ignored. （如果auto_increment_offset的值大于auto_increment_increment的值，则auto_increment_offset的值会被忽略）<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like <span class="emphasis">&#x27;auto_increment%&#x27;</span>;</span><br><span class="line"><span class="code">+--------------------------+</span>-------+</span><br><span class="line">| Variable<span class="emphasis">_name            | Value |</span></span><br><span class="line"><span class="emphasis">+--------------------------+-------+</span></span><br><span class="line"><span class="emphasis">| auto_</span>increment<span class="emphasis">_increment | 1     |</span></span><br><span class="line"><span class="emphasis">| auto_</span>increment<span class="emphasis">_offset    | 1     |</span></span><br><span class="line"><span class="emphasis">+--------------------------+-------+</span></span><br><span class="line"><span class="emphasis">2 rows in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; set session auto_</span>increment<span class="emphasis">_offset=5;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; show variables like &#x27;auto_</span>increment%<span class="emphasis">&#x27;;</span></span><br><span class="line"><span class="emphasis">+--------------------------+-------+</span></span><br><span class="line"><span class="emphasis">| Variable_name            | Value |</span></span><br><span class="line"><span class="emphasis">+--------------------------+-------+</span></span><br><span class="line"><span class="emphasis">| auto_increment_increment | 1     |</span></span><br><span class="line"><span class="emphasis">| auto_increment_offset    | 5     |</span></span><br><span class="line"><span class="emphasis">+--------------------------+-------+</span></span><br><span class="line"><span class="emphasis">2 rows in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; create table t5 like t1;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.07 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; desc t5;</span></span><br><span class="line"><span class="emphasis">+-------+-------------+------+-----+---------+----------------+</span></span><br><span class="line"><span class="emphasis">| Field | Type        | Null | Key | Default | Extra          |</span></span><br><span class="line"><span class="emphasis">+-------+-------------+------+-----+---------+----------------+</span></span><br><span class="line"><span class="emphasis">| id    | int(11)     | NO   | PRI | NULL    | auto_increment |</span></span><br><span class="line"><span class="emphasis">| name  | varchar(10) | YES  |     | NULL    |                |</span></span><br><span class="line"><span class="emphasis">+-------+-------------+------+-----+---------+----------------+</span></span><br><span class="line"><span class="emphasis">2 rows in set (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; insert into t5(name) values(&#x27;</span>fanboshi&#x27;);</span><br><span class="line">Query OK, 1 row affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t5;</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">| id | name     |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">|  1 | fanboshi |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; set session auto<span class="emphasis">_increment_</span>increment=5;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into t5(name) values(<span class="emphasis">&#x27;duyalan&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into t5(name) values(<span class="emphasis">&#x27;heheda&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.02 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t5;</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">| id | name     |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">|  1 | fanboshi |</span><br><span class="line">|  5 | duyalan  |</span><br><span class="line">| 10 | heheda   |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2016/07/31/Auto_increment详解/" target="_blank" title="Auto_increment详解">http://fuxkdb.com/2016/07/31/Auto_increment详解/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/12/12/MySQL(InnoDB)%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E5%B9%BB%E8%AF%BB/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          MySQL(InnoDB)如何避免幻读
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/01/01/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Auto-increment"><span class="nav-number">1.</span> <span class="nav-text">Auto_increment</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Innodb%E8%A1%A8%E7%9A%84%E8%87%AA%E5%8A%A8%E5%A2%9E%E9%95%BF%E5%88%97%E5%8F%AF%E4%BB%A5%E6%89%8B%E5%B7%A5%E6%8F%92%E5%85%A5%EF%BC%8C%E4%BD%86%E6%98%AF%E6%8F%92%E5%85%A5%E7%9A%84%E5%80%BC%E5%A6%82%E6%9E%9C%E6%98%AF%E7%A9%BA%E6%88%96%E8%80%850%EF%BC%8C%E5%88%99%E5%AE%9E%E9%99%85%E6%8F%92%E5%85%A5%E7%9A%84%E5%B0%86%E6%98%AF%E8%87%AA%E5%8A%A8%E5%A2%9E%E9%95%BF%E5%90%8E%E7%9A%84%E5%80%BC"><span class="nav-number">1.1.</span> <span class="nav-text">1.Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%8F%AF%E4%BB%A5%E9%80%9A%E8%BF%87alter-table-t1-auto-incremenrt-n-%E8%AF%AD%E5%8F%A5%E5%BC%BA%E5%88%B6%E8%AE%BE%E7%BD%AE%E8%87%AA%E5%8A%A8%E5%A2%9E%E9%95%BF%E5%88%97%E7%9A%84%E5%88%9D%E5%A7%8B%E5%80%BC%EF%BC%8C%E9%BB%98%E8%AE%A4%E4%BB%8E1%E5%BC%80%E5%A7%8B%EF%BC%8C%E4%BD%86%E6%98%AF%E8%AF%A5%E5%BC%BA%E5%88%B6%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC%E6%98%AF%E4%BF%9D%E7%95%99%E5%9C%A8%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%EF%BC%8C%E5%A6%82%E6%9E%9C%E8%AF%A5%E5%80%BC%E5%9C%A8%E4%BD%BF%E7%94%A8%E4%B9%8B%E5%89%8D%E6%95%B0%E6%8D%AE%E5%BA%93%E9%87%8D%E6%96%B0%E5%90%AF%E5%8A%A8%EF%BC%8C%E9%82%A3%E4%B9%88%E8%BF%99%E4%B8%AA%E5%BC%BA%E5%88%B6%E7%9A%84%E9%BB%98%E8%AE%A4%E5%80%BC%E5%B0%B1%E4%BC%9A%E4%B8%A2%E5%A4%B1%EF%BC%8C%E5%B0%B1%E9%9C%80%E8%A6%81%E6%95%B0%E6%8D%AE%E5%BA%93%E5%90%AF%E5%8A%A8%E5%90%8E%E9%87%8D%E6%96%B0%E8%AE%BE%E7%BD%AE"><span class="nav-number">1.2.</span> <span class="nav-text">2.可以通过alter table t1 auto_incremenrt&#x3D;n 语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%8F%AF%E4%BB%A5%E6%98%AF%E7%94%A8last-insert-id-%E6%9F%A5%E8%AF%A2%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%E6%9C%80%E5%90%8E%E6%8F%92%E5%85%A5%E8%AE%B0%E5%BD%95%E4%BD%BF%E7%94%A8%E7%9A%84%E5%80%BC%E3%80%82%E5%A6%82%E6%9E%9C%E4%B8%80%E6%AC%A1%E6%8F%92%E5%85%A5%E5%A4%9A%E6%9D%A1%E8%AE%B0%E5%BD%95%EF%BC%8C%E9%82%A3%E4%B9%88%E8%BF%94%E5%9B%9E%E7%9A%84%E6%98%AF%E7%AC%AC%E4%B8%80%E6%9D%A1%E8%AE%B0%E5%BD%95%E4%BD%BF%E7%94%A8%E7%9A%84%E8%87%AA%E5%8A%A8%E5%A2%9E%E9%95%BF%E5%80%BC%E3%80%82"><span class="nav-number">1.3.</span> <span class="nav-text">3.可以是用last_insert_id()查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%AF%B9%E4%BA%8Einnodb%E8%A1%A8%EF%BC%8C%E8%87%AA%E5%8A%A8%E5%A2%9E%E9%95%BF%E5%88%97%E5%BF%85%E9%A1%BB%E6%98%AF%E7%B4%A2%E5%BC%95%EF%BC%8C%E4%B8%94%E5%BF%85%E9%A1%BB%E6%98%AF%E7%BB%84%E5%90%88%E7%B4%A2%E5%BC%95%E7%9A%84%E7%AC%AC%E4%B8%80%E5%88%97%EF%BC%8C%E4%B8%94%E4%B8%80%E4%B8%AA%E8%A1%A8%E5%8F%AA%E8%83%BD%E6%9C%89%E4%B8%80%E4%B8%AAauto-increment%E5%B1%9E%E6%80%A7%E3%80%82"><span class="nav-number">1.4.</span> <span class="nav-text">4.对于innodb表，自动增长列必须是索引，且必须是组合索引的第一列，且一个表只能有一个auto_increment属性。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-MyISAM-%E5%8F%8AINNODB%E8%A1%A8%EF%BC%8C%E8%A1%A8%E4%B8%ADauto-increment%E6%9C%80%E5%A4%A7%E5%80%BC%E8%A2%AB%E5%88%A0%E9%99%A4%EF%BC%8C%E5%B0%86%E4%B8%8D%E4%BC%9A%E8%A2%AB%E9%87%8D%E7%94%A8%E3%80%82%E5%B0%B1%E6%98%AF%E8%AF%B4%E4%BC%9A%E8%B7%B3%E5%8F%B7"><span class="nav-number">1.5.</span> <span class="nav-text">5.MyISAM 及INNODB表，表中auto_increment最大值被删除，将不会被重用。就是说会跳号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E7%94%A8%E2%80%9DWHERE-auto-col-IS-NULL%E2%80%9D%E6%9D%A1%E4%BB%B6%E9%80%89%E6%8B%A9%E5%87%BA%E6%96%B0%E6%8F%92%E5%85%A5%E7%9A%84%E8%A1%8C%EF%BC%8C%E5%8D%B3%E5%9C%A8INSERT%E5%90%8E%E9%A9%AC%E4%B8%8A%E7%94%A8"><span class="nav-number">1.6.</span> <span class="nav-text">6.用”WHERE auto_col IS NULL”条件选择出新插入的行，即在INSERT后马上用:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-AUTO-INCREMENT%E5%B1%9E%E6%80%A7%E4%B9%9F%E7%BB%99%E5%A4%8D%E5%88%B6%E5%B8%A6%E6%9D%A5%E4%BA%86%E9%BA%BB%E7%83%A6%E3%80%82%E4%B8%80%E8%88%AC%E6%83%85%E5%86%B5%E4%B8%8B%E5%A4%8D%E5%88%B6AUTO-INCREMENT%E5%B1%9E%E6%80%A7%E8%83%BD%E6%AD%A3%E7%A1%AE%E5%B7%A5%E4%BD%9C%EF%BC%8C%E4%BD%86%E4%BB%A5%E4%B8%8B%E6%83%85%E5%86%B5%E8%BF%98%E6%98%AF%E6%9C%89%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="nav-number">1.7.</span> <span class="nav-text">7.AUTO_INCREMENT属性也给复制带来了麻烦。一般情况下复制AUTO_INCREMENT属性能正确工作，但以下情况还是有问题：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E5%AF%B9%E4%BA%8Ereplication%E7%9A%84master-master%E6%96%B9%E5%BC%8F-%E4%B8%BA%E9%98%B2%E6%AD%A2auto-increment%E5%AD%97%E6%AE%B5%E7%9A%84%E9%87%8D%E5%A4%8D%EF%BC%8C%E5%8F%AF%E5%81%9A%E5%A6%82%E4%B8%8B%E8%AE%BE%E7%BD%AE"><span class="nav-number">1.8.</span> <span class="nav-text">8.对于replication的master-master方式 为防止auto_increment字段的重复，可做如下设置</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

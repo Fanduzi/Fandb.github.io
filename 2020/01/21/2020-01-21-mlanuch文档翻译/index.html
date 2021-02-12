@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mlanuch文档翻译 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MongoDBmtools" />
+  
+  
+  
+  
+  <meta name="description" content="[TOC] mlanuch使用此工具，您可以快速启动并监视本地计算机上的MongoDB环境。 它支持独立服务器，副本集和分片群集的各种配置。 单个节点或节点组可以轻松停止并重新启动。 除了下面列出的mlaunch的所有列出的参数之外，您还可以传递mongos或mongod二进制文件可以理解的任意选项，mlaunch会传递正确的参数给mongos或mongod二进制文件。 这包括-f或--confi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mlanuch文档翻译">
+<meta property="og:url" content="http://fuxkdb.com/2020/01/21/2020-01-21-mlanuch%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="[TOC] mlanuch使用此工具，您可以快速启动并监视本地计算机上的MongoDB环境。 它支持独立服务器，副本集和分片群集的各种配置。 单个节点或节点组可以轻松停止并重新启动。 除了下面列出的mlaunch的所有列出的参数之外，您还可以传递mongos或mongod二进制文件可以理解的任意选项，mlaunch会传递正确的参数给mongos或mongod二进制文件。 这包括-f或--confi">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-01-21T10:09:00.000Z">
+<meta property="article:modified_time" content="2020-01-21T10:09:59.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MongoDB">
+<meta property="article:tag" content="mtools">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-01-21-mlanuch文档翻译" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      mlanuch文档翻译
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/01/21/2020-01-21-mlanuch%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/" class="article-date">
+	  <time datetime="2020-01-21T10:09:00.000Z" itemprop="datePublished">2020-01-21</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>[TOC]</p>
+<h1 id="mlanuch"><a href="#mlanuch" class="headerlink" title="mlanuch"></a>mlanuch</h1><p>使用此工具，您可以快速启动并监视本地计算机上的MongoDB环境。 它支持独立服务器，副本集和分片群集的各种配置。 单个节点或节点组可以轻松停止并重新启动。</p>
+<p>除了下面列出的mlaunch的所有列出的参数之外，您还可以传递<code>mongos</code>或<code>mongod</code>二进制文件可以理解的任意选项，mlaunch会传递正确的参数给<code>mongos</code>或<code>mongod</code>二进制文件。 这包括<code>-f</code>或<code>--config</code>选项，以传递带有更多选项的配置文件。<br><a id="more"></a></p>
+<h2 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h2><figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mlaunch [-h] [--version] [--no-progressbar]</span><br><span class="line">        &#123;init,start,stop,restart,list,kill&#125; ...</span><br></pre></td></tr></table></figure>
+<h2 id="General-Parameters"><a href="#General-Parameters" class="headerlink" title="General Parameters"></a>General Parameters</h2><p> 以下参数适用于所有命令.</p>
+<h3 id="Help"><a href="#Help" class="headerlink" title="Help"></a>Help</h3><ul>
+<li><p><code>-h, --help</code></p>
+<p>显示帮助文本并退出.</p>
+</li>
+</ul>
+<h3 id="Version"><a href="#Version" class="headerlink" title="Version"></a>Version</h3><ul>
+<li><p><code>--version</code></p>
+<p>显示版本号并退出.</p>
+</li>
+</ul>
+<h3 id="Verbosity"><a href="#Verbosity" class="headerlink" title="Verbosity"></a>Verbosity</h3><ul>
+<li><p><code>--verbose</code></p>
+<p>这将打印其他信息，具体取决于每个命令.</p>
+</li>
+</ul>
+<h3 id="Data-directory"><a href="#Data-directory" class="headerlink" title="Data directory"></a>Data directory</h3><ul>
+<li><p><code>--dir DIR</code></p>
+<p>此参数更改mlaunch存储其数据和日志文件的目录。默认情况下，该目录是本地目录<code>./data</code>，位于当前工作目录下。</p>
+</li>
+</ul>
+<h2 id="Commands"><a href="#Commands" class="headerlink" title="Commands"></a>Commands</h2><p><code>mlaunch</code> uses different commands to initialize, stop, start and list test environments. The general syntax is:</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch &lt;<span class="keyword">command</span>&gt; [<span class="params">--parameters</span> <span class="string">...</span>]</span><br></pre></td></tr></table></figure>
+<p>其中，<code>command</code>是以下选择之一:</p>
+<ul>
+<li><code>init</code>: 创建一个初始环境并启动所有节点</li>
+<li><code>stop</code>: 停止当前环境中的部分或所有节点</li>
+<li><code>start</code>: 启动当前环境中的部分或所有节点</li>
+<li><code>list</code>: 显示当前环境的列表</li>
+<li><code>kill</code>: 向当前环境中的节点发送终止信号（或其他信号）</li>
+</ul>
+<p>对于给定的环境（由带有<code>--dir</code>参数的数据目录指定，默认值为<code>./data</code>），<code>init</code>命令只需调用一次。 <code>mlaunch</code>将配置存储在数据目录中的配置文件中，该文件名为<code>.mlaunch_startup</code>。 使用此文件，<code>mlaunch</code>可以记住配置，并可以在需要时启动和停止节点。</p>
+<h3 id="init"><a href="#init" class="headerlink" title="init"></a>init</h3><p>这个命令初始化并启动MongoDB stand-anloneinstance, replica sets, 或shared cluster. 每个环境只需要调用一次（由带有<code>--dir</code>参数的数据目录指定，默认为<code>./data</code>）。</p>
+<h4 id="Usage-1"><a href="#Usage-1" class="headerlink" title="Usage"></a>Usage</h4><figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mlaunch init <span class="comment">[-h]</span> (--single | --replicaset) <span class="comment">[--nodes NUM]</span> <span class="comment">[--arbiter]</span></span><br><span class="line">             <span class="comment">[--name NAME]</span> <span class="comment">[--priority]</span> <span class="comment">[--sharded N <span class="comment">[N ...]</span>]</span></span><br><span class="line">             <span class="comment">[--config NUM]</span> <span class="comment">[--csrs]</span> <span class="comment">[--mongos NUM]</span> <span class="comment">[--verbose]</span></span><br><span class="line">             <span class="comment">[--port PORT]</span> <span class="comment">[--binarypath PATH]</span> <span class="comment">[--dir DIR]</span></span><br><span class="line">             <span class="comment">[--hostname HOSTNAME]</span> <span class="comment">[--auth]</span> <span class="comment">[--username USERNAME]</span></span><br><span class="line">             <span class="comment">[--password PASSWORD]</span> <span class="comment">[--auth-db DB]</span></span><br><span class="line">             <span class="comment">[--auth-roles <span class="comment">[ROLE <span class="comment">[ROLE ...]</span>]</span>]</span></span><br></pre></td></tr></table></figure>
+<p> 为了方便和向后兼容，init命令是默认命令，可以省略。</p>
+<h4 id="Required-Parameters"><a href="#Required-Parameters" class="headerlink" title="Required Parameters"></a>Required Parameters</h4><p><code>init</code>命令需要以下两个参数之一才能运行：<code>--single</code>或<code>--replicaset</code>。它们是互斥的，并且必须为指定一个。</p>
+<ul>
+<li><p><code>--single</code></p>
+<p>此参数将创建一个stand-alone node。如果还指定了<code>--sharded</code>，则此参数会将每个分片创建为stand-alone node。</p>
+<p>例如, 要在端口27017上启动一个<code>mongod</code>实例:</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="comment">--single</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>--replicaset</code></p>
+<p>此参数将创建副本集，而不是单个节点。其他副本集参数适用，并可修改副本集的属性以启动。如果还指定了<code>--sharded</code>，则此参数将为每个分片创建一个这样的副本集。</p>
+<p>例如，要使用端口27017、27018、27019 启动3个节点的副本集：</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="comment">--replicaset</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h4 id="Replica-Set-Parameters"><a href="#Replica-Set-Parameters" class="headerlink" title="Replica Set Parameters"></a>Replica Set Parameters</h4><p>以下参数更改了副本集的设置方式。这些参数要求您从所需参数中选择<code>--replicaset</code>选项。</p>
+<blockquote>
+<p>The following parameters change how a replica set is set up. These parameters require that you picked the <code>--replicaset</code> option from the required parameters.</p>
+</blockquote>
+<ul>
+<li><p><code>--nodes N</code> </p>
+<p>指定此副本集的数据承载节点（不包括仲裁器）的数量。预设值为3</p>
+<p>例如:</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">mlaunch</span> --<span class="comment">replicaset</span> --<span class="comment">nodes</span> <span class="comment">5</span></span><br></pre></td></tr></table></figure>
+<p>这个命令启动5个mongod实例并配置为一个副本集</p>
+</li>
+<li><p><code>--arbiter</code> </p>
+<p>如果存在此参数，则将附加<code>arbiter</code>添加到副本集。目前，<code>mlaunch</code>仅支持添加一个<code>arbiter</code>。您也可以启动其他<code>arbiter</code>并将其手动添加到副本集</p>
+<p>例如:</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">mlaunch</span> --<span class="comment">replicaset</span> --<span class="comment">nodes</span> <span class="comment">2</span> --<span class="comment">arbiter</span></span><br></pre></td></tr></table></figure>
+<p>此命令启动2个承载数据的mongod实例，并将一个arbiter添加到副本集，总共3个投票节点。</p>
+</li>
+<li><p><code>--name NAME</code> </p>
+<p>此选项使您可以修改副本集的名称。这将更改<code>dbpath</code>的名称和子目录。此选项仅允许用于单个副本集，而不适用于分片设置（副本集名称与分片名称等效）的分片设置中。默认名称是<code>replset</code></p>
+<p>For example:</p>
+<figure class="highlight dsconfig"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mlaunch </span><span class="built_in">--replicaset</span> <span class="built_in">--name</span> <span class="string">&quot;my_rs_1&quot;</span></span><br></pre></td></tr></table></figure>
+<p>此命令将创建一个名为<code>my_rs_1</code>的副本集，并将dbpath和日志文件存储在<code>./data/my_rs_1</code>下</p>
+</li>
+</ul>
+<h4 id="Sharding-Parameters"><a href="#Sharding-Parameters" class="headerlink" title="Sharding Parameters"></a>Sharding Parameters</h4><p>以下参数会影响分片环境的设置。每个分片将是先前指定设置的副本，无论是单个实例还是副本集。</p>
+<ul>
+<li><p><code>--sharded S [S ...]</code> </p>
+<p>如果指定此参数，则启用分片，并且<code>mlaunch</code>将创建指定数量的分片，并将这些分片一起添加到分片群集中。该参数可以通过两种方式工作：通过指定单个数字（即分片的数量），或通过指定分片的名称列表。</p>
+<p>例如:</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">mlaunch</span> --<span class="comment">single</span> --<span class="comment">sharded</span> <span class="comment">3</span></span><br></pre></td></tr></table></figure>
+<p>该命令将创建一个包含3个分片的环境，每个分片由一个独立节点组成。碎片名称为shard0001，shard0002，shard0003。它还将默认创建1个配置服务器和1个mongos</p>
+<p>例如:</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">mlaunch</span> --<span class="comment">replicaset</span> --<span class="comment">sharded</span> <span class="comment">tic</span> <span class="comment">tac</span> <span class="comment">toe</span></span><br></pre></td></tr></table></figure>
+<p>此命令将创建3个分片，分别名为<code>tic</code>，<code>tac</code>和<code>toe</code>. 每个分片将包含一个副本集（默认情况下）为3个节点. 它还将默认创建1个配置服务器和1个mongos.</p>
+</li>
+<li><p><code>--config N</code></p>
+<p>此参数确定在分片环境中启动了多少个配置服务器。默认数字是1。<code>N</code>的唯一有效选项是1或3</p>
+</li>
+<li><p><code>--csrs</code> </p>
+<p>此参数可将配置服务器用作副本集（CSRS），而不是较早的同步集群连接配置（SCCC）</p>
+<p>MongoDB 3.2+支持CSRS部署选项，而从MongoDB 3.4开始，默认（唯一）支持的选项是CSRS部署选项。</p>
+<p>If you are using MongoDB 3.4 and greater, <code>mlaunch</code> will use CSRS by default.</p>
+<p><em>Changed in version 1.2.3</em></p>
+<p>CSRS config servers will no longer include incompatible settings, such as:</p>
+<ul>
+<li><code>--storageEngine</code> – CSRS config servers will always use WiredTiger.</li>
+<li><code>--arbiter</code> – CSRS config servers cannot have any arbiter.</li>
+</ul>
+</li>
+<li><p><code>--mongos N</code> </p>
+<p>此参数确定在分片环境中启动了多少个<code>mongos</code>实例。默认数字为1。使用此设置，默认值可以更改为<code>N</code>个mongos实例。</p>
+</li>
+</ul>
+<h4 id="Authentication-Parameters"><a href="#Authentication-Parameters" class="headerlink" title="Authentication Parameters"></a>Authentication Parameters</h4><ul>
+<li><p><code>--auth</code> </p>
+<p>此参数在您的设置上启用身份验证。它可以透明地用于单个实例（需要<code>--auth</code>）以及副本集和分片环境（需要<code>--keyFile</code>）。无需另外指定keyfile，<code>mlaunch</code>将为您生成一个随机keyfile。</p>
+<p>用户名和密码也将被设置，或者在mongos为分片的环境中，或对副本集主节点或在一个节点上。</p>
+<blockquote>
+<p>A username and password will also be set up, either on the mongos for sharded environments, or on the primary node for replica sets or on a single node.</p>
+</blockquote>
+</li>
+<li><p><code>--username</code> </p>
+<p>此参数将默认用户名用户更改为指定用户</p>
+</li>
+<li><p><code>--password</code></p>
+<p>此参数将默认密码password更改为指定的密码</p>
+</li>
+<li><p><code>--auth-db</code> </p>
+<p>此参数从admin更改默认数据库，将在其中创建用户。(不要改这个参数默认值)</p>
+<blockquote>
+<p>默认密码是故意在选择易于记忆或猜测。 mlaunch是为测试和问题再现，而不是用于生产。 因为用户名和密码都以明文形式包含在<code>data/.mlaunch_startup</code>文件中，所以即使是强密码也无法保证在<code>mlaunch</code>生成的环境中的安全性。</p>
+</blockquote>
+</li>
+<li><p><code>--auth-roles</code></p>
+<p>This parameter changes the initial default roles that the user will receive. The default roles are <code>dbAdminAnyDatabase</code>, <code>readWriteAnyDatabase</code>, <code>userAdminAnyDatabase</code> and <code>clusterAdmin</code>. You can provide different roles with this parameter, separated by spaces.</p>
+<blockquote>
+<p>If you change the default roles, it may not be possible for <code>mlaunch</code> to execute certain commands due to missing privileges. This may lead to unexpected behavior for some <code>mlaunch</code> operations, like for example <code>mlaunch stop</code>, which uses the internal <code>shutdown</code> command. If this is the case, use <code>mlaunch kill</code> instead.</p>
+</blockquote>
+<p>例如:</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">mlaunch</span> --sharded <span class="number">2</span> --single --auth --auth-user thomas --auth-password my_s<span class="number">3</span>cr<span class="number">3</span>t_p<span class="number">4</span>ssw<span class="number">0</span>rd</span><br></pre></td></tr></table></figure>
+<p>This command would start a sharded cluster with 2 single shards, 1 config server, 1 mongos, and create the user <code>thomas</code> with password <code>my_s3cr3t_p4ssw0rd</code>. It will use the default roles and place the user in the <code>admin</code> database. <code>mlaunch</code> will</p>
+</li>
+</ul>
+<h4 id="Optional-Parameters"><a href="#Optional-Parameters" class="headerlink" title="Optional Parameters"></a>Optional Parameters</h4><ul>
+<li><p><code>--port PORT</code></p>
+<p>使用指定的<code>PORT</code>值作为第一个实例的起始端口号，其余实例（mongod / mongos）以<code>PORT</code>值递增作为自己的算口号使用。 默认情况下，<code>MongoDB</code>起始端口值为标准端口27017。使用此参数可以在不同端口范围上并行启动多个设置。</p>
+<p>例如:</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">mlaunch</span> --<span class="comment">replicaset</span> --<span class="comment">nodes</span> <span class="comment">3</span> --<span class="comment">port</span> <span class="comment">30000</span></span><br></pre></td></tr></table></figure>
+<p>此命令将使用端口30000、30001和30002启动3个节点的副本集。</p>
+</li>
+<li><p><code>--binarypath PATH</code></p>
+<p>将设置<code>mlaunch</code>在其中查找<code>mongod</code>和<code>mongos</code>的二进制文件的路径到提供的<code>PATH</code>。 默认情况下，<code>$PATH</code>环境变量用于确定启动哪个二进制文件。 您可以使用此选项覆盖默认设置。 例如，如果您编译自己的源代码并希望<code>mlaunch</code>使用已编译的版本，则这很有用。</p>
+<p>例如：</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="params">--single</span> <span class="params">--binarypath</span> <span class="string">./build/bin</span></span><br></pre></td></tr></table></figure>
+<p>此命令将在./build/bin/mongod中查找mongod二进制文件，而不是默认位置。</p>
+</li>
+</ul>
+<h3 id="kill"><a href="#kill" class="headerlink" title="kill"></a>kill</h3><p>通过发送<code>SIGTERM</code>(15)信号，<code>kill</code>命令根据指定的标签停止当前环境中的部分或所有正在运行的节点。</p>
+<p>如果未指定标签，则<code>mlaunch kill</code>将杀死所有节点。 如果指定了一个或多个标签，则<code>mlaunch kill</code>将仅杀死具有所有给定标签（设置交集）的节点。 即使没有具有<code>clusterAdmin</code>角色的管理员用户，此方法也有效。</p>
+<p>可以使用<code>--signal</code>参数来指定其他信号，而不是<code>SIGTERM</code>信号。 （在Windows上不可用）</p>
+<h4 id="Usage-2"><a href="#Usage-2" class="headerlink" title="Usage"></a>Usage</h4><figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch kill <span class="comment">[TAG <span class="comment">[TAG ...]</span>]</span> <span class="comment">[--signal S]</span> <span class="comment">[--dir DIR]</span> <span class="comment">[--verbose]</span></span><br></pre></td></tr></table></figure>
+<h4 id="Tag-Parameters"><a href="#Tag-Parameters" class="headerlink" title="Tag Parameters"></a>Tag Parameters</h4><p>The following tags are used with mlaunch, although not all tags are present in every environment:</p>
+<ul>
+<li><code>all</code>: 当前环境中的所有节点</li>
+<li><code>running</code>: 当前正在运行的节点</li>
+<li><code>down</code>: 所有关闭的节点</li>
+<li><code>mongos</code>: 所有mongos进程</li>
+<li><code>mongod</code>: 所有mongod进程(包括arbiters和config servers).</li>
+<li><code>config</code>: 所有config servers</li>
+<li><code>shard</code>:  该标签仅用于标识特定的分片号（请参见下文）</li>
+<li><code>&lt;shard name&gt;</code>: 对于分片环境，分片的每个成员都将分片名称作为标签，例如“shard-a”</li>
+<li><code>primary</code>: 所有正在运行的主节点</li>
+<li><code>secondary</code>: 所有正在运行的secondary节点</li>
+<li><code>arbiter</code>: 所有arbiter</li>
+<li><code>&lt;port number&gt;</code>: 每个节点都将其端口号作为标记</li>
+</ul>
+<p>如果为kill命令指定单个标签，则匹配该标签的节点将被杀死。 如果指定了多个标签，则仅杀死与所有标签匹配的节点。 每个标签都会进一步缩小匹配范围。(貌似意思是取连个标签的交集)</p>
+<p>例:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="built_in">kill</span></span><br></pre></td></tr></table></figure>
+<p>该命令将杀死当前环境中的所有正在运行的节点。</p>
+<p>例:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="built_in">kill</span> mongos</span><br></pre></td></tr></table></figure>
+<p>该命令将杀死当前环境中所有正在运行的mongos进程</p>
+<p>例:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="built_in">kill</span> shard<span class="_">-a</span> secondary</span><br></pre></td></tr></table></figure>
+<p>该命令将杀死当前环境中名为“ shard-a”的所有正在运行的secondary节点。</p>
+<p>例:</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch kill<span class="built_in"> config </span>primary</span><br></pre></td></tr></table></figure>
+<p>该命令不会杀死任何节点，因为没有节点同时具有<code>config</code>和<code>primary</code>标签。</p>
+<p>例:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch kill <span class="number">27017</span></span><br></pre></td></tr></table></figure>
+<p>此命令将杀死在端口27017上运行的节点。</p>
+<p>另外，某些标签可以与后续编号组合。 这些标签是：mongos，shard，config，secondary。</p>
+<p>例:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch kill shard <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>This command kills all members of shard 1 in the current <em>sharded</em> environment.</p>
+<p>例:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch kill shard <span class="number">2</span> primary</span><br></pre></td></tr></table></figure>
+<p>This command kills the primary of the second shard in the current <em>sharded</em> environment.</p>
+<p>例:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch kill secondary <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>This command kills the first secondary node of all shards if the environment is <em>sharded</em>. If the environment is a <em>replicaset</em>, it only applies to the first secondary.</p>
+<p>如果是shard, kill所有shared的第一个secondary节点. 如果是replicaset, 只kill第一个secondary</p>
+<p>例:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="built_in">kill</span></span><br></pre></td></tr></table></figure>
+<p> 该命令将信号SIGTERM（15）发送到当前环境中的所有正在运行的进程。</p>
+<p>例:</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="built_in">kill</span> <span class="comment">--signal SIGUSR1</span></span><br></pre></td></tr></table></figure>
+<p>此命令将信号SIGUSR1（30）发送到当前环境中的所有正在运行的进程，这在MongoDB中导致日志轮换log rotation。</p>
+<h3 id="start"><a href="#start" class="headerlink" title="start"></a>start</h3><p><code>start</code>命令根据指定的标签启动当前环境中当前处于关闭状态的某些或所有节点。如果未指定标签，则<code>mlaunch start</code>将启动所有节点。如果指定了一个或多个标签，则启动将仅启动具有所有给定标签的节点（设置交集）。</p>
+<h4 id="Usage-3"><a href="#Usage-3" class="headerlink" title="Usage"></a>Usage</h4><figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="literal">start</span> [<span class="keyword">TAG</span> <span class="title">[TAG</span> ...]] [--dir DIR] [--verbose]</span><br></pre></td></tr></table></figure>
+<h4 id="Tag-Parameters-1"><a href="#Tag-Parameters-1" class="headerlink" title="Tag Parameters"></a>Tag Parameters</h4><p>The following tags are used with mlaunch, although not all tags are present in every environment:</p>
+<ul>
+<li><code>all</code>: 当前环境中的所有节点</li>
+<li><code>running</code>: 当前正在运行的节点</li>
+<li><code>down</code>: 所有关闭的节点</li>
+<li><code>mongos</code>: 所有mongos进程</li>
+<li><code>mongod</code>: 所有mongod进程(包括arbiters和config servers).</li>
+<li><code>config</code>: 所有config servers</li>
+<li><code>shard</code>:  该标签仅用于标识特定的分片号（请参见下文）</li>
+<li><code>&lt;shard name&gt;</code>: 对于分片环境，分片的每个成员都将分片名称作为标签，例如“shard-a” </li>
+<li><code>arbiter</code>: 所有arbiter</li>
+<li><code>&lt;port number&gt;</code>: 每个节点都将其端口号作为标记</li>
+</ul>
+<p>Different to the <code>stop</code> command, there tags for <code>primary</code> and <code>secondary</code> are not available for the <code>start</code> command. This is because the replica set state of a running node is undetermined.</p>
+<h3 id="stop"><a href="#stop" class="headerlink" title="stop"></a>stop</h3><p><code>stop</code>命令通过将<code>shutdown</code>命令发送到mongod或mongos实例来停止当前环境中某些或所有正在运行的节点（取决于指定的标签）。</p>
+<p>如果未指定标签，则<code>mlaunch stop</code>将停止所有节点。 如果指定了一个或多个标签，则<code>mlaunch stop</code>将仅停止具有所有给定标签的节点（设置交集）。</p>
+<p>在经过身份验证的环境中，<code>stop</code>命令要求管理员数据库中的用户具有<code>clusterAdmin</code>角色。 否则，停止命令将不会成功。 在这种情况下，可以改用<code>kill</code>命令。</p>
+<p><em>Changed in version 1.2.3</em></p>
+<p>As of version 1.2.3, the <code>stop</code> command is an alias for the <code>kill</code> command.</p>
+<h4 id="Usage-4"><a href="#Usage-4" class="headerlink" title="Usage"></a>Usage</h4><figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="literal">stop</span> [<span class="keyword">TAG</span> <span class="title">[TAG</span> ...]] [--dir DIR] [--verbose]</span><br></pre></td></tr></table></figure>
+<h4 id="Tag-Parameters-2"><a href="#Tag-Parameters-2" class="headerlink" title="Tag Parameters"></a>Tag Parameters</h4><p>The tags for the <code>stop</code> command are the same as for <a target="_blank" rel="noopener" href="http://blog.rueckstiess.com/mtools/mlaunch.html#mlaunch-kill">kill</a>.</p>
+<h3 id="restart"><a href="#restart" class="headerlink" title="restart"></a>restart</h3><p><code>restart</code>命令将停止，然后重新启动当前环境中的某些或所有节点，具体取决于指定的标签。 为方便起见，添加了它，其行为类似于连续的停止和启动命令。 如果未指定标签，则<code>mlaunch restart</code>将重新启动所有节点。 如果指定了一个或多个标签，则<code>mlaunch restart</code>将仅重新启动具有所有给定标签的节点（设置交集）。</p>
+<h4 id="Usage-5"><a href="#Usage-5" class="headerlink" title="Usage"></a>Usage</h4><figure class="highlight inform7"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch restart <span class="comment">[TAG <span class="comment">[TAG ...]</span>]</span> <span class="comment">[--dir DIR]</span> <span class="comment">[--verbose]</span></span><br></pre></td></tr></table></figure>
+<h4 id="Tag-Parameters-3"><a href="#Tag-Parameters-3" class="headerlink" title="Tag Parameters"></a>Tag Parameters</h4><p>See <a target="_blank" rel="noopener" href="http://blog.rueckstiess.com/mtools/mlaunch.html#mlaunch-start">start</a> and <a target="_blank" rel="noopener" href="http://blog.rueckstiess.com/mtools/mlaunch.html#mlaunch-stop">stop</a>.</p>
+<h3 id="list"><a href="#list" class="headerlink" title="list"></a>list</h3><p>list命令显示当前环境中所有节点的概述，以及它们的状态（运行/关闭）和端口。 使用可选的–verbose标志，list命令还显示每个节点的所有标签。</p>
+<h4 id="Usage-6"><a href="#Usage-6" class="headerlink" title="Usage"></a>Usage</h4><figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">mlaunch</span> <span class="comment">list</span> <span class="title">[</span>--<span class="comment">dir</span> <span class="comment">DIR</span><span class="title">]</span> <span class="title">[</span>--<span class="comment">startup</span><span class="title">]</span> <span class="title">[</span>--<span class="comment">tags</span><span class="title">]</span></span><br></pre></td></tr></table></figure>
+<p>For example:</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">mlaunch list</span><br><span class="line"></span><br><span class="line">PROCESS          STATUS     PORT</span><br><span class="line"></span><br><span class="line">mongos           running    27017</span><br><span class="line">mongos           running    27018</span><br><span class="line"></span><br><span class="line">config<span class="built_in"> server </span>   running    27025</span><br><span class="line">config<span class="built_in"> server </span>   running    27026</span><br><span class="line">config<span class="built_in"> server </span>   down       27027</span><br><span class="line"></span><br><span class="line">shard01</span><br><span class="line">    primary      running    27019</span><br><span class="line">    secondary    running    27020</span><br><span class="line">    arbiter      running    27021</span><br><span class="line"></span><br><span class="line">shard02</span><br><span class="line">    mongod       down       27022</span><br><span class="line">    mongod       down       27023</span><br><span class="line">    mongod       down       27024</span><br></pre></td></tr></table></figure>
+<p>此命令显示所有节点的列表，它们的状态和端口号。 在这种情况下，环境由以下命令初始化：</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">mlaunch</span> --<span class="comment">sharded</span> <span class="comment">2</span> --<span class="comment">replicaset</span> --<span class="comment">nodes</span> <span class="comment">2</span> --<span class="comment">arbiter</span> --<span class="comment">config</span> <span class="comment">3</span> --<span class="comment">mongos</span> <span class="comment">2</span></span><br></pre></td></tr></table></figure>
+<h4 id="Optional-Parameters-1"><a href="#Optional-Parameters-1" class="headerlink" title="Optional Parameters"></a>Optional Parameters</h4><ul>
+<li><p><code>--tags</code></p>
+<p>此选项还显示一列，其中包含实例可以使用的所有标签。 标签可用于将某些实例作为启动，停止，终止等命令的目标。</p>
+<p>For example:</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mlaunch list --tags</span><br><span class="line"></span><br><span class="line">PROCESS      STATUS    <span class="built_in"> PORT </span>    TAGS</span><br><span class="line"></span><br><span class="line">primary      running    27017    27017, all, mongod, primary, running</span><br><span class="line">secondary    running    27018    27018, all, mongod, running, secondary</span><br><span class="line">mongod       down       27019    27019, all, down, mongod</span><br></pre></td></tr></table></figure>
+<p>该命令显示所有节点的列表，它们的状态和端口号，以及它们的标签。 在这种情况下，环境由以下命令初始化：</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mlaunch <span class="comment">--replicaset</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>--startup</code></p>
+<p>此选项还显示带有启动命令的列，该启动命令用于运行给定实例。 如果需要手动启动实例，这很有用。</p>
+<p>For example:</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mlaunch list --startup</span><br><span class="line"></span><br><span class="line">PROCESS      PORT     STATUS     PID     STARTUP COMMAND</span><br><span class="line"></span><br><span class="line">secondary    <span class="number">27017</span>    running    <span class="number">4264</span>    mongod --replSet replset --dbpath <span class="regexp">/tmp/</span>data<span class="regexp">/replset/</span>rs1<span class="regexp">/db --logpath /</span>tmp<span class="regexp">/data/</span>replset<span class="regexp">/rs1/m</span>ongod.log --port <span class="number">27017</span> --logappend --fork -vv</span><br><span class="line">mongod       <span class="number">27018</span>    running    <span class="number">4267</span>    mongod --replSet replset --dbpath <span class="regexp">/tmp/</span>data<span class="regexp">/replset/</span>rs2<span class="regexp">/db --logpath /</span>tmp<span class="regexp">/data/</span>replset<span class="regexp">/rs2/m</span>ongod.log --port <span class="number">27018</span> --logappend --fork -vv</span><br><span class="line">mongod       <span class="number">27019</span>    running    <span class="number">4270</span>    mongod --replSet replset --dbpath <span class="regexp">/tmp/</span>data<span class="regexp">/replset/</span>rs3<span class="regexp">/db --logpath /</span>tmp<span class="regexp">/data/</span>replset<span class="regexp">/rs3/m</span>ongod.log --port <span class="number">27019</span> --logappend --fork -vv</span><br></pre></td></tr></table></figure>
+<p>此命令显示所有节点的列表，它们的状态和端口号，以及它们的启动命令。</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/01/21/2020-01-21-mlanuch文档翻译/" target="_blank" title="mlanuch文档翻译">http://fuxkdb.com/2020/01/21/2020-01-21-mlanuch文档翻译/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MongoDB/" rel="tag">MongoDB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mtools/" rel="tag">mtools</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/03/06/2020-03-06-canal.mq.flatMessage%E5%8F%82%E6%95%B0/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          canal.mq.flatMessage参数
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Canal dynamicTopic问题</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#mlanuch"><span class="nav-number">1.</span> <span class="nav-text">mlanuch</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Usage"><span class="nav-number">1.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#General-Parameters"><span class="nav-number">1.2.</span> <span class="nav-text">General Parameters</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Help"><span class="nav-number">1.2.1.</span> <span class="nav-text">Help</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Version"><span class="nav-number">1.2.2.</span> <span class="nav-text">Version</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Verbosity"><span class="nav-number">1.2.3.</span> <span class="nav-text">Verbosity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Data-directory"><span class="nav-number">1.2.4.</span> <span class="nav-text">Data directory</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Commands"><span class="nav-number">1.3.</span> <span class="nav-text">Commands</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#init"><span class="nav-number">1.3.1.</span> <span class="nav-text">init</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Usage-1"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Required-Parameters"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">Required Parameters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Replica-Set-Parameters"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">Replica Set Parameters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Sharding-Parameters"><span class="nav-number">1.3.1.4.</span> <span class="nav-text">Sharding Parameters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Authentication-Parameters"><span class="nav-number">1.3.1.5.</span> <span class="nav-text">Authentication Parameters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Optional-Parameters"><span class="nav-number">1.3.1.6.</span> <span class="nav-text">Optional Parameters</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kill"><span class="nav-number">1.3.2.</span> <span class="nav-text">kill</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Usage-2"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Tag-Parameters"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Tag Parameters</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#start"><span class="nav-number">1.3.3.</span> <span class="nav-text">start</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Usage-3"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Tag-Parameters-1"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">Tag Parameters</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stop"><span class="nav-number">1.3.4.</span> <span class="nav-text">stop</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Usage-4"><span class="nav-number">1.3.4.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Tag-Parameters-2"><span class="nav-number">1.3.4.2.</span> <span class="nav-text">Tag Parameters</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#restart"><span class="nav-number">1.3.5.</span> <span class="nav-text">restart</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Usage-5"><span class="nav-number">1.3.5.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Tag-Parameters-3"><span class="nav-number">1.3.5.2.</span> <span class="nav-text">Tag Parameters</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#list"><span class="nav-number">1.3.6.</span> <span class="nav-text">list</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Usage-6"><span class="nav-number">1.3.6.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Optional-Parameters-1"><span class="nav-number">1.3.6.2.</span> <span class="nav-text">Optional Parameters</span></a></li></ol></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

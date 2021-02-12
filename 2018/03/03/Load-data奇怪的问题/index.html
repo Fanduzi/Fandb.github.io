@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>load data奇怪的问题 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL" />
+  
+  
+  
+  
+  <meta name="description" content="Load data奇怪的问题公司一套所谓的BI库(5.5 innodb引擎),由于太大了,考虑转用TokuDB引擎,最近在测试,直接在一个新环境安装Percona5.7.21,然后恢复备份,转换为TokuDB表, 再做从库和原5.5库同步(5.5 是statement格式)准备同步上,然后这套环境部署一下应用,再全面的测一下.结果发现同步报错了123456789101112131415161718">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Load data奇怪的问题">
+<meta property="og:url" content="http://fuxkdb.com/2018/03/03/Load-data%E5%A5%87%E6%80%AA%E7%9A%84%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Load data奇怪的问题公司一套所谓的BI库(5.5 innodb引擎),由于太大了,考虑转用TokuDB引擎,最近在测试,直接在一个新环境安装Percona5.7.21,然后恢复备份,转换为TokuDB表, 再做从库和原5.5库同步(5.5 是statement格式)准备同步上,然后这套环境部署一下应用,再全面的测一下.结果发现同步报错了123456789101112131415161718">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-03-03T07:26:00.000Z">
+<meta property="article:modified_time" content="2018-05-03T08:38:16.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-Load-data奇怪的问题" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Load data奇怪的问题
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/03/03/Load-data%E5%A5%87%E6%80%AA%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
+	  <time datetime="2018-03-03T07:26:00.000Z" itemprop="datePublished">2018-03-03</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Load-data奇怪的问题"><a href="#Load-data奇怪的问题" class="headerlink" title="Load data奇怪的问题"></a>Load data奇怪的问题</h1><p>公司一套所谓的BI库(5.5 innodb引擎),由于太大了,考虑转用TokuDB引擎,最近在测试,直接在一个新环境安装Percona5.7.21,然后恢复备份,转换为TokuDB表, 再做从库和原5.5库同步(5.5 是statement格式)<br>准备同步上,然后这套环境部署一下应用,再全面的测一下.<br>结果发现同步报错了<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">root@localhost</span> <span class="attr">10:42:</span>  [<span class="string">test</span>]<span class="string">&gt;</span> <span class="string">show</span> <span class="string">slave</span> <span class="string">status\G</span></span><br><span class="line"><span class="string">***************************</span> <span class="number">1</span><span class="string">.</span> <span class="string">row</span> <span class="string">***************************</span></span><br><span class="line">               <span class="attr">Slave_IO_State:</span> <span class="string">Waiting</span> <span class="string">for</span> <span class="string">master</span> <span class="string">to</span> <span class="string">send</span> <span class="string">event</span></span><br><span class="line">                  <span class="attr">Master_Host:</span> <span class="string">xx.xx.xx.xx</span></span><br><span class="line">                  <span class="attr">Master_User:</span> <span class="string">slave</span></span><br><span class="line">                  <span class="attr">Master_Port:</span> <span class="number">3306</span></span><br><span class="line">                <span class="attr">Connect_Retry:</span> <span class="number">60</span></span><br><span class="line">              <span class="attr">Master_Log_File:</span> <span class="string">mysql-bin.010346</span></span><br><span class="line">          <span class="attr">Read_Master_Log_Pos:</span> <span class="number">715054772</span></span><br><span class="line">               <span class="attr">Relay_Log_File:</span> <span class="string">mysql-relay.000010</span></span><br><span class="line">                <span class="attr">Relay_Log_Pos:</span> <span class="number">376792000</span></span><br><span class="line">        <span class="attr">Relay_Master_Log_File:</span> <span class="string">mysql-bin.010288</span></span><br><span class="line">             <span class="attr">Slave_IO_Running:</span> <span class="literal">Yes</span></span><br><span class="line">            <span class="attr">Slave_SQL_Running:</span> <span class="literal">No</span></span><br><span class="line">              <span class="attr">Replicate_Do_DB:</span> </span><br><span class="line">          <span class="attr">Replicate_Ignore_DB:</span> </span><br><span class="line">           <span class="attr">Replicate_Do_Table:</span> </span><br><span class="line">       <span class="attr">Replicate_Ignore_Table:</span> </span><br><span class="line">      <span class="attr">Replicate_Wild_Do_Table:</span> </span><br><span class="line">  <span class="attr">Replicate_Wild_Ignore_Table:</span> <span class="string">mysql.%,information_schema.%,performance_schema.%,union_log%.%,test.%</span></span><br><span class="line">                   <span class="attr">Last_Errno:</span> <span class="number">1300</span></span><br><span class="line">                   <span class="attr">Last_Error:</span> <span class="string">Coordinator</span> <span class="string">stopped</span> <span class="string">because</span> <span class="string">there</span> <span class="string">were</span> <span class="string">error(s)</span> <span class="string">in</span> <span class="string">the</span> <span class="string">worker(s).</span> <span class="attr">The most recent failure being:</span> <span class="string">Worker</span> <span class="number">1</span> <span class="string">failed</span> <span class="string">executing</span> <span class="string">transaction</span> <span class="string">&#x27;ANONYMOUS&#x27;</span> <span class="string">at</span> <span class="string">master</span> <span class="string">log</span> <span class="string">mysql-bin.010288,</span> <span class="string">end_log_pos</span> <span class="number">378517485</span><span class="string">.</span> <span class="string">See</span> <span class="string">error</span> <span class="string">log</span> <span class="string">and/or</span> <span class="string">performance_schema.replication_applier_status_by_worker</span> <span class="string">table</span> <span class="string">for</span> <span class="string">more</span> <span class="string">details</span> <span class="string">about</span> <span class="string">this</span> <span class="string">failure</span> <span class="string">or</span> <span class="string">others,</span> <span class="string">if</span> <span class="string">any.</span></span><br><span class="line">                 <span class="attr">Skip_Counter:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">Exec_Master_Log_Pos:</span> <span class="number">376791811</span></span><br><span class="line">              <span class="attr">Relay_Log_Space:</span> <span class="number">74984691638</span></span><br><span class="line">              <span class="attr">Until_Condition:</span> <span class="string">None</span></span><br><span class="line">               <span class="attr">Until_Log_File:</span> </span><br><span class="line">                <span class="attr">Until_Log_Pos:</span> <span class="number">0</span></span><br><span class="line">           <span class="attr">Master_SSL_Allowed:</span> <span class="literal">No</span></span><br><span class="line">           <span class="attr">Master_SSL_CA_File:</span> </span><br><span class="line">           <span class="attr">Master_SSL_CA_Path:</span> </span><br><span class="line">              <span class="attr">Master_SSL_Cert:</span> </span><br><span class="line">            <span class="attr">Master_SSL_Cipher:</span> </span><br><span class="line">               <span class="attr">Master_SSL_Key:</span> </span><br><span class="line">        <span class="attr">Seconds_Behind_Master:</span> <span class="literal">NULL</span></span><br><span class="line"><span class="attr">Master_SSL_Verify_Server_Cert:</span> <span class="literal">No</span></span><br><span class="line">                <span class="attr">Last_IO_Errno:</span> <span class="number">0</span></span><br><span class="line">                <span class="attr">Last_IO_Error:</span> </span><br><span class="line">               <span class="attr">Last_SQL_Errno:</span> <span class="number">1300</span></span><br><span class="line">               <span class="attr">Last_SQL_Error:</span> <span class="string">Coordinator</span> <span class="string">stopped</span> <span class="string">because</span> <span class="string">there</span> <span class="string">were</span> <span class="string">error(s)</span> <span class="string">in</span> <span class="string">the</span> <span class="string">worker(s).</span> <span class="attr">The most recent failure being:</span> <span class="string">Worker</span> <span class="number">1</span> <span class="string">failed</span> <span class="string">executing</span> <span class="string">transaction</span> <span class="string">&#x27;ANONYMOUS&#x27;</span> <span class="string">at</span> <span class="string">master</span> <span class="string">log</span> <span class="string">mysql-bin.010288,</span> <span class="string">end_log_pos</span> <span class="number">378517485</span><span class="string">.</span> <span class="string">See</span> <span class="string">error</span> <span class="string">log</span> <span class="string">and/or</span> <span class="string">performance_schema.replication_applier_status_by_worker</span> <span class="string">table</span> <span class="string">for</span> <span class="string">more</span> <span class="string">details</span> <span class="string">about</span> <span class="string">this</span> <span class="string">failure</span> <span class="string">or</span> <span class="string">others,</span> <span class="string">if</span> <span class="string">any.</span></span><br><span class="line">  <span class="attr">Replicate_Ignore_Server_Ids:</span> </span><br><span class="line">             <span class="attr">Master_Server_Id:</span> <span class="number">12</span></span><br><span class="line">                  <span class="attr">Master_UUID:</span> </span><br><span class="line">             <span class="attr">Master_Info_File:</span> <span class="string">mysql.slave_master_info</span></span><br><span class="line">                    <span class="attr">SQL_Delay:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">SQL_Remaining_Delay:</span> <span class="literal">NULL</span></span><br><span class="line">      <span class="attr">Slave_SQL_Running_State:</span> </span><br><span class="line">           <span class="attr">Master_Retry_Count:</span> <span class="number">86400</span></span><br><span class="line">                  <span class="attr">Master_Bind:</span> </span><br><span class="line">      <span class="attr">Last_IO_Error_Timestamp:</span> </span><br><span class="line">     <span class="attr">Last_SQL_Error_Timestamp:</span> <span class="number">180402</span> <span class="number">00</span><span class="string">:07:09</span></span><br><span class="line">               <span class="attr">Master_SSL_Crl:</span> </span><br><span class="line">           <span class="attr">Master_SSL_Crlpath:</span> </span><br><span class="line">           <span class="attr">Retrieved_Gtid_Set:</span> </span><br><span class="line">            <span class="attr">Executed_Gtid_Set:</span> <span class="string">a3f4b929-31a0-11e8-9714-f8bc123346cc:1-864</span></span><br><span class="line">                <span class="attr">Auto_Position:</span> <span class="number">0</span></span><br><span class="line">         <span class="attr">Replicate_Rewrite_DB:</span> </span><br><span class="line">                 <span class="attr">Channel_Name:</span> </span><br><span class="line">           <span class="attr">Master_TLS_Version:</span> </span><br><span class="line"><span class="number">1</span> <span class="string">row</span> <span class="string">in</span> <span class="string">set</span> <span class="string">(0.00</span> <span class="string">sec)</span></span><br></pre></td></tr></table></figure><br><a id="more"></a><br>查看告警日志<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2018-04-02T00:06:53.815565+08:00 5 [Note] Multi-threaded slave statistics <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span>: seconds elapsed = 151; events assigned = 7924737; worker queues filled over overrun level = 0; waited due a Worker<span class="built_in"> queue </span>full = 0; waited due the total size = 375; waited at<span class="built_in"> clock </span>conflicts = 0 waited (count) when Workers occupied = 0 waited when Workers occupied = 0</span><br><span class="line">2018-04-02T00:07:09.876177+08:00 6 [<span class="builtin-name">ERROR</span>] Slave SQL <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span>: Worker 1 failed executing transaction <span class="string">&#x27;ANONYMOUS&#x27;</span> at master log mysql-bin.010288, end_log_pos 378517485; <span class="builtin-name">Error</span> <span class="string">&#x27;Invalid utf8 character string: &#x27;</span><span class="string">&#x27;&#x27;</span> on query.<span class="built_in"> Default </span>database: <span class="string">&#x27;BI&#x27;</span>. Query: <span class="string">&#x27;LOAD DATA INFILE &#x27;</span>/data/mysqldata/3306/tmp/SQL_LOAD-a3f4b929-31a0-11e8-9714-f8bc123346cc-11-12025.data<span class="string">&#x27; IGNORE INTO  TABLE `520054_all_role` CHARACTER SET utf8 FIELDS TERMINATED BY &#x27;</span>,<span class="string">&#x27; OPTIONALLY  ENCLOSED BY &#x27;</span><span class="string">&quot;&#x27; ESCAPED BY &#x27;&quot;</span><span class="string">&#x27; LINES TERMINATED BY &#x27;</span>\n<span class="string">&#x27; (`openid`, `clientid`, `roleid`, `rolename`, `school`, `IP`, `snid`, `rolelogin_time`, `amount`, `val`, `consume_sum`, `own_after`, `first_payment_time`, `last_payment_time`, `last_login_time`, `first_pay_level`, `level`, `vip_level`, `first_pay_amount`, `mission_id`)&#x27;</span>, Error_code: 1300</span><br><span class="line">2018-04-02T00:07:09.876335+08:00 5 [<span class="builtin-name">Warning</span>] Slave SQL <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span>: <span class="built_in">..</span>. The slave coordinator <span class="keyword">and</span> worker threads are stopped, possibly leaving data <span class="keyword">in</span> inconsistent state. A restart should restore consistency automatically, although using non-transactional storage <span class="keyword">for</span> data <span class="keyword">or</span> <span class="builtin-name">info</span> tables <span class="keyword">or</span> DDL queries could lead <span class="keyword">to</span> problems. <span class="keyword">In</span> such cases you have <span class="keyword">to</span> examine your data (see documentation <span class="keyword">for</span> details). Error_code: 1756</span><br><span class="line">2018-04-02T00:07:09.876385+08:00 5 [Note] Slave SQL thread <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span> exiting, replication stopped <span class="keyword">in</span> log <span class="string">&#x27;mysql-bin.010288&#x27;</span> at position 376791811</span><br></pre></td></tr></table></figure><br>总之就是Load data 这个文件<code>/data/mysqldata/3306/tmp/SQL_LOAD-a3f4b929-31a0-11e8-9714-f8bc123346cc-11-12025.data</code>出问题了呗</p>
+<p>于是我手动执行(这里拷贝了一下文件到/tmp)<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#mysql --default-character-set=utf8 --socket=/data/mysqldata/3306/mysql.sock -uroot -p&quot;&quot; --show-warnings test -e &quot;LOAD DATA local INFILE &#x27;/tmp/SQL_LOAD-a3f4b929-31a0-11e8-9714-f8bc123346cc-11-12025.data&#x27; IGNORE INTO  TABLE 520054_all_role CHARACTER SET utf8 FIELDS TERMINATED BY &#x27;,&#x27; OPTIONALLY  ENCLOSED BY &#x27;\&quot;&#x27; ESCAPED BY &#x27;\&quot;&#x27; LINES TERMINATED BY &#x27;\n&#x27; (openid, clientid, roleid, rolename, school, IP, snid, rolelogin_time, amount, val, consume_sum, own_after, first_payment_time, last_payment_time, last_login_time, first_pay_level, level, vip_level, first_pay_amount, mission_id)&quot;</span></span><br><span class="line">mysql: [<span class="builtin-name">Warning</span>] Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line"><span class="builtin-name">ERROR</span> 1300 (HY000) at line 1: Invalid utf8 character string: <span class="string">&#x27;&#x27;</span></span><br></pre></td></tr></table></figure><br>报错<br>看文件也没看出啥, 我就好奇了, 怎么在5.5主库没问题,在这就有问题呢, 于是我把文件scp到主库, 在test库建同一个表,继续手动Load data, <code>没报错</code> 导入成功了..</p>
+<p>一开始我怀疑是SQL_MODE ,查了下两边都是<code>SQL_MODE=&#39;&#39;</code> (我就不贴出来证明了)<br>我又怀疑字符集问题, 查了下两边也都一样..</p>
+<p>这下尴尬了, 我比较low,没想到啥好方法, 只能人肉折半查找法, 把这个文件<code>/data/mysqldata/3306/tmp/SQL_LOAD-a3f4b929-31a0-11e8-9714-f8bc123346cc-11-12025.data</code> 先删一半,LOAD看报错不, 报错说明有问题的数据就在这半部分,没报错说明在删除的那半部分, 如此往复,最后终于找到了,请看!<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#less /tmp/SQL_LOAD-a3f4b929-31a0-11e8-9714-f8bc123346cc-11-12025.data.final </span></span><br><span class="line"><span class="attribute">2001_74148261</span>,<span class="number">1000032</span>,<span class="number">3</span>JM<span class="number">30</span>C<span class="number">2</span>EN,&lt;U+<span class="number">1</span>F<span class="number">602</span>&gt;&lt;U+<span class="number">1</span>F<span class="number">602</span>&gt;&lt;U+<span class="number">1</span>F<span class="number">602</span>&gt;,,<span class="number">124.152.204.12</span>,<span class="number">2001</span>.<span class="number">0</span>,<span class="number">1510191299</span>.<span class="number">0</span>,,,<span class="number">29216</span>.<span class="number">0</span>,<span class="number">58</span>.<span class="number">0</span>,,,<span class="number">1520993335</span>.<span class="number">0</span>,,<span class="number">0</span>.<span class="number">0</span>,<span class="number">0</span>.<span class="number">0</span>,,</span><br></pre></td></tr></table></figure><br>就这一行,5.5能导进去,5.7不行<br>你们猜<code>&lt;U+1F602&gt;</code>是啥? 是这个表情😂😂😂,卧了个槽</p>
+<p>看下建标语句<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 10:42:  [test]&gt; show create table 520054_all_role\G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">       Table: 520054_all_role</span><br><span class="line">Create Table: CREATE TABLE `520054_all_role` (</span><br><span class="line">  `id` bigint(20) unsigned <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">  `openid` varchar(100) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;用户平台账号&#x27;</span>,</span><br><span class="line">  `clientid` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;区服ID&#x27;</span>,</span><br><span class="line">  `roleid` varchar(64) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;用户区服唯一账号&#x27;</span>,</span><br><span class="line">  `rolename` varchar(100)<span class="built_in"> DEFAULT </span><span class="literal">NULL</span>,</span><br><span class="line">  `school` varchar(64)<span class="built_in"> DEFAULT </span><span class="literal">NULL</span> COMMENT <span class="string">&#x27;角色门派&#x27;</span>,</span><br><span class="line">  `IP` varchar(64)<span class="built_in"> DEFAULT </span><span class="literal">NULL</span>,</span><br><span class="line">  `snid` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;平台ID&#x27;</span>,</span><br><span class="line">  `rolelogin_time` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;建角时间&#x27;</span>,</span><br><span class="line">  `amount` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;金额&#x27;</span>,</span><br><span class="line">  `val` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;购买的游戏币(元宝 、钻石)数量&#x27;</span>,</span><br><span class="line">  `consume_sum` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;消耗钻石数&#x27;</span>,</span><br><span class="line">  `own_after` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;消耗后剩余钻石数&#x27;</span>,</span><br><span class="line">  `first_payment_time` int(11)<span class="built_in"> DEFAULT </span><span class="literal">NULL</span> COMMENT <span class="string">&#x27;最初支付时间戳&#x27;</span>,</span><br><span class="line">  `last_payment_time` int(11)<span class="built_in"> DEFAULT </span><span class="literal">NULL</span> COMMENT <span class="string">&#x27;最后支付时间戳&#x27;</span>,</span><br><span class="line">  `last_login_time` int(11)<span class="built_in"> DEFAULT </span><span class="literal">NULL</span> COMMENT <span class="string">&#x27;最后活跃时间戳&#x27;</span>,</span><br><span class="line">  `first_pay_level` smallint(6) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;首次付费等级&#x27;</span>,</span><br><span class="line">  `level` smallint(6) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;当前等级&#x27;</span>,</span><br><span class="line">  `vip_level` smallint(6) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;当前vip等级&#x27;</span>,</span><br><span class="line">  `first_pay_amount` int(11) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;最初付费金额&#x27;</span>,</span><br><span class="line">  `mission_id` varchar(50)<span class="built_in"> DEFAULT </span><span class="literal">NULL</span> COMMENT <span class="string">&#x27;最高关卡ID&#x27;</span>,</span><br><span class="line">  PRIMARY KEY (`id`),</span><br><span class="line">  UNIQUE KEY `openid_clientid` (`openid`,`clientid`),</span><br><span class="line">  KEY `amount_snid` (`amount`,`snid`)</span><br><span class="line">) <span class="attribute">ENGINE</span>=InnoDB <span class="attribute">AUTO_INCREMENT</span>=32227<span class="built_in"> DEFAULT </span><span class="attribute">CHARSET</span>=utf8 <span class="attribute">COMMENT</span>=<span class="string">&#x27;所有角色表&#x27;</span></span><br><span class="line">1 row <span class="keyword">in</span> <span class="builtin-name">set</span> (0.00 sec)</span><br></pre></td></tr></table></figure><br><code>DEFAULT CHARSET=utf8</code> 5.5能把这个emoji表情导进去(数据有没有问题另说),5.7不行</p>
+<p>最后我再5.7把这个表建成utf8mb4,然后重新导入<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#mysql --default-character-set=utf8mb4 --socket=/data/mysqldata/3306/mysql.sock -uroot -p&quot;&quot; --show-warnings fan -e &quot;LOAD DATA local INFILE &#x27;/tmp/SQL_LOAD-a3f4b929-31a0-11e8-9714-f8bc123346cc-11-12025.data&#x27; IGNORE INTO  TABLE 520054_all_role CHARACTER SET utf8mb4 FIELDS TERMINATED BY &#x27;,&#x27; OPTIONALLY  ENCLOSED BY &#x27;\&quot;&#x27; ESCAPED BY &#x27;\&quot;&#x27; LINES TERMINATED BY &#x27;\n&#x27; (openid, clientid, roleid, rolename, school, IP, snid, rolelogin_time, amount, val, consume_sum, own_after, first_payment_time, last_payment_time, last_login_time, first_pay_level, level, vip_level, first_pay_amount, mission_id)&quot;</span></span><br><span class="line">mysql: [<span class="builtin-name">Warning</span>] Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br></pre></td></tr></table></figure><br>终于不报错了</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2018/03/03/Load-data奇怪的问题/" target="_blank" title="Load data奇怪的问题">http://fuxkdb.com/2018/03/03/Load-data奇怪的问题/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/04/28/%E5%A6%82%E4%BD%95%E5%81%9A%E5%A5%BDMySQL%E7%9A%84%E5%A4%87%E4%BB%BD/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          如何做好MySQL的备份
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/02/11/5.5.x%E5%8D%87%E7%BA%A75.7.21%E6%AD%A5%E9%AA%A4/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">5.5.x升级5.7.21步骤</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Load-data%E5%A5%87%E6%80%AA%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">Load data奇怪的问题</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

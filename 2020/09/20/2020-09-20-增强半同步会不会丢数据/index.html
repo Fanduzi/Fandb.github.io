@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>增强半同步会不会丢数据 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL半同步" />
+  
+  
+  
+  
+  <meta name="description" content="只讨论5.7增强半同步和双1的情况 增强半同步会不会丢数据?这里涉及两个过程:  主库 Innodb与Binlog日志的2PC 增强半同步  Innodb与Binlog日志的2PC 在开启Binlog后, MySQL内部会自动将普通事务当做一个XA事务来处理：  自动为每个事务分配一个唯一的ID COMMIT会被自动的分成Prepare和Commit两个阶段 Binlog会被当做事务协调者(Tra">
+<meta property="og:type" content="article">
+<meta property="og:title" content="增强半同步会不会丢数据">
+<meta property="og:url" content="http://fuxkdb.com/2020/09/20/2020-09-20-%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B8%A2%E6%95%B0%E6%8D%AE/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="只讨论5.7增强半同步和双1的情况 增强半同步会不会丢数据?这里涉及两个过程:  主库 Innodb与Binlog日志的2PC 增强半同步  Innodb与Binlog日志的2PC 在开启Binlog后, MySQL内部会自动将普通事务当做一个XA事务来处理：  自动为每个事务分配一个唯一的ID COMMIT会被自动的分成Prepare和Commit两个阶段 Binlog会被当做事务协调者(Tra">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A42PC.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5.png">
+<meta property="article:published_time" content="2020-09-20T14:46:00.000Z">
+<meta property="article:modified_time" content="2020-09-20T14:47:09.090Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="半同步">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A42PC.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-09-20-增强半同步会不会丢数据" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      增强半同步会不会丢数据
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/09/20/2020-09-20-%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B8%A2%E6%95%B0%E6%8D%AE/" class="article-date">
+	  <time datetime="2020-09-20T14:46:00.000Z" itemprop="datePublished">2020-09-20</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>只讨论5.7增强半同步和双1的情况</p>
+<h1 id="增强半同步会不会丢数据"><a href="#增强半同步会不会丢数据" class="headerlink" title="增强半同步会不会丢数据?"></a>增强半同步会不会丢数据?</h1><p>这里涉及两个过程:</p>
+<ul>
+<li>主库 Innodb与Binlog日志的2PC</li>
+<li>增强半同步</li>
+</ul>
+<h2 id="Innodb与Binlog日志的2PC"><a href="#Innodb与Binlog日志的2PC" class="headerlink" title="Innodb与Binlog日志的2PC"></a>Innodb与Binlog日志的2PC</h2><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A42PC.png" alt="image-20200920221245427"></p>
+<p>在开启Binlog后, MySQL内部会自动将普通事务当做一个XA事务来处理：</p>
+<ul>
+<li>自动为每个事务分配一个唯一的ID</li>
+<li>COMMIT会被自动的分成Prepare和Commit两个阶段</li>
+<li>Binlog会被当做事务协调者(Transaction Coordinator), Binlog Event会被当做协调者日志<a id="more"></a>
+<h3 id="分布式事务ID-XID"><a href="#分布式事务ID-XID" class="headerlink" title="分布式事务ID(XID)"></a>分布式事务ID(XID)</h3></li>
+</ul>
+<p>使用2PC时, MySQL会自动的为每一个事务分配一个ID, 叫XID. XID是唯一的, 每个事务的XID都不相同. XID会分别被Binlog和InnoDB记入日志中, 供恢复时使用. MySQ内部的XID由三部分组成:</p>
+<ul>
+<li>前缀部分<br>前缀部分是字符串”MySQLXid”</li>
+<li>Server ID部分<br>当前MySQL的server_id</li>
+<li>query_id部分<br>为了保证XID的的唯一性, 数字部分使用了query_id. MySQL内部会自动的为每一个语句分配一个query_id, 全局唯一. </li>
+</ul>
+<h3 id="事务的协调者Binlog"><a href="#事务的协调者Binlog" class="headerlink" title="事务的协调者Binlog"></a>事务的协调者Binlog</h3><p>Binlog在2PC中充当了事务的协调者（Transaction Coordinator）. 由Binlog来通知InnoDB引擎来执行prepare, commit或者rollback的步骤. 事务提交的整个过程如下：</p>
+<ol>
+<li><p>协调者准备阶段(Prepare Phase)<br>告诉引擎做Prepare, InnoDB更改事务状态, 并将Redo Log刷入磁盘. </p>
+<blockquote>
+<p>个人理解: innodb写prepare log, 事务标记为prepare状态, 并写入xid</p>
+</blockquote>
+</li>
+<li><p>协调者提交阶段(Commit Phase)<br>2.1 记录协调者日志, 即Binlog日志.<br>2.2 告诉引擎做commit. </p>
+<blockquote>
+<p>个人理解: 写Binlog event和xid, 写完后通知innodb commit, innodb写commit log, 事务标记为commit状态 (记得姜成尧说要写binlog file pos到redo)</p>
+</blockquote>
+</li>
+</ol>
+<p>注意：记录Binlog是在InnoDB引擎Prepare(即Redo Log写入磁盘)之后, 这点至关重要. </p>
+<h3 id="协调者日志Xid-log-event"><a href="#协调者日志Xid-log-event" class="headerlink" title="协调者日志Xid_log_event"></a>协调者日志Xid_log_event</h3><p>作为协调者, Binlog需要将事务的XID记入日志, 供恢复时使用. Xid_log_event有以下几个特点：</p>
+<ul>
+<li><p>仅记录query_id<br>因为前缀部分不变, server_id已经记录在Event Header中, Xid_log_event中只记录query_id部分. </p>
+</li>
+<li><p>标志事务的结束<br>在Binlog中相当于一个事务的COMMIT语句.<br>一个事务在Binlog中看起来时这样的:</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Query_log_event(<span class="string">&quot;BEGIN&quot;</span>)<span class="comment">;</span></span><br><span class="line">DML产生的events<span class="comment">;              </span></span><br><span class="line">Xid_log_event<span class="comment">;  </span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>DDL没有BEGIN, 也没有Xid_log_event.</p>
+</li>
+<li><p>仅InnoDB的DML会产生Xid_log_event</p>
+<p>因为MyISAM不支持2PC所以不能用Xid_log_event, 但会有COMMIT Event. </p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Query_log_event(<span class="string">&quot;BEGIN&quot;</span>)<span class="comment">;</span></span><br><span class="line">DML产生的events<span class="comment">;</span></span><br><span class="line">Query_log_event(<span class="string">&quot;COMMIT&quot;</span>)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="恢复-Recovery"><a href="#恢复-Recovery" class="headerlink" title="恢复(Recovery)"></a>恢复(Recovery)</h3><p>这个机制是如何保证MySQL的CrashSafe的呢, 我们来分析一下. 这里我们假设用户设置了以下参数来保证可靠性:<br>sync_binlog=1<br>innodb_flush_log_at_trx_commit=1</p>
+<h4 id="恢复前事务的状态"><a href="#恢复前事务的状态" class="headerlink" title="恢复前事务的状态"></a>恢复前事务的状态</h4><p>在恢复开始前事务有以下几种状态: </p>
+<ul>
+<li>InnoDB中已经提交<br>根据前面2PC的过程, 可知Binlog中也一定记录了该事务的的Events(我感觉说的应该是Xid_log_event). 所以这种事务是一致的不需要处理. </li>
+<li>InnoDB中是prepared状态, Binlog中有该事务的Events(我感觉说的应该是Xid_log_event).<br>需要通知InnoDB提交这些事务. </li>
+<li>InnoDB中是prepared状态, Binlog中没有该事务的Events(我感觉说的应该是Xid_log_event).<br>因为Binlog还没记录, 需要通知InnoDB回滚这些事务. </li>
+<li>Before InnoDB Prepare<br>事务可能还没执行完, 因此InnoDB中的状态还没有prepare. 根据2PC的过程, Binlog中也没有该事务的events(我感觉说的应该是Xid_log_event).  需要通知InnoDB回滚这些事务. </li>
+</ul>
+<h4 id="恢复过程"><a href="#恢复过程" class="headerlink" title="恢复过程"></a>恢复过程</h4><p>从上面的事务状态可以看出: 恢复时事务要提交还是回滚, 是由Binlog来决定的. </p>
+<ul>
+<li>事务的Xid_log_event存在, 就要提交. </li>
+<li>事务的Xid_log_event不存在, 就要回滚. </li>
+</ul>
+<p>恢复的过程非常简单: </p>
+<ul>
+<li>从Binlog中读出所有的Xid_log_event</li>
+<li>告诉InnoDB提交这些XID的事务</li>
+<li>InnoDB回滚其它的事务</li>
+</ul>
+<blockquote>
+<p>了解了MySQL关于Innodb与Binlog的两阶段提交机制后，就可以更深入去探究MySQL在故障恢复时的处理过程。 在MySQL启动时，首先会初始化存储引擎，如本例中的InnoDB引擎，然后InnoDB引擎层会读取redolog进行InnoDB层的故障恢复，回滚未prepared和commit的事务，但对于已经prepared，但未commit的事务，暂时挂起，保存到一个链表中，等待后续读取binlog日志，然后根据binlog日志再对这部分prepared的事务进行处理。 接下来，MySQL会读取最后一个binlog文件。binlog文件通常是以固定的文件名加一组连续的编号来命名的，并且将其记录到一个binlog索引文件中，因此索引文件中的最后一个binlog文件即是MySQL将要读取的最后一个binlog文件。 读取这个binlog文件时，通过文件头上是否存在标记LOG_EVENT_BINLOG_IN_USE_F，通过这个标记可以知道上次MySQL是正常关闭还是异常关闭，如果是异常关闭，则会进入故障恢复过程。 进入故障恢复过程后，会依次读取最后一个binlog文件中的所有log event，并将所有已提交事务的binlog日志中记录的xid提取出来添加到hash表中，以备后续对前述InnoDB故障恢复后遗留的Prepared事务继续处理。另外此处还要定位最后一个完整事务的位置，防止在上次系统异常关闭时有部分binlog日志未刷到磁盘上，即存在写了一半的binlog事务日志，这部分写了一半binlog日志的事务在MySQL中会按事务未提交来处理，后续会将其在存储引擎层回滚。当此文件中的内容全部读出之后，一是得到一个已提交事务的列表，另一个是最后一个完整事务的位置。 然后检查由InnoDB层得到的Prepared事务列表，若Prepared事务在从Binlog中得到的提交事务列表中，则在InnoDB层提交此事务，否则回滚此事务。</p>
+<p>出自<a target="_blank" rel="noopener" href="http://mysql.taobao.org/monthly/2018/12/04/">MySQL · 原理介绍 · 再议MySQL的故障恢复</a></p>
+</blockquote>
+<p>疑问1：如果事务的Binlog Event只记录了一部分怎么办？<br>只有最后一个事务的Event会发生这样的情况。在恢复时，binlog会自动的将这个不完整的事务Events从Binlog文件中给清除掉。</p>
+<p>疑问2：随着长时间的运行，Binlog中会积累了很多Xid_log_event，读取所有的Xid_log_event会不会效率很低？</p>
+<p>当然很低，所以Binlog中有一个机制来保证恢复时只用读取最后一个Binlog文件中的Xid_log_event。这种机制很像一个简单的Xid_log_event的checkpoint机制。</p>
+<h3 id="CrashSafe的写盘次数"><a href="#CrashSafe的写盘次数" class="headerlink" title="CrashSafe的写盘次数"></a>CrashSafe的写盘次数</h3><p>前面说道要想保证CrashSafe就要设置下面两个参数为1:<br>sync_binlog=1<br>innodb_flush_log_at_trx_commit=1<br>下面我们来看看这两个参数的作用. </p>
+<ul>
+<li>sync_binlog<br>sync_binlog是控制Binlog写盘的, 1表示每次都写. 由于Binlog使用了组提交(Group Commit)的机制, 它代表一组事务提交时必须要将Binlog文件写入硬件存储1次. </li>
+<li>innodb_flush_log_at_trx_commit的写盘次数<br>这个变量是用来控制InnoDB commit时写盘的方法的. 现在commit被分成了两个阶段, 到底在哪个阶段写盘, 还是两个阶段都要写盘呢？</li>
+<li>Prepare阶段时需要写盘<br>2PC要求在Prepare时就要将数据持久化, 只有这样, 恢复时才能提交已经记录了Xid_log_event的事务. </li>
+<li>Commit阶段时不需要写盘<br>如果Commit阶段不写盘, 会造成什么结果呢？已经Cmmit了的事务, 在恢复时的状态可能是Prepared. 由于恢复时, Prepared的事务可以通过Xid_log_event来提交事务, 所以在恢复后事务的状态就是正确的. 因此在Commit阶段不需要写盘. </li>
+</ul>
+<p>总的来说保证MySQL服务的CrashSafe需要写两次盘. 在2PC的过程中, InnoDB只在prepare阶段时, 写一次盘. Binlog在commit阶段, 会设置一个参数告诉InnoDB不要写盘. 这个参数是thd-&gt;durability_property= HA_IGNORE_DURABILITY;代码在sql/binlog.cc的MYSQL_BIN_LOG::ordered_commit()中. </p>
+<blockquote>
+<p>以上出自<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?src=3&amp;timestamp=1600608182&amp;ver=1&amp;signature=7PcxRxHo*jSo46v0Kshb3IIjH9Lh4pCYNeYXo5BGiJiV0l2b2h4DWBZ7YUzeN5YVvd0M4f46kIDePrZBrrmYMUtT4vRFlTikTdd4MtMQr5ICc0pkdb05YZ0DLGljcSJTVavt4DVznIeh9dp5aZUVbFpKrHVM1x*eBslTBbqg4VQ=">MySQL的CrashSafe和Binlog的关系</a></p>
+</blockquote>
+<h2 id="增强半同步"><a href="#增强半同步" class="headerlink" title="增强半同步"></a>增强半同步</h2><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5.png" alt="image-20200920204457490"><br>对于增强半同步, 主要有两种情况:</p>
+<ul>
+<li>主库写binlog落盘后, Binlog dump线程发送binlog给从库, 从库IO thread接收写入relay log, 但是没有写入完, 主库挂了</li>
+<li>从库IO thread成功写入relay log后, 还没发送ACK或ACK发送了但是主库收到前, 主库挂了</li>
+</ul>
+<h3 id="第一种情况"><a href="#第一种情况" class="headerlink" title="第一种情况"></a>第一种情况</h3><p>对应用来说, 并没有收到commit ok的信息, 应当认为事务提交失败.</p>
+<p>对于主库, 因为已经写了Binlog(写了Xid_log_event), 只是还没有写commit log, crash recover后, 这部分事务又会提交掉</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">假设一主一从半同步</span><br><span class="line"></span><br><span class="line">root@localhost 19:23:00 [dbms_monitor]&gt; show global variables like &#x27;%semi%&#x27;;</span><br><span class="line">+<span class="comment">-------------------------------------------+------------+</span></span><br><span class="line">| Variable_name                             | Value      |</span><br><span class="line">+<span class="comment">-------------------------------------------+------------+</span></span><br><span class="line">| rpl_semi_sync_master_enabled              | OFF        |</span><br><span class="line">| rpl_semi_sync_master_timeout              | 10000      |</span><br><span class="line">| rpl_semi_sync_master_trace_level          | 32         |</span><br><span class="line">| rpl_semi_sync_master_wait_for_slave_count | 1          |</span><br><span class="line">| rpl_semi_sync_master_wait_no_slave        | ON         |</span><br><span class="line">| rpl_semi_sync_master_wait_point           | AFTER_SYNC |</span><br><span class="line">| rpl_semi_sync_slave_enabled               | OFF        |</span><br><span class="line">| rpl_semi_sync_slave_trace_level           | 32         |</span><br><span class="line">+<span class="comment">-------------------------------------------+------------+</span></span><br><span class="line">8 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">root@localhost <span class="number">19</span>:<span class="number">23</span>:<span class="number">02</span> [dbms_monitor]&gt; <span class="keyword">truncate</span> <span class="keyword">table</span> semi_sync;</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">root@localhost 19:23:15 [dbms_monitor]&gt;  show global status like &#x27;%semi%&#x27;;   </span><br><span class="line">+<span class="comment">--------------------------------------------+-------+</span></span><br><span class="line">| Variable_name                              | Value |</span><br><span class="line">+<span class="comment">--------------------------------------------+-------+</span></span><br><span class="line">| Rpl_semi_sync_master_clients               | 1     |</span><br><span class="line">| Rpl_semi_sync_master_net_avg_wait_time     | 0     |</span><br><span class="line">| Rpl_semi_sync_master_net_wait_time         | 0     |</span><br><span class="line">| Rpl_semi_sync_master_net_waits             | 18    |</span><br><span class="line">| Rpl_semi_sync_master_no_times              | 1     |</span><br><span class="line">| Rpl_semi_sync_master_no_tx                 | 2     |</span><br><span class="line">| Rpl_semi_sync_master_status                | ON    |</span><br><span class="line">| Rpl_semi_sync_master_timefunc_failures     | 0     |</span><br><span class="line">| Rpl_semi_sync_master_tx_avg_wait_time      | 555   |</span><br><span class="line">| Rpl_semi_sync_master_tx_wait_time          | 5000  |</span><br><span class="line">| Rpl_semi_sync_master_tx_waits              | 9     |</span><br><span class="line">| Rpl_semi_sync_master_wait_pos_backtraverse | 0     |</span><br><span class="line">| Rpl_semi_sync_master_wait_sessions         | 0     |</span><br><span class="line">| Rpl_semi_sync_master_yes_tx                | 9     |</span><br><span class="line">| Rpl_semi_sync_slave_status                 | OFF   |</span><br><span class="line">+<span class="comment">--------------------------------------------+-------+</span></span><br><span class="line">15 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">root@localhost <span class="number">19</span>:<span class="number">23</span>:<span class="number">44</span> [dbms_monitor]&gt; <span class="keyword">set</span> <span class="keyword">global</span> rpl_semi_sync_master_timeout=<span class="number">999999</span>;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">root@localhost 19:23:52 [dbms_monitor]&gt;  insert into semi_sync values(1, now());</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">slave:</span><br><span class="line">root@localhost 19:24:10 [(none)]&gt; select * from dbms_monitor.semi_sync;</span><br><span class="line">+<span class="comment">----+---------------------+</span></span><br><span class="line">| id | ctime               |</span><br><span class="line">+<span class="comment">----+---------------------+</span></span><br><span class="line">|  1 | 2020-09-20 19:24:01 |</span><br><span class="line">+<span class="comment">----+---------------------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>可以看到当前是半同步状态, 主库rpl_semi_sync_master_timeout=999999, 写入了一条数据.</p>
+<p>我们关闭从库, 之后开三个窗口执行三个insert</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 19:24:50 [dbms_monitor]&gt; insert into semi_sync values(2, now());</span><br><span class="line"></span><br><span class="line">root@localhost 17:41:52 [dbms_monitor]&gt; insert into semi_sync values(3, now());</span><br><span class="line"></span><br><span class="line">root@localhost 17:41:52 [dbms_monitor]&gt; insert into semi_sync values(4, now());</span><br></pre></td></tr></table></figure>
+<p>由于rpl_semi_sync_master_wait_for_slave_count=1, 所以三个insert都在等待.</p>
+<p>此时kill主库, 然后重启主库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@centos-1 mysql5731]<span class="comment"># ps -ef| grep mysqld</span></span><br><span class="line">root      29734  29681  0 17:33 pts/5    00:00:00 tail -f /data/mysql_3358/logs/mysqld.log</span><br><span class="line">root      29743  29626  0 17:33 pts/4    00:00:00 /bin/sh ./bin/mysqld_safe --defaults-file=/data/mysql_3358/my_3358.cnf --user=mysql</span><br><span class="line">mysql     31479  29743  0 17:33 pts/4    00:00:32 /usr/<span class="built_in">local</span>/mysql5731/bin/mysqld --defaults-file=/data/mysql_3358/my_3358.cnf --basedir=/usr/<span class="built_in">local</span>/mysql5731 --datadir=/data/mysql_3358/data --plugin-dir=/usr/<span class="built_in">local</span>/mysql5731/lib/mysql/plugin --user=mysql --<span class="built_in">log</span>-error=/data/mysql_3358/logs/mysqld.log --open-files-limit=65535 --pid-file=/data/mysql_3358/run/mysql.pid --socket=/data/mysql_3358/run/mysql.sock --port=3358</span><br><span class="line">root      32730  29626  0 19:25 pts/4    00:00:00 grep --color=auto mysqld</span><br><span class="line">[root@centos-1 mysql5731]<span class="comment"># kill -9 29743 31479</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[root@centos-1 mysql5731]<span class="comment"># ./bin/mysqld_safe --defaults-file=/data/mysql_3358/my_3358.cnf --user=mysql &amp;</span></span><br><span class="line">[2] 32735</span><br><span class="line">[root@centos-1 mysql5731]<span class="comment">#  mysqld_safe Adding &#x27;/usr/local/mysql5731/lib/mysql/libjemalloc.so.1&#x27; to LD_PRELOAD for mysqld</span></span><br><span class="line">2020-09-20T11:26:12.801721Z mysqld_safe Logging to <span class="string">&#x27;/data/mysql_3358/logs/mysqld.log&#x27;</span>.</span><br><span class="line">2020-09-20T11:26:12.824485Z mysqld_safe Starting mysqld daemon with databases from /data/mysql_3358/data</span><br></pre></td></tr></table></figure>
+<p>查看数据</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 19:26:44 [dbms_monitor]&gt; select * from semi_sync;</span><br><span class="line">+<span class="comment">----+---------------------+</span></span><br><span class="line">| id | ctime               |</span><br><span class="line">+<span class="comment">----+---------------------+</span></span><br><span class="line">|  1 | 2020-09-20 19:24:01 |</span><br><span class="line">|  2 | 2020-09-20 19:25:08 |</span><br><span class="line">|  3 | 2020-09-20 19:25:10 |</span><br><span class="line">|  4 | 2020-09-20 19:25:11 |</span><br><span class="line">+<span class="comment">----+---------------------+</span></span><br><span class="line">4 rows in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>可以看到, 三个insert在crash recover后成功提交了</p>
+<p>由此可以看出, 主库宕机恢复后是不能作为从库加入原集群的, 需要重做, 否则数据不一致.</p>
+<h3 id="第二种情况"><a href="#第二种情况" class="headerlink" title="第二种情况"></a>第二种情况</h3><p>对应用来说, 并没有收到commit ok的信息, 应当认为事务提交失败.</p>
+<p>但是由于这部分事务已经写入了relay log, 从库sql thread应用完relay log中所有binlog event后提升为主库, 此时应用连接到新主库, 准备重试, 那么可能会出现问题:</p>
+<ul>
+<li><p>对于INSERT: </p>
+<p>如果INSERT语句中没有显式指定主键或任何唯一键, 那么应用重试插入后, 会出现重复数据.</p>
+</li>
+<li><p>对于UPDATE</p>
+<p>如果采用update set amount=amount-1000 where id的方式重试, 会出现重复扣款, 所以即便重试, where条件中也应当带上要更新列的原值</p>
+</li>
+<li><p>对于DELETE</p>
+<p>没什么影响, 只是影响行数为0</p>
+</li>
+</ul>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>不会丢数据.</p>
+<p>对于MHA+增强半同步, 主从切换后, 业务不能盲目重试, 而应当做事务执行失败, 按照正常逻辑重新执行完整的事务.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/09/20/2020-09-20-增强半同步会不会丢数据/" target="_blank" title="增强半同步会不会丢数据">http://fuxkdb.com/2020/09/20/2020-09-20-增强半同步会不会丢数据/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%8A%E5%90%8C%E6%AD%A5/" rel="tag">半同步</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/09/22/2020-09-22-ClickHouse%E5%88%B0%E5%BA%95%E6%94%B9%E5%86%99%E6%9C%AC%E5%9C%B0%E8%A1%A8%E8%BF%98%E6%98%AF%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          ClickHouse到底改写本地表还是分布式表
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/09/13/2020-09-13-innodb_status_file-innodb_status_output-innodb_status_output_locks%E5%92%8Cinnodb_show_verbose_locks/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">innodb_status_file innodb_status_output innodb_status_output_locks和innodb_show_verbose_locks</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B8%A2%E6%95%B0%E6%8D%AE"><span class="nav-number">1.</span> <span class="nav-text">增强半同步会不会丢数据?</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Innodb%E4%B8%8EBinlog%E6%97%A5%E5%BF%97%E7%9A%842PC"><span class="nav-number">1.1.</span> <span class="nav-text">Innodb与Binlog日志的2PC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1ID-XID"><span class="nav-number">1.1.1.</span> <span class="nav-text">分布式事务ID(XID)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E5%8D%8F%E8%B0%83%E8%80%85Binlog"><span class="nav-number">1.1.2.</span> <span class="nav-text">事务的协调者Binlog</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%8F%E8%B0%83%E8%80%85%E6%97%A5%E5%BF%97Xid-log-event"><span class="nav-number">1.1.3.</span> <span class="nav-text">协调者日志Xid_log_event</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D-Recovery"><span class="nav-number">1.1.4.</span> <span class="nav-text">恢复(Recovery)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E5%89%8D%E4%BA%8B%E5%8A%A1%E7%9A%84%E7%8A%B6%E6%80%81"><span class="nav-number">1.1.4.1.</span> <span class="nav-text">恢复前事务的状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E8%BF%87%E7%A8%8B"><span class="nav-number">1.1.4.2.</span> <span class="nav-text">恢复过程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CrashSafe%E7%9A%84%E5%86%99%E7%9B%98%E6%AC%A1%E6%95%B0"><span class="nav-number">1.1.5.</span> <span class="nav-text">CrashSafe的写盘次数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5"><span class="nav-number">1.2.</span> <span class="nav-text">增强半同步</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E7%A7%8D%E6%83%85%E5%86%B5"><span class="nav-number">1.2.1.</span> <span class="nav-text">第一种情况</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E7%A7%8D%E6%83%85%E5%86%B5"><span class="nav-number">1.2.2.</span> <span class="nav-text">第二种情况</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">1.3.</span> <span class="nav-text">结论</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

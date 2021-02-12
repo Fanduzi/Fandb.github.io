@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>使用canal + clickhouse实时分析mysql事务信息 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLCanalClickHouse" />
+  
+  
+  
+  
+  <meta name="description" content="使用Canal + ClickHouse实时分析MySQL事务信息作为DBA, 有时候我们会希望能够了解线上核心库更具体的”样貌”, 如:  这个库主要的DML类型是什么? 这个库的事务大小, 执行时间, 影响行数大概是什么样的?  以上信息也许没什么价值, 但大事务对复制的影响不用多说, 并且当我们希望升级当前主从架构到MGR&#x2F;PXC等高可用方案的场景时以上信息就比较重要了(毕竟用数据说话更有力">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Canal + ClickHouse实时分析MySQL事务信息">
+<meta property="og:url" content="http://fuxkdb.com/2020/12/31/2020-12-31-%E4%BD%BF%E7%94%A8Canal-+-ClickHouse%E5%AE%9E%E6%97%B6%E5%88%86%E6%9E%90MySQL%E4%BA%8B%E5%8A%A1%E4%BF%A1%E6%81%AF/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="使用Canal + ClickHouse实时分析MySQL事务信息作为DBA, 有时候我们会希望能够了解线上核心库更具体的”样貌”, 如:  这个库主要的DML类型是什么? 这个库的事务大小, 执行时间, 影响行数大概是什么样的?  以上信息也许没什么价值, 但大事务对复制的影响不用多说, 并且当我们希望升级当前主从架构到MGR&#x2F;PXC等高可用方案的场景时以上信息就比较重要了(毕竟用数据说话更有力">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/overview.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E6%AF%8F%E6%97%A5binlog%20event%E7%B1%BB%E5%9E%8B%E7%BB%9F%E8%AE%A1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E6%AF%8F%E6%97%A5TOP%2010DML%E8%A1%A8%E7%BB%9F%E8%AE%A1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E6%AF%8F%E6%97%A5TOP%E8%A1%A8%E8%AF%AD%E5%8F%A5%E7%B1%BB%E5%9E%8B.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E4%B8%80%E5%91%A8%E6%89%A7%E8%A1%8CDML%E6%80%BB%E9%87%8F.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E4%BA%8B%E5%8A%A1%E6%83%85%E5%86%B5.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E7%94%BB%E5%83%8F%E5%AE%9E%E6%97%B6%E7%BB%9F%E8%AE%A1%E9%9C%80%E6%B1%82.png">
+<meta property="article:published_time" content="2020-12-31T05:54:00.000Z">
+<meta property="article:modified_time" content="2020-12-31T05:56:19.701Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Canal">
+<meta property="article:tag" content="ClickHouse">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/overview.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-12-31-使用Canal-+-ClickHouse实时分析MySQL事务信息" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      使用Canal + ClickHouse实时分析MySQL事务信息
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/12/31/2020-12-31-%E4%BD%BF%E7%94%A8Canal-+-ClickHouse%E5%AE%9E%E6%97%B6%E5%88%86%E6%9E%90MySQL%E4%BA%8B%E5%8A%A1%E4%BF%A1%E6%81%AF/" class="article-date">
+	  <time datetime="2020-12-31T05:54:00.000Z" itemprop="datePublished">2020-12-31</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="使用Canal-ClickHouse实时分析MySQL事务信息"><a href="#使用Canal-ClickHouse实时分析MySQL事务信息" class="headerlink" title="使用Canal + ClickHouse实时分析MySQL事务信息"></a>使用Canal + ClickHouse实时分析MySQL事务信息</h1><p>作为DBA, 有时候我们会希望能够了解线上核心库更具体的”样貌”, 如:</p>
+<ul>
+<li>这个库主要的DML类型是什么?</li>
+<li>这个库的事务大小, 执行时间, 影响行数大概是什么样的?</li>
+</ul>
+<p>以上信息也许没什么价值, 但大事务对复制的影响不用多说, 并且当我们希望升级当前主从架构到MGR/PXC等高可用方案的场景时以上信息就比较重要了(毕竟用数据说话更有力度).</p>
+<blockquote>
+<p>大事务对MGR和PXC都是不友好的, 尤其是MGR(起码在5.7版本)严重时会导致整个集群hang死</p>
+<p>在Galera 4.0中新特性<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>对大事务有了更好的支持</p>
+</blockquote>
+<p>当然, 有人可能会说, 通过分析binlog就可以完成这样的工作, 最简单的方法写个shell脚本就可以, 比如这篇文章中介绍的方法<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2015/01/20/identifying-useful-information-mysql-row-based-binary-logs/">Identifying Useful Info from MySQL Row-Based Binary Logs</a>(这篇文章介绍的方法比较简单, 分析速度也较慢, 可以试试<a target="_blank" rel="noopener" href="https://gitee.com/mo-shan/analysis_binlog.git">analysis_binlog</a>). 当然还有很多其他工具, 比如infobin. </p>
+<p>但个人认为上面的方法从某种角度来看还是比较麻烦, 而且现在ClickHouse越来越流行, 使用ClickHouse去完成这个工作也能帮助我们更好的学习ClickHouse</p>
+<p>先看一下最终的成果</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/overview.png" alt="overview"></p>
+<a id="more"></a>
+<h2 id="实现方法"><a href="#实现方法" class="headerlink" title="实现方法"></a>实现方法</h2><ol>
+<li><p>canal + kafka</p>
+<p>部署<a target="_blank" rel="noopener" href="https://github.com/alibaba/canal">canal</a>, 订阅线上库的binlog, 写入到kafka 我这里没有使用flatMessage(canal.mq.flatMessage = false), 写入到kafka的消息是二进制的protobuf格式的, 当然也可以开启flatMessage, 那么写到kafka的消息就是json格式的.</p>
+</li>
+<li><p>消费binlog, 持久化到clickhouse</p>
+<p>具体代码详见 <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/Use_clickhouse_2_analyze_mysql_binlog">https://github.com/Fanduzi/Use_clickhouse_2_analyze_mysql_binlog</a></p>
+</li>
+<li><p>clickhouse表</p>
+<h3 id="基础表"><a href="#基础表" class="headerlink" title="基础表"></a>基础表</h3><p>canal消费后直接写入</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 本地表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_binlog_local</span><br><span class="line">(</span><br><span class="line">    <span class="string">`schema`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;数据库名&#x27;</span>,</span><br><span class="line">    <span class="string">`table`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;表名&#x27;</span>,</span><br><span class="line">    <span class="string">`event_type`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;语句类型&#x27;</span>,</span><br><span class="line">    <span class="string">`is_ddl`</span> UInt8 <span class="keyword">COMMENT</span> <span class="string">&#x27;DDL 1 else 0&#x27;</span>,</span><br><span class="line">    <span class="string">`binlog_file`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;binlog文件名&#x27;</span>,</span><br><span class="line">    <span class="string">`binlog_pos`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;binlog pos&#x27;</span>,</span><br><span class="line">    <span class="string">`characterset`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;字符集&#x27;</span>,</span><br><span class="line">    <span class="string">`execute_time`</span> DateTime <span class="keyword">COMMENT</span> <span class="string">&#x27;执行的时间&#x27;</span>,</span><br><span class="line">    <span class="string">`gtid`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;gtid&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_affected_rows`</span> UInt32 <span class="keyword">COMMENT</span> <span class="string">&#x27;此语句影响行数&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_size`</span> <span class="keyword">String</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;此语句size,单位bytes&#x27;</span>,</span><br><span class="line">    <span class="string">`ctime`</span> DateTime <span class="keyword">DEFAULT</span> <span class="keyword">now</span>() <span class="keyword">COMMENT</span> <span class="string">&#x27;写入clickhouse时间&#x27;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = ReplicatedMergeTree(<span class="string">&#x27;/clickhouse/mysql_monitor/tables/&#123;layer&#125;-&#123;shard&#125;/broker_binlog&#x27;</span>, <span class="string">&#x27;&#123;replica&#125;&#x27;</span>)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> toDate(execute_time)</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> (execute_time, gtid, <span class="keyword">table</span>, <span class="keyword">schema</span>)</span><br><span class="line">TTL execute_time + toIntervalMonth(<span class="number">30</span>)</span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">8192</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 分布式表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_binlog</span><br><span class="line">(</span><br><span class="line">    <span class="string">`schema`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;数据库名&#x27;</span>,</span><br><span class="line">    <span class="string">`table`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;表名&#x27;</span>,</span><br><span class="line">    <span class="string">`event_type`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;语句类型&#x27;</span>,</span><br><span class="line">    <span class="string">`is_ddl`</span> UInt8 <span class="keyword">COMMENT</span> <span class="string">&#x27;DDL 1 else 0&#x27;</span>,</span><br><span class="line">    <span class="string">`binlog_file`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;binlog文件名&#x27;</span>,</span><br><span class="line">    <span class="string">`binlog_pos`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;binlog pos&#x27;</span>,</span><br><span class="line">    <span class="string">`characterset`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;字符集&#x27;</span>,</span><br><span class="line">    <span class="string">`execute_time`</span> DateTime <span class="keyword">COMMENT</span> <span class="string">&#x27;执行的时间&#x27;</span>,</span><br><span class="line">    <span class="string">`gtid`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;gtid&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_affected_rows`</span> UInt32 <span class="keyword">COMMENT</span> <span class="string">&#x27;此语句影响行数&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_size`</span> <span class="keyword">String</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;此语句size,单位bytes&#x27;</span>,</span><br><span class="line">    <span class="string">`ctime`</span> DateTime <span class="keyword">DEFAULT</span> <span class="keyword">now</span>() <span class="keyword">COMMENT</span> <span class="string">&#x27;写入clickhouse时间&#x27;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = <span class="keyword">Distributed</span>(<span class="string">&#x27;ch_cluster_all&#x27;</span>, <span class="string">&#x27;mysql_monitor&#x27;</span>, <span class="string">&#x27;broker_binlog_local&#x27;</span>, <span class="keyword">rand</span>())</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="统计用表"><a href="#统计用表" class="headerlink" title="统计用表"></a>统计用表</h3><blockquote>
+<p>SummingMergeTree</p>
+<p>ClickHouse会将所有具有相同主键（或更准确地说, 具有相同sorting key）的行替换为包含具有数字数据类型的列的汇总值的一行</p>
+</blockquote>
+<h3 id="每天binlog-各个event-type数量"><a href="#每天binlog-各个event-type数量" class="headerlink" title="每天binlog 各个event_type数量"></a>每天binlog 各个event_type数量</h3><p>用于统计每日整体binlog event类型占比</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E6%AF%8F%E6%97%A5binlog%20event%E7%B1%BB%E5%9E%8B%E7%BB%9F%E8%AE%A1.png" alt=""></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 物化视图基表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_daily_binlog_event_count_local <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`day`</span> <span class="built_in">Date</span>,</span><br><span class="line">    <span class="string">`event_type`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`event_count`</span> UInt64</span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = ReplicatedSummingMergeTree(<span class="string">&#x27;/clickhouse/mysql_monitor/tables/&#123;layer&#125;-&#123;shard&#125;/broker_daily_binlog_event_count&#x27;</span>, <span class="string">&#x27;&#123;replica&#125;&#x27;</span>)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> <span class="keyword">day</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> (<span class="keyword">day</span>, event_type)</span><br><span class="line">TTL <span class="keyword">day</span> + toIntervalMonth(<span class="number">30</span>)</span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">8192</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 本地物化视图</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">MATERIALIZED</span> <span class="keyword">VIEW</span> mysql_monitor.broker_daily_binlog_event_count_mv_local <span class="keyword">ON</span> CLUSTER ch_cluster_all <span class="keyword">TO</span> mysql_monitor.broker_daily_binlog_event_count_local</span><br><span class="line">(</span><br><span class="line">    <span class="string">`day`</span> <span class="built_in">Date</span>,</span><br><span class="line">    <span class="string">`event_type`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`event_count`</span> UInt64</span><br><span class="line">) <span class="keyword">AS</span></span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    toDate(execute_time) <span class="keyword">AS</span> <span class="keyword">day</span>,</span><br><span class="line">    event_type,</span><br><span class="line">    <span class="keyword">count</span>(*) <span class="keyword">AS</span> event_count</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.broker_binlog_local</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">    <span class="keyword">day</span>,</span><br><span class="line">    event_type</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span></span><br><span class="line">    <span class="keyword">day</span> <span class="keyword">ASC</span>,</span><br><span class="line">    event_type <span class="keyword">ASC</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 分布式物化视图</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_daily_binlog_event_count_mv <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`day`</span> <span class="built_in">Date</span>,</span><br><span class="line">    <span class="string">`event_type`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`event_count`</span> UInt64</span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = <span class="keyword">Distributed</span>(<span class="string">&#x27;ch_cluster_all&#x27;</span>, <span class="string">&#x27;mysql_monitor&#x27;</span>, <span class="string">&#x27;broker_daily_binlog_event_count_mv_local&#x27;</span>, <span class="keyword">rand</span>())</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>grafana中查询语句</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    <span class="keyword">day</span> <span class="keyword">as</span> t,</span><br><span class="line">    event_type,</span><br><span class="line">    <span class="keyword">sum</span>(event_count)</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_daily_binlog_event_count_mv</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">day</span> = yesterday() <span class="keyword">and</span> event_type!=<span class="string">&#x27;QUERY&#x27;</span> <span class="keyword">and</span> event_type!=<span class="string">&#x27;EVENTTYPECOMPATIBLEPROTO2&#x27;</span></span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">    <span class="keyword">day</span>, event_type</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h4 id="每日TOP-DML表统计"><a href="#每日TOP-DML表统计" class="headerlink" title="每日TOP DML表统计"></a>每日TOP DML表统计</h4><p>   <img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E6%AF%8F%E6%97%A5TOP%2010DML%E8%A1%A8%E7%BB%9F%E8%AE%A1.png" alt=""></p>
+   <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 物化视图基表</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_daily_binlog_event_count_by_table_local <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`day`</span> <span class="built_in">Date</span>,</span><br><span class="line">    <span class="string">`schema`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`table`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`event_type`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`event_count`</span> UInt64</span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = ReplicatedSummingMergeTree(<span class="string">&#x27;/clickhouse/mysql_monitor/tables/&#123;layer&#125;-&#123;shard&#125;/broker_daily_binlog_event_count_by_table&#x27;</span>, <span class="string">&#x27;&#123;replica&#125;&#x27;</span>)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> <span class="keyword">day</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> (<span class="keyword">day</span>, <span class="keyword">table</span>, <span class="keyword">schema</span>, event_type)</span><br><span class="line">TTL <span class="keyword">day</span> + toIntervalMonth(<span class="number">30</span>)</span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">8192</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 本地物化视图</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">MATERIALIZED</span> <span class="keyword">VIEW</span> mysql_monitor.broker_daily_binlog_event_count_by_table_mv_local <span class="keyword">ON</span> CLUSTER ch_cluster_all <span class="keyword">TO</span> mysql_monitor.broker_daily_binlog_event_count_by_table_local</span><br><span class="line">(</span><br><span class="line">    <span class="string">`day`</span> <span class="built_in">Date</span>,</span><br><span class="line">    <span class="string">`schema`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`table`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`event_type`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`event_count`</span> UInt64</span><br><span class="line">) <span class="keyword">AS</span></span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    toDate(execute_time) <span class="keyword">AS</span> <span class="keyword">day</span>,</span><br><span class="line">    <span class="keyword">schema</span>,</span><br><span class="line">    <span class="keyword">table</span>,</span><br><span class="line">    event_type,</span><br><span class="line">    <span class="keyword">count</span>(*) <span class="keyword">AS</span> event_count</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.broker_binlog_local</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">    <span class="keyword">day</span>,</span><br><span class="line">    <span class="keyword">schema</span>,</span><br><span class="line">    <span class="keyword">table</span>,</span><br><span class="line">    event_type</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span></span><br><span class="line">    <span class="keyword">day</span> <span class="keyword">ASC</span>,</span><br><span class="line">    <span class="keyword">schema</span> <span class="keyword">ASC</span>,</span><br><span class="line">    <span class="keyword">table</span> <span class="keyword">ASC</span>,</span><br><span class="line">    event_type <span class="keyword">DESC</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 分布式物化视图</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_daily_binlog_event_count_by_table_mv <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`day`</span> <span class="built_in">Date</span>,</span><br><span class="line">    <span class="string">`schema`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`table`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`event_type`</span> <span class="keyword">String</span>,</span><br><span class="line">    <span class="string">`event_count`</span> UInt64</span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = <span class="keyword">Distributed</span>(<span class="string">&#x27;ch_cluster_all&#x27;</span>, <span class="string">&#x27;mysql_monitor&#x27;</span>, <span class="string">&#x27;broker_daily_binlog_event_count_by_table_mv_local&#x27;</span>, <span class="keyword">rand</span>())</span><br></pre></td></tr></table></figure>
+<p>   grafana中查询语句</p>
+   <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    <span class="keyword">day</span> <span class="keyword">as</span> t,</span><br><span class="line">    <span class="keyword">table</span>,</span><br><span class="line">    <span class="keyword">sum</span>(event_count) <span class="keyword">count</span></span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_daily_binlog_event_count_by_table_mv</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">day</span> = yesterday() <span class="keyword">and</span> event_type!=<span class="string">&#x27;QUERY&#x27;</span> <span class="keyword">and</span> event_type!=<span class="string">&#x27;EVENTTYPECOMPATIBLEPROTO2&#x27;</span></span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">    <span class="keyword">day</span>,</span><br><span class="line">    <span class="keyword">table</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">count</span> <span class="keyword">desc</span></span><br><span class="line"><span class="keyword">LIMIT</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+<p>   <img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E6%AF%8F%E6%97%A5TOP%E8%A1%A8%E8%AF%AD%E5%8F%A5%E7%B1%BB%E5%9E%8B.png" alt=""></p>
+<p>   grafana中查询语句</p>
+   <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    <span class="keyword">day</span> <span class="keyword">as</span> t,</span><br><span class="line">    <span class="keyword">table</span>,</span><br><span class="line">    event_type,</span><br><span class="line">    <span class="keyword">sum</span>(event_count) <span class="keyword">count</span></span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_daily_binlog_event_count_by_table_mv</span><br><span class="line"><span class="keyword">WHERE</span></span><br><span class="line">    <span class="keyword">day</span> = yesterday() <span class="keyword">and</span> event_type!=<span class="string">&#x27;QUERY&#x27;</span> <span class="keyword">and</span> event_type!=<span class="string">&#x27;EVENTTYPECOMPATIBLEPROTO2&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> <span class="keyword">table</span> <span class="keyword">GLOBAL</span> <span class="keyword">IN</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="keyword">table</span> <span class="keyword">from</span> (</span><br><span class="line">      <span class="keyword">select</span> <span class="keyword">table</span>, <span class="keyword">sum</span>(event_count) <span class="keyword">count</span> <span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_daily_binlog_event_count_by_table_mv <span class="keyword">WHERE</span> <span class="keyword">day</span> = yesterday() <span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">table</span> <span class="keyword">order</span> <span class="keyword">by</span> <span class="keyword">count</span> <span class="keyword">desc</span> <span class="keyword">limit</span> <span class="number">3</span> </span><br><span class="line">      ))</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span></span><br><span class="line">    <span class="keyword">day</span>,</span><br><span class="line">    <span class="keyword">table</span>,</span><br><span class="line">    event_type</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">count</span> <span class="keyword">DESC</span></span><br></pre></td></tr></table></figure>
+<h4 id="一周执行DML总量情况"><a href="#一周执行DML总量情况" class="headerlink" title="一周执行DML总量情况"></a>一周执行DML总量情况</h4><p>   <img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E4%B8%80%E5%91%A8%E6%89%A7%E8%A1%8CDML%E6%80%BB%E9%87%8F.png" alt=""></p>
+   <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">WITH</span> </span><br><span class="line">    (</span><br><span class="line">        <span class="keyword">SELECT</span> <span class="keyword">sum</span>(event_count)</span><br><span class="line">        <span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_daily_binlog_event_count_mv</span><br><span class="line">        <span class="keyword">WHERE</span> (<span class="keyword">day</span> &gt;= (today() - <span class="number">6</span>)) <span class="keyword">AND</span> (event_type != <span class="string">&#x27;QUERY&#x27;</span>) <span class="keyword">AND</span> (event_type != <span class="string">&#x27;EVENTTYPECOMPATIBLEPROTO2&#x27;</span>)</span><br><span class="line">    ) <span class="keyword">AS</span> total_statement_count</span><br><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    multiIf(toDayOfWeek(<span class="keyword">day</span>) = <span class="number">1</span>, <span class="string">&#x27;星期一&#x27;</span>, toDayOfWeek(<span class="keyword">day</span>) = <span class="number">2</span>, <span class="string">&#x27;星期二&#x27;</span>, toDayOfWeek(<span class="keyword">day</span>) = <span class="number">3</span>, <span class="string">&#x27;星期三&#x27;</span>, toDayOfWeek(<span class="keyword">day</span>) = <span class="number">4</span>, <span class="string">&#x27;星期四&#x27;</span>, toDayOfWeek(<span class="keyword">day</span>) = <span class="number">5</span>, <span class="string">&#x27;星期五&#x27;</span>, toDayOfWeek(<span class="keyword">day</span>) = <span class="number">6</span>, <span class="string">&#x27;星期六&#x27;</span>, toDayOfWeek(<span class="keyword">day</span>) = <span class="number">7</span>, <span class="string">&#x27;星期日&#x27;</span>, <span class="string">&#x27;N/A&#x27;</span>) <span class="keyword">AS</span> w,</span><br><span class="line">    <span class="keyword">day</span> <span class="keyword">AS</span> t, </span><br><span class="line">    <span class="keyword">sum</span>(event_count) <span class="keyword">AS</span> statement_count, </span><br><span class="line">    bar(statement_count, <span class="number">0</span>, total_statement_count, <span class="number">500</span>) <span class="keyword">AS</span> bar</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_daily_binlog_event_count_mv</span><br><span class="line"><span class="keyword">WHERE</span> (<span class="keyword">day</span> &gt;= (today() - <span class="number">6</span>)) <span class="keyword">AND</span> (event_type != <span class="string">&#x27;QUERY&#x27;</span>) <span class="keyword">AND</span> (event_type != <span class="string">&#x27;EVENTTYPECOMPATIBLEPROTO2&#x27;</span>)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">day</span> <span class="keyword">ORDER</span> <span class="keyword">BY</span> toDate(t) <span class="keyword">DESC</span></span><br></pre></td></tr></table></figure>
+<h4 id="事务情况统计"><a href="#事务情况统计" class="headerlink" title="事务情况统计"></a>事务情况统计</h4><p>   <img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E4%BA%8B%E5%8A%A1%E6%83%85%E5%86%B5.png" alt=""></p>
+<p>   统计影响行数对多的事务, 产生binlog最大的事务, 执行时间最长的事务</p>
+   <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_largest_transaction_local <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`end_time`</span> DateTime <span class="keyword">COMMENT</span> <span class="string">&#x27;采集语句中的end_time&#x27;</span>,</span><br><span class="line">    <span class="string">`invertal`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;采集周期,单位秒&#x27;</span>,</span><br><span class="line">    <span class="string">`gtid`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;gtid&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_spend_time`</span> Int32 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务用时&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_size`</span> Int64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务size&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_affected_rows`</span> UInt64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务影响行数&#x27;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = ReplicatedSummingMergeTree(<span class="string">&#x27;/clickhouse/mysql_monitor/tables/&#123;layer&#125;-&#123;shard&#125;/broker_largest_transaction&#x27;</span>, <span class="string">&#x27;&#123;replica&#125;&#x27;</span>)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> toDate(end_time)</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> gtid</span><br><span class="line">TTL toDate(end_time) + toIntervalMonth(<span class="number">30</span>)</span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">8192</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_largest_transaction <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`end_time`</span> DateTime <span class="keyword">COMMENT</span> <span class="string">&#x27;采集语句中的end_time&#x27;</span>,</span><br><span class="line">    <span class="string">`invertal`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;采集周期,单位秒&#x27;</span>,</span><br><span class="line">    <span class="string">`gtid`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;gtid&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_spend_time`</span> Int32 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务用时&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_size`</span> Int64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务size&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_affected_rows`</span> UInt64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务影响行数&#x27;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = <span class="keyword">Distributed</span>(<span class="string">&#x27;ch_cluster_all&#x27;</span>, <span class="string">&#x27;mysql_monitor&#x27;</span>, <span class="string">&#x27;broker_largest_transaction_local&#x27;</span>, <span class="keyword">rand</span>())</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_most_time_consuming_transaction_local <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`end_time`</span> DateTime <span class="keyword">COMMENT</span> <span class="string">&#x27;采集语句中的end_time&#x27;</span>,</span><br><span class="line">    <span class="string">`invertal`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;采集周期,单位秒&#x27;</span>,</span><br><span class="line">    <span class="string">`gtid`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;gtid&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_spend_time`</span> Int32 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务用时&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_size`</span> Int64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务size&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_affected_rows`</span> UInt64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务影响行数&#x27;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = ReplicatedSummingMergeTree(<span class="string">&#x27;/clickhouse/mysql_monitor/tables/&#123;layer&#125;-&#123;shard&#125;/broker_most_time_consuming_transaction&#x27;</span>, <span class="string">&#x27;&#123;replica&#125;&#x27;</span>)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> toDate(end_time)</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> gtid</span><br><span class="line">TTL toDate(end_time) + toIntervalMonth(<span class="number">30</span>)</span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">8192</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_most_time_consuming_transaction <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`end_time`</span> DateTime <span class="keyword">COMMENT</span> <span class="string">&#x27;采集语句中的end_time&#x27;</span>,</span><br><span class="line">    <span class="string">`invertal`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;采集周期,单位秒&#x27;</span>,</span><br><span class="line">    <span class="string">`gtid`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;gtid&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_spend_time`</span> Int32 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务用时&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_size`</span> Int64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务size&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_affected_rows`</span> UInt64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务影响行数&#x27;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = <span class="keyword">Distributed</span>(<span class="string">&#x27;ch_cluster_all&#x27;</span>, <span class="string">&#x27;mysql_monitor&#x27;</span>, <span class="string">&#x27;broker_most_time_consuming_transaction_local&#x27;</span>, <span class="keyword">rand</span>())</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_most_affected_rows_transaction_local <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`end_time`</span> DateTime <span class="keyword">COMMENT</span> <span class="string">&#x27;采集语句中的end_time&#x27;</span>,</span><br><span class="line">    <span class="string">`invertal`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;采集周期,单位秒&#x27;</span>,</span><br><span class="line">    <span class="string">`gtid`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;gtid&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_spend_time`</span> Int32 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务用时&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_size`</span> Int64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务size&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_affected_rows`</span> UInt64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务影响行数&#x27;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = ReplicatedSummingMergeTree(<span class="string">&#x27;/clickhouse/mysql_monitor/tables/&#123;layer&#125;-&#123;shard&#125;/broker_most_affected_rows_transaction&#x27;</span>, <span class="string">&#x27;&#123;replica&#125;&#x27;</span>)</span><br><span class="line"><span class="keyword">PARTITION</span> <span class="keyword">BY</span> toDate(end_time)</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> gtid</span><br><span class="line">TTL toDate(end_time) + toIntervalMonth(<span class="number">30</span>)</span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">8192</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> mysql_monitor.broker_most_affected_rows_transaction <span class="keyword">ON</span> CLUSTER ch_cluster_all</span><br><span class="line">(</span><br><span class="line">    <span class="string">`end_time`</span> DateTime <span class="keyword">COMMENT</span> <span class="string">&#x27;采集语句中的end_time&#x27;</span>,</span><br><span class="line">    <span class="string">`invertal`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;采集周期,单位秒&#x27;</span>,</span><br><span class="line">    <span class="string">`gtid`</span> <span class="keyword">String</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;gtid&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_spend_time`</span> Int32 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务用时&#x27;</span>,</span><br><span class="line">    <span class="string">`transaction_size`</span> Int64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务size&#x27;</span>,</span><br><span class="line">    <span class="string">`single_statement_affected_rows`</span> UInt64 <span class="keyword">COMMENT</span> <span class="string">&#x27;事务影响行数&#x27;</span></span><br><span class="line">)</span><br><span class="line"><span class="keyword">ENGINE</span> = <span class="keyword">Distributed</span>(<span class="string">&#x27;ch_cluster_all&#x27;</span>, <span class="string">&#x27;mysql_monitor&#x27;</span>, <span class="string">&#x27;broker_most_affected_rows_transaction_local&#x27;</span>, <span class="keyword">rand</span>())</span><br></pre></td></tr></table></figure>
+<p>   想了想只能建三张表, 写脚本自己周期性查询size,耗时, 影响行数最多的在插入这些表中</p>
+<p>   查询语句大致如下, 由于grafana必须需要一个DateTime列, 所以加了一个<code>toDateTime(&#39;&#123;end&#125;&#39;)</code> 取每次采集窗口的高水位. 三个查询只是order by不同</p>
+   <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line">昨日最大事物size</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    $timeSeries <span class="keyword">as</span> t,</span><br><span class="line">    <span class="keyword">sum</span>(transaction_size) sum_transaction_size</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_largest_transaction</span><br><span class="line"><span class="keyword">WHERE</span> end_time&gt;=toDateTime(yesterday()) <span class="keyword">and</span> end_time&lt;toDateTime(today())</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t,gtid</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> sum_transaction_size <span class="keyword">desc</span> <span class="keyword">limit</span> <span class="number">1</span></span><br><span class="line"></span><br><span class="line">昨日事务最大执行时间</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    $timeSeries <span class="keyword">as</span> t,</span><br><span class="line">    <span class="keyword">sum</span>(transaction_spend_time) sum_transaction_spend_time</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_most_time_consuming_transaction</span><br><span class="line"><span class="keyword">WHERE</span> end_time&gt;=toDateTime(yesterday()) <span class="keyword">and</span> end_time&lt;toDateTime(today())</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t,gtid</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> sum_transaction_spend_time <span class="keyword">desc</span> <span class="keyword">limit</span> <span class="number">1</span></span><br><span class="line"></span><br><span class="line">昨日事务影响最大行数</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    $timeSeries <span class="keyword">as</span> t,</span><br><span class="line">    <span class="keyword">sum</span>(single_statement_affected_rows) transaction_affected_rows</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_most_affected_rows_transaction</span><br><span class="line"><span class="keyword">WHERE</span> end_time&gt;=toDateTime(yesterday()) <span class="keyword">and</span> end_time&lt;toDateTime(today())</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t,gtid</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> transaction_affected_rows <span class="keyword">desc</span> <span class="keyword">limit</span> <span class="number">1</span></span><br><span class="line"></span><br><span class="line">上周最大事物概览</span><br><span class="line"><span class="keyword">select</span> t,<span class="keyword">max</span>(sum_transaction_size) max_transaction_size <span class="keyword">from</span> (</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    toDate(end_time) <span class="keyword">as</span> t,</span><br><span class="line">    gtid,</span><br><span class="line">    <span class="keyword">sum</span>(transaction_size) sum_transaction_size</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_largest_transaction</span><br><span class="line"><span class="keyword">WHERE</span> end_time &gt;= (today() - <span class="number">6</span>)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t,gtid) <span class="keyword">group</span> <span class="keyword">by</span> t <span class="keyword">order</span> <span class="keyword">by</span> t <span class="keyword">desc</span> </span><br><span class="line"></span><br><span class="line">上周事务最大执行时间概览</span><br><span class="line"><span class="keyword">select</span> t,<span class="keyword">max</span>(sum_transaction_spend_time) max_transaction_spend_time <span class="keyword">from</span> (</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    toDate(end_time) <span class="keyword">as</span> t,</span><br><span class="line">    gtid,</span><br><span class="line">    <span class="keyword">sum</span>(transaction_spend_time) sum_transaction_spend_time</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_most_time_consuming_transaction</span><br><span class="line"><span class="keyword">WHERE</span> end_time &gt;= (today() - <span class="number">6</span>)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t,gtid) <span class="keyword">group</span> <span class="keyword">by</span> t <span class="keyword">order</span> <span class="keyword">by</span> t <span class="keyword">desc</span> </span><br><span class="line"></span><br><span class="line">上周事务影响最大行数概览</span><br><span class="line"><span class="keyword">select</span> t,<span class="keyword">max</span>(transaction_affected_rows) max_transaction_affected_rows <span class="keyword">from</span> (</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    toDate(end_time) <span class="keyword">as</span> t,</span><br><span class="line">    gtid,</span><br><span class="line">    <span class="keyword">sum</span>(single_statement_affected_rows) transaction_affected_rows</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_most_affected_rows_transaction</span><br><span class="line"><span class="keyword">WHERE</span> end_time &gt;= (today() - <span class="number">6</span>)</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t,gtid) <span class="keyword">group</span> <span class="keyword">by</span> t <span class="keyword">order</span> <span class="keyword">by</span> t <span class="keyword">desc</span> </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">近实时事务<span class="keyword">size</span>图</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    $timeSeries <span class="keyword">as</span> t,</span><br><span class="line">    <span class="keyword">sum</span>(transaction_size) transaction_size</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_largest_transaction</span><br><span class="line"><span class="keyword">WHERE</span> $timeFilter</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t, gtid</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> t</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    $timeSeries <span class="keyword">as</span> t,</span><br><span class="line">    <span class="keyword">sum</span>(transaction_spend_time) transaction_spend_time</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_most_time_consuming_transaction</span><br><span class="line"><span class="keyword">WHERE</span> $timeFilter</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t, gtid</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> t</span><br><span class="line"></span><br><span class="line">近实时事务影响行数图</span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    $timeSeries <span class="keyword">as</span> t,</span><br><span class="line">    <span class="keyword">sum</span>(single_statement_affected_rows) transaction_affected_rows</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_most_affected_rows_transaction</span><br><span class="line"><span class="keyword">WHERE</span> $timeFilter</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t, gtid</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> t</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    $timeSeries <span class="keyword">as</span> t,</span><br><span class="line">    <span class="keyword">sum</span>(transaction_spend_time) transaction_spend_time</span><br><span class="line"><span class="keyword">FROM</span> mysql_monitor.$&#123;prefix&#125;_most_time_consuming_transaction</span><br><span class="line"><span class="keyword">WHERE</span> $timeFilter</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> t, gtid</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> t</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>实际干下来发现一些查询确实可以通过物化视图优化, 但是grafana每次都要带一个DateTime比较烦, 可能物化视图还有优化空间. 对于如下图所示的实时统计的需求<code>daily_binlog</code>这种天级物化视图就无法实现细粒度的查询了(查询速度太慢, 必须借助物化视图)</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/%E7%94%BB%E5%83%8F%E5%AE%9E%E6%97%B6%E7%BB%9F%E8%AE%A1%E9%9C%80%E6%B1%82.png" alt=""></p>
+<p>那么如何实现更细粒度的物化视图呢? 得看下如何按周期聚合, 比如5分钟一个聚合. 目前clickhouse没有oracle那样的开窗函数</p>
+<blockquote>
+<p>oracle可以</p>
+<p>sum over(partition by gtid order by execute_time range between interval ‘1’ day preceding and interval ‘1’ day following)</p>
+</blockquote>
+<p>对于一些不好优化的查询, 如果换马蜂窝那些一天上百G binlog的库可能真的跑不动了. 也许只能多搞几个分片, 不过不知道最后聚合会不会很耗内存, 感觉最主要是这套系统是否值得付出加节点的金钱成本.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/12/31/2020-12-31-使用Canal-+-ClickHouse实时分析MySQL事务信息/" target="_blank" title="使用Canal + ClickHouse实时分析MySQL事务信息">http://fuxkdb.com/2020/12/31/2020-12-31-使用Canal-+-ClickHouse实时分析MySQL事务信息/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Canal/" rel="tag">Canal</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ClickHouse/" rel="tag">ClickHouse</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/02/07/2021-02-07-MHA-Failover%E6%B5%8B%E8%AF%95/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          MHA Failover测试
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/09/24/2020-09-24-%E7%B1%BBMHA%E9%AB%98%E5%8F%AF%E7%94%A8%E6%96%B9%E6%A1%88%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">类MHA高可用方案存在的问题</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8Canal-ClickHouse%E5%AE%9E%E6%97%B6%E5%88%86%E6%9E%90MySQL%E4%BA%8B%E5%8A%A1%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">使用Canal + ClickHouse实时分析MySQL事务信息</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95"><span class="nav-number">1.1.</span> <span class="nav-text">实现方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E8%A1%A8"><span class="nav-number">1.1.1.</span> <span class="nav-text">基础表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%9F%E8%AE%A1%E7%94%A8%E8%A1%A8"><span class="nav-number">1.1.2.</span> <span class="nav-text">统计用表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%8F%E5%A4%A9binlog-%E5%90%84%E4%B8%AAevent-type%E6%95%B0%E9%87%8F"><span class="nav-number">1.1.3.</span> <span class="nav-text">每天binlog 各个event_type数量</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AF%8F%E6%97%A5TOP-DML%E8%A1%A8%E7%BB%9F%E8%AE%A1"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">每日TOP DML表统计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E5%91%A8%E6%89%A7%E8%A1%8CDML%E6%80%BB%E9%87%8F%E6%83%85%E5%86%B5"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">一周执行DML总量情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E6%83%85%E5%86%B5%E7%BB%9F%E8%AE%A1"><span class="nav-number">1.1.3.3.</span> <span class="nav-text">事务情况统计</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.2.</span> <span class="nav-text">总结</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

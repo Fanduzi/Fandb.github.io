@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mysql error log监控 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL监控" />
+  
+  
+  
+  
+  <meta name="description" content="MySQL Error log监控告警日志监控其实比较简单了, 怎么做都行. 目前我们这里是使用下面的方法FileBeat采集日志 -&gt; Kafka -&gt; 自己写脚本消费出来 -&gt; 企业微信机器人告警效果如下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL Error log监控">
+<meta property="og:url" content="http://fuxkdb.com/2019/07/21/2019-07-21-MySQL-Error-log%E7%9B%91%E6%8E%A7/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="MySQL Error log监控告警日志监控其实比较简单了, 怎么做都行. 目前我们这里是使用下面的方法FileBeat采集日志 -&gt; Kafka -&gt; 自己写脚本消费出来 -&gt; 企业微信机器人告警效果如下">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_2.png">
+<meta property="article:published_time" content="2019-07-21T01:59:00.000Z">
+<meta property="article:modified_time" content="2019-07-23T10:40:47.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL监控">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2019-07-21-MySQL-Error-log监控" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MySQL Error log监控
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/07/21/2019-07-21-MySQL-Error-log%E7%9B%91%E6%8E%A7/" class="article-date">
+	  <time datetime="2019-07-21T01:59:00.000Z" itemprop="datePublished">2019-07-21</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL-Error-log监控"><a href="#MySQL-Error-log监控" class="headerlink" title="MySQL Error log监控"></a>MySQL Error log监控</h1><p>告警日志监控其实比较简单了, 怎么做都行. 目前我们这里是使用下面的方法<br>FileBeat采集日志 -&gt; Kafka -&gt; 自己写脚本消费出来 -&gt; 企业微信机器人告警<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_1.png" alt="image"><br>效果如下<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_2.png" alt="image"></p>
+<a id="more"></a>
+<p>这里给出FileBeat配置, 很简单<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">root@node002142</span> <span class="string">filebeat-7.2.0-dba</span>]<span class="comment"># cat filebeat.yml</span></span><br><span class="line"><span class="attr">logging:</span></span><br><span class="line">  <span class="attr">level:</span> <span class="string">warning</span></span><br><span class="line">  <span class="attr">json:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">filebeat.config.inputs:</span></span><br><span class="line">  <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">configs/*.yml</span></span><br><span class="line">  <span class="attr">reload.enabled:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">reload.period:</span> <span class="string">10s</span></span><br><span class="line"><span class="attr">http:</span></span><br><span class="line">  <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">host:</span> <span class="string">&quot;0.0.0.0&quot;</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">5066</span></span><br><span class="line"><span class="attr">processors:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">drop_fields:</span></span><br><span class="line">      <span class="attr">fields:</span> [<span class="string">&quot;beat.name&quot;</span>, <span class="string">&quot;beat.version&quot;</span>, <span class="string">&quot;input_type&quot;</span>, <span class="string">&quot;offset&quot;</span>]</span><br><span class="line">  <span class="bullet">-</span> <span class="attr">add_host_metadata:</span></span><br><span class="line">      <span class="attr">netinfo.enabled:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">output.kafka:</span></span><br><span class="line">  <span class="attr">hosts:</span> [<span class="string">&quot;192.168.x.xx:9092&quot;</span>,<span class="string">&quot;192.168.x.xx:9092&quot;</span>,<span class="string">&quot;192.168.x.xx:9092&quot;</span>]</span><br><span class="line">  <span class="attr">topic:</span> <span class="string">&#x27;<span class="template-variable">%&#123;[kafka_topic]&#125;</span>&#x27;</span></span><br><span class="line">  <span class="attr">partition.round_robin:</span></span><br><span class="line">    <span class="attr">reachable_only:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">required_acks:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">max_message_bytes:</span> <span class="number">8388608</span></span><br><span class="line">  <span class="attr">compression:</span> <span class="string">gzip</span></span><br><span class="line">  <span class="attr">bulk_max_size:</span> <span class="number">2048</span></span><br><span class="line">  <span class="attr">worker:</span> <span class="number">6</span></span><br><span class="line">  <span class="attr">keep_alive:</span> <span class="number">600</span></span><br><span class="line">  <span class="attr">channel_buffer_size:</span> <span class="number">2560</span></span><br><span class="line">  <span class="attr">version:</span> <span class="number">2.0</span><span class="number">.0</span>  <span class="string">--filebeat7.2才支持最新版本的kafka,</span> <span class="string">虽然我们的kafka是2.1.2</span> <span class="string">但是这里也得写2.0.0</span></span><br><span class="line"></span><br><span class="line">[<span class="string">root@node002142</span> <span class="string">configs</span>]<span class="comment"># ll</span></span><br><span class="line"><span class="string">total</span> <span class="number">8</span></span><br><span class="line"><span class="string">-rw-r--r--</span> <span class="number">1</span> <span class="string">root</span> <span class="string">root</span> <span class="number">247</span> <span class="string">Jul</span> <span class="number">15</span> <span class="number">18</span><span class="string">:40</span> <span class="string">mysql_error_log.yml</span></span><br><span class="line"></span><br><span class="line">[<span class="string">root@node002142</span> <span class="string">filebeat-7.2.0-dba</span>]<span class="comment"># cat configs/mysql_error_log.yml</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">type:</span> <span class="string">log</span></span><br><span class="line">  <span class="attr">paths:</span></span><br><span class="line">   <span class="bullet">-</span> <span class="string">/data/mysql_*/logs/*.err</span></span><br><span class="line">  <span class="attr">fields:</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">mysql_error_log</span></span><br><span class="line">    <span class="attr">format:</span> <span class="string">plain</span></span><br><span class="line">    <span class="attr">kafka_topic:</span> <span class="string">log_mysql_error_log</span></span><br><span class="line">  <span class="attr">fields_under_root:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">max_backoff:</span> <span class="string">3s</span></span><br></pre></td></tr></table></figure><br>写入Kafka的消息如下:<br><figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;@timestamp&quot;</span>: <span class="string">&quot;2019-07-21T01:43:22.091Z&quot;</span>,</span><br><span class="line">    <span class="string">&quot;@metadata&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;beat&quot;</span>: <span class="string">&quot;filebeat&quot;</span>,</span><br><span class="line">        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;_doc&quot;</span>,</span><br><span class="line">        <span class="string">&quot;version&quot;</span>: <span class="string">&quot;7.2.0&quot;</span>,</span><br><span class="line">        <span class="string">&quot;topic&quot;</span>: <span class="string">&quot;log_mysql_error_log&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;input&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;log&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;kafka_topic&quot;</span>: <span class="string">&quot;log_mysql_error_log&quot;</span>,</span><br><span class="line">    <span class="string">&quot;type&quot;</span>: <span class="string">&quot;mysql_error_log&quot;</span>,</span><br><span class="line">    <span class="string">&quot;format&quot;</span>: <span class="string">&quot;plain&quot;</span>,</span><br><span class="line">    <span class="string">&quot;host&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;name&quot;</span>: <span class="string">&quot;node00xxx&quot;</span>,</span><br><span class="line">        <span class="string">&quot;id&quot;</span>: <span class="string">&quot;ea3afe477be14c22abf234dd3cb80f55&quot;</span>,</span><br><span class="line">        <span class="string">&quot;containerized&quot;</span>: <span class="keyword">false</span>,</span><br><span class="line">        <span class="string">&quot;ip&quot;</span>: [<span class="string">&quot;10.1.x.xx, &quot;</span>fe80::<span class="symbol">xx:</span><span class="symbol">xx:</span>xx<span class="string">&quot;, &quot;</span><span class="number">192.168</span>.x.xx<span class="string">&quot;, &quot;</span>fe80::<span class="symbol">xx:</span><span class="symbol">xx:</span>xx<span class="string">&quot;],</span></span><br><span class="line"><span class="string">        &quot;</span>mac<span class="string">&quot;: [&quot;</span><span class="number">80:18</span><span class="symbol">:xx</span><span class="symbol">:xx</span><span class="symbol">:xx<span class="string">&quot;, &quot;</span></span><span class="number">80:18</span><span class="symbol">:xx</span><span class="symbol">:xx</span><span class="symbol">:xx<span class="string">&quot;, &quot;</span></span><span class="number">80:18</span><span class="symbol">:</span><span class="number">44</span><span class="symbol">:xx</span><span class="symbol">:xx</span><span class="symbol">:xx<span class="string">&quot;, &quot;</span></span><span class="number">80:18</span><span class="symbol">:</span><span class="number">44</span><span class="symbol">:xx</span><span class="symbol">:xx</span><span class="symbol">:xx<span class="string">&quot;],</span></span></span><br><span class="line"><span class="symbol"><span class="string">        &quot;</span>hostname<span class="string">&quot;: &quot;</span>node002111<span class="string">&quot;,</span></span></span><br><span class="line"><span class="symbol"><span class="string">        &quot;</span>architecture<span class="string">&quot;: &quot;</span>x86_64<span class="string">&quot;,</span></span></span><br><span class="line"><span class="symbol"><span class="string">        &quot;</span>os<span class="string">&quot;: &#123;</span></span></span><br><span class="line"><span class="symbol"><span class="string">            &quot;</span>platform<span class="string">&quot;: &quot;</span>centos<span class="string">&quot;,</span></span></span><br><span class="line"><span class="symbol"><span class="string">            &quot;</span>version<span class="string">&quot;: &quot;</span></span><span class="number">7</span> (Core)<span class="string">&quot;,</span></span><br><span class="line"><span class="string">            &quot;</span>family<span class="string">&quot;: &quot;</span>redhat<span class="string">&quot;,</span></span><br><span class="line"><span class="string">            &quot;</span>name<span class="string">&quot;: &quot;</span>CentOS Linux<span class="string">&quot;,</span></span><br><span class="line"><span class="string">            &quot;</span>kernel<span class="string">&quot;: &quot;</span><span class="number">4.15</span>.<span class="number">9-1</span>.el7.elrepo.x86_64<span class="string">&quot;,</span></span><br><span class="line"><span class="string">            &quot;</span>codename<span class="string">&quot;: &quot;</span>Core<span class="string">&quot;</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125;,</span></span><br><span class="line"><span class="string">    &quot;</span>agent<span class="string">&quot;: &#123;</span></span><br><span class="line"><span class="string">        &quot;</span>ephemeral_id<span class="string">&quot;: &quot;</span>c97d819c-c456<span class="number">-42d0</span>-xxxx-xxxxxxxxx<span class="string">&quot;,</span></span><br><span class="line"><span class="string">        &quot;</span>hostname<span class="string">&quot;: &quot;</span>node00xxx<span class="string">&quot;,</span></span><br><span class="line"><span class="string">        &quot;</span>id<span class="string">&quot;: &quot;</span><span class="number">359f6</span>ddb-de27<span class="number">-42c9</span><span class="number">-9</span>ce1<span class="number">-1624205d6</span>af0<span class="string">&quot;,</span></span><br><span class="line"><span class="string">        &quot;</span>version<span class="string">&quot;: &quot;</span><span class="number">7.2</span>.0<span class="string">&quot;,</span></span><br><span class="line"><span class="string">        &quot;</span>type<span class="string">&quot;: &quot;</span>filebeat<span class="string">&quot;</span></span><br><span class="line"><span class="string">    &#125;,</span></span><br><span class="line"><span class="string">    &quot;</span>log<span class="string">&quot;: &#123;</span></span><br><span class="line"><span class="string">        &quot;</span>offset<span class="string">&quot;: 2585741,</span></span><br><span class="line"><span class="string">        &quot;</span>file<span class="string">&quot;: &#123;</span></span><br><span class="line"><span class="string">            &quot;</span>path<span class="string">&quot;: &quot;</span>/data/mysql_3306/logs/node00xxxx.err<span class="string">&quot;</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125;,</span></span><br><span class="line"><span class="string">    &quot;</span>message<span class="string">&quot;: &quot;</span><span class="number">2019-07</span><span class="number">-21T01</span><span class="symbol">:</span><span class="number">43:21</span>.<span class="number">585528</span>Z <span class="number">4345026</span> [Note] Access denied <span class="keyword">for</span> user <span class="string">&#x27;user&#x27;</span>@<span class="string">&#x27;192.168.x.xx&#x27;</span> (using <span class="symbol">password:</span> YES)<span class="string">&quot;,</span></span><br><span class="line"><span class="string">    &quot;</span>ecs<span class="string">&quot;: &#123;</span></span><br><span class="line"><span class="string">        &quot;</span>version<span class="string">&quot;: &quot;</span><span class="number">1.0</span>.0<span class="string">&quot;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure><br>Python脚本<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf8 -*-</span></span><br><span class="line"><span class="comment"># __author__ = &#x27;Fan()&#x27;</span></span><br><span class="line"><span class="comment"># Date: 2019-07-18</span></span><br><span class="line"></span><br><span class="line">import time</span><br><span class="line">import json</span><br><span class="line">import pytz</span><br><span class="line">import requests</span><br><span class="line">import datetime</span><br><span class="line">import logging</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> utils.conn_db import Fandb</span><br><span class="line"><span class="keyword">from</span> utils.config import *</span><br><span class="line"><span class="keyword">from</span> confluent_kafka import Consumer, KafkaError, TopicPartition, OFFSET_END, OFFSET_BEGINNING, Producer</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class MyRequest():</span><br><span class="line">    @staticmethod</span><br><span class="line">    def <span class="builtin-name">get</span>(url, <span class="attribute">params</span>=None, timeout=(2, 5)):</span><br><span class="line">        response = requests.<span class="builtin-name">get</span>(<span class="attribute">url</span>=url, <span class="attribute">params</span>=params, <span class="attribute">timeout</span>=timeout)</span><br><span class="line">        <span class="keyword">if</span> response.status_code == requests.codes.ok:</span><br><span class="line">            return response.json()</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            response.raise_for_status()</span><br><span class="line"></span><br><span class="line">    @staticmethod</span><br><span class="line">    def post(url, <span class="attribute">data</span>=None, <span class="attribute">json</span>=None, timeout=(5)):</span><br><span class="line">        response = requests.post(<span class="attribute">url</span>=url, <span class="attribute">data</span>=data, <span class="attribute">json</span>=json, <span class="attribute">timeout</span>=timeout)</span><br><span class="line">        <span class="keyword">if</span> response.status_code == requests.codes.ok:</span><br><span class="line">            return response.json()</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            response.raise_for_status()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def confLog(logfile):</span><br><span class="line">    logging.basicConfig(<span class="attribute">level</span>=logging.INFO,</span><br><span class="line">                        <span class="attribute">format</span>=<span class="string">&#x27;%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s&#x27;</span>,</span><br><span class="line">                        <span class="attribute">datefmt</span>=<span class="string">&#x27;%Y-%m-%d %H:%M:%S&#x27;</span>,</span><br><span class="line">                        <span class="attribute">filename</span>=logfile,</span><br><span class="line">                        <span class="attribute">filemode</span>=<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def _on_send_response(err, partations):</span><br><span class="line">    pt = partations[0]</span><br><span class="line">    <span class="keyword">if</span> isinstance(err, KafkaError):</span><br><span class="line">        <span class="builtin-name">print</span>(<span class="string">&#x27;Topic &#123;&#125; 偏移量 &#123;&#125; 提交异常. &#123;&#125;&#x27;</span>.format(pt.topic, pt.offset, err))</span><br><span class="line">        logging.<span class="builtin-name">error</span>(<span class="string">&#x27;Topic &#123;&#125; 偏移量 &#123;&#125; 提交异常. &#123;&#125;&#x27;</span>.format(pt.topic, pt.offset, err))</span><br><span class="line">       # raise Exception(err)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def getConsumer(topic_name, bootstrap_servers, <span class="attribute">offset_end</span>=<span class="literal">True</span>):</span><br><span class="line">   <span class="built_in"> config </span>= &#123;<span class="string">&#x27;bootstrap.servers&#x27;</span>: bootstrap_servers,</span><br><span class="line">              <span class="string">&quot;group.id&quot;</span>: topic_name,</span><br><span class="line">              <span class="string">&#x27;enable.auto.commit&#x27;</span>: <span class="literal">True</span>,</span><br><span class="line">              <span class="string">&quot;fetch.wait.max.ms&quot;</span>: 3000,</span><br><span class="line">              <span class="string">&quot;max.poll.interval.ms&quot;</span>: 60000,</span><br><span class="line">              <span class="string">&#x27;session.timeout.ms&#x27;</span>: 60000,</span><br><span class="line">              <span class="string">&quot;on_commit&quot;</span>: _on_send_response,</span><br><span class="line">              <span class="string">&quot;default.topic.config&quot;</span>: &#123;<span class="string">&quot;auto.offset.reset&quot;</span>: <span class="string">&quot;latest&quot;</span>&#125;&#125;</span><br><span class="line"></span><br><span class="line">    consumer = Consumer(config)</span><br><span class="line">    offset = OFFSET_END <span class="keyword">if</span> offset_end <span class="keyword">else</span> OFFSET_BEGINNING</span><br><span class="line">    pt = TopicPartition(topic_name, 0, offset)  # 动态获取 一级kafka的 topic</span><br><span class="line">    consumer.assign([pt])</span><br><span class="line">    # consumer.seek(pt)</span><br><span class="line"></span><br><span class="line">    try:</span><br><span class="line">        <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">            ret = consumer.consume(<span class="attribute">num_messages</span>=10, <span class="attribute">timeout</span>=0.1)</span><br><span class="line">            <span class="keyword">if</span> ret is None:</span><br><span class="line">                <span class="builtin-name">print</span>(<span class="string">&quot;No message Continue!&quot;</span>)</span><br><span class="line">                continue</span><br><span class="line">            <span class="keyword">for</span> msg <span class="keyword">in</span> ret:</span><br><span class="line">                <span class="keyword">if</span> msg.<span class="builtin-name">error</span>() is None:</span><br><span class="line">                    # <span class="builtin-name">print</span>(<span class="string">&quot;Received message:&#123;&#125;&quot;</span>.format(msg.value().decode(<span class="string">&quot;utf-8&quot;</span>)))</span><br><span class="line">                    yield msg.value().decode(<span class="string">&quot;utf-8&quot;</span>)</span><br><span class="line">                elif msg.<span class="builtin-name">error</span>():</span><br><span class="line">                    <span class="keyword">if</span> msg.<span class="builtin-name">error</span>().code() == KafkaError._PARTITION_EOF:</span><br><span class="line">                        continue</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    raise Exception(msg.<span class="builtin-name">error</span>())</span><br><span class="line">    except Exception as e:</span><br><span class="line">        <span class="builtin-name">print</span>(e)</span><br><span class="line">        consumer.close()</span><br><span class="line">    except KeyboardInterrupt:</span><br><span class="line">        consumer.close()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def utc_to_local(utc_time_str, <span class="attribute">utc_format</span>=<span class="string">&#x27;%Y-%m-%dT%H:%M:%S.%fZ&#x27;</span>):</span><br><span class="line">    local_tz = pytz.timezone(<span class="string">&#x27;Asia/Chongqing&#x27;</span>)</span><br><span class="line">    local_format = <span class="string">&quot;%Y-%m-%d %H:%M:%S&quot;</span></span><br><span class="line">    utc_dt = datetime.datetime.strptime(utc_time_str, utc_format)</span><br><span class="line">    local_dt = utc_dt.replace(<span class="attribute">tzinfo</span>=pytz.utc).astimezone(local_tz)</span><br><span class="line">    time_str = local_dt.strftime(local_format)</span><br><span class="line">    return time_str</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_mysql_ip(ips, hostname):</span><br><span class="line">    last_ip = str(int(hostname[-3:]))</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> ips:</span><br><span class="line">        x = i.split(<span class="string">&#x27;.&#x27;</span>)</span><br><span class="line">        <span class="keyword">if</span> len(x) == 4:</span><br><span class="line">            # 过滤掉本机vip</span><br><span class="line">            <span class="keyword">if</span> x[3] == last_ip <span class="keyword">and</span> x[2] <span class="keyword">not</span> <span class="keyword">in</span> (<span class="string">&#x27;3&#x27;</span>, <span class="string">&#x27;8&#x27;</span>, <span class="string">&#x27;16&#x27;</span>) <span class="keyword">and</span> x[0] == <span class="string">&#x27;192&#x27;</span>:</span><br><span class="line">                return i</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_mysql_port(error_log_file):</span><br><span class="line">    spliter = <span class="string">&#x27;mysql_&#x27;</span></span><br><span class="line"></span><br><span class="line">    mysql_port = error_log_file.split(spliter)[1].split(<span class="string">&#x27;/&#x27;</span>)[0]</span><br><span class="line">    <span class="keyword">if</span> mysql_port == <span class="string">&#x27;&#x27;</span>:</span><br><span class="line">        mysql_port = 3306</span><br><span class="line"></span><br><span class="line">    return mysql_port</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def sendWechatBot(send_message):</span><br><span class="line">    web_hoot_address = <span class="string">&#x27;https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=你的机器人key&#x27;</span></span><br><span class="line">    body = &#123;</span><br><span class="line">    <span class="string">&quot;msgtype&quot;</span>: <span class="string">&quot;markdown&quot;</span>,</span><br><span class="line">    <span class="string">&quot;markdown&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;content&quot;</span>: <span class="string">&#x27;&#x27;</span><span class="string">&#x27;&lt;font color=\&quot;warning\&quot;&gt;捕获告警日志报错信息:&lt;/font&gt;\n</span></span><br><span class="line"><span class="string">&gt;产品线:&lt;font color=\&quot;comment\&quot;&gt;&#123;product_name&#125;&lt;/font&gt;</span></span><br><span class="line"><span class="string">&gt;项目名称:&lt;font color=\&quot;comment\&quot;&gt;&#123;project_name&#125;&lt;/font&gt;</span></span><br><span class="line"><span class="string">&gt;高可用组:&lt;font color=\&quot;comment\&quot;&gt;&#123;ha_group_name&#125;&lt;/font&gt;</span></span><br><span class="line"><span class="string">&gt;IP:&lt;font color=\&quot;comment\&quot;&gt;&#123;ip_app&#125;&lt;/font&gt;</span></span><br><span class="line"><span class="string">&gt;PORT:&lt;font color=\&quot;comment\&quot;&gt;&#123;port&#125;&lt;/font&gt;</span></span><br><span class="line"><span class="string">&gt;节点角色:&lt;font color=\&quot;comment\&quot;&gt;&#123;role_name&#125;&lt;/font&gt;</span></span><br><span class="line"><span class="string">&gt;告警时间:&lt;font color=\&quot;comment\&quot;&gt;&#123;error_timestamp&#125;&lt;/font&gt;</span></span><br><span class="line"><span class="string">&gt;捕获时间:&lt;font color=\&quot;comment\&quot;&gt;&#123;catch_timestamp&#125;&lt;/font&gt;</span></span><br><span class="line"><span class="string">&gt;下发时间:&lt;font color=\&quot;comment\&quot;&gt;&#123;send_timestamp&#125;&lt;/font&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">告警内容:</span></span><br><span class="line"><span class="string">&lt;font color=\&quot;comment\&quot;&gt;&#123;error_message&#125;&lt;/font&gt;\n</span></span><br><span class="line"><span class="string">&#x27;</span><span class="string">&#x27;&#x27;</span>.format(**send_message)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    data = MyRequest.post(web_hoot_address, <span class="attribute">json</span>=body)</span><br><span class="line">    return data</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_mysql_info(mysql_ip, mysql_port):</span><br><span class="line">    conn = Fandb(cmdb_host, cmdb_port, cmdb_user, cmdb_pass, cmdb_schema, <span class="attribute">dic</span>=<span class="literal">True</span>)</span><br><span class="line">    sql = <span class="string">&#x27;一个根据ip端口查询数据库实例想关信息的SQL&#x27;</span></span><br><span class="line">    res = conn.dql(sql)</span><br><span class="line">    conn.close()</span><br><span class="line">    return res[0]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    verbose = 1</span><br><span class="line">    logfile = <span class="string">&#x27;/tools/mysql_error_log_watchdog.log&#x27;</span></span><br><span class="line">    confLog(logfile)</span><br><span class="line"></span><br><span class="line">    topic = <span class="string">&#x27;log_mysql_error_log&#x27;</span></span><br><span class="line">    bootstrap_servers = <span class="string">&quot;192.168.x.xxx:9092,192.168.x.xxx:9092,192.168.x.xxx:9092&quot;</span></span><br><span class="line"></span><br><span class="line">    consumer = getConsumer(topic, bootstrap_servers)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> message <span class="keyword">in</span> consumer:</span><br><span class="line">        message_dict = json.loads(message)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> verbose &gt;= 3: <span class="builtin-name">print</span>(message_dict)</span><br><span class="line"></span><br><span class="line">        catch_timestamp = utc_to_local(message_dict[<span class="string">&#x27;@timestamp&#x27;</span>])</span><br><span class="line">        error_log_file = message_dict[<span class="string">&#x27;log&#x27;</span>][<span class="string">&#x27;file&#x27;</span>][<span class="string">&#x27;path&#x27;</span>]</span><br><span class="line">        hostname = message_dict[<span class="string">&#x27;host&#x27;</span>][<span class="string">&#x27;hostname&#x27;</span>]</span><br><span class="line">        ips = message_dict[<span class="string">&#x27;host&#x27;</span>][<span class="string">&#x27;ip&#x27;</span>]</span><br><span class="line">        mysql_ip = get_mysql_ip(ips, hostname)</span><br><span class="line">        mysql_port = get_mysql_port(error_log_file)</span><br><span class="line"></span><br><span class="line">        error_log_message = message_dict[<span class="string">&#x27;message&#x27;</span>]</span><br><span class="line">        <span class="keyword">if</span> <span class="string">&#x27;[ERROR]&#x27;</span> <span class="keyword">in</span> error_log_message:</span><br><span class="line">            try:</span><br><span class="line">                catch_timestamp = utc_to_local(message_dict[<span class="string">&#x27;@timestamp&#x27;</span>])</span><br><span class="line">                error_log_file = message_dict[<span class="string">&#x27;log&#x27;</span>][<span class="string">&#x27;file&#x27;</span>][<span class="string">&#x27;path&#x27;</span>]</span><br><span class="line">                hostname = message_dict[<span class="string">&#x27;host&#x27;</span>][<span class="string">&#x27;hostname&#x27;</span>]</span><br><span class="line">                ips = message_dict[<span class="string">&#x27;host&#x27;</span>][<span class="string">&#x27;ip&#x27;</span>]</span><br><span class="line">                mysql_ip = get_mysql_ip(ips, hostname)</span><br><span class="line">                mysql_port = get_mysql_port(error_log_file)</span><br><span class="line"></span><br><span class="line">                error_timestamp = utc_to_local(error_log_message.split(<span class="string">&#x27; &#x27;</span>)[0])</span><br><span class="line">                error_message = <span class="string">&#x27; &#x27;</span>.join(message_dict[<span class="string">&#x27;message&#x27;</span>].split(<span class="string">&#x27; &#x27;</span>)[2:])</span><br><span class="line">                send_message_dict = get_mysql_info(mysql_ip, mysql_port)</span><br><span class="line">                send_message_dict[<span class="string">&#x27;catch_timestamp&#x27;</span>] = catch_timestamp</span><br><span class="line">                send_message_dict[<span class="string">&#x27;error_timestamp&#x27;</span>] = error_timestamp</span><br><span class="line">                send_message_dict[<span class="string">&#x27;send_timestamp&#x27;</span>] = datetime.datetime.now().strftime(<span class="string">&quot;%Y-%m-%d %H:%M:%S&quot;</span>)</span><br><span class="line">                send_message_dict[<span class="string">&#x27;error_message&#x27;</span>] = error_message</span><br><span class="line">                logging.<span class="builtin-name">info</span>(send_message_dict)</span><br><span class="line">                sendWechatBot(send_message_dict)</span><br><span class="line">                time.sleep(3) #企业微信机器人限制3秒一条</span><br><span class="line">            except Exception as e:</span><br><span class="line">                logging.exception(e)</span><br><span class="line">                logging.exception(error_log_message)        </span><br></pre></td></tr></table></figure></p>
+<p>如果觉得上面的太麻烦,其实一个shell脚本也可以搞, 就是得在每个机器部署运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># Oracle警告日志文件监控脚本</span></span><br><span class="line"><span class="comment"># 2015/4/14 King.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 发送邮件</span></span><br><span class="line">sendMail()</span><br><span class="line">&#123;</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$1</span>&quot;</span></span><br><span class="line">  mailTo=$(<span class="built_in">echo</span> <span class="variable">$mailTo</span> | sed <span class="string">&#x27;s/,/ /g&#x27;</span>)</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$1</span>&quot;</span> | /usr/bin/mutt -s <span class="string">&quot;<span class="subst">$(date +<span class="string">&quot;%Y-%m-%d %H:%M:%S&quot;</span>)</span> 警告日志错误&quot;</span> -b <span class="variable">$&#123;mailTo&#125;</span> -c <span class="variable">$&#123;mailCc&#125;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 判断错误信息中是否有未扫描的行</span></span><br><span class="line">checkHis()</span><br><span class="line">&#123;</span><br><span class="line">  tag=0</span><br><span class="line">  hisLine=$(cat <span class="variable">$errLineNumFile</span>)</span><br><span class="line">  <span class="keyword">for</span> i <span class="keyword">in</span> <span class="variable">$hisLine</span></span><br><span class="line">  <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> == <span class="string">&quot;<span class="variable">$i</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">      tag=1</span><br><span class="line">    <span class="keyword">fi</span>    </span><br><span class="line">  <span class="keyword">done</span></span><br><span class="line">  <span class="built_in">return</span> <span class="variable">$tag</span>  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">scriptDir=`<span class="built_in">pwd</span> <span class="variable">$0</span>`</span><br><span class="line">scriptName=`basename <span class="variable">$0</span>`</span><br><span class="line">logDir=<span class="variable">$scriptDir</span>/logs</span><br><span class="line">logfile=<span class="variable">$logDir</span>/alert_error.log</span><br><span class="line">errLineNumFile=<span class="variable">$logDir</span>/.alert_errLineNum</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#设置警告日日志文件路径</span></span><br><span class="line">alertFilePath=<span class="string">&quot;/data/mysql_3306/logs/nodexx.err&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置邮件接收者，多个用逗号分隔</span></span><br><span class="line">mailTo=<span class="string">&quot;xx@163.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置邮件抄送者，多个用逗号分隔</span></span><br><span class="line">mailCc=<span class="string">&quot;a@163.com,b@163.com&quot;</span></span><br><span class="line"></span><br><span class="line">[ ! -f <span class="variable">$alertFilePath</span> ] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;[Error]: <span class="variable">$alertFilePath</span> no such file or directory.&quot;</span> &amp;&amp; <span class="built_in">exit</span> 1</span><br><span class="line">[ ! -d <span class="variable">$logDir</span> ] &amp;&amp; mkdir -p  <span class="variable">$logDir</span></span><br><span class="line">touch <span class="variable">$errLineNumFile</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;正在监控 <span class="variable">$alertFilePath</span>... &quot;</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span></span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  arrayNum=()</span><br><span class="line">  isError=<span class="literal">false</span></span><br><span class="line">  <span class="comment"># 取出警告日志中 ”ORA?“关键字所在的行</span></span><br><span class="line">  errNum=$(cat <span class="variable">$alertFilePath</span> | grep -n -i <span class="string">&quot;[ERROR]]&quot;</span>)</span><br><span class="line">  n=0</span><br><span class="line">  <span class="keyword">if</span> [ <span class="string">&quot;x<span class="variable">$errNum</span>&quot;</span> != <span class="string">&quot;x&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="comment"># 取出错误行号</span></span><br><span class="line">    errLineNum=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$errNum</span>&quot;</span> | awk -F: <span class="string">&#x27;&#123;print $1&#125;&#x27;</span>)</span><br><span class="line">    <span class="keyword">for</span> num <span class="keyword">in</span> <span class="variable">$errLineNum</span></span><br><span class="line">    <span class="keyword">do</span></span><br><span class="line">      <span class="comment">#判断该行错误信息是否已扫描      </span></span><br><span class="line">      <span class="keyword">if</span> [ <span class="string">&quot;x<span class="variable">$errLineNum</span>&quot;</span> != <span class="string">&quot;x&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        checkHis <span class="string">&quot;<span class="variable">$num</span>&quot;</span></span><br><span class="line">        <span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">          <span class="comment"># 如果该行错误未扫描，记录该行信息</span></span><br><span class="line">          isError=<span class="literal">true</span>  </span><br><span class="line">          <span class="built_in">echo</span> <span class="variable">$num</span> &gt;&gt; <span class="variable">$errLineNumFile</span></span><br><span class="line">          arrayNum[<span class="variable">$n</span>]=<span class="variable">$num</span></span><br><span class="line">          <span class="built_in">let</span> n++</span><br><span class="line">        <span class="keyword">fi</span>        </span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">        <span class="comment">#如果没有错误休眠10s后重新扫描    </span></span><br><span class="line">        sleep 10s</span><br><span class="line">        <span class="built_in">break</span></span><br><span class="line">      <span class="keyword">fi</span>    </span><br><span class="line">   <span class="keyword">done</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">  <span class="comment"># 如果发现未扫描的错误信息则根据行号取出该行信息记录日志，并且发送邮件</span></span><br><span class="line">  <span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$isError</span>&quot;</span>  == <span class="string">&quot;true&quot;</span> ]</span><br><span class="line">  <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;-------------------------------- <span class="subst">$(date +<span class="string">&quot;%Y-%m-%d %H:%M:%S&quot;</span>)</span> ---------------------------------------&quot;</span>  &gt;&gt; <span class="variable">$logfile</span></span><br><span class="line">    i=0</span><br><span class="line">    errMsg=$(</span><br><span class="line">    <span class="keyword">while</span> [ <span class="variable">$i</span> -lt <span class="variable">$&#123;#arrayNum[@]&#125;</span> ]; <span class="keyword">do</span></span><br><span class="line">      <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$errNum</span>&quot;</span> | grep <span class="string">&quot;^<span class="variable">$&#123;arrayNum[$i]&#125;</span>:&quot;</span></span><br><span class="line">      <span class="built_in">let</span> i++</span><br><span class="line">    <span class="keyword">done</span>)   </span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$errMsg</span>&quot;</span> &gt;&gt; <span class="variable">$logfile</span></span><br><span class="line">    sendMail <span class="string">&quot;<span class="variable">$errMsg</span>&quot;</span></span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line">  <span class="comment">#每10s，扫描一次警告日志文件</span></span><br><span class="line">  sleep 10s</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2019/07/21/2019-07-21-MySQL-Error-log监控/" target="_blank" title="MySQL Error log监控">http://fuxkdb.com/2019/07/21/2019-07-21-MySQL-Error-log监控/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E7%9B%91%E6%8E%A7/" rel="tag">MySQL监控</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/10/21/2019-10-21-%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          如何自己制作机械键盘
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/07/20/2019-07-20-%E8%AE%B0%E4%B8%80%E6%AC%A1PMM%E5%AE%B9%E5%99%A8%E8%A2%AB%E8%AF%AF%E5%88%A0%E9%99%A4%E7%9A%84%E6%81%A2%E5%A4%8D/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">记一次PMM容器被误删除的恢复</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL-Error-log%E7%9B%91%E6%8E%A7"><span class="nav-number">1.</span> <span class="nav-text">MySQL Error log监控</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

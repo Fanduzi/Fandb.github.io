@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>kafka sasl_scram+acl实现动态创建用户及权限控制 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="Kafka" />
+  
+  
+  
+  
+  <meta name="description" content="SASL_SCRAM+ACL实现动态创建用户及权限控制&amp;nbsp;&amp;nbsp;研究了一段时间Kafka的权限控制. 之前一直看SASL_PLAINTEXT, 结果发现这玩意不能动态创建用户. 今天没死心又查了查,发现这个人也问了这个问题https:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;54147460&#x2F;kafka-adding-sasl-users-dynamically-w">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka SASL_SCRAM+ACL实现动态创建用户及权限控制">
+<meta property="og:url" content="http://fuxkdb.com/2019/01/26/2019-01-26-Kafka-SASL_SCRAM+ACL%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E5%8F%8A%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="SASL_SCRAM+ACL实现动态创建用户及权限控制&amp;nbsp;&amp;nbsp;研究了一段时间Kafka的权限控制. 之前一直看SASL_PLAINTEXT, 结果发现这玩意不能动态创建用户. 今天没死心又查了查,发现这个人也问了这个问题https:&#x2F;&#x2F;stackoverflow.com&#x2F;questions&#x2F;54147460&#x2F;kafka-adding-sasl-users-dynamically-w">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-01-26T14:01:00.000Z">
+<meta property="article:modified_time" content="2019-03-08T07:39:20.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="Kafka">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2019-01-26-Kafka-SASL_SCRAM+ACL实现动态创建用户及权限控制" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Kafka SASL_SCRAM+ACL实现动态创建用户及权限控制
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/01/26/2019-01-26-Kafka-SASL_SCRAM+ACL%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E5%8F%8A%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6/" class="article-date">
+	  <time datetime="2019-01-26T14:01:00.000Z" itemprop="datePublished">2019-01-26</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="SASL-SCRAM-ACL实现动态创建用户及权限控制"><a href="#SASL-SCRAM-ACL实现动态创建用户及权限控制" class="headerlink" title="SASL_SCRAM+ACL实现动态创建用户及权限控制"></a>SASL_SCRAM+ACL实现动态创建用户及权限控制</h1><p>&nbsp;&nbsp;研究了一段时间Kafka的权限控制. 之前一直看SASL_PLAINTEXT, 结果发现这玩意不能动态创建用户. 今天没死心又查了查,发现这个人也问了这个问题<br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/54147460/kafka-adding-sasl-users-dynamically-without-cluster-restart">https://stackoverflow.com/questions/54147460/kafka-adding-sasl-users-dynamically-without-cluster-restart</a><br>于是研究了下SCRAM. 写了这篇完整的文档</p>
+<blockquote>
+<p>本篇文档中使用的是自己部署的zookeeper, zookeeper无需做任何特殊配置</p>
+</blockquote>
+<a id="more"></a>
+<h2 id="使用SASL-SCRAM进行身份验证"><a href="#使用SASL-SCRAM进行身份验证" class="headerlink" title="使用SASL / SCRAM进行身份验证"></a>使用SASL / SCRAM进行身份验证</h2><p>请先在不配置任何身份验证的情况下启动Kafka</p>
+<h3 id="1-创建SCRAM-Credentials"><a href="#1-创建SCRAM-Credentials" class="headerlink" title="1. 创建SCRAM Credentials"></a>1. 创建SCRAM Credentials</h3><p>Kafka中的SCRAM实现使用Zookeeper作为凭证(credential)存储。 可以使用<code>kafka-configs.sh</code>在Zookeeper中创建凭据。 对于启用的每个SCRAM机制，必须通过添加具有机制名称的配置来创建凭证。 必须在启动Kafka broker之前创建代理间通信的凭据。 可以动态创建和更新客户端凭证，并使用更新的凭证来验证新连接。</p>
+<h4 id="创建broker建通信用户-或称超级用户"><a href="#创建broker建通信用户-或称超级用户" class="headerlink" title="创建broker建通信用户(或称超级用户)"></a>创建broker建通信用户(或称超级用户)</h4><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/kafka-configs.sh --zookeeper 192.168.2.229:2182 --alter --add-config <span class="string">&#x27;SCRAM-SHA-256=[password=admin-secret],SCRAM-SHA-512=[password=admin-secret]&#x27;</span> --entity-type<span class="built_in"> users </span>--entity-name admin</span><br></pre></td></tr></table></figure>
+<h4 id="创建客户端用户fanboshi"><a href="#创建客户端用户fanboshi" class="headerlink" title="创建客户端用户fanboshi"></a>创建客户端用户fanboshi</h4><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/kafka-configs.sh --zookeeper 192.168.2.229:2182 --alter --add-config <span class="string">&#x27;SCRAM-SHA-256=[iterations=8192,password=fanboshi],SCRAM-SHA-512=[password=fanboshi]&#x27;</span> --entity-type<span class="built_in"> users </span>--entity-name fanboshi</span><br></pre></td></tr></table></figure>
+<h4 id="查看SCRAM证书"><a href="#查看SCRAM证书" class="headerlink" title="查看SCRAM证书"></a>查看SCRAM证书</h4><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node002229 kafka]# bin/kafka-configs.sh --zookeeper localhost:2182 --describe --entity-type<span class="built_in"> users </span>--entity-name fanboshi</span><br><span class="line">Configs <span class="keyword">for</span> user-principal <span class="string">&#x27;fanboshi&#x27;</span> are <span class="attribute">SCRAM-SHA-512</span>=salt=MWwwdWJqcjBncmUwdzY1Mzdoa2NwNXppd3A=,stored_key=mGCJy5k3LrE2gs6Dp4ALRhgy37l1WYPUIdoOncCF+B3Ti3wL2sQNmzg8oEz3tUs9DFsclFCygjbysb0S0BU9bA==,server_key=iTyX0U0Jt02dkddUm6QrVwNf3lJk72dBNs9EDHTqe8kLlNGIp9ypzRkcgkc+WVMd1bkAF3cg8vk9Q1LrJ/2i/A==,iterations=4096,SCRAM-SHA-256=salt=ZDg5MHVlYW40dW9jbXJ6MndvZDVlazd3ag==,stored_key=cgX1ldpXnDL1+TlLHJ3IHn7tAQS/7pQ7BVZUtECpQ3A=,server_key=i7Mcnb5sPUqfIFs6qKWWHZ2ortoKiRc7oabHOV5dawI=,iterations=8192</span><br></pre></td></tr></table></figure>
+<h4 id="删除SCRAM证书"><a href="#删除SCRAM证书" class="headerlink" title="删除SCRAM证书"></a>删除SCRAM证书</h4><p>这里只演示,不操作<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node002229 kafka]# bin/kafka-configs.sh --zookeeper localhost:2182 --alter  --delete-config <span class="string">&#x27;SCRAM-SHA-512&#x27;</span> --entity-type<span class="built_in"> users </span>--entity-name fanboshi</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-配置Kafka-Brokers"><a href="#2-配置Kafka-Brokers" class="headerlink" title="2. 配置Kafka Brokers"></a>2. 配置Kafka Brokers</h3><ol>
+<li>在每个Kafka broker的config目录中添加一个类似下面的JAAS文件，我们称之为kafka_server_jaas.conf：<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node002229 <span class="built_in">config</span>]<span class="comment"># cat kafka_server_jaas.conf</span></span><br><span class="line">KafkaServer &#123;</span><br><span class="line">  <span class="keyword">org.apache.kafka.common.security.scram.ScramLoginModule </span>required</span><br><span class="line">  username=<span class="string">&quot;admin&quot;</span></span><br><span class="line">  password=<span class="string">&quot;admin-secret&quot;</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意不要少写了分号</p>
+</blockquote>
+</li>
+</ol>
+<ol>
+<li><p>将JAAS配置文件位置作为JVM参数传递给每个Kafka broker：<br>修改 /usr/local/kafka/bin/kafka-server-start.sh<br>将<code>exec $base_dir/kafka-run-class.sh $EXTRA_ARGS kafka.Kafka &quot;$@&quot;</code> 注释, 增加下面的内容</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-id">#exec</span> <span class="variable">$base_dir</span>/kafka-run-class<span class="selector-class">.sh</span> <span class="variable">$EXTRA_ARGS</span> kafka<span class="selector-class">.Kafka</span> <span class="string">&quot;$@&quot;</span></span><br><span class="line">exec <span class="variable">$base_dir</span>/kafka-run-class<span class="selector-class">.sh</span> <span class="variable">$EXTRA_ARGS</span> -Djava<span class="selector-class">.security</span><span class="selector-class">.auth</span><span class="selector-class">.login</span>.config=<span class="variable">$base_dir</span>/../config/kafka_server_jaas<span class="selector-class">.conf</span> kafka<span class="selector-class">.Kafka</span> <span class="string">&quot;$@&quot;</span></span><br></pre></td></tr></table></figure>
+<p>或者不修改<code>kafka-server-start.sh</code>脚本, 而是将下面的内容添加到<code>~/.bashrc</code></p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="builtin-name">export</span> <span class="attribute">KAFKA_PLAIN_PARAMS</span>=<span class="string">&quot;-Djava.security.auth.login.config=/usr/local/kafka/config/kafka_server_jaas.conf&quot;</span></span><br><span class="line"><span class="builtin-name">export</span> <span class="attribute">KAFKA_OPTS</span>=<span class="string">&quot;<span class="variable">$KAFKA_PLAIN_PARAMS</span> <span class="variable">$KAFKA_OPTS</span>&quot;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如此处所述，在server.properties中配置SASL端口和SASL机制。 例如：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 认证配置</span></span><br><span class="line"><span class="attr">listeners</span>=SASL_PLAINTEXT://node002229:<span class="number">9092</span></span><br><span class="line"><span class="attr">security.inter.broker.protocol</span>=SASL_PLAINTEXT</span><br><span class="line"><span class="attr">sasl.mechanism.inter.broker.protocol</span>=SCRAM-SHA-<span class="number">256</span></span><br><span class="line"><span class="attr">sasl.enabled.mechanisms</span>=SCRAM-SHA-<span class="number">256</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ACL配置</span></span><br><span class="line"><span class="attr">allow.everyone.if.no.acl.found</span>=<span class="literal">false</span></span><br><span class="line"><span class="attr">super.users</span>=User:admin</span><br><span class="line"><span class="attr">authorizer.class.name</span>=kafka.security.auth.SimpleAclAuthorizer</span><br></pre></td></tr></table></figure>
+<p>在官方文档中写的是</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">listeners</span>=SASL_SSL://host.name:port</span><br><span class="line"><span class="attr">security.inter.broker.protocol</span>=SASL_SSL</span><br></pre></td></tr></table></figure>
+<p>这里其实没必要写成<code>SASL_SSL</code> , 我们可以根据自己的需求选择SSL或PLAINTEXT, 我这里选择PLAINTEXT不加密明文传输, 省事, 性能也相对好一些</p>
+</li>
+<li><p>重启ZK/Kafka<br>重启ZK / Kafka服务.  所有broker在连接之前都会引用’kafka_server_jaas.conf’.<br>Zookeeper所有节点</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@node002229 zookeeper]# zkServer.sh stop <span class="regexp">/usr/</span>local<span class="regexp">/zookeeper/</span>bin<span class="regexp">/../</span>conf/zoo.cfg  </span><br><span class="line">ZooKeeper JMX enabled by <span class="keyword">default</span></span><br><span class="line">Using config: <span class="regexp">/usr/</span>local<span class="regexp">/zookeeper/</span>bin<span class="regexp">/../</span>conf/zoo1.cfg</span><br><span class="line">Stopping zookeeper ... STOPPED</span><br><span class="line"></span><br><span class="line">[root@node002229 zookeeper]# zkServer.sh start <span class="regexp">/usr/</span>local<span class="regexp">/zookeeper/</span>bin<span class="regexp">/../</span>conf/zoo.cfg  </span><br><span class="line">ZooKeeper JMX enabled by <span class="keyword">default</span></span><br><span class="line">Using config: <span class="regexp">/usr/</span>local<span class="regexp">/zookeeper/</span>bin<span class="regexp">/../</span>conf/zoo1.cfg</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>Kafka所有Broker<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd <span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>;bin/kafka-server-stop.sh</span><br><span class="line">cd <span class="regexp">/usr/</span>local<span class="regexp">/kafka/</span>;bin<span class="regexp">/kafka-server-start.sh -daemon config/</span>server.properties</span><br></pre></td></tr></table></figure></p>
+<h3 id="客户端配置"><a href="#客户端配置" class="headerlink" title="客户端配置"></a>客户端配置</h3><p>先使用kafka-console-producer 和 kafka-console-consumer 测试一下</p>
+<h4 id="kafka-console-producer"><a href="#kafka-console-producer" class="headerlink" title="kafka-console-producer"></a>kafka-console-producer</h4><ol>
+<li>创建 config/client-sasl.properties 文件<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[root@node002229 kafka]</span><span class="comment"># vim config/client-sasl.properties</span></span><br><span class="line"><span class="attr">security.protocol</span>=SASL_PLAINTEXT</span><br><span class="line"><span class="attr">sasl.mechanism</span>=SCRAM-SHA-<span class="number">256</span></span><br></pre></td></tr></table></figure></li>
+<li>创建config/kafka_client_jaas_admin.conf文件<figure class="highlight puppet"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node002229 kafka]<span class="comment"># vim config/kafka_client_jaas_admin.conf </span></span><br><span class="line"><span class="keyword">KafkaClient</span> &#123;</span><br><span class="line">  org.apache.kafka.common.security.scram.ScramLoginModule required</span><br><span class="line">  username=<span class="string">&quot;admin&quot;</span></span><br><span class="line">  <span class="literal">password</span>=<span class="string">&quot;admin-secret&quot;</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></li>
+<li>修改kafka-console-producer.sh脚本<br>这里我复制一份,再改<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cp bin/kafka-console-producer<span class="selector-class">.sh</span> bin/kafka-console-producer-admin.sh</span><br><span class="line">vim bin/kafka-console-producer-admin.sh</span><br><span class="line"><span class="selector-id">#exec</span> $(dirname $<span class="number">0</span>)/kafka-run-class<span class="selector-class">.sh</span> kafka<span class="selector-class">.tools</span><span class="selector-class">.ConsoleProducer</span> <span class="string">&quot;$@&quot;</span></span><br><span class="line">exec $(dirname $<span class="number">0</span>)/kafka-run-class<span class="selector-class">.sh</span> -Djava<span class="selector-class">.security</span><span class="selector-class">.auth</span><span class="selector-class">.login</span>.config=$(dirname $<span class="number">0</span>)/../config/kafka_client_jaas_admin<span class="selector-class">.conf</span> kafka<span class="selector-class">.tools</span><span class="selector-class">.ConsoleProducer</span> <span class="string">&quot;$@&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li>创建测试topic<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">bin/kafka</span><span class="literal">-</span><span class="comment">topics</span><span class="string">.</span><span class="comment">sh</span> --<span class="comment">create</span> --<span class="comment">zookeeper</span> <span class="comment">localhost:2182</span> --<span class="comment">partitions</span> <span class="comment">1</span> --<span class="comment">replication</span><span class="literal">-</span><span class="comment">factor</span> <span class="comment">1</span> --<span class="comment">topic</span> <span class="comment">test</span></span><br></pre></td></tr></table></figure></li>
+<li>测试生产消息<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">bin/kafka-console-producer-admin.sh --broker-list <span class="number">192.168</span><span class="number">.2</span><span class="number">.229</span>:<span class="number">9092</span> --topic test --producer.config config/client-sasl.properties</span><br><span class="line">&gt;<span class="number">1</span></span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+可以看到admin用户无需配置ACL就可以生成消息</li>
+<li>测试fanboshi用户<br>如法炮制, 我们创建一个bin/kafka-console-producer-fanboshi.sh文件, 只是修改其中的kafka_client_jaas_admin.conf 为 kafka_client_jaas_fanboshi.conf <figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">vim config/kafka_client_jaas_fanboshi.<span class="keyword">conf</span> </span><br><span class="line">KafkaClient &#123;</span><br><span class="line">  org.apache.kafka.common.security.scram.ScramLoginModule required</span><br><span class="line">  username=<span class="string">&quot;fanboshi&quot;</span></span><br><span class="line">  password=<span class="string">&quot;fanboshi&quot;</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">cp bin/kafka-console-producer-admin.<span class="keyword">sh</span> bin/kafka-console-producer-fanboshi.<span class="keyword">sh</span></span><br><span class="line">vi bin/kafka-console-producer-fanboshi.<span class="keyword">sh</span></span><br><span class="line">exec $(dirname <span class="variable">$0</span>)/kafka-<span class="keyword">run</span>-<span class="keyword">class</span>.<span class="keyword">sh</span> -Djava.security.auth.login.config=$(dirname <span class="variable">$0</span>)/../config/kafka_client_jaas_fanboshi.<span class="keyword">conf</span> kafka.tools.ConsoleProducer <span class="string">&quot;$@&quot;</span></span><br></pre></td></tr></table></figure>
+生产消息<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node002229 kafka]# bin/kafka-console-producer-fanboshi.sh --broker-list <span class="number">192.168</span><span class="number">.2</span><span class="number">.229</span>:<span class="number">9092</span> --topic test --producer.config config/client-sasl.properties</span><br><span class="line">&gt;<span class="number">1</span></span><br><span class="line">[<span class="number">2019</span><span class="number">-01</span><span class="number">-26</span> <span class="number">18</span>:<span class="number">07</span>:<span class="number">50</span>,<span class="number">099</span>] WARN [Producer clientId=console-producer] Error <span class="keyword">while</span> fetching metadata with correlation id <span class="number">1</span> : &#123;test=TOPIC_AUTHORIZATION_FAILED&#125; (org.apache.kafka.clients.NetworkClient)</span><br><span class="line">[<span class="number">2019</span><span class="number">-01</span><span class="number">-26</span> <span class="number">18</span>:<span class="number">07</span>:<span class="number">50</span>,<span class="number">100</span>] ERROR Error when sending message to topic test with key: <span class="literal">null</span>, value: <span class="number">1</span> bytes with error: (org.apache.kafka.clients.producer.<span class="built_in">int</span>ernals.ErrorLoggingCallback)</span><br><span class="line">org.apache.kafka.common.errors.TopicAuthorizationException: Not authorized to access topics: [test]</span><br></pre></td></tr></table></figure>
+可以看到报错了, 因为fanboshi用户还没有权限</li>
+</ol>
+<h4 id="kafka-console-consumer"><a href="#kafka-console-consumer" class="headerlink" title="kafka-console-consumer"></a>kafka-console-consumer</h4><ol>
+<li>创建 config/consumer-fanboshi.properties 文件<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[root@node002229 kafka]</span><span class="comment"># vim config/consumer-fanboshi.properties</span></span><br><span class="line"><span class="attr">security.protocol</span>=SASL_PLAINTEXT</span><br><span class="line"><span class="attr">sasl.mechanism</span>=SCRAM-SHA-<span class="number">256</span></span><br><span class="line"><span class="attr">group.id</span>=fanboshi-group</span><br></pre></td></tr></table></figure></li>
+<li>创建 bin/kafka-console-consumer-fanboshi.sh 文件<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cp bin/kafka-console-consumer<span class="selector-class">.sh</span> bin/kafka-console-consumer-fanboshi.sh</span><br><span class="line">vim bin/kafka-console-consumer-fanboshi.sh</span><br><span class="line"><span class="selector-id">#exec</span> $(dirname $<span class="number">0</span>)/kafka-run-class<span class="selector-class">.sh</span> kafka<span class="selector-class">.tools</span><span class="selector-class">.ConsoleConsumer</span> <span class="string">&quot;$@&quot;</span></span><br><span class="line">exec $(dirname $<span class="number">0</span>)/kafka-run-class<span class="selector-class">.sh</span> -Djava<span class="selector-class">.security</span><span class="selector-class">.auth</span><span class="selector-class">.login</span>.config=$(dirname $<span class="number">0</span>)/../config/kafka_client_jaas_fanboshi<span class="selector-class">.conf</span> kafka<span class="selector-class">.tools</span><span class="selector-class">.ConsoleConsumer</span> <span class="string">&quot;$@&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li>测试消费者<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/kafka-console-consumer-fanboshi.sh --bootstrap-server <span class="number">192.168</span><span class="number">.2</span><span class="number">.229</span>:<span class="number">9092</span> --topic test --consumer.config config/consumer-fanboshi.properties --<span class="keyword">from</span>-beginning</span><br></pre></td></tr></table></figure>
+其实也会报错的, 报错内容就不贴了</li>
+</ol>
+<h2 id="ACL配置"><a href="#ACL配置" class="headerlink" title="ACL配置"></a>ACL配置</h2><h3 id="授予fanboshi用户对test-topic-写权限-只允许-192-168-2-网段"><a href="#授予fanboshi用户对test-topic-写权限-只允许-192-168-2-网段" class="headerlink" title="授予fanboshi用户对test topic 写权限, 只允许 192.168.2.* 网段"></a>授予fanboshi用户对test topic 写权限, 只允许 192.168.2.* 网段</h3><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/kafka-acls.sh <span class="params">--authorizer</span> kafka.security.auth.SimpleAclAuthorizer <span class="params">--authorizer-properties</span> zookeeper.<span class="keyword">connect</span>=localhost<span class="function">:2182</span> <span class="params">--add</span> <span class="params">--allow-principal</span> User<span class="function">:fanboshi</span> <span class="params">--operation</span> Write <span class="params">--topic</span> test <span class="params">--allow-host</span> 192.168.2.*</span><br></pre></td></tr></table></figure>
+<h3 id="授予fanboshi用户对test-topic-读权限-只允许-192-168-2-网段"><a href="#授予fanboshi用户对test-topic-读权限-只允许-192-168-2-网段" class="headerlink" title="授予fanboshi用户对test topic 读权限, 只允许 192.168.2.* 网段"></a>授予fanboshi用户对test topic 读权限, 只允许 192.168.2.* 网段</h3><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/kafka-acls.sh <span class="params">--authorizer</span> kafka.security.auth.SimpleAclAuthorizer <span class="params">--authorizer-properties</span> zookeeper.<span class="keyword">connect</span>=localhost<span class="function">:2182</span> <span class="params">--add</span> <span class="params">--allow-principal</span> User<span class="function">:fanboshi</span> <span class="params">--operation</span> Read <span class="params">--topic</span> test <span class="params">--allow-host</span> 192.168.2.*</span><br></pre></td></tr></table></figure>
+<h3 id="授予fanboshi用户-fanboshi-group-消费者组-对test-topic-读权限-只允许-192-168-2-网段"><a href="#授予fanboshi用户-fanboshi-group-消费者组-对test-topic-读权限-只允许-192-168-2-网段" class="headerlink" title="授予fanboshi用户, fanboshi-group 消费者组 对test topic 读权限, 只允许 192.168.2.* 网段"></a>授予fanboshi用户, fanboshi-group 消费者组 对test topic 读权限, 只允许 192.168.2.* 网段</h3><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/kafka-acls.sh <span class="params">--authorizer</span> kafka.security.auth.SimpleAclAuthorizer <span class="params">--authorizer-properties</span> zookeeper.<span class="keyword">connect</span>=localhost<span class="function">:2182</span> <span class="params">--add</span> <span class="params">--allow-principal</span> User<span class="function">:fanboshi</span> <span class="params">--operation</span> Read <span class="params">--group</span> fanboshi-group <span class="params">--allow-host</span> 192.168.2.*</span><br></pre></td></tr></table></figure>
+<h3 id="查看acl配置"><a href="#查看acl配置" class="headerlink" title="查看acl配置"></a>查看acl配置</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@node002229 kafka]# bin/kafka-acls.sh --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.<span class="attribute">connect</span>=localhost:2182 --list</span><br><span class="line">Current ACLs <span class="keyword">for</span><span class="built_in"> resource </span>`Group:LITERAL:fanboshi-group`: </span><br><span class="line">        User:fanboshi has Allow permission <span class="keyword">for</span> operations: Read <span class="keyword">from</span> hosts: * </span><br><span class="line"></span><br><span class="line">Current ACLs <span class="keyword">for</span><span class="built_in"> resource </span>`Topic:LITERAL:test`: </span><br><span class="line">        User:fanboshi has Allow permission <span class="keyword">for</span> operations: Write <span class="keyword">from</span> hosts: *</span><br><span class="line">        User:fanboshi has Allow permission <span class="keyword">for</span> operations: Read <span class="keyword">from</span> hosts: * </span><br></pre></td></tr></table></figure>
+<h3 id="删除配置"><a href="#删除配置" class="headerlink" title="删除配置"></a>删除配置</h3><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin/kafka-acls.sh <span class="params">--authorizer</span> kafka.security.auth.SimpleAclAuthorizer <span class="params">--authorizer-properties</span> zookeeper.<span class="keyword">connect</span>=localhost<span class="function">:2182</span> <span class="params">--remove</span> <span class="params">--allow-principal</span> User<span class="function">:bob</span> <span class="params">--operation</span> Read <span class="params">--topic</span> example10 <span class="params">--allow-host</span> 192.168.1.158</span><br></pre></td></tr></table></figure>
+<h3 id="再次测试"><a href="#再次测试" class="headerlink" title="再次测试"></a>再次测试</h3><p>生产者<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node002229 kafka]# bin/kafka-console-producer-fanboshi.sh --broker-list <span class="number">192.168</span><span class="number">.2</span><span class="number">.229</span>:<span class="number">9092</span> --topic test --producer.config config/client-sasl.properties</span><br><span class="line">&gt;<span class="number">1</span></span><br><span class="line">[<span class="number">2019</span><span class="number">-01</span><span class="number">-26</span> <span class="number">18</span>:<span class="number">07</span>:<span class="number">50</span>,<span class="number">099</span>] WARN [Producer clientId=console-producer] Error <span class="keyword">while</span> fetching metadata with correlation id <span class="number">1</span> : &#123;test=TOPIC_AUTHORIZATION_FAILED&#125; (org.apache.kafka.clients.NetworkClient)</span><br><span class="line">[<span class="number">2019</span><span class="number">-01</span><span class="number">-26</span> <span class="number">18</span>:<span class="number">07</span>:<span class="number">50</span>,<span class="number">100</span>] ERROR Error when sending message to topic test with key: <span class="literal">null</span>, value: <span class="number">1</span> bytes with error: (org.apache.kafka.clients.producer.<span class="built_in">int</span>ernals.ErrorLoggingCallback)</span><br><span class="line">org.apache.kafka.common.errors.TopicAuthorizationException: Not authorized to access topics: [test]</span><br><span class="line">&gt;<span class="number">1</span></span><br></pre></td></tr></table></figure><br>消费者<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node002229 kafka]# bin/kafka-console-consumer-fanboshi.sh --bootstrap-server <span class="number">192.168</span><span class="number">.2</span><span class="number">.229</span>:<span class="number">9092</span> --topic test --consumer.config config/consumer-fanboshi.properties --<span class="keyword">from</span>-beginning</span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">1</span></span><br></pre></td></tr></table></figure><br>都没问题了</p>
+<h2 id="如何查看我们创建了哪些”用户”"><a href="#如何查看我们创建了哪些”用户”" class="headerlink" title="如何查看我们创建了哪些”用户”"></a>如何查看我们创建了哪些”用户”</h2><p>好像只能去zookeeper看?<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">zkCli.sh -server node002229:2182</span><br><span class="line">ls /config/users</span><br><span class="line">[admin, alice, fanboshi]</span><br></pre></td></tr></table></figure><br>尝试删除alice<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@node002229 kafka]# bin/kafka-configs.sh --zookeeper localhost:2182 --describe --entity-type<span class="built_in"> users </span>--entity-name alice</span><br><span class="line">Configs <span class="keyword">for</span> user-principal <span class="string">&#x27;alice&#x27;</span> are <span class="attribute">SCRAM-SHA-512</span>=salt=MWt1OHRhZnd3cWZvZ2I4bXcwdTM0czIyaTQ=,stored_key=JYeud1Cx5Z2+FaJgJsZGbMcIi63B9XtA9Wyc+KEm2gXK8+2IxxAVvi1CfSjlkqeupfeIMFJ7/EUkOw+zqvYz6w==,server_key=O4NIgjleroia7puK01/ZZoagFeoxh+zHzckGXXooBsWTdx/7Shb0pMHniMu4IY2jb5orWB2t9K8MZkxCliJDsg==,iterations=4096,SCRAM-SHA-256=salt=MTJ3bXRod3EyN3FtZWdsNHk0NXoyeWdlNjE=,stored_key=chQX35reoBYtfg/U5HBtkzvBAk+gSCgskNzUiScOrUE=,server_key=rRTbUzAehwVMUDTMuoOMumGEuvc7wDecKcqK6yYlbWY=,iterations=8192</span><br><span class="line">[root@node002229 kafka]# bin/kafka-configs.sh --zookeeper localhost:2182 --alter --delete-config <span class="string">&#x27;SCRAM-SHA-512&#x27;</span> --entity-type<span class="built_in"> users </span>--entity-name alice</span><br><span class="line">Completed Updating<span class="built_in"> config </span><span class="keyword">for</span> entity: user-principal <span class="string">&#x27;alice&#x27;</span>.</span><br><span class="line">[root@node002229 kafka]# bin/kafka-configs.sh --zookeeper localhost:2182 --describe --entity-type<span class="built_in"> users </span>--entity-name alice                              </span><br><span class="line">Configs <span class="keyword">for</span> user-principal <span class="string">&#x27;alice&#x27;</span> are <span class="attribute">SCRAM-SHA-256</span>=salt=MTJ3bXRod3EyN3FtZWdsNHk0NXoyeWdlNjE=,stored_key=chQX35reoBYtfg/U5HBtkzvBAk+gSCgskNzUiScOrUE=,server_key=rRTbUzAehwVMUDTMuoOMumGEuvc7wDecKcqK6yYlbWY=,iterations=8192</span><br><span class="line">[root@node002229 kafka]# bin/kafka-configs.sh --zookeeper localhost:2182 --alter --delete-config <span class="string">&#x27;SCRAM-SHA-256&#x27;</span> --entity-type<span class="built_in"> users </span>--entity-name alice   </span><br><span class="line">Completed Updating<span class="built_in"> config </span><span class="keyword">for</span> entity: user-principal <span class="string">&#x27;alice&#x27;</span>.</span><br><span class="line">[root@node002229 kafka]# bin/kafka-configs.sh --zookeeper localhost:2182 --describe --entity-type<span class="built_in"> users </span>--entity-name alice                              </span><br><span class="line">Configs <span class="keyword">for</span> user-principal <span class="string">&#x27;alice&#x27;</span> are </span><br></pre></td></tr></table></figure><br>去ZK查看<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[zk: node002229:2182(CONNECTED) 0] ls /config/users</span><br><span class="line">[admin, alice, fanboshi]</span><br></pre></td></tr></table></figure><br>还是有, 难道只能在ZK手动删除?</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p><a target="_blank" rel="noopener" href="http://kafka.apache.org/documentation/#security_sasl_scram">http://kafka.apache.org/documentation/#security_sasl_scram</a><br><a target="_blank" rel="noopener" href="https://sharebigdata.wordpress.com/category/kafka/kafka-sasl-scram-with-w-o-ssl/">https://sharebigdata.wordpress.com/category/kafka/kafka-sasl-scram-with-w-o-ssl/</a><br><a target="_blank" rel="noopener" href="https://developer.ibm.com/opentech/2017/05/31/kafka-acls-in-practice/">https://developer.ibm.com/opentech/2017/05/31/kafka-acls-in-practice/</a><br><a target="_blank" rel="noopener" href="https://developer.ibm.com/tutorials/kafka-authn-authz/">https://developer.ibm.com/tutorials/kafka-authn-authz/</a><br>Kafka并不难学! 入门、进阶、商业实战</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2019/01/26/2019-01-26-Kafka-SASL_SCRAM+ACL实现动态创建用户及权限控制/" target="_blank" title="Kafka SASL_SCRAM+ACL实现动态创建用户及权限控制">http://fuxkdb.com/2019/01/26/2019-01-26-Kafka-SASL_SCRAM+ACL实现动态创建用户及权限控制/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/02/22/2019-02-22-%E5%81%87%E5%A6%82Kafka%E9%9B%86%E7%BE%A4%E4%B8%AD%E4%B8%80%E4%B8%AAbroker%E5%AE%95%E6%9C%BA%E6%97%A0%E6%B3%95%E6%81%A2%E5%A4%8D,-%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/09/11/MGR%20vs%20PXC%20Benchmark/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">MGR vs PXC Benchmark</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SASL-SCRAM-ACL%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E5%8F%8A%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6"><span class="nav-number">1.</span> <span class="nav-text">SASL_SCRAM+ACL实现动态创建用户及权限控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8SASL-SCRAM%E8%BF%9B%E8%A1%8C%E8%BA%AB%E4%BB%BD%E9%AA%8C%E8%AF%81"><span class="nav-number">1.1.</span> <span class="nav-text">使用SASL &#x2F; SCRAM进行身份验证</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%88%9B%E5%BB%BASCRAM-Credentials"><span class="nav-number">1.1.1.</span> <span class="nav-text">1. 创建SCRAM Credentials</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BAbroker%E5%BB%BA%E9%80%9A%E4%BF%A1%E7%94%A8%E6%88%B7-%E6%88%96%E7%A7%B0%E8%B6%85%E7%BA%A7%E7%94%A8%E6%88%B7"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">创建broker建通信用户(或称超级用户)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%94%A8%E6%88%B7fanboshi"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">创建客户端用户fanboshi</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8BSCRAM%E8%AF%81%E4%B9%A6"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">查看SCRAM证书</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A0%E9%99%A4SCRAM%E8%AF%81%E4%B9%A6"><span class="nav-number">1.1.1.4.</span> <span class="nav-text">删除SCRAM证书</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AEKafka-Brokers"><span class="nav-number">1.1.2.</span> <span class="nav-text">2. 配置Kafka Brokers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%85%8D%E7%BD%AE"><span class="nav-number">1.1.3.</span> <span class="nav-text">客户端配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#kafka-console-producer"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">kafka-console-producer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#kafka-console-consumer"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">kafka-console-consumer</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ACL%E9%85%8D%E7%BD%AE"><span class="nav-number">1.2.</span> <span class="nav-text">ACL配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%88%E4%BA%88fanboshi%E7%94%A8%E6%88%B7%E5%AF%B9test-topic-%E5%86%99%E6%9D%83%E9%99%90-%E5%8F%AA%E5%85%81%E8%AE%B8-192-168-2-%E7%BD%91%E6%AE%B5"><span class="nav-number">1.2.1.</span> <span class="nav-text">授予fanboshi用户对test topic 写权限, 只允许 192.168.2.* 网段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%88%E4%BA%88fanboshi%E7%94%A8%E6%88%B7%E5%AF%B9test-topic-%E8%AF%BB%E6%9D%83%E9%99%90-%E5%8F%AA%E5%85%81%E8%AE%B8-192-168-2-%E7%BD%91%E6%AE%B5"><span class="nav-number">1.2.2.</span> <span class="nav-text">授予fanboshi用户对test topic 读权限, 只允许 192.168.2.* 网段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%88%E4%BA%88fanboshi%E7%94%A8%E6%88%B7-fanboshi-group-%E6%B6%88%E8%B4%B9%E8%80%85%E7%BB%84-%E5%AF%B9test-topic-%E8%AF%BB%E6%9D%83%E9%99%90-%E5%8F%AA%E5%85%81%E8%AE%B8-192-168-2-%E7%BD%91%E6%AE%B5"><span class="nav-number">1.2.3.</span> <span class="nav-text">授予fanboshi用户, fanboshi-group 消费者组 对test topic 读权限, 只允许 192.168.2.* 网段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8Bacl%E9%85%8D%E7%BD%AE"><span class="nav-number">1.2.4.</span> <span class="nav-text">查看acl配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E9%85%8D%E7%BD%AE"><span class="nav-number">1.2.5.</span> <span class="nav-text">删除配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%8D%E6%AC%A1%E6%B5%8B%E8%AF%95"><span class="nav-number">1.2.6.</span> <span class="nav-text">再次测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%9F%A5%E7%9C%8B%E6%88%91%E4%BB%AC%E5%88%9B%E5%BB%BA%E4%BA%86%E5%93%AA%E4%BA%9B%E2%80%9D%E7%94%A8%E6%88%B7%E2%80%9D"><span class="nav-number">1.3.</span> <span class="nav-text">如何查看我们创建了哪些”用户”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">1.4.</span> <span class="nav-text">参考文献</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

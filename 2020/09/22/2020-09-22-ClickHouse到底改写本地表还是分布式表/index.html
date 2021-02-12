@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>clickhouse到底改写本地表还是分布式表 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="ClickHouse" />
+  
+  
+  
+  
+  <meta name="description" content="TL;DR如果预估自己的业务数据量不大(日增不到百万行), 那么写分布式表和本地表都可以, 但要注意如果选择写本地表, 请保证每次写入数据都建立新的连接, 且每个连接写入的数据量基本相同 如果预估自己的业务数据量大(日增百万以上, 并发插入大于10), 那么请写本地表 建议每次插入50W行左右数据, 最多不可超过100W行. 总之CH不像MySQL要小事务. 比如1000W行数据, MySQL建议">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ClickHouse到底改写本地表还是分布式表">
+<meta property="og:url" content="http://fuxkdb.com/2020/09/22/2020-09-22-ClickHouse%E5%88%B0%E5%BA%95%E6%94%B9%E5%86%99%E6%9C%AC%E5%9C%B0%E8%A1%A8%E8%BF%98%E6%98%AF%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="TL;DR如果预估自己的业务数据量不大(日增不到百万行), 那么写分布式表和本地表都可以, 但要注意如果选择写本地表, 请保证每次写入数据都建立新的连接, 且每个连接写入的数据量基本相同 如果预估自己的业务数据量大(日增百万以上, 并发插入大于10), 那么请写本地表 建议每次插入50W行左右数据, 最多不可超过100W行. 总之CH不像MySQL要小事务. 比如1000W行数据, MySQL建议">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/clickhouse-write_local_or_distribute_1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/clickhouse-write_local_or_distribute_2.png">
+<meta property="article:published_time" content="2020-09-22T02:30:00.000Z">
+<meta property="article:modified_time" content="2020-09-22T02:31:06.713Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="ClickHouse">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/clickhouse-write_local_or_distribute_1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-09-22-ClickHouse到底改写本地表还是分布式表" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      ClickHouse到底改写本地表还是分布式表
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/09/22/2020-09-22-ClickHouse%E5%88%B0%E5%BA%95%E6%94%B9%E5%86%99%E6%9C%AC%E5%9C%B0%E8%A1%A8%E8%BF%98%E6%98%AF%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8/" class="article-date">
+	  <time datetime="2020-09-22T02:30:00.000Z" itemprop="datePublished">2020-09-22</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><p>如果预估自己的业务数据量不大(日增不到百万行), 那么写分布式表和本地表都可以, 但要注意如果选择写本地表, 请保证每次写入数据都建立新的连接, 且每个连接写入的数据量基本相同</p>
+<p>如果预估自己的业务数据量大(日增百万以上, 并发插入大于10), 那么请写本地表</p>
+<p>建议每次插入50W行左右数据, 最多不可超过100W行. 总之CH不像MySQL要小事务. 比如1000W行数据, MySQL建议一次插入1W左右, 使用小事务, 执行1000次. CH建议20次,每次50W. 这是MergeTree引擎原理决定的, 频繁少量插入会导致data part过多, 合并不过来.</p>
+<p>再有, AP不像TP, TP为了避免建立新连接产生的损耗影响性能, 通常会使用长连接, 连接池等技术做优化. 但AP业务不需要, 因为AP的属性就不会有高并发, 小SQL.<br><a id="more"></a></p>
+<h2 id="原因请继续看"><a href="#原因请继续看" class="headerlink" title="原因请继续看"></a>原因请继续看</h2><p>看了一些文档都建议写分布式表, 虽说别人没必要骗我们, 但是搞技术的不能人云亦云, 还是要明白为啥, 说实话我想了很久没想出直接写分布式表有什么致命缺陷, 于是在ClickHouse中文社区提了问题, 内容如下</p>
+<p>看了sina高鹏大佬的分享，看了 <a target="_blank" rel="noopener" href="https://github.com/ClickHouse/ClickHouse/issues/1854">https://github.com/ClickHouse/ClickHouse/issues/1854</a> ，还看了一些文章都是建议写本地表而不是分布式表<br>如果我设置 internal_replication=true , 使用 ReplicatedMergeTree 引擎, 除了写本地表更灵活可控外, 写分布式表到底有什么致命缺陷吗?<br>因为要给同事解释, 只说一个大家说最佳实践是这样是不行的.. 我自己也没理解到底写分布式表有啥大缺陷<br>如果说造成数据分布不均匀,  sharding key 我设为 rand() 还会有很大不均匀吗? 如果说扩容, 我也可以通过调整 weight 控制数据尽量写入新 shared 啊?</p>
+<p>难道是因为：</p>
+<blockquote>
+<p>Data is written asynchronously. When inserted in the table, the data block is just written to the local file system. The data is sent to the remote servers in the background as soon as possible. The period for sending data is managed by the distributed_directory_monitor_sleep_time_ms and distributed_directory_monitor_max_sleep_time_ms settings. The Distributed engine sends each file with inserted data separately, but you can enable batch sending of files with the distributed_directory_monitor_batch_inserts setting. This setting improves cluster performance by better utilizing local server and network resources. You should check whether data is sent successfully by checking the list of files (data waiting to be sent) in the table directory: /var/lib/clickhouse/data/database/table/.</p>
+</blockquote>
+<p>&gt;</p>
+<blockquote>
+<p>If the server ceased to exist or had a rough restart (for example, after a device failure) after an INSERT to a Distributed table, the inserted data might be lost. If a damaged data part is detected in the table directory, it is transferred to the ‘broken’ subdirectory and no longer used.</p>
+</blockquote>
+<p>上面文档内容我理解意思是说假如我有S1 S2 S3 三个节点,每个节点都有local表和分布式表. 我向S1的分布式表写数据1, 2, 3，<br>1写入S1, 2,3先写到S1本地文件系统, 然后异步发送到S2 S3 , 比如2发给S2, 3发给S3, 如果此时S3宕机了, 则3发到S3失败, 但是1,2还是成功写到S1,S2了? 所以整个过程不能保证原子性? <del>出现问题还要人为修数据?</del></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/ClickHouse/ClickHouse/issues/1343">https://github.com/ClickHouse/ClickHouse/issues/1343</a> 这个issue说S3 come back后S1会尝试重新发送数据给S3.</p>
+<blockquote>
+<p>Data blocks are written in /var/lib/clickhouse/data/database/table/ folder. Special thread checks directory periodically and tries to send data. If it can’t, it will try next time.</p>
+</blockquote>
+<p>那么只剩文档最后一句意思是如果S1过程中宕机, 会丢数据?<br>自问自答一下吧,  weight 是分片级别的, 不是表级别的, 灵活性差</p>
+<p>问了下新浪的高鹏<br><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/clickhouse-write_local_or_distribute_1.png" alt=""><br><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/clickhouse-write_local_or_distribute_2.png" alt=""><br>高鹏的回答总结一下就是:</p>
+<ol>
+<li>新浪每天增量是千亿级的, INSERT并发和节点数应该比较高, 直接写某个节点的分布式表, 这个节点还需要建立N-1个连接(N是集群节点数)分发数据, 再有就是他说的第3点</li>
+<li>通过负载均衡向本地表插入数据要控制尽量每次插入数据建立一次连接, 每个链接插入的数据量要差不多, batch size不能太小, 否则data part过多, merge不过来clickhouse会报错</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/09/22/2020-09-22-ClickHouse到底改写本地表还是分布式表/" target="_blank" title="ClickHouse到底改写本地表还是分布式表">http://fuxkdb.com/2020/09/22/2020-09-22-ClickHouse到底改写本地表还是分布式表/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ClickHouse/" rel="tag">ClickHouse</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/09/24/2020-09-24-%E7%B1%BBMHA%E9%AB%98%E5%8F%AF%E7%94%A8%E6%96%B9%E6%A1%88%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          类MHA高可用方案存在的问题
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/09/20/2020-09-20-%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B8%A2%E6%95%B0%E6%8D%AE/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">增强半同步会不会丢数据</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#TL-DR"><span class="nav-number">1.</span> <span class="nav-text">TL;DR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0%E8%AF%B7%E7%BB%A7%E7%BB%AD%E7%9C%8B"><span class="nav-number">2.</span> <span class="nav-text">原因请继续看</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

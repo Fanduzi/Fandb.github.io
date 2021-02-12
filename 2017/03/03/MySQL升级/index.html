@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mysql升级 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMySQL升级" />
+  
+  
+  
+  
+  <meta name="description" content="Upgrading Mysql 支持的升级方法 支持的升级路径 Before You Begin Performing an In-Place Upgrade  Supported Upgrade Method支持的升级方法包括:  In-Place Upgrade:涉及关闭旧版本的MySQL,将旧的MySQL二进制文件或软件包替换成新版本的MySQL,重新启动MySQL使用原来的data dir">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL升级">
+<meta property="og:url" content="http://fuxkdb.com/2017/03/03/MySQL%E5%8D%87%E7%BA%A7/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Upgrading Mysql 支持的升级方法 支持的升级路径 Before You Begin Performing an In-Place Upgrade  Supported Upgrade Method支持的升级方法包括:  In-Place Upgrade:涉及关闭旧版本的MySQL,将旧的MySQL二进制文件或软件包替换成新版本的MySQL,重新启动MySQL使用原来的data dir">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-03-03T14:00:00.000Z">
+<meta property="article:modified_time" content="2020-09-24T03:35:06.875Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MySQL升级">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-MySQL升级" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MySQL升级
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/03/03/MySQL%E5%8D%87%E7%BA%A7/" class="article-date">
+	  <time datetime="2017-03-03T14:00:00.000Z" itemprop="datePublished">2017-03-03</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Upgrading-Mysql"><a href="#Upgrading-Mysql" class="headerlink" title="Upgrading Mysql"></a>Upgrading Mysql</h2><ul>
+<li>支持的升级方法</li>
+<li>支持的升级路径</li>
+<li>Before You Begin</li>
+<li>Performing an In-Place Upgrade</li>
+</ul>
+<h3 id="Supported-Upgrade-Method"><a href="#Supported-Upgrade-Method" class="headerlink" title="Supported Upgrade Method"></a>Supported Upgrade Method</h3><p>支持的升级方法包括:</p>
+<ul>
+<li>In-Place Upgrade:涉及关闭旧版本的MySQL,将旧的MySQL二进制文件或软件包替换成新版本的MySQL,重新启动MySQL使用原来的data directory,并执行mysql_upgrade.</li>
+<li>Logical Upgrade:涉及使用mysqldump导出旧版本MySQL的所有数据,安装新版本的MySQL,导入dump文件,并执行mysql_upgrade.</li>
+</ul>
+<h3 id="支持的升级路径"><a href="#支持的升级路径" class="headerlink" title="支持的升级路径"></a>支持的升级路径</h3><p>除非另有说明，否则支持以下升级路径：</p>
+<ul>
+<li>Upgrading from a release series version to a newer release series version is supported.可以从5.7.9升级到5.7.10,或者直接从5.7.9升级到5.7.11</li>
+<li>Upgrading one release level is supported. For example, upgrading from 5.6 to 5.7 is supported.可以从5.6升级到5.7</li>
+<li>Upgrading more than one release level is supported, but only if you upgrade one release level at a time.升级多个版本是支持的但只能一次升级一个版本,比如5.5 先升级 5.6 再升级到5.7</li>
+<li>直接从5.5升级到5.7是不建议且不支持的<br>以下条件适用于所有升级路径：</li>
+<li>支持通用可用性（GA）状态版本之间的升级。</li>
+<li>不支持在里程碑版本之间（或从里程碑版本到GA版本）的升级。 <del>例如，不支持从5.7.7升级到5.7.8，因为GA状态释放也不受支持(这段可能写错了)</del>。</li>
+<li>对于已达到GA状态的MySQL版本系列的版本之间的升级，可以在具有相同架构的系统上在不同版本之间移动MySQL格式文件和数据文件。 这对于在里程碑版本之间的升级不一定是真的。 使用里程碑版本是您自己的风险。</li>
+</ul>
+<h3 id="Before-You-Begin"><a href="#Before-You-Begin" class="headerlink" title="Before You Begin"></a>Before You Begin</h3><p>升级之前,建议查看如下信息,并执行建议的步骤:</p>
+<ul>
+<li>升级前,备份数据,尤其是system库.</li>
+<li>请查看版本说明，提供有关MySQL 5.7中新增功能的信息或与早期MySQL版本中发现的功能不同的信息。 其中一些更改可能导致不兼容。对于已在MySQL 5.7中添加，弃用或删除的MySQL服务器变量和选项的列表，请参见第1.5节“在MySQL 5.7中添加，弃用或删除的服务器和状态变量及选项”。如果使用以上任何项目，升级需要更改配置。</li>
+<li>查看第2.11.1.1节“影响升级到MySQL 5.7的更改”。本节介绍可能需要在升级之前或之后执行操作的更改。</li>
+<li>检查第2.11.3节“检查表或索引是否必须重新构建”，以了解您当前版本的MySQL与要升级的版本之间是否对表格式或字符集或归类进行了更改。如果这些更改导致MySQL版本之间不兼容，则需要使用第2.11.4节“重建或修复表或索引”中的说明升级受影响的表。</li>
+<li>如果使用复制，请查看第18.4.3节“升级复制设置”。</li>
+<li>如果您使用XA事务与InnoDB，请在升级之前运行XA RECOVER以检查未提交的XA事务。如果返回结果，则通过发出XA COMMIT或XA ROLLBACK语句来提交或回滚XA事务。</li>
+<li>如果您的MySQL安装包含大量数据，在就地升级后可能需要很长时间进行转换，您可能会发现创建一个“虚拟”数据库实例，用于评估可能需要的转换和涉及的工作执行它们。制作一份包含mysql数据库完整副本的MySQL实例的副本，以及没有数据的所有其他数据库。在此虚拟实例上运行升级过程，以查看可能需要执行哪些操作，以便在原始数据库实例上执行实际数据转换时，可以更好地评估所涉及的工作。</li>
+<li>当您安装或升级到新版本的MySQL时，建议重建和重新安装MySQL语言接口。这适用于MySQL接口，如PHP mysql扩展，Perl DBD :: mysql模块和Python MySQLdb模块。<a id="more"></a>
+<h3 id="执行In-Place升级"><a href="#执行In-Place升级" class="headerlink" title="执行In-Place升级"></a>执行In-Place升级</h3>要执行In-Place升级:<br>1.查看在2.11.1.1章节,”Changes Affecting Upgrades MySQL5.7”描述的升级所造成的改变<br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/upgrading-from-previous-series.html">https://dev.mysql.com/doc/refman/5.7/en/upgrading-from-previous-series.html</a><br>2.Configure MySQL to perform a slow shutdown by setting innodb_fast_shutdown to 0. For example:<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -u root -p --<span class="built_in">execute</span>=<span class="string">&quot;SET GLOBAL innodb_fast_shutdown=0&quot;</span></span><br></pre></td></tr></table></figure>
+With a slow shutdown, InnoDB performs a full purge and change buffer merge before shutting down, which ensures that data files are fully prepared in case of file format differences between releases.<br>3.关闭数据库<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqladmin -u root -p <span class="built_in">shutdown</span></span><br></pre></td></tr></table></figure>
+4.将MySQL二进制文件或软件包替换成新的<br>就是说把旧版本的mysql软件换成新的<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">lrwxrwxrwx</span>   <span class="number">1</span> root mysql   <span class="number">47</span> Mar  <span class="number">3</span> <span class="number">03</span>:<span class="number">53</span> mysql -&gt; mysql-<span class="number">5</span>.<span class="number">7</span>.<span class="number">17</span>/mysql-<span class="number">5</span>.<span class="number">7</span>.<span class="number">17</span>-linux-glibc<span class="number">2</span>.<span class="number">5</span>-x<span class="number">86</span>_<span class="number">64</span></span><br><span class="line"><span class="attribute">drwxr</span>-xr-x  <span class="number">13</span> root root  <span class="number">4096</span> Mar  <span class="number">3</span> <span class="number">03</span>:<span class="number">44</span> mysql<span class="number">55</span></span><br><span class="line"><span class="attribute">drwxrwxr</span>-x  <span class="number">13</span> root mysql <span class="number">4096</span> Dec <span class="number">15</span>  <span class="number">2014</span> mysql<span class="number">5</span>.<span class="number">6</span></span><br><span class="line"><span class="attribute">drwxr</span>-xr-x   <span class="number">3</span> root root  <span class="number">4096</span> Mar  <span class="number">3</span> <span class="number">03</span>:<span class="number">42</span> mysql-<span class="number">5</span>.<span class="number">7</span>.<span class="number">17</span></span><br></pre></td></tr></table></figure>
+这里可以这样做,替换的时候使用ln -s 建一个连接,这样每次替换都只是改变连接<br>取消连接unlink<br>5.启动新版本的MySQL<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld_safe <span class="attribute">--user</span>=mysql <span class="attribute">--datadir</span>=/path/to/existing-datadir</span><br></pre></td></tr></table></figure>
+这里要保证数据文件目录指定对了<br>6.执行mysql_upgrade<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">mysql_upgrade -u -p</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>mysql_upgrade检查所有数据库中的所有表与当前版本的MySQL不兼容。 mysql_upgrade还升级mysql系统数据库，以便您可以利用新的权限或功能。</p>
+</blockquote>
+</li>
+</ul>
+<p>翻译有问题,反正就是要检查所有数据库的所有表,所以你的数据库如果很大的话,这个升级过程会非常久.可以使用 -s选项只升级系统表</p>
+<blockquote>
+<p>Note<br>mysql_upgrade should not be used when the server is running with –gtid-mode=ON. See GTID mode and mysql_upgrade for more information.</p>
+</blockquote>
+<p>mysql_upgrade does not upgrade the contents of the help tables. For upgrade instructions, see Section 6.1.10, “Server-Side Help”.</p>
+<p>7.关闭并重启MySQL确保对系统标的改变生效<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysqladmin -u root -p shutdown</span><br><span class="line">mysqld_safe <span class="attribute">--user</span>=mysql <span class="attribute">--datadir</span>=/path/to/existing-datadir</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/03/03/MySQL升级/" target="_blank" title="MySQL升级">http://fuxkdb.com/2017/03/03/MySQL升级/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%8D%87%E7%BA%A7/" rel="tag">MySQL升级</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/05/07/Tpcc-MySQL/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          Tpcc-MySQL
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/12/27/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=OFF/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">MySQL误DROP表恢复,innodb_file_per_table=OFF</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Upgrading-Mysql"><span class="nav-number">1.</span> <span class="nav-text">Upgrading Mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Supported-Upgrade-Method"><span class="nav-number">1.1.</span> <span class="nav-text">Supported Upgrade Method</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%AF%E6%8C%81%E7%9A%84%E5%8D%87%E7%BA%A7%E8%B7%AF%E5%BE%84"><span class="nav-number">1.2.</span> <span class="nav-text">支持的升级路径</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Before-You-Begin"><span class="nav-number">1.3.</span> <span class="nav-text">Before You Begin</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8CIn-Place%E5%8D%87%E7%BA%A7"><span class="nav-number">1.4.</span> <span class="nav-text">执行In-Place升级</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

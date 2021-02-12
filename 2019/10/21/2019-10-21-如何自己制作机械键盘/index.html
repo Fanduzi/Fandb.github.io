@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>如何自己制作机械键盘 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="生活兴趣爱好" />
+  
+  
+  
+  
+  <meta name="description" content="如何自己制作机械键盘本文记录自己的初次”客制化”经历, 键圈大佬请略过, 错误之处请指正, 装逼犯自动忽视~ 材料准备轴体轴体这里就不做介绍了, 如果你也是萌新的话, 就先了解这四种轴吧:  青轴 茶轴 红轴 黑轴">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何自己制作机械键盘">
+<meta property="og:url" content="http://fuxkdb.com/2019/10/21/2019-10-21-%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="如何自己制作机械键盘本文记录自己的初次”客制化”经历, 键圈大佬请略过, 错误之处请指正, 装逼犯自动忽视~ 材料准备轴体轴体这里就不做介绍了, 如果你也是萌新的话, 就先了解这四种轴吧:  青轴 茶轴 红轴 黑轴">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img.alicdn.com/imgextra/i3/0/O1CN01yupMjd1lpaYf80ScB_!!0-rate.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E7%84%8A%E6%8E%A5_pcb_%E6%AD%A3%E9%9D%A2%E7%85%A7.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E7%84%8A%E6%8E%A5_pcb_%E8%83%8C%E9%9D%A2%E7%85%A7.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E7%83%AD%E6%8F%92%E6%8B%94_pcb_%E6%AD%A3%E9%9D%A2%E7%85%A7.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E7%83%AD%E6%8F%92%E6%8B%94_pcb_%E8%83%8C%E9%9D%A2%E7%85%A7.png">
+<meta property="og:image" content="https://img.alicdn.com/imgextra/i1/134583372/O1CN01JwJQef1amQ4tasJjd_!!134583372.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%AE%9A%E4%BD%8D%E6%9D%BF%E5%8D%AB%E6%98%9F%E8%BD%B4.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/pcb%E5%8D%AB%E6%98%9F%E8%BD%B41.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%8D%AB%E6%98%9F%E8%BD%B41.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%8D%AB%E6%98%9F%E8%BD%B42.jpeg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%8D%AB%E6%98%9F%E8%BD%B43.jpeg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/pcb%E5%8D%AB%E6%98%9F%E8%BD%B42.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/du1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/du2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%89%AA%E8%84%9A.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/exp1.png">
+<meta property="og:image" content="https://img.alicdn.com/imgextra/i3/16731204/O1CN01mNhPLN1KlTP9AyYCw_!!16731204.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/dz64.png">
+<meta property="og:image" content="https://img.alicdn.com/imgextra/i4/134583372/TB2hQL5nxrI8KJjy0FpXXb5hVXa_!!134583372.jpg">
+<meta property="og:image" content="https://img.alicdn.com/imgextra/i3/1713761720/TB2FYLla1UkyKJjSspjXXbKTXXa_!!1713761720.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/tofu.jpeg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/tofu2.jpeg">
+<meta property="article:published_time" content="2019-10-21T13:57:00.000Z">
+<meta property="article:modified_time" content="2019-11-03T11:07:40.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="生活">
+<meta property="article:tag" content="兴趣爱好">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img.alicdn.com/imgextra/i3/0/O1CN01yupMjd1lpaYf80ScB_!!0-rate.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2019-10-21-如何自己制作机械键盘" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      如何自己制作机械键盘
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/10/21/2019-10-21-%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/" class="article-date">
+	  <time datetime="2019-10-21T13:57:00.000Z" itemprop="datePublished">2019-10-21</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="如何自己制作机械键盘"><a href="#如何自己制作机械键盘" class="headerlink" title="如何自己制作机械键盘"></a>如何自己制作机械键盘</h1><p>本文记录自己的初次”客制化”经历, 键圈大佬请略过, 错误之处请指正, 装逼犯自动忽视~</p>
+<h2 id="材料准备"><a href="#材料准备" class="headerlink" title="材料准备"></a>材料准备</h2><h3 id="轴体"><a href="#轴体" class="headerlink" title="轴体"></a>轴体</h3><p>轴体这里就不做介绍了, 如果你也是萌新的话, 就先了解这四种轴吧:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E9%9D%92%E8%BD%B4/6499406?fr=aladdin">青轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E8%8C%B6%E8%BD%B4/6486400?fr=aladdin">茶轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E7%BA%A2%E8%BD%B4">红轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E9%BB%91%E8%BD%B4">黑轴</a></li>
+</ul>
+<a id="more"></a>
+<p>就我个人来说, 入坑第一把键盘是<a target="_blank" rel="noopener" href="https://item.jd.com/338870.html#crumb-wrap">G80-3000</a>, 后面也买过国产青轴和半价Filco(酷冷至尊), 也买过Filco奶酪绿. 16年双11在KDBFans入了阿米洛Va87m红轴后就只认线性轴了, 阿米洛红轴是我买过用过的量产里认为手感最好的, <a target="_blank" rel="noopener" href="https://space.bilibili.com/138262491?spm_id_from=333.788.b_765f7570696e666f.2">某up主</a>也有过类似的言论, 在此之前我还一直以为是自己的错觉…</p>
+<p>其他轴体信息请参考下面的文章:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.zfrontier.com/post/detail/6070">垃圾佬在zF杂谈篇——各种轴体的不准确资料</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.zfrontier.com/post/detail/13593">客制化透明轴体盘点</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.zfrontier.com/post/detail/2530">关于目前市面上的机械键盘轴体的汇总与介绍</a></li>
+<li><a target="_blank" rel="noopener" href="https://deskthority.net/wiki/Category:List_of_all_keyboard_switches">List of all keyboard switches</a></li>
+</ul>
+<p>大致来说, 单颗轴体价格在几毛到十几块钱这个范围内吧, 例如:</p>
+<ul>
+<li>GATERON佳达隆KS-3X1 – 0.98一颗</li>
+<li>Cherry红轴 – 2.5左右一颗</li>
+<li>GATERON机械键盘轴体Tiffany – 6.8左右一颗</li>
+</ul>
+<p>而且目前来说, 貌似也不是Cherry第一了~, 比如Tiffany轴就备受好评. 既然是自己组一把, 那肯定要用好的</p>
+<h3 id="外壳"><a href="#外壳" class="headerlink" title="外壳"></a>外壳</h3><p>想好自己想要64, 68, 84, 87, 104还是其他配列. 量产键盘最多的就是87和104.<br>外壳价格几十至几千不等, 而且很多需要跟团上车才能买到, 如果没上车可能就只能闲鱼了.<br>咱就做这个64配列<br><img src="https://img.alicdn.com/imgextra/i3/0/O1CN01yupMjd1lpaYf80ScB_!!0-rate.jpg" alt="img"></p>
+<h3 id="PCB板"><a href="#PCB板" class="headerlink" title="PCB板"></a>PCB板</h3><p>就是电路板了, 要把轴焊接到板子上, 也有热插拔的, 就是不用焊接, 可以随时更换轴体. 想了很久还是决定买热插拔的, 焊的话太麻烦了, 而且自己也没用过热插拔的键盘(并不是不会, 我小学三年级就在少年宫焊收音机了🤣)<br>购买前可以和客服确认一下是否支持自己想要的配列. 灯的话, 就选pcb上有灯的就好, 分清楚底灯和轴灯(底灯就是下面亮, 轴灯就是上面亮..). 有些配列还需要自己刷机. 我买的直接就是我要的配列, 所以这一步也免了</p>
+<ul>
+<li>QMK系列刷机网址： <a target="_blank" rel="noopener" href="https://config.qmk.fm/">https://config.qmk.fm/</a> </li>
+<li>QMK系列刷机软件下载地址： <a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1GMQGlyg3091JWQRYFl7s3A">https://pan.baidu.com/s/1GMQGlyg3091JWQRYFl7s3A</a> </li>
+<li>RGB的指导视频 <a target="_blank" rel="noopener" href="https://www.ixigua.com/i6710847720807989260/">https://www.ixigua.com/i6710847720807989260/</a>   </li>
+<li>非RGB的指导视频 <a target="_blank" rel="noopener" href="https://www.ixigua.com/i6710847016513044492/">https://www.ixigua.com/i6710847016513044492/</a></li>
+</ul>
+<p>示例</p>
+<ul>
+<li><p>需要焊接的(本例只有底灯):<br>正面<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E7%84%8A%E6%8E%A5_pcb_%E6%AD%A3%E9%9D%A2%E7%85%A7.png" alt="img"><br>背面<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E7%84%8A%E6%8E%A5_pcb_%E8%83%8C%E9%9D%A2%E7%85%A7.png" alt="img"></p>
+</li>
+<li><p>热插拔的(本例只有轴灯)<br>正面<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E7%83%AD%E6%8F%92%E6%8B%94_pcb_%E6%AD%A3%E9%9D%A2%E7%85%A7.png" alt="img"><br>背面<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E7%83%AD%E6%8F%92%E6%8B%94_pcb_%E8%83%8C%E9%9D%A2%E7%85%A7.png" alt="img"></p>
+</li>
+</ul>
+<h3 id="定位板"><a href="#定位板" class="headerlink" title="定位板"></a>定位板</h3><p>每个键轴有固定的位置卡在定位板上，键轴再焊接到主板上，可以实现键轴的稳固和排列整齐等。有不同材质和不同配列可供选择。需要注意的是，选用的定位板的配列要是主板能够支持的配列<a href="[如何打造自己的机械键盘--硬件篇](https://zhuanlan.zhihu.com/p/35640505)">^1</a></p>
+<p>定位板有碳纤维的, 铝的, 铜的, 不同材质可能手感也不同. </p>
+<p><img src="https://img.alicdn.com/imgextra/i1/134583372/O1CN01JwJQef1amQ4tasJjd_!!134583372.jpg" alt="img"></p>
+<h3 id="卫星轴"><a href="#卫星轴" class="headerlink" title="卫星轴"></a>卫星轴</h3><p>卫星轴也有很多类型..(懒得查资料写了怎么办😥) 主要用来平衡大键<br>卫星轴貌似分两类吧:</p>
+<ul>
+<li>定位板卫星轴<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%AE%9A%E4%BD%8D%E6%9D%BF%E5%8D%AB%E6%98%9F%E8%BD%B4.png" alt="img"></li>
+<li>pcb卫星轴<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/pcb%E5%8D%AB%E6%98%9F%E8%BD%B41.png" alt="img"><br>常见的是靠插头固定<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%8D%AB%E6%98%9F%E8%BD%B41.png" alt="img"><br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%8D%AB%E6%98%9F%E8%BD%B42.jpeg" alt="img"><br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%8D%AB%E6%98%9F%E8%BD%B43.jpeg" alt="img"><br>还有靠螺丝固定的<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/pcb%E5%8D%AB%E6%98%9F%E8%BD%B42.png" alt="img"></li>
+</ul>
+<p>我这次就选GMK螺丝卫星轴了, 更稳固些. </p>
+<h3 id="键帽"><a href="#键帽" class="headerlink" title="键帽"></a>键帽</h3><p>请看一下这篇文章<br><a target="_blank" rel="noopener" href="http://www.zfrontier.com/post/detail/3390">【科普】配列、键帽高度以及常见的键帽倍数识别</a><br>总的来说键帽也是几十至几千价格不等. 国外的GMK, SP都很贵, 而且都需要团购, 等待期很长, 国内的也有些不错的, 比如MelGeek. 排骨的, 忆光等等<br>建议看一下这个视频<br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/av33218491?from=search&amp;seid=14842092469984351857">【赤瞳】0-9999元键帽推荐，我全都要！！！</a> </p>
+<p>这次我买ARC死灵, 被这个毒到了<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/du1.png" alt="img"><br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/du2.png" alt="img"></p>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><ul>
+<li>偏口钳(卫星轴剪脚)</li>
+<li>螺丝刀(建议带磁头, 我买的这个没有..)</li>
+<li>润滑脂(杜邦的润轴, 22058润卫星轴钢丝)</li>
+<li>镊子</li>
+<li>笔刷(刷润滑脂)</li>
+<li>数据线</li>
+<li>特氟龙胶带(或用创口贴替代)</li>
+</ul>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>因为是热插拔, 安装很简单, 我感觉都没必要写了.., 参考这个视频吧, 只不过他没用定位板(貌似成了一个链接汇总文章了..😅)<br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/av55538249?from=search&amp;seid=16224644485792012982">【键盘客制化】组装一个GD64左移配列热插拔RGB光污染机械键盘</a><br>再看一下如何调教大键, 主要就是剪脚和润焕, 看视频即可<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/%E5%89%AA%E8%84%9A.png" alt="img"><br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/av40204697">从此大键不再肉！机械键盘卫星轴调校教程</a><br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/av17756018?t=271">机械键盘垃圾大键的恶心肉感和抓狂钢丝声教你解决它！</a><br>润滑轴体<br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/av34557820">少年，润滑一下吗？机械键盘轴体润滑指南</a></p>
+<h2 id="经验教训"><a href="#经验教训" class="headerlink" title="经验教训"></a>经验教训</h2><p>1.<br>我的pcb买的是GK64, GK64没有给左shift开pcb卫星轴的孔(2u shift是三个菊花的), 所以如果买的是这种定位板就没法上卫星轴了.<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/exp1.png" alt="img"><br>要买这种定位板(用定位板卫星轴)<br><img src="https://img.alicdn.com/imgextra/i3/16731204/O1CN01mNhPLN1KlTP9AyYCw_!!16731204.jpg" alt="img"></p>
+<p><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z0d.7625083.1998302264.6.5c5f4e69Gh4k3o&amp;id=600083675463">带卫星轴定位板</a></p>
+<p><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a230r.1.14.54.3e3453edXKPckB&amp;id=556011034988&amp;ns=1&amp;abbucket=19#detail">xd64</a> / <a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a230r.1.14.15.60741391vPWnsM&amp;id=585821347510&amp;ns=1&amp;abbucket=19#detail">dz60/64</a> / 貌似都开了孔, 但不是热插拔<br>GD64 也开了孔, 但没有现货, 需要等上车, 且也不支持阶梯capslock</p>
+<p>dz64貌似右shift不能分裂<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/dz64.png" alt="img"><br><img src="https://img.alicdn.com/imgextra/i4/134583372/TB2hQL5nxrI8KJjy0FpXXb5hVXa_!!134583372.jpg" alt="img"></p>
+<p>不过插上键帽试了下也还好, 就这样吧</p>
+<p><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z0d.7625083.1998302264.6.5c5f4e69XRZ6u3&amp;id=598374511768">北瓜的定位板(带卫星轴, 卖家说支持lc60, Tofu外壳, 我没试过)</a> </p>
+<p>2.<br>GK64只支持普通capslock, 如果想要上面死灵那个阶梯capslock, <a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a230r.1.14.54.3e3453edXKPckB&amp;id=556011034988&amp;ns=1&amp;abbucket=19#detail">xd64</a> / <a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a230r.1.14.15.60741391vPWnsM&amp;id=585821347510&amp;ns=1&amp;abbucket=19#detail">dz60/64</a> 都可以. 学会看这个图<br><img src="https://img.alicdn.com/imgextra/i3/1713761720/TB2FYLla1UkyKJjSspjXXbKTXXa_!!1713761720.jpg" alt="img"></p>
+<p>定位板还用这个就行caslock开口可以向左移动的, 主要看pcb支持不支持了<br><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z0d.7625083.1998302264.6.5c5f4e69x4IMgd&amp;id=573921992870">便宜的不锈钢非左移定位板(支持xd/dz 64)</a></p>
+<p>3.<br>GK64热插拔长度  29.5厘米 放不进去LC60……<br>后来又买了一块ymdk64(支持阶梯capslock) 长度29.2厘米, 就能放进去了.. 就差3毫米</p>
+<h2 id="最后的成品"><a href="#最后的成品" class="headerlink" title="最后的成品"></a>最后的成品</h2><p><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/tofu.jpeg" alt="img"><br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/tofu2.jpeg" alt="img"><br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/av71104612/">ToFu + 蒂芙尼轴 Typing sound</a></p>
+<h2 id="购物清单"><a href="#购物清单" class="headerlink" title="购物清单"></a>购物清单</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://www.zfrontier.com/m/5466">蒂芙尼轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z09.2.0.0.7eec2e8diGkdPF&amp;id=571591458323&amp;_u=e8nfkvuddf1">Tofu 60%外壳-电泳白</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z10.3-c.w4002-126392154.32.433268deKKOGN3&amp;id=564610395739">忆光GK64RGB机械键盘热插拔PCB主板声控主板</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z10.3-c.w4002-126392154.18.433268deWBrpTZ&amp;id=564304097950">GH60机械键盘DZ60铜定位板分裂2U shift 60%布局64配列</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.zfrontier.com/m/3129">GMK螺丝卫星轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z09.2.0.0.13442e8dqRKBVj&amp;id=597459502230&amp;_u=e8nfkvub8b2">ARC死灵键帽</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z09.2.0.0.8aaf2e8dRqgG1v&amp;id=564341189370&amp;_u=e8nfkvu36ed">偏口钳</a></li>
+<li><a target="_blank" rel="noopener" href="https://detail.tmall.com/item.htm?id=594755162985&amp;spm=a1z09.2.0.0.8aaf2e8dRqgG1v&amp;_u=e8nfkvu3f32&amp;skuId=4120699681777">世达工具sata pen</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z09.2.0.0.8aaf2e8dRqgG1v&amp;id=592202871150&amp;_u=e8nfkvu6935">杜邦GPL105,205混合半流体润滑脂</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z09.2.0.0.8aaf2e8dRqgG1v&amp;id=534075912565&amp;_u=e8nfkvuc50f">Permatex太阳牌22058油脂</a></li>
+<li><a target="_blank" rel="noopener" href="https://detail.tmall.com/item.htm?id=588075747302&amp;spm=a1z09.2.0.0.8aaf2e8dRqgG1v&amp;_u=e8nfkvu8331">镊子</a></li>
+<li><a target="_blank" rel="noopener" href="https://detail.tmall.com/item.htm?id=596376984995&amp;spm=a1z09.2.0.0.8aaf2e8dRqgG1v&amp;_u=e8nfkvu3aaa">笔刷</a></li>
+<li><a target="_blank" rel="noopener" href="https://detail.tmall.com/item.htm?id=592874275469&amp;spm=a1z09.2.0.0.8aaf2e8dRqgG1v&amp;_u=e8nfkvu94e3&amp;sku_properties=5919063:6536025">数据线</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z09.2.0.0.8aaf2e8dRqgG1v&amp;id=538650987706&amp;_u=e8nfkvu9719">特氟龙胶带</a></li>
+</ul>
+<p>与本次无关的其他</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z0d.6639537.1997196601.221.3c037484WFuMpB&amp;id=591853062516">上油板</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z0d.6639537.1997196601.243.3c037484WFuMpB&amp;id=593919394580">开轴器</a></li>
+<li><a target="_blank" rel="noopener" href="https://detail.tmall.com/item.htm?id=525644169955&amp;spm=a1z09.2.0.0.5c932e8dDJZPxr&amp;_u=e8nfkvu4589">无铅99%焊锡</a></li>
+<li><a target="_blank" rel="noopener" href="https://detail.tmall.com/item.htm?id=40192429760&amp;spm=a1z09.2.0.0.5c932e8dDJZPxr&amp;_u=e8nfkvu8d2e">吸锡器</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z09.2.0.0.5c932e8dDJZPxr&amp;id=14722678427&amp;_u=e8nfkvue53c">电烙铁</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z09.2.0.0.5c932e8dDJZPxr&amp;id=593245487815&amp;_u=e8nfkvu4b25">烙铁架</a></li>
+<li><a target="_blank" rel="noopener" href="https://item.taobao.com/item.htm?spm=a1z0d.6639537.1997196601.15.c1df7484eH2Rdw&amp;id=557305592027">防烫垫</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2019/10/21/2019-10-21-如何自己制作机械键盘/" target="_blank" title="如何自己制作机械键盘">http://fuxkdb.com/2019/10/21/2019-10-21-如何自己制作机械键盘/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%85%B4%E8%B6%A3%E7%88%B1%E5%A5%BD/" rel="tag">兴趣爱好</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%94%9F%E6%B4%BB/" rel="tag">生活</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/11/12/2019-11-12-ProxySQL%E5%B9%B3%E6%BB%91%E4%B8%8B%E7%BA%BF%E8%8A%82%E7%82%B9/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          ProxySQL平滑下线节点
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/07/21/2019-07-21-MySQL-Error-log%E7%9B%91%E6%8E%A7/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">MySQL Error log监控</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98"><span class="nav-number">1.</span> <span class="nav-text">如何自己制作机械键盘</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%90%E6%96%99%E5%87%86%E5%A4%87"><span class="nav-number">1.1.</span> <span class="nav-text">材料准备</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%B4%E4%BD%93"><span class="nav-number">1.1.1.</span> <span class="nav-text">轴体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%96%E5%A3%B3"><span class="nav-number">1.1.2.</span> <span class="nav-text">外壳</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PCB%E6%9D%BF"><span class="nav-number">1.1.3.</span> <span class="nav-text">PCB板</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%BD%8D%E6%9D%BF"><span class="nav-number">1.1.4.</span> <span class="nav-text">定位板</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%AB%E6%98%9F%E8%BD%B4"><span class="nav-number">1.1.5.</span> <span class="nav-text">卫星轴</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%AE%E5%B8%BD"><span class="nav-number">1.1.6.</span> <span class="nav-text">键帽</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">1.1.7.</span> <span class="nav-text">其他</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%8F%E9%AA%8C%E6%95%99%E8%AE%AD"><span class="nav-number">1.3.</span> <span class="nav-text">经验教训</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E6%88%90%E5%93%81"><span class="nav-number">1.4.</span> <span class="nav-text">最后的成品</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%AD%E7%89%A9%E6%B8%85%E5%8D%95"><span class="nav-number">1.5.</span> <span class="nav-text">购物清单</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

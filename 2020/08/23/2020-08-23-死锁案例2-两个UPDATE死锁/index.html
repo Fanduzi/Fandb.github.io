@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>死锁案例2 两个update死锁 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL死锁" />
+  
+  
+  
+  
+  <meta name="description" content="问题描述2020.05.18 16:12 收到报警  登录主机, 查看error log( 开启了innodb_print_all_deadlocks参数) 123456789101112131415161718192021222324*** (1) TRANSACTION:TRANSACTION 1261729280, ACTIVE 0 sec starting index readmysql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="死锁案例2 两个UPDATE死锁">
+<meta property="og:url" content="http://fuxkdb.com/2020/08/23/2020-08-23-%E6%AD%BB%E9%94%81%E6%A1%88%E4%BE%8B2-%E4%B8%A4%E4%B8%AAUPDATE%E6%AD%BB%E9%94%81/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="问题描述2020.05.18 16:12 收到报警  登录主机, 查看error log( 开启了innodb_print_all_deadlocks参数) 123456789101112131415161718192021222324*** (1) TRANSACTION:TRANSACTION 1261729280, ACTIVE 0 sec starting index readmysql">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20200519140217826.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20200519150604900.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20200519214833746.png">
+<meta property="article:published_time" content="2020-08-23T10:44:00.000Z">
+<meta property="article:modified_time" content="2020-08-23T10:45:15.485Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="死锁">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20200519140217826.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2020-08-23-死锁案例2-两个UPDATE死锁" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      死锁案例2 两个UPDATE死锁
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/08/23/2020-08-23-%E6%AD%BB%E9%94%81%E6%A1%88%E4%BE%8B2-%E4%B8%A4%E4%B8%AAUPDATE%E6%AD%BB%E9%94%81/" class="article-date">
+	  <time datetime="2020-08-23T10:44:00.000Z" itemprop="datePublished">2020-08-23</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>2020.05.18 16:12 收到报警</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20200519140217826.png" alt=""></p>
+<p>登录主机, 查看error log( 开启了innodb_print_all_deadlocks参数)</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">*** (<span class="number">1</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">1261729280</span>, ACTIVE <span class="number">0</span> sec starting index read</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line">LOCK WAIT <span class="number">3</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">2</span> row lock(s)</span><br><span class="line">MySQL thread id <span class="number">3645828</span>, OS thread handle <span class="number">139681739994880</span>, query id <span class="number">1522438991</span> <span class="number">172.16</span><span class="number">.23</span><span class="number">.82</span> yos_rw Searching rows <span class="keyword">for</span> update</span><br><span class="line">UPDATE f_log SET D_UPDATED_AT = NOW() , I_STATUS = <span class="number">17</span> WHERE I_STATUS = <span class="number">1</span> AND I_TYPE = <span class="number">1</span></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696061</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">1</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">1208</span> page no <span class="number">29439</span> n bits <span class="number">160</span> index PRIMARY of table `yos`.`f_log` trx id <span class="number">1261729280</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696079</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">2</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">1261729278</span>, ACTIVE <span class="number">0</span> sec updating <span class="keyword">or</span> deleting</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line"><span class="number">10</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">7</span> row lock(s), undo log entries <span class="number">3</span></span><br><span class="line">MySQL thread id <span class="number">3056367</span>, OS thread handle <span class="number">139682403342080</span>, query id <span class="number">1522438990</span> <span class="number">172.16</span><span class="number">.23</span><span class="number">.82</span> yos_rw updating</span><br><span class="line">UPDATE f_log SET D_UPDATED_AT=<span class="string">&#x27;2020-05-18 16:11:11.693998&#x27;</span>,I_STATUS=<span class="number">3</span> WHERE (I_FILE_ID=<span class="string">&#x27;92b52d6589ce11a9a3c985e7c5f37462efb66ac7&#x27;</span>)</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696099</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">2</span>) HOLDS THE LOCK(S):</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">1208</span> page no <span class="number">29439</span> n bits <span class="number">160</span> index PRIMARY of table `yos`.`f_log` trx id <span class="number">1261729278</span> lock_mode X locks rec but <span class="keyword">not</span> gap</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696112</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">2</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">1208</span> page no <span class="number">17</span> n bits <span class="number">1120</span> index idx_status_type of table `yos`.`f_log` trx id <span class="number">1261729278</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696223</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** WE ROLL BACK TRANSACTION (<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<p>简单解释一下上面的死锁日志</p>
+<a id="more"></a>
+<p>TRANSACTION 1261729280, MySQL thread id 3645828, 最后一条执行的sql为</p>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE f_log SET <span class="attr">D_UPDATED_AT</span> = NOW() , <span class="attr">I_STATUS</span> = <span class="number">17</span> WHERE <span class="attr">I_STATUS</span> = <span class="number">1</span> AND <span class="attr">I_TYPE</span> = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>它在等待获取主键上的记录锁</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RECORD LOCKS <span class="keyword">index</span> <span class="keyword">PRIMARY</span> of table <span class="symbol">`yos`</span>.<span class="symbol">`f_log`</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br></pre></td></tr></table></figure>
+<p>TRANSACTION 1261729278, MySQL thread id 3056367, 最后一条执行的sql为</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">UPDATE</span> f_log SET D_UPDATED_AT=&#x27;<span class="number">2020</span>-<span class="number">05</span>-<span class="number">18</span> <span class="number">16</span>:<span class="number">11</span>:<span class="number">11</span>.<span class="number">693998</span>&#x27;,I_STATUS=<span class="number">3</span> WHERE (I_FILE_ID=&#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27;)</span><br></pre></td></tr></table></figure>
+<p>持有主键记录锁</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RECORD LOCKS <span class="keyword">index</span> <span class="keyword">PRIMARY</span> of table <span class="symbol">`yos`</span>.<span class="symbol">`f_log`</span> lock_mode X locks rec but <span class="keyword">not</span> gap</span><br></pre></td></tr></table></figure>
+<p>等待在二级索引<code>idx_status_type</code>上加记录锁</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RECORD LOCKS <span class="keyword">index</span> idx_status_type of table <span class="symbol">`yos`</span>.<span class="symbol">`f_log`</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br></pre></td></tr></table></figure>
+<p>表结构</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 16:18:24 [yos]&gt; show create table f_log\G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">       Table: f_log</span><br><span class="line">Create Table: CREATE TABLE `f_log` (</span><br><span class="line">  `I_ID` bigint(20) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT COMMENT <span class="string">&#x27;自增主键&#x27;</span>,</span><br><span class="line">  `I_CHANNEL_ID` bigint(20) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;通道ID&#x27;</span>,</span><br><span class="line">  `I_FILE_ID` varchar(100) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;&#x27;</span> COMMENT <span class="string">&#x27;文件ID&#x27;</span>,</span><br><span class="line">  `I_TYPE` tinyint(4) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;日志类型1 同步 2 删除&#x27;</span>,</span><br><span class="line">  `I_STATUS` tinyint(1) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;同步标志 0 未同步 1 同步中 2 已同步 3&#x27;</span>,</span><br><span class="line">  `D_CREATED_AT` datetime<span class="built_in"> DEFAULT </span><span class="literal">NULL</span> COMMENT <span class="string">&#x27;创建时间&#x27;</span>,</span><br><span class="line">  `D_UPDATED_AT` datetime<span class="built_in"> DEFAULT </span><span class="literal">NULL</span> COMMENT <span class="string">&#x27;修改时间&#x27;</span>,</span><br><span class="line">  PRIMARY KEY (`I_ID`),</span><br><span class="line">  KEY `idx_updatedat_status_type` (`D_UPDATED_AT`,`I_STATUS`,`I_TYPE`),</span><br><span class="line">  KEY `idx_status_type` (`I_STATUS`,`I_TYPE`),</span><br><span class="line">  KEY `idx_file_id` (`I_FILE_ID`)</span><br><span class="line">) <span class="attribute">ENGINE</span>=InnoDB <span class="attribute">AUTO_INCREMENT</span>=2011346<span class="built_in"> DEFAULT </span><span class="attribute">CHARSET</span>=utf8 <span class="attribute">COMMENT</span>=<span class="string">&#x27;文件日志表&#x27;</span></span><br><span class="line">1 row <span class="keyword">in</span> <span class="builtin-name">set</span> (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>事务隔离级别为<code>READ-COMMITTED</code></p>
+<p>死锁这块我比较弱, 其实厉害的话根据上面的信息已经可以看出原因了.</p>
+<h1 id="排查过程"><a href="#排查过程" class="headerlink" title="排查过程"></a>排查过程</h1><p>我当时去翻审计日志, 通过语句中的一些关键信息, 如 `thread id 3645828/3056367’ 时间范围, 找出了如下信息</p>
+<p>TRANSACTION (2) 也就是</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">TRANSACTION</span> <span class="number">1261729278</span>, ACTIVE <span class="number">0</span> sec updating or deleting</span><br><span class="line"><span class="attribute">mysql</span> tables in use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line"><span class="attribute">10</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">7</span> row lock(s), undo log entries <span class="number">3</span></span><br><span class="line"><span class="attribute">MySQL</span> thread id <span class="number">3056367</span>, OS thread handle <span class="number">139682403342080</span>, query id <span class="number">1522438990</span> <span class="number">172.16.23.82</span> yos_rw updating</span><br><span class="line"><span class="attribute">UPDATE</span> f_log SET D_UPDATED_AT=&#x27;<span class="number">2020</span>-<span class="number">05</span>-<span class="number">18</span> <span class="number">16</span>:<span class="number">11</span>:<span class="number">11</span>.<span class="number">693998</span>&#x27;,I_STATUS=<span class="number">3</span> WHERE (I_FILE_ID=&#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27;)</span><br></pre></td></tr></table></figure>
+<p>执行语句如下:</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">START</span> TRANSACTION</span><br><span class="line"><span class="attribute">SELECT</span> I_FILE_ID,I_FILE_COUNT,I_FILE_STATUS,I_IS_EXPIRED,I_FILE_VALIDDAY,I_FILE_ACCESS,CH_FILE_NAME,CH_FILE_TYPE,I_BUSINESS_ID,D_CREATED_AT,D_UPDATED_AT,I_YOS_VERSION,D_EXPIRED_AT FROM f_file_info WHERE I_FILE_ID = &#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27; FOR UPDATE</span><br><span class="line"><span class="attribute">SELECT</span> i_channel_id FROM f_file_storage WHERE i_file_id = &#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27; AND i_storage_status = <span class="number">1</span></span><br><span class="line"><span class="attribute">UPDATE</span> f_file_info SET i_file_count = <span class="number">2</span>, d_updated_at = &#x27;<span class="number">2020</span>-<span class="number">05</span>-<span class="number">18</span> <span class="number">16</span>:<span class="number">11</span>:<span class="number">11</span>.<span class="number">687696</span>&#x27; WHERE i_file_id = &#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27;</span><br><span class="line"><span class="attribute">SELECT</span> I_ID,I_FILE_ID,I_STORAGE_STATUS,I_CHANNEL_ID,D_CREATED_AT,D_UPDATED_AT FROM f_file_storage WHERE i_file_id = &#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27; AND i_channel_id = <span class="number">1</span> FOR UPDATE</span><br><span class="line"><span class="attribute">UPDATE</span> f_file_storage SET i_storage_status = <span class="number">1</span> , d_updated_at = &#x27;<span class="number">2020</span>-<span class="number">05</span>-<span class="number">18</span> <span class="number">16</span>:<span class="number">11</span>:<span class="number">11</span>.<span class="number">690879</span>&#x27; WHERE i_file_id = &#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27; AND i_channel_id = <span class="number">1</span></span><br><span class="line"><span class="attribute">SELECT</span> count(*) FROM f_file_storage WHERE (I_FILE_ID=&#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27; AND I_STORAGE_STATUS=<span class="number">1</span>)</span><br><span class="line"><span class="attribute">UPDATE</span> f_log SET D_UPDATED_AT=&#x27;<span class="number">2020</span>-<span class="number">05</span>-<span class="number">18</span> <span class="number">16</span>:<span class="number">11</span>:<span class="number">11</span>.<span class="number">693998</span>&#x27;,I_STATUS=<span class="number">3</span> WHERE (I_FILE_ID=&#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27;)</span><br><span class="line"><span class="attribute">COMMIT</span></span><br></pre></td></tr></table></figure>
+<p>TRANSACTION (1) 也就是</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">TRANSACTION 1261729280, ACTIVE 0 sec starting index read</span><br><span class="line">mysql tables in <span class="keyword">use</span> <span class="number">1</span>, <span class="keyword">locked</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">LOCK</span> <span class="keyword">WAIT</span> <span class="number">3</span> <span class="keyword">lock</span> <span class="keyword">struct</span>(s), <span class="keyword">heap</span> <span class="keyword">size</span> <span class="number">1136</span>, <span class="number">2</span> <span class="keyword">row</span> <span class="keyword">lock</span>(s)</span><br><span class="line">MySQL <span class="keyword">thread</span> <span class="keyword">id</span> <span class="number">3645828</span>, OS <span class="keyword">thread</span> handle <span class="number">139681739994880</span>, <span class="keyword">query</span> <span class="keyword">id</span> <span class="number">1522438991</span> <span class="number">172.16</span><span class="number">.23</span><span class="number">.82</span> yos_rw Searching <span class="keyword">rows</span> <span class="keyword">for</span> <span class="keyword">update</span></span><br><span class="line"><span class="keyword">UPDATE</span> f_log <span class="keyword">SET</span> D_UPDATED_AT = <span class="keyword">NOW</span>() , I_STATUS = <span class="number">17</span> <span class="keyword">WHERE</span> I_STATUS = <span class="number">1</span> <span class="keyword">AND</span> I_TYPE = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>执行语句如下:</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Prepare</span></span><br><span class="line"><span class="keyword">UPDATE</span> f_log <span class="keyword">SET</span> D_UPDATED_AT = NOW() , I_STATUS = <span class="number">17</span> <span class="keyword">WHERE</span> I_STATUS = <span class="number">1</span> <span class="keyword">AND</span> I_TYPE = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>到这里想不出原因了, 因为两个会话实际上就是update语句死锁了. 我但是没想明白为啥<code>UPDATE f_log SET D_UPDATED_AT=&#39;2020-05-18 16:11:11.693998&#39;,I_STATUS=3 WHERE (I_FILE_ID=&#39;92b52d6589ce11a9a3c985e7c5f37462efb66ac7&#39;)</code> 要请求在二级索引<code>idx_status_type</code>上加记录锁</p>
+<p>后来还是和研发讨论, 研发提醒了我update要锁被修改列二级索引. 我一开始还说不对… 后来想想有道理</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.aneasystone.com/archives/2017/12/solving-dead-locks-three.html">https://www.aneasystone.com/archives/2017/12/solving-dead-locks-three.html</a></p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20200519150604900.png" alt=""></p>
+</blockquote>
+<p>那么到这里就说通了, 这就是为啥<code>UPDATE f_log SET D_UPDATED_AT=&#39;2020-05-18 16:11:11.693998&#39;,I_STATUS=3 WHERE (I_FILE_ID=&#39;92b52d6589ce11a9a3c985e7c5f37462efb66ac7&#39;)</code> 要请求在二级索引<code>idx_status_type</code>上加记录锁</p>
+<p>那么实际这个死锁是这样产生的</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20200519214833746.png" alt=""></p>
+<p>事务1,2 开始时  I_FILE_ID=’92b52d6589ce11a9a3c985e7c5f37462efb66ac7’ 对应记录的 I_STATUS = 1 , I_TYPE = 1</p>
+<p>事务2执行语句</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">UPDATE</span> f_log SET D_UPDATED_AT=&#x27;<span class="number">2020</span>-<span class="number">05</span>-<span class="number">18</span> <span class="number">16</span>:<span class="number">11</span>:<span class="number">11</span>.<span class="number">693998</span>&#x27;,I_STATUS=<span class="number">3</span> WHERE (I_FILE_ID=&#x27;<span class="number">92</span>b<span class="number">52</span>d<span class="number">6589</span>ce<span class="number">11</span>a<span class="number">9</span>a<span class="number">3</span>c<span class="number">985</span>e<span class="number">7</span>c<span class="number">5</span>f<span class="number">37462</span>efb<span class="number">66</span>ac<span class="number">7</span>&#x27;)</span><br></pre></td></tr></table></figure>
+<p>走<code>I_FILE_ID</code>列二级索引<code>idx_file_id</code>, 根据二级索引中的主键值找到主键索引对应记录加记录锁, 因为是update语句更新了<code>I_STATUS</code>列, 且<code>I_STATUS</code>列有二级索引<code>idx_status_type</code>所以还要去修改二级索引中对应记录, 于是也要锁<code>idx_status_type</code>中的记录<code>I_STATUS = 1 , I_TYPE = 1, I_ID=2010712</code>(原值)和<code>I_STATUS = 3 , I_TYPE = 1, I_ID=2010712</code>(新值). </p>
+<p>但此时事务2还未在<code>idx_status_type</code>对应记录加上锁, 事务1执行了语句</p>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE f_log SET <span class="attr">D_UPDATED_AT</span> = NOW() , <span class="attr">I_STATUS</span> = <span class="number">17</span> WHERE <span class="attr">I_STATUS</span> = <span class="number">1</span> AND <span class="attr">I_TYPE</span> = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>这个sql走二级索引<code>idx_status_type</code>, 于是先对二级索引<code>idx_status_type</code>对应记录<code>I_STATUS = 1 , I_TYPE = 1, I_ID=2010712</code>加锁, 加锁成功, 然后需要根据二级索引<code>idx_status_type</code>中记录的主键值<code>I_ID=2010712</code>去主键加锁, 但此锁已经被事务2持有</p>
+<p>事务2持有主键锁, 等待在二级索引<code>idx_status_type</code>加记录锁</p>
+<p>事务1持有<code>idx_status_type</code>记录锁, 等待在主键加记录锁</p>
+<p>至此陷入死锁.</p>
+<h1 id="问题复现"><a href="#问题复现" class="headerlink" title="问题复现"></a>问题复现</h1><p>这个死锁可以说是很巧合了, 手工无法模拟</p>
+<p>我是这样的模拟的, 开三个窗口, 分别执行</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="keyword">true</span>;<span class="keyword">do</span> mysql -uroot -p<span class="string">&#x27;123.com&#x27;</span> -S <span class="regexp">/data/my</span>sql_3306<span class="regexp">/run/my</span>sql.sock fanboshi -e<span class="string">&quot;begin;UPDATE f_log_2 SET D_UPDATED_AT=&#x27;2020-05-18 16:11:11.693998&#x27;,I_STATUS=3 WHERE (I_FILE_ID=&#x27;250181420422912&#x27;);commit;&quot;</span>;done</span><br></pre></td></tr></table></figure>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="keyword">true</span>;<span class="keyword">do</span> mysql -uroot -p<span class="string">&#x27;123.com&#x27;</span> -S <span class="regexp">/data/my</span>sql_3306<span class="regexp">/run/my</span>sql.sock fanboshi -e<span class="string">&quot;UPDATE f_log_2 SET D_UPDATED_AT = NOW() , I_STATUS = 17 WHERE I_STATUS = 1 AND I_TYPE = 1&quot;</span>;done</span><br></pre></td></tr></table></figure>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="keyword">true</span>;<span class="keyword">do</span> mysql -uroot -p<span class="string">&#x27;123.com&#x27;</span> -S <span class="regexp">/data/my</span>sql_3306<span class="regexp">/run/my</span>sql.sock fanboshi -e<span class="string">&quot;UPDATE f_log_2 SET I_STATUS = 1, I_TYPE=1 WHERE I_ID=9656 &quot;</span>;done</span><br></pre></td></tr></table></figure>
+<p>第三个窗口目的只是将<code>I_STATUS</code>和<code>I_TYPE</code>列值更新回去, 制造条件, 不然前两个窗口语句不满足条件更新不到记录</p>
+<p>复现出的死锁日志如下, 开起了<code>innodb_show_verbose_locks</code>参数:</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-19</span>T14:<span class="number">15</span>:<span class="number">29.074829</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">11644</span> [Note] InnoDB: Transactions deadlock detected, dumping detailed information.</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-19</span>T14:<span class="number">15</span>:<span class="number">29.074841</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">11644</span> [Note] InnoDB: </span><br><span class="line">*** (<span class="number">1</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">19924</span>, ACTIVE <span class="number">0</span> sec starting index read</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line">LOCK WAIT <span class="number">3</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">2</span> row lock(s)</span><br><span class="line">MySQL thread id <span class="number">11643</span>, OS thread handle <span class="number">140502089639680</span>, query id <span class="number">40057</span> localhost root Searching rows <span class="keyword">for</span> update</span><br><span class="line">UPDATE f_log_2 SET D_UPDATED_AT = NOW() , I_STATUS = <span class="number">17</span> WHERE I_STATUS = <span class="number">1</span> AND I_TYPE = <span class="number">1</span></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-19</span>T14:<span class="number">15</span>:<span class="number">29.074858</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">11644</span> [Note] InnoDB: *** (<span class="number">1</span>) WAITING FOR THIS LOCK TO BE GRANTED: --等待获取如下锁</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">137</span> page no <span class="number">136</span> n bits <span class="number">312</span> index PRIMARY of table `fanboshi`.`f_log_2` trx id <span class="number">19924</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting --主键记录锁</span><br><span class="line">Record lock, heap no <span class="number">217</span> PHYSICAL RECORD: n_fields <span class="number">9</span>; compact format; info bits <span class="number">0</span></span><br><span class="line"> <span class="number">0</span>: len <span class="number">8</span>; hex <span class="number">80000000000025</span>b8; asc       % ;;                       第一列, 根据表结构知道这列是主键, <span class="number">16</span>进制转<span class="number">10</span>进制 <span class="number">9656</span></span><br><span class="line"> <span class="number">1</span>: len <span class="number">6</span>; hex <span class="number">000000004</span>dd5; asc     M ;;                             --该字段为<span class="number">6</span>个字节的事务id，这个id表示最近一次被更新的事务id <span class="number">000000004</span>dd5 <span class="number">16</span>进制转<span class="number">10</span>进制结果为<span class="number">19925</span>正是下面事务<span class="number">2</span>的的事务号<span class="string">&quot;TRANSACTION 19925&quot;</span></span><br><span class="line"> <span class="number">2</span>: len <span class="number">7</span>; hex <span class="number">34000000051016</span>; asc <span class="number">4</span>      ;;                          --该字段为<span class="number">7</span>个字节的回滚指针，用于mvcc </span><br><span class="line"> <span class="number">3</span>: len <span class="number">8</span>; hex <span class="number">8000000000000001</span>; asc         ;;                       I_CHANNEL_ID = <span class="number">1</span></span><br><span class="line"> <span class="number">4</span>: len <span class="number">15</span>; hex <span class="number">323530313831343230343232393132</span>; asc <span class="number">250181420422912</span>;; I_FILE_ID 这一列是varchar类型. <span class="number">0x32</span> <span class="number">0x35</span> <span class="number">0x30</span> <span class="number">0x31</span> <span class="number">0x38</span> <span class="number">0x31</span> <span class="number">0x34</span> <span class="number">0x32</span> <span class="number">0x30</span> <span class="number">0x34</span> <span class="number">0x32</span> <span class="number">0x32</span> <span class="number">0x39</span> <span class="number">0x31</span> <span class="number">0x32</span> 转过来就是<span class="number">250181420422912</span></span><br><span class="line"> <span class="number">5</span>: len <span class="number">1</span>; hex <span class="number">81</span>; asc  ;;                                            I_TYPE=<span class="number">1</span></span><br><span class="line"> <span class="number">6</span>: len <span class="number">1</span>; hex <span class="number">83</span>; asc  ;;                                            I_STATUS=<span class="number">3</span></span><br><span class="line"> <span class="number">7</span>: len <span class="number">5</span>; hex <span class="number">99</span>a2d8fd14; asc      ;;                                D_CREATED_AT 不知道怎么转换</span><br><span class="line"> <span class="number">8</span>: len <span class="number">5</span>; hex <span class="number">99</span>a66502cc; asc   e  ;;                                D_UPDATED_AT 不知道怎么转换</span><br><span class="line">到这里已经能定位是哪一行了</span><br><span class="line">mysql&gt; select * <span class="keyword">from</span> f_log_2 WHERE I_ID=<span class="number">9656</span>;</span><br><span class="line">+------+--------------+-----------------+--------+----------+---------------------+---------------------+</span><br><span class="line">| I_ID | I_CHANNEL_ID | I_FILE_ID       | I_TYPE | I_STATUS | D_CREATED_AT        | D_UPDATED_AT        |</span><br><span class="line">+------+--------------+-----------------+--------+----------+---------------------+---------------------+</span><br><span class="line">| <span class="number">9656</span> |            <span class="number">1</span> | <span class="number">250181420422912</span> |      <span class="number">1</span> |        <span class="number">1</span> | <span class="number">2019</span><span class="number">-04</span><span class="number">-12</span> <span class="number">15</span>:<span class="number">52</span>:<span class="number">20</span> | <span class="number">2020</span><span class="number">-05</span><span class="number">-18</span> <span class="number">16</span>:<span class="number">11</span>:<span class="number">12</span> |</span><br><span class="line">+------+--------------+-----------------+--------+----------+---------------------+---------------------+</span><br><span class="line"><span class="number">1</span> row <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-19</span>T14:<span class="number">15</span>:<span class="number">29.074996</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">11644</span> [Note] InnoDB: *** (<span class="number">2</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">19925</span>, ACTIVE <span class="number">0</span> sec updating <span class="keyword">or</span> deleting</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line"><span class="number">4</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">3</span> row lock(s), undo log entries <span class="number">1</span></span><br><span class="line">MySQL thread id <span class="number">11644</span>, OS thread handle <span class="number">140502025062144</span>, query id <span class="number">40060</span> localhost root updating</span><br><span class="line">UPDATE f_log_2 SET D_UPDATED_AT=<span class="string">&#x27;2020-05-18 16:11:11.693998&#x27;</span>,I_STATUS=<span class="number">3</span> WHERE (I_FILE_ID=<span class="string">&#x27;250181420422912&#x27;</span>)</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-19</span>T14:<span class="number">15</span>:<span class="number">29.075010</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">11644</span> [Note] InnoDB: *** (<span class="number">2</span>) HOLDS THE LOCK(S):</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">137</span> page no <span class="number">136</span> n bits <span class="number">312</span> index PRIMARY of table `fanboshi`.`f_log_2` trx id <span class="number">19925</span> lock_mode X locks rec but <span class="keyword">not</span> gap --持有主键记录锁</span><br><span class="line">Record lock, heap no <span class="number">217</span> PHYSICAL RECORD: n_fields <span class="number">9</span>; compact format; info bits <span class="number">0</span></span><br><span class="line"> <span class="number">0</span>: len <span class="number">8</span>; hex <span class="number">80000000000025</span>b8; asc       % ;;</span><br><span class="line"> <span class="number">1</span>: len <span class="number">6</span>; hex <span class="number">000000004</span>dd5; asc     M ;;</span><br><span class="line"> <span class="number">2</span>: len <span class="number">7</span>; hex <span class="number">34000000051016</span>; asc <span class="number">4</span>      ;;</span><br><span class="line"> <span class="number">3</span>: len <span class="number">8</span>; hex <span class="number">8000000000000001</span>; asc         ;;</span><br><span class="line"> <span class="number">4</span>: len <span class="number">15</span>; hex <span class="number">323530313831343230343232393132</span>; asc <span class="number">250181420422912</span>;; </span><br><span class="line"> <span class="number">5</span>: len <span class="number">1</span>; hex <span class="number">81</span>; asc  ;;                  </span><br><span class="line"> <span class="number">6</span>: len <span class="number">1</span>; hex <span class="number">83</span>; asc  ;;</span><br><span class="line"> <span class="number">7</span>: len <span class="number">5</span>; hex <span class="number">99</span>a2d8fd14; asc      ;;</span><br><span class="line"> <span class="number">8</span>: len <span class="number">5</span>; hex <span class="number">99</span>a66502cc; asc   e  ;;</span><br><span class="line">持有TRANSACTION (<span class="number">1</span>)等待获取的哪一行主键锁</span><br><span class="line"></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-19</span>T14:<span class="number">15</span>:<span class="number">29.075141</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">11644</span> [Note] InnoDB: *** (<span class="number">2</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">137</span> page no <span class="number">17</span> n bits <span class="number">1120</span> index idx_status_type of table `fanboshi`.`f_log_2` trx id <span class="number">19925</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting --等待二级索引列加锁</span><br><span class="line">Record lock, heap no <span class="number">526</span> PHYSICAL RECORD: n_fields <span class="number">3</span>; compact format; info bits <span class="number">0</span></span><br><span class="line"> <span class="number">0</span>: len <span class="number">1</span>; hex <span class="number">81</span>; asc  ;;                              I_STATUS = <span class="number">1</span></span><br><span class="line"> <span class="number">1</span>: len <span class="number">1</span>; hex <span class="number">81</span>; asc  ;;                              I_TYPE = <span class="number">1</span></span><br><span class="line"> <span class="number">2</span>: len <span class="number">8</span>; hex <span class="number">80000000000025</span>b8; asc       % ;;         这是主键值 <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-19</span>T14:<span class="number">15</span>:<span class="number">29.075197</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">11644</span> [Note] InnoDB: *** WE ROLL BACK TRANSACTION (<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<p>可以看到和线上出现的死锁日志是吻合的</p>
+<h1 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h1><p>将事务1语句改为先根据条件查询出主键值, 然后根据主键值更新.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2020/08/23/2020-08-23-死锁案例2-两个UPDATE死锁/" target="_blank" title="死锁案例2 两个UPDATE死锁">http://fuxkdb.com/2020/08/23/2020-08-23-死锁案例2-两个UPDATE死锁/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/08/23/2020-08-23-MySQL%E5%8A%A8%E6%80%81%E8%A1%8C%E8%BD%AC%E5%88%97/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          MySQL动态行转列
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/06/18/2020-06-18-MGR%E5%8D%95%E4%B8%BB%E5%88%B0%E5%BA%95%E5%81%9A%E4%B8%8D%E5%81%9A%E5%86%B2%E7%AA%81%E6%A3%80%E6%B5%8B/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">MGR单主到底做不做冲突检测?</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">排查过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%A4%8D%E7%8E%B0"><span class="nav-number">3.</span> <span class="nav-text">问题复现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><span class="nav-number">4.</span> <span class="nav-text">解决办法</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mysql大表传输表空间的坑 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL传输表空间" />
+  
+  
+  
+  
+  <meta name="description" content="MySQL大表传输表空间的坑  最近刚帮业务线拆分完数据库, 源环境遗留了一张700G的大表, 虽说现在不用了, 但是业务方还是不希望删掉, 于是打算把这张表迁移到归档库, 这样有需要是还可以查询.  700G的表想了想, 如果是逻辑导出再导入的话, 感觉会很慢. 于是决定使用传输表空间方式恢复到归档库中  源库和归档库均为MGR集群 Multi-Primary Mode.  恢复备份过程简单写,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL大表传输表空间的坑">
+<meta property="og:url" content="http://fuxkdb.com/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="MySQL大表传输表空间的坑  最近刚帮业务线拆分完数据库, 源环境遗留了一张700G的大表, 虽说现在不用了, 但是业务方还是不希望删掉, 于是打算把这张表迁移到归档库, 这样有需要是还可以查询.  700G的表想了想, 如果是逻辑导出再导入的话, 感觉会很慢. 于是决定使用传输表空间方式恢复到归档库中  源库和归档库均为MGR集群 Multi-Primary Mode.  恢复备份过程简单写,">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/transport_tablespace1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/transport_tablespace2.png">
+<meta property="article:published_time" content="2019-06-22T11:23:00.000Z">
+<meta property="article:modified_time" content="2020-12-08T02:26:13.721Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="传输表空间">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/transport_tablespace1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2019-06-22-MySQL大表传输表空间的坑" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MySQL大表传输表空间的坑
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/" class="article-date">
+	  <time datetime="2019-06-22T11:23:00.000Z" itemprop="datePublished">2019-06-22</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL大表传输表空间的坑"><a href="#MySQL大表传输表空间的坑" class="headerlink" title="MySQL大表传输表空间的坑"></a>MySQL大表传输表空间的坑</h1><p>  最近刚帮业务线拆分完数据库, 源环境遗留了一张700G的大表, 虽说现在不用了, 但是业务方还是不希望删掉, 于是打算把这张表迁移到归档库, 这样有需要是还可以查询.<br>  700G的表想了想, 如果是逻辑导出再导入的话, 感觉会很慢. 于是决定使用传输表空间方式恢复到归档库中</p>
+<blockquote>
+<p>源库和归档库均为MGR集群 Multi-Primary Mode.</p>
+</blockquote>
+<h2 id="恢复备份"><a href="#恢复备份" class="headerlink" title="恢复备份"></a>恢复备份</h2><p>过程简单写, 并非本文重点<br><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xbstream -vx <span class="params">--parallel=10</span> &lt; mysql_backup_20190618.xbstream -C <span class="string">/rundata/backup/</span> &gt; <span class="string">/tmp/xb.log</span> 2&gt;&amp;1 &amp;</span><br><span class="line"><span class="keyword">cd</span> <span class="string">/rundata/backup/datadir</span></span><br><span class="line">rm 除这张700g表A的所有其他表的qp文件</span><br><span class="line">xtrabackup <span class="params">--decompress</span> <span class="params">--parallel=10</span> <span class="params">--remove-original</span> <span class="params">--target-dir=/rundata/backup/</span></span><br><span class="line">innobackupex <span class="params">--apply-log</span> <span class="params">--export</span> <span class="string">/rundata/backup/</span></span><br></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<h2 id="开始传输表空间"><a href="#开始传输表空间" class="headerlink" title="开始传输表空间"></a>开始传输表空间</h2><p>1.在归档库创建该表<br><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create <span class="keyword">table</span> A</span><br></pre></td></tr></table></figure><br>3.在归档库写节点执行<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; <span class="keyword">alter</span> <span class="keyword">table</span> A <span class="keyword">discard</span> <span class="keyword">tablespace</span>;</span><br></pre></td></tr></table></figure><br>3.将上一步产生的 A.ibd A.cfg 传输到归档库MGR集群每一个节点的datadir目录下<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chown mysql:mysql A.*</span><br><span class="line">mysql&gt; <span class="keyword">alter</span> <span class="keyword">table</span> A <span class="keyword">import</span> <span class="keyword">tablespace</span>;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>拷贝到所有节点的原因详见 <a href="http://fuxkdb.com/2017/08/22/%E4%B8%BB%E4%BB%8E%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/">主从传输表空间的坑</a></p>
+</blockquote>
+<p>此时发现<code>import tablespace</code>卡住了State为System lock, 查看processlist<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">+----------+----------------+----------------------+----------+-------------+----------+---------------------------------------------------------------+-------------------------------------------------------+</span><br><span class="line">| Id       |<span class="built_in"> User </span>          | Host                 | db       | Command     | Time     | State                                                         | <span class="builtin-name">Info</span>                                                  |</span><br><span class="line">+----------+----------------+----------------------+----------+-------------+----------+---------------------------------------------------------------+-------------------------------------------------------+</span><br><span class="line">|      370 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     | 26094679 | executing                                                     | <span class="literal">NULL</span>                                                  |</span><br><span class="line">|      373 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     |  3703683 | Slave has read all relay log; waiting <span class="keyword">for</span> more updates        | <span class="literal">NULL</span>                                                  |</span><br><span class="line">|      374 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     | 26094679 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                  |</span><br><span class="line">|      375 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     | 19086256 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                  |</span><br><span class="line">|      376 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     | 19086744 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                  |</span><br><span class="line">|      377 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     | 19086744 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                  |</span><br><span class="line">|      378 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     | 19086744 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                  |</span><br><span class="line">|      379 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     | 19086894 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                  |</span><br><span class="line">|      380 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     | 19086894 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                  |</span><br><span class="line">|      381 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>     | Connect     | 19086903 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                  |</span><br><span class="line">| 33199176 | dbms_monitor_r | 192.168.X.81:38804   | <span class="literal">NULL</span>     | Binlog Dump |  7696834 | Master has sent all binlog <span class="keyword">to</span> slave; waiting <span class="keyword">for</span> more updates | <span class="literal">NULL</span>                                                  |</span><br><span class="line">| 58758525 | root           | localhost            | archive  | Query       |     1598 |<span class="built_in"> System </span>lock                                                   | ALTER TABLE A IMPORT TABLESPACE                       |</span><br><span class="line">| 58764027 | root           | localhost            | <span class="literal">NULL</span>     | Query       |        0 | starting                                                      | show processlist                                      |</span><br><span class="line">+----------+----------------+----------------------+----------+-------------+----------+---------------------------------------------------------------+-------------------------------------------------------+</span><br></pre></td></tr></table></figure><br>查看error log, 发现在阶段1 Update all pages<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2019</span><span class="number">-06</span><span class="number">-22</span>T06:<span class="number">34</span>:<span class="number">14.173468</span>Z <span class="number">58758525</span> [Note] InnoDB: Importing tablespace <span class="keyword">for</span> table <span class="string">&#x27;origin_db/A&#x27;</span> that was exported <span class="keyword">from</span> host <span class="string">&#x27;Hostname unknown&#x27;</span></span><br><span class="line"><span class="number">2019</span><span class="number">-06</span><span class="number">-22</span>T06:<span class="number">34</span>:<span class="number">14.173672</span>Z <span class="number">58758525</span> [Note] InnoDB: Phase I - Update all pages</span><br></pre></td></tr></table></figure><br>又等了一会, 发现监控任务执行的SQL被阻塞了.<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">+----------+----------------+----------------------+--------------------+-------------+----------+---------------------------------------------------------------+------------------------------------------------------------------------------------------------------+</span><br><span class="line">| Id       |<span class="built_in"> User </span>          | Host                 | db                 | Command     | Time     | State                                                         | <span class="builtin-name">Info</span>                                                                                                 |</span><br><span class="line">+----------+----------------+----------------------+--------------------+-------------+----------+---------------------------------------------------------------+------------------------------------------------------------------------------------------------------+</span><br><span class="line">|      370 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     | 26094907 | executing                                                     | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">|      373 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     |  3703911 | Slave has read all relay log; waiting <span class="keyword">for</span> more updates        | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">|      374 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     | 26094907 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">|      375 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     | 19086484 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">|      376 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     | 19086972 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">|      377 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     | 19086972 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">|      378 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     | 19086972 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">|      379 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     | 19087122 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">|      380 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     | 19087122 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">|      381 |<span class="built_in"> system user </span>   |                      | <span class="literal">NULL</span>               | Connect     | 19087131 | Waiting <span class="keyword">for</span> an event <span class="keyword">from</span> Coordinator                         | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">| 33199176 | dbms_monitor_r | 192.168.X.81:38804   | <span class="literal">NULL</span>               | Binlog Dump |  7697062 | Master has sent all binlog <span class="keyword">to</span> slave; waiting <span class="keyword">for</span> more updates | <span class="literal">NULL</span>                                                                                                 |</span><br><span class="line">| 58758525 | root           | localhost            | archive            | Query       |     1826 |<span class="built_in"> System </span>lock                                                   | ALTER TABLE A IMPORT TABLESPACE                                                                      |</span><br><span class="line">| 58764075 | dbms_monitor_r | 192.168.X.142:41144  | information_schema | Query       |      214 | Waiting <span class="keyword">for</span> table metadata lock                               | select * <span class="keyword">from</span> tables                                                                                 |</span><br><span class="line">| 58764750 | dbms_monitor_r | 192.168.X.142:25374  | mysql              | Query       |       18 | Waiting <span class="keyword">for</span> table metadata lock                               | select * <span class="keyword">from</span> information_schema.tables where table_schema <span class="keyword">not</span> <span class="keyword">in</span> (<span class="string">&#x27;mysql&#x27;</span>,<span class="string">&#x27;information_schema&#x27;</span>,<span class="string">&#x27;sys |</span></span><br><span class="line"><span class="string">| 58764840 | root           | localhost            | NULL               | Query       |        0 | starting                                                      | show processlist                                                                                     |</span></span><br><span class="line"><span class="string">+----------+----------------+----------------------+--------------------+-------------+----------+---------------------------------------------------------------+------------------------------------------------------------------------------------------------------+</span></span><br></pre></td></tr></table></figure></p>
+<p>查看innodb status<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">root@localhost</span> <span class="number">14</span><span class="string">:35:02</span> [<span class="string">(none)</span>]<span class="string">&gt;</span> <span class="string">show</span> <span class="string">engine</span> <span class="string">innodb</span> <span class="string">status\G</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">------------</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">TRANSACTIONS</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">------------</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">Trx</span> <span class="string">id</span> <span class="string">counter</span> <span class="number">3747414252</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">Purge</span> <span class="string">done</span> <span class="string">for</span> <span class="string">trx&#x27;s</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="number">3747414158</span> <span class="string">undo</span> <span class="string">n:o</span> <span class="string">&lt;</span> <span class="attr">0 state:</span> <span class="string">running</span> <span class="string">but</span> <span class="string">idle</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">History</span> <span class="string">list</span> <span class="string">length</span> <span class="number">1</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="attr">LIST OF TRANSACTIONS FOR EACH SESSION:</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">---TRANSACTION</span> <span class="number">422073426655200</span><span class="string">,</span> <span class="string">not</span> <span class="string">started</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="number">0</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">58758525</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140583989245696</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">6550373059</span> <span class="string">localhost</span> <span class="string">root</span> <span class="string">System</span> <span class="string">lock</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">ALTER</span> <span class="string">TABLE</span> <span class="string">sales_sku_operation_log</span> <span class="string">IMPORT</span> <span class="string">TABLESPACE</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">---TRANSACTION</span> <span class="number">3747414146</span><span class="string">,</span> <span class="string">ACTIVE</span> <span class="number">57</span> <span class="string">sec</span> <span class="string">importing</span> <span class="string">tablespace</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">mysql</span> <span class="string">tables</span> <span class="string">in</span> <span class="string">use</span> <span class="number">1</span><span class="string">,</span> <span class="string">locked</span> <span class="number">1</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="number">1</span> <span class="string">lock</span> <span class="string">struct(s),</span> <span class="string">heap</span> <span class="string">size</span> <span class="number">1136</span><span class="string">,</span> <span class="number">0</span> <span class="string">row</span> <span class="string">lock(s)</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">MySQL</span> <span class="string">thread</span> <span class="string">id</span> <span class="number">58758525</span><span class="string">,</span> <span class="string">OS</span> <span class="string">thread</span> <span class="string">handle</span> <span class="number">140583989245696</span><span class="string">,</span> <span class="string">query</span> <span class="string">id</span> <span class="number">6550373059</span> <span class="string">localhost</span> <span class="string">root</span> <span class="string">System</span> <span class="string">lock</span></span><br><span class="line">[<span class="number">2019-06-22 14:35:11</span>]<span class="string">ALTER</span> <span class="string">TABLE</span> <span class="string">sales_sku_operation_log</span> <span class="string">IMPORT</span> <span class="string">TABLESPACE</span></span><br><span class="line"></span><br></pre></td></tr></table></figure><br>虽然innodb status我已经基本不会看了, 但是从<code>TRANSACTIONS</code>这里也可以看到<code>IMPORT TABLESPACE</code>语句并没有被什么锁阻塞</p>
+<p>当时想不明白为啥import tablespace会这么慢, 以为被MGR复制的相关线程阻塞了,或者有什么bug之类的, 怕影响业务(虽说是归档库). 于是我kill了这个import tablespace语句,<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">kill</span> <span class="number">58758525</span>;</span><br></pre></td></tr></table></figure><br>在这之后如果想重新执行<code>ALTER TABLE A IMPORT TABLESPACE</code>会报错<br><figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 15:11:53 [mafengwo]&gt; ALTER TABLE sales_sku_operation_log IMPORT TABLESPACE;</span><br><span class="line"><span class="keyword">ERROR </span>1815 (HY000): Internal error: Cannot reset LSNs in table `mafengwo`.`sales_sku_operation_log` : Data structure corruption</span><br></pre></td></tr></table></figure><br>观察集群三个节点的文件状态发现, 执行<code>ALTER TABLE A IMPORT TABLESPACE</code>语句的节点的A.ibd文件修改时间变了(而其他节点没有变化).<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node001189 mafengwo]# ll | grep A</span><br><span class="line">-rw-r--r-- <span class="number">1</span> mysql mysql         <span class="number">1091</span> Jun <span class="number">21</span> <span class="number">13</span>:<span class="number">20</span> A.cfg</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql        <span class="number">16384</span> Jun <span class="number">21</span> <span class="number">13</span>:<span class="number">20</span> A.exp</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql         <span class="number">9094</span> Jun <span class="number">22</span> <span class="number">14</span>:<span class="number">11</span> A.frm</span><br><span class="line">-rw-r--r-- <span class="number">1</span> mysql mysql <span class="number">799329484800</span> Jun <span class="number">21</span> <span class="number">13</span>:<span class="number">20</span> A.ibd</span><br></pre></td></tr></table></figure><br>执行ALTER后<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node001189 mafengwo]# ll | grep A                     </span><br><span class="line">-rw-r--r-- <span class="number">1</span> mysql mysql         <span class="number">1091</span> Jun <span class="number">21</span> <span class="number">13</span>:<span class="number">20</span> A.cfg</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql        <span class="number">16384</span> Jun <span class="number">21</span> <span class="number">13</span>:<span class="number">20</span> A.exp</span><br><span class="line">-rw-r--r-- <span class="number">1</span> mysql mysql <span class="number">799329484800</span> Jun <span class="number">22</span> <span class="number">15</span>:<span class="number">12</span> A.ibd --变了</span><br></pre></td></tr></table></figure></p>
+<h2 id="为什么IMPORT-TABLESPACE会卡住"><a href="#为什么IMPORT-TABLESPACE会卡住" class="headerlink" title="为什么IMPORT TABLESPACE会卡住?"></a>为什么IMPORT TABLESPACE会卡住?</h2><p>正常的import流程,日志中会有如下输出<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2013</span><span class="number">-07</span><span class="number">-18</span> <span class="number">15</span>:<span class="number">15</span>:<span class="number">01</span> <span class="number">34960</span> [Note] InnoDB: Importing tablespace <span class="keyword">for</span> table <span class="string">&#x27;test/t&#x27;</span> that was exported <span class="keyword">from</span> host <span class="string">&#x27;ubuntu&#x27;</span></span><br><span class="line"><span class="number">2013</span><span class="number">-07</span><span class="number">-18</span> <span class="number">15</span>:<span class="number">15</span>:<span class="number">01</span> <span class="number">34960</span> [Note] InnoDB: Phase I - Update all pages</span><br><span class="line"><span class="number">2013</span><span class="number">-07</span><span class="number">-18</span> <span class="number">15</span>:<span class="number">15</span>:<span class="number">01</span> <span class="number">34960</span> [Note] InnoDB: Sync to disk</span><br><span class="line"><span class="number">2013</span><span class="number">-07</span><span class="number">-18</span> <span class="number">15</span>:<span class="number">15</span>:<span class="number">01</span> <span class="number">34960</span> [Note] InnoDB: Sync to disk - done!</span><br><span class="line"><span class="number">2013</span><span class="number">-07</span><span class="number">-18</span> <span class="number">15</span>:<span class="number">15</span>:<span class="number">01</span> <span class="number">34960</span> [Note] InnoDB: Phase III - Flush changes to disk</span><br><span class="line"><span class="number">2013</span><span class="number">-07</span><span class="number">-18</span> <span class="number">15</span>:<span class="number">15</span>:<span class="number">01</span> <span class="number">34960</span> [Note] InnoDB: Phase IV - Flush complete</span><br></pre></td></tr></table></figure><br>我觉得问题关键在于<code>InnoDB: Phase I - Update all pages</code>到底做了什么, 因为事实上import过程一直卡在这里, 没有进入下一步<br>google了一圈发现一个类似的问题, 但是并没有答案(现在有了是我回答的)<br><a target="_blank" rel="noopener" href="https://dba.stackexchange.com/questions/165147/import-tablespace-is-hanging-in-the-system-lock-state/241182#241182">https://dba.stackexchange.com/questions/165147/import-tablespace-is-hanging-in-the-system-lock-state/241182#241182</a></p>
+<p>查看官方文档<br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/tablespace-copying.html">https://dev.mysql.com/doc/refman/8.0/en/tablespace-copying.html</a><br>When ALTER TABLE … IMPORT TABLESPACE is run on the destination instance, the import algorithm performs the following operations for each tablespace being imported:</p>
+<ul>
+<li><p>Each tablespace page is checked for corruption.</p>
+</li>
+<li><p>The space ID and log sequence numbers (LSNs) on each page are updated</p>
+</li>
+<li><p>Flags are validated and LSN updated for the header page.</p>
+</li>
+<li><p>Btree pages are updated.</p>
+</li>
+<li><p>The page state is set to dirty so that it is written to disk.</p>
+</li>
+</ul>
+<p>查看worklog<br><a target="_blank" rel="noopener" href="https://dev.mysql.com/worklog/task/?id=5522">https://dev.mysql.com/worklog/task/?id=5522</a><br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">Import algorithm</span><br><span class="line">================</span><br><span class="line">We scan the blocks <span class="keyword">in</span> extents <span class="keyword">and</span> modify individual blocks rather than using </span><br><span class="line">logical index structure.</span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span><span class="built_in"> page </span><span class="keyword">in</span> tablespace &#123;</span><br><span class="line">  1. Check each<span class="built_in"> page </span><span class="keyword">for</span> corruption.</span><br><span class="line"></span><br><span class="line">  2. Update the space id <span class="keyword">and</span> LSN on every<span class="built_in"> page </span> --I think this is what <span class="string">&quot;InnoDB: Phase I - Update all pages&quot;</span> does</span><br><span class="line">     * <span class="keyword">For</span> the header page</span><br><span class="line">       - Validate the flags</span><br><span class="line">       - Update the LSN</span><br><span class="line"></span><br><span class="line">  3. On Btree pages</span><br><span class="line">     * <span class="builtin-name">Set</span> the index id</span><br><span class="line">     * Update the max trx id</span><br><span class="line">     * <span class="keyword">In</span> a cluster index, update the<span class="built_in"> system </span>columns</span><br><span class="line">     * <span class="keyword">In</span> a cluster index, update the BLOB ptr, <span class="builtin-name">set</span> the space id</span><br><span class="line">     * Purge delete marked records, but only <span class="keyword">if</span> they can be easily</span><br><span class="line">       removed <span class="keyword">from</span> the page</span><br><span class="line">     * Keep a counter of number of rows, ie. non-delete-marked rows</span><br><span class="line">     * Keep a counter of number of delete marked rows</span><br><span class="line">     * Keep a counter of number of purge failure</span><br><span class="line">     * <span class="keyword">If</span> a<span class="built_in"> page </span>is stamped with an index id that isn<span class="string">&#x27;t in the .cfg file</span></span><br><span class="line"><span class="string">       we assume it is deleted and the page can be ignored.</span></span><br><span class="line"><span class="string">     * We can&#x27;</span>t tell free pages <span class="keyword">from</span> allocated paes (<span class="keyword">for</span> now). Therefore</span><br><span class="line">       the assumption is that the free pages are either empty <span class="keyword">or</span> are logically</span><br><span class="line">       consistent. TODO: Cache the extent bitmap <span class="keyword">and</span> check free pages.</span><br><span class="line"></span><br><span class="line">   4. <span class="builtin-name">Set</span> the<span class="built_in"> page </span>state <span class="keyword">to</span> dirty so that it will be written <span class="keyword">to</span> disk.</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>还有一个文档, 不过感觉不如上面两个说的明白<br><a target="_blank" rel="noopener" href="https://bugs.mysql.com/bug.php?id=75706">https://bugs.mysql.com/bug.php?id=75706</a></p>
+</blockquote>
+<p>看到这里我认为<br><code>InnoDB: Phase I - Update all pages</code> 阶段执行的就是 (按extend扫描整个表, 修改每个page的LSN等)<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2. Update the space id <span class="keyword">and</span> LSN on every page</span><br><span class="line">   * <span class="keyword">For</span> the header page</span><br><span class="line">     - Validate the flags</span><br><span class="line">     - Update the LSN</span><br></pre></td></tr></table></figure><br>这一步一定很耗时, 查看监控, 也确实发现执行<code>ALTER TABLE A IMPORT TABLESPACE</code>的节点再这个时间段IO有明显上升</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/transport_tablespace1.png" alt="执行import的节点"></p>
+<p>其他节点</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/transport_tablespace2.png" alt="其他节点"></p>
+<h2 id="所以这会导致什么问题"><a href="#所以这会导致什么问题" class="headerlink" title="所以这会导致什么问题?"></a>所以这会导致什么问题?</h2><p>会导致复制延迟<br>无论主从复制, PXC 还是 MGR ,本质都是应用binlog</p>
+<p>示例, 与之前的操作无关<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/mysql<span class="number">-5.7</span><span class="number">.23</span>-linux-glibc2<span class="number">.12</span>-x86_64/bin/mysqlbinlog -vv --base64-output=decode-rows <span class="number">0242133310</span>-relay-bin-group_replication_applier<span class="number">.000002</span>|less</span><br><span class="line"></span><br><span class="line">SET @@SESSION.GTID_NEXT= <span class="string">&#x27;88f93f74-ed3a-50c0-bc63-beb926cedcb5:1033040&#x27;</span><span class="comment">/*!*/</span>;</span><br><span class="line"># at <span class="number">15134136</span></span><br><span class="line">#<span class="number">190621</span> <span class="number">10</span>:<span class="number">45</span>:<span class="number">09</span> server id <span class="number">242123310</span>  end_log_pos <span class="number">126</span>   Query   thread_id=<span class="number">4948397</span>       exec_time=<span class="number">0</span>     error_code=<span class="number">0</span></span><br><span class="line">SET TIMESTAMP=<span class="number">1561085109</span><span class="comment">/*!*/</span>;</span><br><span class="line">alter table t_monitor_sync_delay DISCARD TABLESPACE</span><br><span class="line"><span class="comment">/*!*/</span>;</span><br><span class="line"># at <span class="number">15134262</span></span><br><span class="line">#<span class="number">190227</span> <span class="number">16</span>:<span class="number">34</span>:<span class="number">38</span> server id <span class="number">242123310</span>  end_log_pos <span class="number">61</span>    GTID    last_committed=<span class="number">196812</span>   sequence_number=<span class="number">196813</span>  rbr_only=no</span><br><span class="line">SET @@SESSION.GTID_NEXT= <span class="string">&#x27;88f93f74-ed3a-50c0-bc63-beb926cedcb5:1033041&#x27;</span><span class="comment">/*!*/</span>;</span><br><span class="line"># at <span class="number">15134323</span></span><br><span class="line">#<span class="number">190621</span> <span class="number">10</span>:<span class="number">46</span>:<span class="number">21</span> server id <span class="number">242123310</span>  end_log_pos <span class="number">125</span>   Query   thread_id=<span class="number">4948487</span>       exec_time=<span class="number">0</span>     error_code=<span class="number">0</span></span><br><span class="line">SET TIMESTAMP=<span class="number">1561085181</span><span class="comment">/*!*/</span>;</span><br><span class="line">alter table t_monitor_sync_delay <span class="keyword">import</span> tablespace</span><br><span class="line"><span class="comment">/*!*/</span>;</span><br><span class="line"># at <span class="number">15134448</span></span><br><span class="line">#<span class="number">190227</span> <span class="number">16</span>:<span class="number">34</span>:<span class="number">38</span> server id <span class="number">242123310</span>  end_log_pos <span class="number">61</span>    GTID    last_committed=<span class="number">198535</span>   sequence_number=<span class="number">198536</span>  rbr_only=no</span><br></pre></td></tr></table></figure><br>可以看到binlog中其实只记录了<code>alter table t_monitor_sync_delay DISCARD TABLESPACE</code> 和 <code>alter table t_monitor_sync_delay import tablespace</code>两个语句, 并没有对这张表的INSERT语句</p>
+<p>我们假设发起<code>import tablespace</code>的节点最终花费1小时更新了所有A表pages的LSN和其他信息, 成功的跑完了<code>import tablespace</code>语句. </p>
+<p>当其他节点应用到这个<code>import tablespace</code>语句是就也要花费1小时去做相同的操作, 那面后面的事务是否就需要等待这个<code>import tablespace</code>执行完毕呢?</p>
+<h2 id="所以应该如何导入"><a href="#所以应该如何导入" class="headerlink" title="所以应该如何导入?"></a>所以应该如何导入?</h2><p>以三节点MGR为例<br>先建表<br><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">create <span class="keyword">table</span> A</span><br></pre></td></tr></table></figure><br>然后一个一个节点执行<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">stop group_replication</span><br><span class="line"><span class="keyword">set</span> read_only=<span class="number">1</span>, 确保没有数据写入</span><br><span class="line"><span class="keyword">set</span> sql_log_bin=<span class="number">0</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> A <span class="keyword">discard</span> <span class="keyword">tablespace</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> A <span class="keyword">import</span> <span class="keyword">tablespace</span></span><br><span class="line"><span class="keyword">set</span> sql_log_bin=<span class="number">1</span></span><br><span class="line"><span class="keyword">start</span> group_replication</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2019/06/22/2019-06-22-MySQL大表传输表空间的坑/" target="_blank" title="MySQL大表传输表空间的坑">http://fuxkdb.com/2019/06/22/2019-06-22-MySQL大表传输表空间的坑/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4/" rel="tag">传输表空间</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/07/03/2019-07-03-%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%89%E7%94%A8%E7%9A%84pt-query-digest-filter/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          记录一些有用的pt-query-digest filter
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/06/12/%E9%99%90%E5%88%B6%E5%A4%87%E4%BB%BD%E9%80%9F%E5%BA%A6%E9%98%B2%E6%AD%A2%E7%BD%91%E5%8D%A1%E6%89%93%E6%BB%A1/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">限制备份速度防止网卡打满</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91"><span class="nav-number">1.</span> <span class="nav-text">MySQL大表传输表空间的坑</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%81%A2%E5%A4%8D%E5%A4%87%E4%BB%BD"><span class="nav-number">1.1.</span> <span class="nav-text">恢复备份</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E5%A7%8B%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4"><span class="nav-number">1.2.</span> <span class="nav-text">开始传输表空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88IMPORT-TABLESPACE%E4%BC%9A%E5%8D%A1%E4%BD%8F"><span class="nav-number">1.3.</span> <span class="nav-text">为什么IMPORT TABLESPACE会卡住?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%80%E4%BB%A5%E8%BF%99%E4%BC%9A%E5%AF%BC%E8%87%B4%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="nav-number">1.4.</span> <span class="nav-text">所以这会导致什么问题?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%80%E4%BB%A5%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E5%AF%BC%E5%85%A5"><span class="nav-number">1.5.</span> <span class="nav-text">所以应该如何导入?</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>自定义函数改表关联优化一例 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="OracleSQL Tuning" />
+  
+  
+  
+  
+  <meta name="description" content="今天朋友丢来一个SQL,叫我帮忙优化一下.受过落总真传,我瞄了几眼就知道咋回事了 123456789101112131415161718192021222324252627282930313233343536SELECT ESS.PK_NO,       HE.EMPID,       HE.LOCAL_NAME,       ESS.ITEM_NO ITEM_NO_NO,       ESS.P">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自定义函数改表关联优化一例">
+<meta property="og:url" content="http://fuxkdb.com/2017/12/28/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0%E6%94%B9%E8%A1%A8%E5%85%B3%E8%81%94%E4%BC%98%E5%8C%96%E4%B8%80%E4%BE%8B/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="今天朋友丢来一个SQL,叫我帮忙优化一下.受过落总真传,我瞄了几眼就知道咋回事了 123456789101112131415161718192021222324252627282930313233343536SELECT ESS.PK_NO,       HE.EMPID,       HE.LOCAL_NAME,       ESS.ITEM_NO ITEM_NO_NO,       ESS.P">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-12-28T10:05:00.000Z">
+<meta property="article:modified_time" content="2017-12-28T10:13:35.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="Oracle">
+<meta property="article:tag" content="SQL Tuning">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-自定义函数改表关联优化一例" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      自定义函数改表关联优化一例
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/12/28/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0%E6%94%B9%E8%A1%A8%E5%85%B3%E8%81%94%E4%BC%98%E5%8C%96%E4%B8%80%E4%BE%8B/" class="article-date">
+	  <time datetime="2017-12-28T10:05:00.000Z" itemprop="datePublished">2017-12-28</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>今天朋友丢来一个SQL,叫我帮忙优化一下.受过<a target="_blank" rel="noopener" href="http://blog.csdn.net/robinson1988/article/details/12747113">落总</a>真传,我瞄了几眼就知道咋回事了</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">SELECT ESS<span class="selector-class">.PK_NO</span>,</span><br><span class="line">       HE<span class="selector-class">.EMPID</span>,</span><br><span class="line">       HE<span class="selector-class">.LOCAL_NAME</span>,</span><br><span class="line">       ESS<span class="selector-class">.ITEM_NO</span> ITEM_NO_NO,</span><br><span class="line">       ESS<span class="selector-class">.PERSON_ID</span>,</span><br><span class="line">       GET_DEPT_NAME(HE<span class="selector-class">.DEPTNO</span>, <span class="string">&#x27;zh&#x27;</span>) DEPT_NAME,</span><br><span class="line">       GET_GLOBAL_NAME(ESS<span class="selector-class">.ITEM_NO</span>, <span class="string">&#x27;zh&#x27;</span>) ITEM_NAME,</span><br><span class="line">       ESS<span class="selector-class">.AR_DATE_STR</span>,</span><br><span class="line">       TO_CHAR(ESS<span class="selector-class">.FROM_TIME</span>, <span class="string">&#x27;HH24:MI&#x27;</span>) FROM_TIME,</span><br><span class="line">       TO_CHAR(ESS<span class="selector-class">.TO_TIME</span>, <span class="string">&#x27;HH24:MI&#x27;</span>) TO_TIME,</span><br><span class="line">       ESS<span class="selector-class">.QUANTITY</span>,</span><br><span class="line">       ESS<span class="selector-class">.REMARK</span>,</span><br><span class="line">       HE<span class="selector-class">.EMPID</span>,</span><br><span class="line">       ESS<span class="selector-class">.AR_DATE_STR</span>,</span><br><span class="line">       GET_GLOBAL_NAME(ESS<span class="selector-class">.STATUS_CODE</span>, <span class="string">&#x27;zh&#x27;</span>) STATUS_CODE,</span><br><span class="line">       GET_GLOBAL_NAME(ESS<span class="selector-class">.ITEM_NO</span>, <span class="string">&#x27;zh&#x27;</span>) ITEM_NO,</span><br><span class="line">       ESS<span class="selector-class">.REMARK</span>,</span><br><span class="line">       ESS.LOCK_YN</span><br><span class="line">  FROM AR_DETAIL_HYOSUNG_JX ESS, HR_EMPLOYEE HE</span><br><span class="line"> WHERE ESS<span class="selector-class">.PERSON_ID</span> = HE.PERSON_ID</span><br><span class="line">   AND ESS<span class="selector-class">.PERSON_ID</span> NOT LIKE <span class="string">&#x27;111111%&#x27;</span></span><br><span class="line">   AND ESS<span class="selector-class">.ITEM_NO</span> IN (<span class="string">&#x27;141454&#x27;</span>, <span class="string">&#x27;14015951&#x27;</span>, <span class="string">&#x27;141445&#x27;</span>, <span class="string">&#x27;141443&#x27;</span>, <span class="string">&#x27;190000514&#x27;</span>)</span><br><span class="line">   AND EXISTS (SELECT B1.DEPTID</span><br><span class="line">          FROM HR_DEPARTMENT B1</span><br><span class="line">         WHERE B1<span class="selector-class">.DEPTNO</span> = HE.DEPTNO</span><br><span class="line">         START WITH B1<span class="selector-class">.DEPTNO</span> <span class="keyword">in</span></span><br><span class="line">                    (SELECT HRD.DEPTID</span><br><span class="line">                       FROM HR_DEPARTMENT HRD</span><br><span class="line">                      WHERE HRD<span class="selector-class">.MANAGER_EMP_ID</span> = <span class="string">&#x27;11111117&#x27;</span>)</span><br><span class="line">        CONNECT BY PRIOR B1<span class="selector-class">.DEPTNO</span> = B1.PARENT_DEPT_NO</span><br><span class="line">        UNION</span><br><span class="line">        SELECT AR_SUPERVISOR_INFO.DEPTNO</span><br><span class="line">          FROM AR_SUPERVISOR_INFO</span><br><span class="line">         WHERE AR_SUPERVISOR_INFO<span class="selector-class">.DEPTNO</span> = HE.DEPTNO</span><br><span class="line">           AND AR_SUPERVISOR_INFO<span class="selector-class">.PERSON_ID</span> = <span class="string">&#x27;11111117&#x27;</span>)</span><br><span class="line"> ORDER BY ESS<span class="selector-class">.AR_DATE_STR</span> ASC, ESS<span class="selector-class">.CREATE_DATE</span> DESC, HE<span class="selector-class">.DEPTNO</span>, HE.EMPID</span><br></pre></td></tr></table></figure>
+<p>我让他先执行一下SQL 看看几秒,他说6秒<br>OK,再把select 里面那俩自定义函数<code>GET_DEPT_NAME</code>,<code>GET_GLOBAL_NAME</code> 注释掉查一下, 他说1.5秒<br>那这个SQL就是慢在这俩自定义函数上呗, 这个查询每返回一行,这函数就要执行一次<br>那么函数可以改成 标量 , 标量可以改成 letf join. </p>
+<a id="more"></a>
+<p>附上那俩函数<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">FUNCTION</span> <span class="string">&quot;GET_GLOBAL_NAME&quot;</span> (IN_code_NO <span class="keyword">IN</span> <span class="built_in">VARCHAR2</span>,in_language <span class="built_in">VARCHAR2</span>)</span><br><span class="line">   <span class="keyword">RETURN</span> <span class="built_in">VARCHAR2</span></span><br><span class="line"><span class="keyword">IS</span></span><br><span class="line">   v_name   <span class="built_in">VARCHAR2</span> (<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/******************************************************************************</span></span><br><span class="line"><span class="comment">   NAME    :    -- GET_GLOBAL_NAME</span></span><br><span class="line"><span class="comment">   PURPOSE :    -- 依据传入项目O和语言参数查找国际化名称</span></span><br><span class="line"><span class="comment">   IMPUT   :    -- IN_code_NO code_no,  in_language 语言</span></span><br><span class="line"><span class="comment">   OUTPUT  :    -- none</span></span><br><span class="line"><span class="comment">   Author  :    -- hj</span></span><br><span class="line"><span class="comment">   CreateDate : -- 2012-3-2</span></span><br><span class="line"><span class="comment">******************************************************************************/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">   <span class="keyword">BEGIN</span></span><br><span class="line">      <span class="keyword">SELECT</span> a.CONTENT</span><br><span class="line">        <span class="keyword">INTO</span> v_name</span><br><span class="line">        <span class="keyword">FROM</span> sy_global_name a</span><br><span class="line">       <span class="keyword">WHERE</span> a.no = IN_code_NO</span><br><span class="line">         <span class="keyword">AND</span> a.LANGUAGE = in_language ;</span><br><span class="line">   EXCEPTION</span><br><span class="line">      WHEN NO_DATA_FOUND</span><br><span class="line">      THEN</span><br><span class="line">         v_name := &#x27;&#x27;;</span><br><span class="line">      WHEN OTHERS</span><br><span class="line">      THEN</span><br><span class="line">         RAISE;</span><br><span class="line">   <span class="keyword">END</span>;</span><br><span class="line"></span><br><span class="line">   RETURN v_name;</span><br><span class="line"><span class="keyword">END</span> GET_GLOBAL_NAME;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">FUNCTION</span> <span class="string">&quot;GET_DEPT_NAME&quot;</span>(in_deptno   <span class="keyword">IN</span> <span class="built_in">VARCHAR2</span>,</span><br><span class="line">                                           in_language <span class="built_in">VARCHAR2</span>)</span><br><span class="line">  <span class="keyword">RETURN</span> <span class="built_in">VARCHAR2</span> <span class="keyword">IS</span></span><br><span class="line">  out_department <span class="built_in">VARCHAR2</span>(<span class="number">200</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/******************************************************************************</span></span><br><span class="line"><span class="comment">     NAME    :    -- GET_DEPT_NAME</span></span><br><span class="line"><span class="comment">     PURPOSE :    -- 依据法人参数得到此部门编号的部门名称</span></span><br><span class="line"><span class="comment">     IMPUT   :    -- in_deptno 部门名称  IN_CPNY_ID 公司D</span></span><br><span class="line"><span class="comment">     OUTPUT  :    -- none</span></span><br><span class="line"><span class="comment">     Author  :    -- system</span></span><br><span class="line"><span class="comment">     CreateDate : -- 2011-12-29 14:57:33</span></span><br><span class="line"><span class="comment">     UpdateDate : -- 函数更改信息（包括作者、时间、更改内容等）</span></span><br><span class="line"><span class="comment">  ******************************************************************************/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">  <span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">IF</span> in_language = <span class="string">&#x27;zh&#x27;</span> <span class="keyword">then</span></span><br><span class="line">      <span class="keyword">SELECT</span> a.org_name_local</span><br><span class="line">        <span class="keyword">INTO</span> out_department</span><br><span class="line">        <span class="keyword">FROM</span> hr_department a</span><br><span class="line">       <span class="keyword">WHERE</span> a.deptno = in_deptno</span><br><span class="line">         <span class="keyword">and</span> <span class="keyword">rownum</span> = <span class="number">1</span>;</span><br><span class="line">    ELSIF in_language = &#x27;en&#x27; then</span><br><span class="line">      <span class="keyword">SELECT</span> a.org_name_eng</span><br><span class="line">        <span class="keyword">INTO</span> out_department</span><br><span class="line">        <span class="keyword">FROM</span> hr_department a</span><br><span class="line">       <span class="keyword">WHERE</span> a.deptno = in_deptno</span><br><span class="line">         <span class="keyword">and</span> <span class="keyword">rownum</span> = <span class="number">1</span>;</span><br><span class="line">    else</span><br><span class="line">      <span class="keyword">SELECT</span> a.org_name_ko</span><br><span class="line">        <span class="keyword">INTO</span> out_department</span><br><span class="line">        <span class="keyword">FROM</span> hr_department a</span><br><span class="line">       <span class="keyword">WHERE</span> a.deptno = in_deptno</span><br><span class="line">         <span class="keyword">and</span> <span class="keyword">rownum</span> = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">end</span> <span class="keyword">if</span>;</span><br><span class="line">  EXCEPTION</span><br><span class="line">    WHEN NO_DATA_FOUND THEN</span><br><span class="line">      out_department := &#x27;0&#x27;;</span><br><span class="line">  <span class="keyword">END</span>;</span><br><span class="line"></span><br><span class="line">  IF out_department = &#x27;0&#x27; THEN</span><br><span class="line">    <span class="keyword">BEGIN</span></span><br><span class="line">      <span class="keyword">IF</span> in_language = <span class="string">&#x27;zh&#x27;</span> <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">SELECT</span> a.org_name_local</span><br><span class="line">          <span class="keyword">INTO</span> out_department</span><br><span class="line">          <span class="keyword">FROM</span> org_info a</span><br><span class="line">         <span class="keyword">WHERE</span> a.deptno = in_deptno</span><br><span class="line">           <span class="keyword">and</span> <span class="keyword">rownum</span> = <span class="number">1</span>;</span><br><span class="line">      ELSIF in_language = &#x27;en&#x27; then</span><br><span class="line">        <span class="keyword">SELECT</span> a.org_name_eng</span><br><span class="line">          <span class="keyword">INTO</span> out_department</span><br><span class="line">          <span class="keyword">FROM</span> org_info a</span><br><span class="line">         <span class="keyword">WHERE</span> a.deptno = in_deptno</span><br><span class="line">           <span class="keyword">and</span> <span class="keyword">rownum</span> = <span class="number">1</span>;</span><br><span class="line">      ELSE</span><br><span class="line">        <span class="keyword">SELECT</span> a.org_name_ko</span><br><span class="line">          <span class="keyword">INTO</span> out_department</span><br><span class="line">          <span class="keyword">FROM</span> org_info a</span><br><span class="line">         <span class="keyword">WHERE</span> a.deptno = in_deptno</span><br><span class="line">           <span class="keyword">and</span> <span class="keyword">rownum</span> = <span class="number">1</span>;</span><br><span class="line">      <span class="keyword">END</span> <span class="keyword">IF</span>;</span><br><span class="line">    EXCEPTION</span><br><span class="line">      WHEN NO_DATA_FOUND THEN</span><br><span class="line">        out_department := &#x27;&#x27;;</span><br><span class="line">    <span class="keyword">END</span>;</span><br><span class="line">  <span class="keyword">END</span> <span class="keyword">IF</span>;</span><br><span class="line">  RETURN out_department;</span><br><span class="line"><span class="keyword">END</span> get_dept_name;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">SELECT</span> a.org_name_local</span><br><span class="line">          <span class="keyword">INTO</span> out_department</span><br><span class="line">          <span class="keyword">FROM</span> org_info a</span><br><span class="line">         <span class="keyword">WHERE</span> a.deptno = in_deptno</span><br><span class="line">           <span class="keyword">and</span> <span class="keyword">rownum</span> = <span class="number">1</span>;</span><br></pre></td></tr></table></figure></p>
+<p>最后改完,0.4秒,交差了<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> t1 <span class="keyword">as</span></span><br><span class="line"> (<span class="keyword">select</span> deptno</span><br><span class="line">    <span class="keyword">from</span> (<span class="keyword">SELECT</span> B1.DEPTNO DEPTNO</span><br><span class="line">            <span class="keyword">FROM</span> HR_DEPARTMENT B1</span><br><span class="line">           <span class="keyword">START</span> <span class="keyword">WITH</span> B1.DEPTNO <span class="keyword">in</span></span><br><span class="line">                      (<span class="keyword">SELECT</span> HRD.DEPTID</span><br><span class="line">                         <span class="keyword">FROM</span> HR_DEPARTMENT HRD</span><br><span class="line">                        <span class="keyword">WHERE</span> HRD.MANAGER_EMP_ID = <span class="string">&#x27;11111117&#x27;</span>)</span><br><span class="line">          <span class="keyword">CONNECT</span> <span class="keyword">BY</span> PRIOR B1.DEPTNO = B1.PARENT_DEPT_NO</span><br><span class="line">          <span class="keyword">UNION</span></span><br><span class="line">          <span class="keyword">SELECT</span> AR_SUPERVISOR_INFO.DEPTNO DEPTNO</span><br><span class="line">            <span class="keyword">FROM</span> AR_SUPERVISOR_INFO</span><br><span class="line">           <span class="keyword">where</span> AR_SUPERVISOR_INFO.PERSON_ID = <span class="string">&#x27;11111117&#x27;</span>)),</span><br><span class="line"><span class="keyword">global</span> <span class="keyword">as</span></span><br><span class="line"> (<span class="keyword">select</span> a.CONTENT, a.<span class="keyword">no</span> <span class="keyword">from</span> sy_global_name a <span class="keyword">where</span> a.<span class="keyword">language</span> = <span class="string">&#x27;zh&#x27;</span>),</span><br><span class="line">department <span class="keyword">as</span></span><br><span class="line"> (<span class="keyword">select</span> max(org_name_local) org_name_local, deptno</span><br><span class="line">    <span class="keyword">from</span> hr_department</span><br><span class="line">   <span class="keyword">group</span> <span class="keyword">by</span> deptno),</span><br><span class="line"><span class="keyword">info</span> <span class="keyword">as</span></span><br><span class="line"> (<span class="keyword">select</span> max(org_name_local) org_name_local, deptno</span><br><span class="line">    <span class="keyword">from</span> org_info</span><br><span class="line">   <span class="keyword">group</span> <span class="keyword">by</span> deptno)</span><br><span class="line"><span class="keyword">SELECT</span> ESS.PK_NO,</span><br><span class="line">       HE.EMPID,</span><br><span class="line">       HE.LOCAL_NAME,</span><br><span class="line">       ESS.ITEM_NO ITEM_NO_NO,</span><br><span class="line">       ESS.PERSON_ID,</span><br><span class="line">       coalesce(department.org_name_local, <span class="keyword">info</span>.org_name_local, <span class="string">&#x27;&#x27;</span>) DEPT_NAME,</span><br><span class="line">       g1.content ITEM_NAME,</span><br><span class="line">       ESS.AR_DATE_STR,</span><br><span class="line">       TO_CHAR(ESS.FROM_TIME, <span class="string">&#x27;HH24:MI&#x27;</span>) FROM_TIME,</span><br><span class="line">       TO_CHAR(ESS.TO_TIME, <span class="string">&#x27;HH24:MI&#x27;</span>) TO_TIME,</span><br><span class="line">       ESS.QUANTITY,</span><br><span class="line">       ESS.REMARK,</span><br><span class="line">       HE.EMPID,</span><br><span class="line">       ESS.AR_DATE_STR,</span><br><span class="line">       g2.content STATUS_CODE,</span><br><span class="line">       g3.content ITEM_NO,</span><br><span class="line">       ESS.REMARK,</span><br><span class="line">       ESS.LOCK_YN</span><br><span class="line">  <span class="keyword">FROM</span> AR_DETAIL_HYOSUNG_JX ESS</span><br><span class="line"> <span class="keyword">inner</span> <span class="keyword">join</span> HR_EMPLOYEE HE</span><br><span class="line">    <span class="keyword">on</span> ESS.PERSON_ID = HE.PERSON_ID</span><br><span class="line">  <span class="keyword">left join</span> <span class="keyword">global</span> g1</span><br><span class="line">    <span class="keyword">on</span> ess.ITEM_NO = g1.<span class="keyword">no</span></span><br><span class="line">  <span class="keyword">left join</span> <span class="keyword">global</span> g2</span><br><span class="line">    <span class="keyword">on</span> ESS.STATUS_CODE = g2.<span class="keyword">no</span></span><br><span class="line">  <span class="keyword">left join</span> <span class="keyword">global</span> g3</span><br><span class="line">    <span class="keyword">on</span> ESS.ITEM_NO = g3.<span class="keyword">no</span></span><br><span class="line">  <span class="keyword">left join</span> department</span><br><span class="line">    <span class="keyword">on</span> HE.DEPTNO = department.deptno</span><br><span class="line">  <span class="keyword">left join</span> <span class="keyword">info</span></span><br><span class="line">    <span class="keyword">on</span> HE.DEPTNO = <span class="keyword">info</span>.deptno</span><br><span class="line"> <span class="keyword">where</span> ESS.PERSON_ID <span class="keyword">NOT</span> <span class="keyword">LIKE</span> <span class="string">&#x27;111111%&#x27;</span></span><br><span class="line">   <span class="keyword">AND</span> ESS.ITEM_NO <span class="keyword">IN</span></span><br><span class="line">       (<span class="string">&#x27;141454&#x27;</span>, <span class="string">&#x27;14015951&#x27;</span>, <span class="string">&#x27;141445&#x27;</span>, <span class="string">&#x27;141443&#x27;</span>, <span class="string">&#x27;190000514&#x27;</span>)</span><br><span class="line">   <span class="keyword">AND</span> HE.DEPTNO <span class="keyword">in</span> (<span class="keyword">select</span> deptno <span class="keyword">from</span> t1)</span><br><span class="line"> <span class="keyword">ORDER</span> <span class="keyword">BY</span> ESS.AR_DATE_STR <span class="keyword">ASC</span>, ESS.CREATE_DATE <span class="keyword">DESC</span>, HE.DEPTNO, HE.EMPID</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/12/28/自定义函数改表关联优化一例/" target="_blank" title="自定义函数改表关联优化一例">http://fuxkdb.com/2017/12/28/自定义函数改表关联优化一例/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL-Tuning/" rel="tag">SQL Tuning</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/01/18/redis-cli/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          redis-cli,Redis命令行界面
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">PMM使用Grafana告警</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav">无</ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

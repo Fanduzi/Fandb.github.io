@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mha overview | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLMHA" />
+  
+  
+  
+  
+  <meta name="description" content="MHA概览MHA能够实现自动化的master failover和从库升级为new master,通常这一过程只需要10-30秒的停机时间.MHA最大程度保证了数据一致性,对性能零影响,易于安装,并且不需要改变现有部署情况. MHA支持计划性在线主库切换,在短时间内(0.5-2秒)的停机时间(仅限阻塞写入)，将当前运行的主机安全地更改为新主机. MHA提供以下功能,并且可用于需要高可用性,数据完整性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MHA Overview">
+<meta property="og:url" content="http://fuxkdb.com/2017/07/19/MHA%20Overview/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="MHA概览MHA能够实现自动化的master failover和从库升级为new master,通常这一过程只需要10-30秒的停机时间.MHA最大程度保证了数据一致性,对性能零影响,易于安装,并且不需要改变现有部署情况. MHA支持计划性在线主库切换,在短时间内(0.5-2秒)的停机时间(仅限阻塞写入)，将当前运行的主机安全地更改为新主机. MHA提供以下功能,并且可用于需要高可用性,数据完整性">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://camo.githubusercontent.com/7f9976839207f6c77d59174a29f6b9b37cf01faa/687474703a2f2f312e62702e626c6f6773706f742e636f6d2f2d767a3379514d4c6b35456f2f54696c68524369355a71492f414141414141414141466f2f79303852485873697475632f733630302f6d68612d70726f626c656d2e706e67">
+<meta property="og:image" content="https://camo.githubusercontent.com/2c98ece788a4cb760201426e1189c2cd2f4279c0/687474703a2f2f342e62702e626c6f6773706f742e636f6d2f2d4149496e757473726b416b2f546946356b4163497a51492f41414141414141414146672f6a5731536e7a4d38545f452f733630302f6d68615f7265636f766572795f70726f6365647572652e706e67">
+<meta property="og:image" content="https://camo.githubusercontent.com/7f20fa59ea31d0ede8808f397ed11b6873131a34/687474703a2f2f312e62702e626c6f6773706f742e636f6d2f2d77434b4635756f70474e492f54694634644132646636492f41414141414141414146592f414853636a4c38344a46342f733630302f636f6d706f6e656e74735f6f665f6d68612e706e67">
+<meta property="article:published_time" content="2017-07-19T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-04T15:45:52.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="MHA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://camo.githubusercontent.com/7f9976839207f6c77d59174a29f6b9b37cf01faa/687474703a2f2f312e62702e626c6f6773706f742e636f6d2f2d767a3379514d4c6b35456f2f54696c68524369355a71492f414141414141414141466f2f79303852485873697475632f733630302f6d68612d70726f626c656d2e706e67">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-MHA Overview" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MHA Overview
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/19/MHA%20Overview/" class="article-date">
+	  <time datetime="2017-07-19T14:00:00.000Z" itemprop="datePublished">2017-07-19</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="MHA概览"><a href="#MHA概览" class="headerlink" title="MHA概览"></a>MHA概览</h2><p>MHA能够实现自动化的master failover和从库升级为new master,通常这一过程只需要10-30秒的停机时间.MHA最大程度保证了数据一致性,对性能零影响,易于安装,并且不需要改变现有部署情况.</p>
+<p>MHA支持计划性在线主库切换,在短时间内(0.5-2秒)的停机时间(仅限阻塞写入)，将当前运行的主机安全地更改为新主机.</p>
+<p>MHA提供以下功能,并且可用于需要高可用性,数据完整性和近乎不间断主库维护的许多部署中.</p>
+<ul>
+<li><p>Automated master monitoring and failover</p>
+<a id="more"></a>
+<p>MHA可以在现有的复制环境中监控主库状态,在检测到主库故障时执行自动切换.MHA通过从拥有最新数据的slave识别与其他slave的数据差异,获取差异relay log并应用至所有需要同步的slave来保证数据一致性.MHA可以在几秒钟内完成故障转移:9-12秒钟可以检测到主库故障,7-10秒内关闭主机以避免脑裂(可选择不power off主服务器),几秒钟内将差异中级日志应用于新主库. 总停机时间通常为10-30秒.可以在配置文件中指定候选主库.由于MHA保证了从库间的数据一致性,因此任何从库都能提升为新的主库.(主要能够连通主服务器,获取日志,理论上主和所有从库都能保证一致性)</p>
+</li>
+<li><p>交互式Master Failover</p>
+</li>
+</ul>
+<p>MHA可以手动（非自动），交互式故障切换，而不开启主库监控。</p>
+<blockquote>
+<p>默认是开启masterha_manager监控,发现主库故障时会自动failover和选择新主库,这里说的是不开masterha_manager,手动使用masterha_master_switch切换主库.交互式是指切换过程中需要用户输入yes/no来选择是否继续执行</p>
+</blockquote>
+<ul>
+<li>非交互式Master Failover</li>
+</ul>
+<p>MHA也支持非交互式自动Master Failover而不使用MHA监控主库.这个功能对于已经配置了其他MySQL master监控软件的情景.例如,你可以使用<a target="_blank" rel="noopener" href="http://www.linux-ha.org/wiki/Pacemaker">Pacemaker(Heartbeat)</a>来监测Master故障和vip接管,然后使用MHA做master failover和将slave提升为新主库</p>
+<blockquote>
+<p>这里意思是不使用masterha_manager监控主库状态,而是我们已经有了其他监控软件,但是在发生故障时调用masterha_master_switch来进行处理</p>
+</blockquote>
+<ul>
+<li>在线切换主库</li>
+</ul>
+<p>当现有主库需要做硬件维护等操作时,可以使用MHA更优雅的切换主库,MHA仅阻塞0.5-2秒的写入操作即可完成主库切换.</p>
+<h2 id="Difficulties-of-Master-Failover"><a href="#Difficulties-of-Master-Failover" class="headerlink" title="Difficulties of Master Failover"></a>Difficulties of Master Failover</h2><p>主故障转移并不像看起来那么简单。以最经典的一主多从架构举例,当master出现故障,通常我们会选择一个和主库数据一致(或者最接近的)的从库作为新的主库,然后将其他从库change master到新主库开启复制.这个过程可能会很复杂,即便可以找到一个与原主库一致的从库做为新的主库,其他从库也未必是同步的,如果直接change master而没有先补齐数据差异,就会造成数据不一致.</p>
+<p><img src="https://camo.githubusercontent.com/7f9976839207f6c77d59174a29f6b9b37cf01faa/687474703a2f2f312e62702e626c6f6773706f742e636f6d2f2d767a3379514d4c6b35456f2f54696c68524369355a71492f414141414141414141466f2f79303852485873697475632f733630302f6d68612d70726f626c656d2e706e67" alt="image"></p>
+<p>MHA旨在尽可能快的完全自动化主库故障转移和恢复过程,而无需任何备机.恢复过程包括选择新主库,识别从库间relay log差异,将必要的events应用到新主库,同步其他从库并与新主库建立并启动复制.MHA通常可以在10-30秒的停机时间内进行故障转移(10秒内检测到主库故障,可选的7-10秒内关闭主库服务器以避免脑裂,几秒钟用于恢复数据至一致),具体时间取决于复制延迟度.</p>
+<p>MHA提供自动和手动故障切换命令.自动故障切换命令“masterha_manager（MHA Manager）”由master monitoring和master failover组成。 masterha_manager会永久监控主服务器的可用性。 如果MHA Manager无法到达主服务器，则它将自动启动非交互式故障切换过程。</p>
+<p>手动故障转移命令“masterha_master_switch”会检查master是否出现了故障(dead)。 如果master dead，masterha_master_switch将其中一个从库作为新的主库（您可以选择一个首选主机），并启动恢复和故障切换。 在内部，它做的更多，但是您只执行一个命令，而无需自己执行复杂的恢复和故障转移操作。</p>
+<h2 id="MHA架构"><a href="#MHA架构" class="headerlink" title="MHA架构"></a>MHA架构</h2><p>When a master crashes, MHA recovers rest slaves as below.</p>
+<p><img src="https://camo.githubusercontent.com/2c98ece788a4cb760201426e1189c2cd2f4279c0/687474703a2f2f342e62702e626c6f6773706f742e636f6d2f2d4149496e757473726b416b2f546946356b4163497a51492f41414141414141414146672f6a5731536e7a4d38545f452f733630302f6d68615f7265636f766572795f70726f6365647572652e706e67" alt="img"></p>
+<p>从库上的relay log中,主库的binary log positions写在end_log_pos部分(<a target="_blank" rel="noopener" href="http://www.slideshare.net/matsunobu/automated-master-failover/18">example</a>).通过比较从库relay log中最后的end_log_pos,我们可以确定哪些relay log events没有被发送到从库.MHA通过这个机制恢复从库.In addition to basic algorithms covered in the <a target="_blank" rel="noopener" href="http://www.slideshare.net/matsunobu/automated-master-failover">slides</a> at the MySQL Conf 2011, MHA does some optimizations and enhancements, such as generating differential relay logs very quickly (indenpendent from relay log file size), making recovery work with row based formats, etc.</p>
+<h2 id="MHA组件"><a href="#MHA组件" class="headerlink" title="MHA组件"></a>MHA组件</h2><p>MHA由MHA Manager和MHA Node组成.</p>
+<p><img src="https://camo.githubusercontent.com/7f20fa59ea31d0ede8808f397ed11b6873131a34/687474703a2f2f312e62702e626c6f6773706f742e636f6d2f2d77434b4635756f70474e492f54694634644132646636492f41414141414141414146592f414853636a4c38344a46342f733630302f636f6d706f6e656e74735f6f665f6d68612e706e67" alt="img"></p>
+<blockquote>
+<p>Manager可以管理多个 复制集群</p>
+<ul>
+<li>masterha_manager:提供实现自动故障检测和故障转移的命令<ul>
+<li>masterha_check_ssh              检查MHA的SSH配置状况<br>masterha_check_repl             检查MySQL复制状况<br>masterha_manger                  启动MHA<br>masterha_check_status         检测当前MHA运行状态<br>masterha_master_monitor   检测master是否宕机<br>masterha_master_switch      控制故障转移（自动或者手动）<br>masterha_conf_host              添加或删除配置的server信息</li>
+</ul>
+</li>
+</ul>
+<p>Node部署在所有节点</p>
+<ul>
+<li>save_binary_logs                  保存和复制master的二进制日志<br>apply_diff_relay_logs           识别差异的中继日志事件并将其差异的事件应用于其他的slave<br>filter_mysqlbinlog                去除不必要的ROLLBACK事件（MHA已不再使用这个工具）<br>purge_relay_logs                  清除中继日志（不会阻塞SQL线程）</li>
+</ul>
+</blockquote>
+<p>MHA Manager具有如监控MySQL master和控制故障转移等程序</p>
+<p>MHA Node具有一些帮助主库进行故障转移的脚本,例如:解析MySQL binary/relay log;识别relay log位置,进而判断哪些event需要应用到其他从库;应用events到目标从库等. MHA Node运行在每个MySQL服务器上</p>
+<p>当MHA Manager进行故障切换时,MHA Manager通过SSH连接MHA节点,并在需要时执行MHA节点命令.</p>
+<h2 id="自定义扩展"><a href="#自定义扩展" class="headerlink" title="自定义扩展"></a>自定义扩展</h2><h3 id="MHA有几个用户可以自行扩展的脚本-例如-MHA可以调用任何自定义脚本切换VIP"><a href="#MHA有几个用户可以自行扩展的脚本-例如-MHA可以调用任何自定义脚本切换VIP" class="headerlink" title="MHA有几个用户可以自行扩展的脚本.例如,MHA可以调用任何自定义脚本切换VIP."></a>MHA有几个用户可以自行扩展的脚本.例如,MHA可以调用任何自定义脚本切换VIP.</h3><ul>
+<li>secondary_check_script：用于检查来自多个网络路由的主机可用性</li>
+<li>master_ip_failover_script：用于更新应用程序使用的主机的IP地址(vip)</li>
+<li>shutdown_script：用于强制关闭主服务器</li>
+<li>report_script：发送报告(邮件)</li>
+<li>init_conf_load_script：用于加载初始配置参数</li>
+<li>master_ip_online_change_script：更新主IP地址(vip)。 当通过masterha_master_switch执行在线主库切换时,需要此脚本来切换vip</li>
+</ul>
+<h4 id="secondary-check-script"><a href="#secondary-check-script" class="headerlink" title="secondary_check_script"></a>secondary_check_script</h4><p>通常来说，非常推荐使用两个或更多的网络线路检测MySQL master服务器的可用性。默认情况下，MHA Manager只是用单个线路检测：从Manager到Master。但是这个并不推荐。MHA通过调用一个额外的脚本（通过secondary_check_script参数指定），实际上可以有两个或更多的检查线路。配置示例：</p>
+<p>secondary_check_script =masterha_secondary_check -s remote_host1 -s remote_host2</p>
+<p>masterha_secondary_check在MHA Manager包中已经包含。内置的masterha_secondary_check 脚本在大多数情况下都是比较好的，这里也可以调用其他任意脚本。</p>
+<p>在上述示例中，MHA Manager通过Manager-(A)-&gt;remote_host1-(B)-&gt;master_host和 Manager-(A)-&gt;remote_host2-(B)-&gt;master_host检测MySQL master服务器。如果在两个线路中都会出现：connection A是成功的，但是B是不成功的，则masterha_secondary_check会退出（返回0），并且MHAManager决定MySQL master真的挂掉了，然后会进行failover。如果A是不成功的，masterha_secondary_check会退出（返回2），并且MHAManager猜测发生网络问题，不会进行failover。如果B是成功的，masterha_secondary_check会退出（返回3），并且MHAManager 推断MySQL master是存活的，不会进行failover。</p>
+<p>一般来讲，remote_host1 和 remote_host2 应该位于不同的网段（从MHA Manager和MySQL服务器）。</p>
+<p>MHA 调用secondary_check_script参数定义的脚本，自动传一下参数(所以不需要再配置文件中设置以下参数)。 masterha_secondary_check 在许多情形下是适宜的，但是如果你需要更多功能可以自己写一些网络监测脚本。</p>
+<ul>
+<li>–user=(远程hosts的SSH用户名。<a target="_blank" rel="noopener" href="https://code.google.com/p/mysql-master-ha/wiki/Parameters#ssh_user">ssh_user</a> 参数的值会被传入)</li>
+<li>–master_host=(master的hostname)</li>
+<li>–master_ip=(master的ip 地址)</li>
+<li>–master_port=(master的端口号)</li>
+</ul>
+<p>内置的masterha_secondary_check 脚本依赖于IO::Socket::INETPerl包，从Perl v5.6.0开始已经默认包含。masterha_secondary_check 脚本也是通过SSH连接到远程服务器，所以也需要SSH公共密钥验证。还有，masterha_secondary_check 脚本尝试从远程服务器（set by -s）到MySQLmaster建立TCP连接。my.cnf中设置的max_connections参数不会影响，如果TCP连接成功，master上的aborted_connects值会加1。</p>
+<h4 id="master-ip-failover-script"><a href="#master-ip-failover-script" class="headerlink" title="master_ip_failover_script"></a>master_ip_failover_script</h4><p>在常见的HA环境中，许多情形下会在master上分配一个虚拟IP地址。如果master挂掉，HA软件（比如：Pacemaker）会接管虚拟IP到备机上。</p>
+<p>另一个常见的处理方式是创建一个全局性的目录<a target="_blank" rel="noopener" href="http://lib.csdn.net/base/mysql">数据库</a>，该数据库包含应用名称和读写IP地址之间的映射（i.e. {app1_master1, 192.168.0.1}, {app_master2, 192.168.0.2}, …）。这种情形下，在当前master挂掉之后需要更新目录数据库。</p>
+<p>两者方式各有优势和劣势。MHA不强制使用其中一种方式，允许用户使用任何一种IP地址故障切换的解决办法，master_ip_failover_script参数被用于解决这个。 换句话说，需要编写一个脚本使应用透明的连接到new master，必须定义在master_ip_failover_script 参数中。实例如下：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">master_ip_failover_script= <span class="regexp">/usr/</span>local<span class="regexp">/sample/</span>bin/master_ip_failover</span><br></pre></td></tr></table></figure>
+<p>示例及保本位于（MHA Manager包）/samples/scripts/master_ip_failover。 示例脚本在MHA Managertarball和GitHup分支中包含。</p>
+<p>MHA Manager 调用master_ip_failover_script 三次。第一次在进入master监控之前（脚本有效性检查），第二次是在调用shutdown_script脚本之前，第三次是在应用差异relay log到new master之后。MHA Manager 传入以下参数（不需要在配置文件中配置）。</p>
+<ul>
+<li>Checking 阶段<ul>
+<li>–command=status</li>
+<li>–ssh_user=(当前master的ssh username)</li>
+<li>–orig_master_host=(当前master 的 hostname)</li>
+<li>–orig_master_ip=(当前 master的 ip地址)</li>
+<li>–orig_master_port=(当前master的端口号)</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>当前master  shutdown阶段<ul>
+<li>–command=stop 或 stopssh</li>
+<li>–ssh_user=(dead master的 ssh username，如果可以通过SSH访问)</li>
+<li>–orig_master_host=(current(dead) master的 hostname)</li>
+<li>–orig_master_ip=(current(dead) master的 ip 地址)</li>
+<li>–orig_master_port=(current(dead) master的 端口号)</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>New master 激活阶段<ul>
+<li>–command=start</li>
+<li>–ssh_user=(new master的 ssh username)</li>
+<li>–orig_master_host=(dead master的 hostname)</li>
+<li>–orig_master_ip=(dead master的 ip 地址)</li>
+<li>–orig_master_port=(dead master的端口号)</li>
+<li>–new_master_host=(new master的 hostname)</li>
+<li>–new_master_ip=(new master的 ip 地址)</li>
+<li>–new_master_port(new master的端口号)</li>
+<li>–new_master_user=(new master的用户)</li>
+<li>–new_master_password(new master的密码)</li>
+</ul>
+</li>
+</ul>
+<p>如果在master上使用了一个共享的虚拟IP地址，只要在之后<a target="_blank" rel="noopener" href="https://code.google.com/p/mysql-master-ha/wiki/Parameters#shutdown_script">shutdown_script</a>中关掉了机器，在shutdown阶段可能不需要做任何事。在newmaster激活阶段，可以在new master上指定虚拟IP。</p>
+<p>如果使用了目录数据库的方式，在master shutdown阶段需要delete或者update dead master的记录。在new master激活阶段，可以insert/update new master的记录。还有，可以做任何你需要做的事，使得应用可以写入new master。比如，SET GLOBAL read_only=0，创建拥有write权限的数据库用户，等等。</p>
+<p>MHA Manager 检查该脚本退出的code（return code）。如果脚本返回的code为0或者10，MHA Manager 继续操作。 如果脚本返回的code不是0或者10，MHA Manager终止，不会继续故障切换。参数默认为空。</p>
+<h4 id="report-script"><a href="#report-script" class="headerlink" title="report_script"></a>report_script</h4><p>failover完成或者因为错误结束的时候可能需要发送报告（i.e. e-mail）。report_script 用于这个目的。MHA Manager传入以下参数。</p>
+<ul>
+<li>–orig_master_host=(dead master的 hostname)</li>
+<li>–new_master_host=(new master的 hostname)</li>
+<li>–new_slave_hosts=(new slaves 的 hostnames，通过逗号分隔)</li>
+<li>–subject=(mail subject)</li>
+<li>–body=(body)</li>
+</ul>
+<p>参数默认为空。</p>
+<p>示例脚本位于(MHA Manager 包)/samples/scripts/send_report。示例脚本在MHA Managertarball 和 GitHub分支中包含。</p>
+<h4 id="init-conf-load-script"><a href="#init-conf-load-script" class="headerlink" title="init_conf_load_script"></a>init_conf_load_script</h4><p>当不想在配置文件中设置纯文本（i.e. password和repl_password）的时候可以使用该脚本。通过从该脚本返回 “name=value” 对，可以覆盖全局配置文件的参数。示例如下。</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/perl</span></span><br><span class="line"><span class="builtin-name">print</span> <span class="string">&quot;password=<span class="variable">$ROOT_PASS</span>\n&quot;</span>;</span><br><span class="line"><span class="builtin-name">print</span> <span class="string">&quot;repl_password=<span class="variable">$REPL_PASS</span>\n&quot;</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="master-ip-online-change-script"><a href="#master-ip-online-change-script" class="headerlink" title="master_ip_online_change_script"></a>master_ip_online_change_script</h4><p>类似于master_ip_failover_script 参数，但是该参数不是用于master故障切换的命令，用于master在线切换命令（masterha_master_switch–master_state=alive）。传入以下参数。</p>
+<ul>
+<li>Current master阻塞写入阶段<ul>
+<li>–command=stop 或 stopssh</li>
+<li>–orig_master_host=(current master的 hostname)</li>
+<li>–orig_master_ip=(current master的 ip 地址)</li>
+<li>–orig_master_port=(current master的端口号)</li>
+<li>–orig_master_user=(current master的用户)</li>
+<li>–orig_master_password=(current master的密码)</li>
+<li>–orig_master_ssh_user=(从0.56支持, current master的 ssh user)</li>
+<li>–orig_master_is_new_slave=(从0.56支持, 表示原来的master是否会成为新的slave)</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>New master 赋write权限阶段<ul>
+<li>–command=start</li>
+<li>–orig_master_host=(orig master的hostname)</li>
+<li>–orig_master_ip=(orig master的 ip 地址)</li>
+<li>–orig_master_port=(orig master的端口号)</li>
+<li>–new_master_host=(new master的 hostname)</li>
+<li>–new_master_ip=(new master的ip 地址)</li>
+<li>–new_master_port(new master的端口号)</li>
+<li>–new_master_user=(new master的用户)</li>
+<li>–new_master_password=(new master的密码)</li>
+<li>–new_master_ssh_user=(从0.56支持, new master的 ssh user)</li>
+</ul>
+</li>
+</ul>
+<p>当前master阻塞写阶段，MHA 在当前master上执行 FLUSH TABLES WITH READ LOCK 。在new master赋wirte权限阶段，可以做和master_ip_failover_script一样的事情。比如，创建有权限的用户，执行SET GLOBAL read_only=0，更新目录数据库，等等。如果脚本返回的code不是0或10，则MHA Manager 会终止，并且不会继续master切换。</p>
+<p>默认参数为空。</p>
+<p>示例脚本位于（MHA Manager包）/samples/scripts/master_ip_online_change。</p>
+<h2 id="典型用例"><a href="#典型用例" class="headerlink" title="典型用例"></a>典型用例</h2><h4 id="一主多从"><a href="#一主多从" class="headerlink" title="一主多从"></a>一主多从</h4><figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">        M<span class="comment">(RW)</span>                                       M<span class="comment">(RW)</span>, promoted from S<span class="number">1</span></span><br><span class="line">         |                                           |</span><br><span class="line">  +------+------+        --<span class="comment">(master crash)</span>--&gt;   +-----+------+</span><br><span class="line">S<span class="number">1</span><span class="comment">(R)</span>  S<span class="number">2</span><span class="comment">(R)</span>  S<span class="number">3</span><span class="comment">(R)</span>                          S<span class="number">2</span><span class="comment">(R)</span>        S<span class="number">3</span><span class="comment">(R)</span></span><br></pre></td></tr></table></figure>
+<p>最常见的复制场景</p>
+<h4 id="一主多从-其中一个从库在异地"><a href="#一主多从-其中一个从库在异地" class="headerlink" title="一主多从,其中一个从库在异地"></a>一主多从,其中一个从库在异地</h4><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">        <span class="constructor">M(RW)</span>                                        <span class="constructor">M(RW)</span>, promoted from S1</span><br><span class="line">         <span class="pattern-match">|                                            |</span></span><br><span class="line"><span class="pattern-match">  +------+------+        --(master crash)--&gt;   +------+------+</span></span><br><span class="line"><span class="pattern-match"><span class="constructor">S1(R)</span>  <span class="constructor">S2(R)</span>  <span class="constructor">Sr(R,<span class="params">no_master</span>=1)</span>              <span class="constructor">S2(R)</span>         <span class="constructor">Sr(R,<span class="params">no_master</span>=1)</span></span></span><br></pre></td></tr></table></figure>
+<p>通常我们可能会需要在异地数据中心搭建一个从库,但当主库宕机时,我们并不希望该从库被提升为新主库,而是希望一个与原主库同机房的从库作为新主库.可以通过在<a target="_blank" rel="noopener" href="https://github.com/yoshinorim/mha4mysql-manager/wiki/Configuration">配置文件</a>中向Sr区块添加<a target="_blank" rel="noopener" href="https://github.com/yoshinorim/mha4mysql-manager/wiki/Parameters#no_master">no_master=1</a>参数来从候选名单中移除Sr</p>
+<h4 id="一主多从-一个候选主库"><a href="#一主多从-一个候选主库" class="headerlink" title="一主多从,一个候选主库"></a>一主多从,一个候选主库</h4><figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">        M<span class="comment">(RW)</span>-----S<span class="number">0</span><span class="comment">(R,candidate_master=1)</span>           M<span class="comment">(RW)</span>, promoted from S<span class="number">0</span></span><br><span class="line">         |                                            |</span><br><span class="line">  +------+------+        --<span class="comment">(master crash)</span>--&gt;   +------+------+</span><br><span class="line">S<span class="number">1</span><span class="comment">(R)</span>         S<span class="number">2</span><span class="comment">(R)</span>                          S<span class="number">1</span><span class="comment">(R)</span>         S<span class="number">2</span><span class="comment">(R)</span></span><br></pre></td></tr></table></figure>
+<p>有时我们想指定一个特定的从库作为新主库.可以通过在<a target="_blank" rel="noopener" href="https://github.com/yoshinorim/mha4mysql-manager/wiki/Configuration">配置文件</a>中向希望的从库区块下添加<a target="_blank" rel="noopener" href="https://github.com/yoshinorim/mha4mysql-manager/wiki/Parameters#candidate_master">candidate_master=1</a>来实现这一需求</p>
+<h4 id="双主"><a href="#双主" class="headerlink" title="双主"></a>双主</h4><figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">       M<span class="comment">(RW)</span>&lt;---&gt;<span class="name">M2</span><span class="comment">(R,candidate_master=1)</span>           M<span class="comment">(RW)</span>, promoted from <span class="name">M2</span></span><br><span class="line">        |                                            |</span><br><span class="line"> +------+------+        --<span class="comment">(master crash)</span>--&gt;   +------+------+</span><br><span class="line">S<span class="comment">(R)</span>         S<span class="number">2</span><span class="comment">(R)</span>                          S<span class="number">1</span><span class="comment">(R)</span>      S<span class="number">2</span><span class="comment">(R)</span></span><br></pre></td></tr></table></figure>
+<p>双主,M读写,M2只读, M下挂两个从库. 切换后M2作为新主 S1,S2 change master到M2.</p>
+<p>只要M2是只读的,MHA就支持多主配置</p>
+<blockquote>
+<p>MHA Manager supports multi-master configurations as long as all non-primary masters (M2 in this figure) are read-only.</p>
+</blockquote>
+<h4 id="三层复制"><a href="#三层复制" class="headerlink" title="三层复制"></a>三层复制</h4><figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">        M<span class="comment">(RW)</span>                                        M<span class="comment">(RW)</span>, promoted from S<span class="number">1</span></span><br><span class="line">         |                                            |</span><br><span class="line">  +------+------+        --<span class="comment">(master crash)</span>--&gt;   +------+------+</span><br><span class="line">S<span class="number">1</span><span class="comment">(R)</span>  S<span class="number">2</span><span class="comment">(R)</span>  Sr<span class="comment">(R)</span>                          S<span class="number">2</span><span class="comment">(R)</span>         Sr<span class="comment">(R)</span></span><br><span class="line">                |                                            |</span><br><span class="line">                +                                            +</span><br><span class="line">               Sr<span class="number">2</span>                                          Sr<span class="number">2</span></span><br></pre></td></tr></table></figure>
+<p>M主库RW模式,S1 S2为本地只读从库,Sr为远程只读从库,Sr2为Sr的从库.这种结构下MHA仍然可以支持master failover.在配置文件配置master和所有二层的从库(在这个例子添加M,S1,S2和Sr到配置文件,但是不要添加Sr2到配置文件中).如果有master宕机,MHA自动提升二层从库(S1或S3或Sr.取决于优先级)为新主库,并恢复其他二层从库. 第三次的从库Sr2不受MHA管理,不过只要Sr2的主库可用,Sr2仍然可以继续复制.</p>
+<p>如果Sr宕机,Sr2将不能继续复制,因为Sr2的主库是Sr.MHA不能回复Sr2</p>
+<p>This is where <a target="_blank" rel="noopener" href="https://github.com/yoshinorim/mha4mysql-manager/wiki/GTID_Based_Failover">support for global transaction id</a> is desired. Hopefully this is less serious than master crash.每台明白,意思是这就是为什么需要GTID?有了GTID Sr2就可以change master到新主了吧</p>
+<h4 id="三层复制-双主"><a href="#三层复制-双主" class="headerlink" title="三层复制,双主"></a>三层复制,双主</h4><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">       <span class="constructor">M1(<span class="params">host1</span>,RW)</span> &lt;-----------------&gt; <span class="constructor">M2(<span class="params">host2</span>,<span class="params">read</span>-<span class="params">only</span>)</span></span><br><span class="line">         <span class="pattern-match">|                                |</span></span><br><span class="line"><span class="pattern-match">  +------+------+                         +</span></span><br><span class="line"><span class="pattern-match"><span class="constructor">S1(<span class="params">host3</span>,R)</span>   <span class="constructor">S2(<span class="params">host4</span>,R)</span>               <span class="constructor">S3(<span class="params">host5</span>,R)</span></span></span><br><span class="line"><span class="pattern-match"></span></span><br><span class="line"><span class="pattern-match">=&gt;</span> After failover</span><br><span class="line"></span><br><span class="line">             <span class="constructor">M2(<span class="params">host2</span>,RW)</span></span><br><span class="line">               <span class="pattern-match">|</span></span><br><span class="line"><span class="pattern-match">+--------------+--------------+</span></span><br><span class="line"><span class="pattern-match"><span class="constructor">S1(<span class="params">host3</span>,R)</span> <span class="constructor">S2(<span class="params">host4</span>,R)</span> <span class="constructor">S3(<span class="params">host5</span>,R)</span></span></span><br></pre></td></tr></table></figure>
+<p>MHA通用支持这种结构.在这个结构下host5是一个第三层的slave,所以MHA不能管理host5(MHA does not execute CHANGE MASTER on host5 when the primary master host1 fails).当host1 dow,host2将会成为新主库,所以host5可以keep replication from host2 without doing anything. 下面是<a target="_blank" rel="noopener" href="https://github.com/yoshinorim/mha4mysql-manager/wiki/Configuration">配置文件</a>示例.</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[server default]</span></span><br><span class="line"><span class="attr">multi_tier_slave</span>=<span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="section">[server1]</span></span><br><span class="line"><span class="attr">hostname</span>=host1</span><br><span class="line"><span class="attr">candidate_master</span>=<span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="section">[server2]</span></span><br><span class="line"><span class="attr">hostname</span>=host2</span><br><span class="line"><span class="attr">candidate_master</span>=<span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="section">[server3]</span></span><br><span class="line"><span class="attr">hostname</span>=host3</span><br><span class="line"></span><br><span class="line"><span class="section">[server4]</span></span><br><span class="line"><span class="attr">hostname</span>=host4</span><br><span class="line"></span><br><span class="line"><span class="section">[server5]</span></span><br><span class="line"><span class="attr">hostname</span>=host5</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/07/19/MHA Overview/" target="_blank" title="MHA Overview">http://fuxkdb.com/2017/07/19/MHA Overview/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MHA/" rel="tag">MHA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/07/19/MHA%20Tutorial/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          MHA Tutorial
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/07/06/Sysbench%E5%87%BA%E5%9B%BE/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Sysbench出图</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#MHA%E6%A6%82%E8%A7%88"><span class="nav-number">1.</span> <span class="nav-text">MHA概览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Difficulties-of-Master-Failover"><span class="nav-number">2.</span> <span class="nav-text">Difficulties of Master Failover</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MHA%E6%9E%B6%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">MHA架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MHA%E7%BB%84%E4%BB%B6"><span class="nav-number">4.</span> <span class="nav-text">MHA组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%A9%E5%B1%95"><span class="nav-number">5.</span> <span class="nav-text">自定义扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MHA%E6%9C%89%E5%87%A0%E4%B8%AA%E7%94%A8%E6%88%B7%E5%8F%AF%E4%BB%A5%E8%87%AA%E8%A1%8C%E6%89%A9%E5%B1%95%E7%9A%84%E8%84%9A%E6%9C%AC-%E4%BE%8B%E5%A6%82-MHA%E5%8F%AF%E4%BB%A5%E8%B0%83%E7%94%A8%E4%BB%BB%E4%BD%95%E8%87%AA%E5%AE%9A%E4%B9%89%E8%84%9A%E6%9C%AC%E5%88%87%E6%8D%A2VIP"><span class="nav-number">5.1.</span> <span class="nav-text">MHA有几个用户可以自行扩展的脚本.例如,MHA可以调用任何自定义脚本切换VIP.</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#secondary-check-script"><span class="nav-number">5.1.1.</span> <span class="nav-text">secondary_check_script</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#master-ip-failover-script"><span class="nav-number">5.1.2.</span> <span class="nav-text">master_ip_failover_script</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#report-script"><span class="nav-number">5.1.3.</span> <span class="nav-text">report_script</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#init-conf-load-script"><span class="nav-number">5.1.4.</span> <span class="nav-text">init_conf_load_script</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#master-ip-online-change-script"><span class="nav-number">5.1.5.</span> <span class="nav-text">master_ip_online_change_script</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B8%E5%9E%8B%E7%94%A8%E4%BE%8B"><span class="nav-number">6.</span> <span class="nav-text">典型用例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%B8%BB%E5%A4%9A%E4%BB%8E"><span class="nav-number">6.0.1.</span> <span class="nav-text">一主多从</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%B8%BB%E5%A4%9A%E4%BB%8E-%E5%85%B6%E4%B8%AD%E4%B8%80%E4%B8%AA%E4%BB%8E%E5%BA%93%E5%9C%A8%E5%BC%82%E5%9C%B0"><span class="nav-number">6.0.2.</span> <span class="nav-text">一主多从,其中一个从库在异地</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E4%B8%BB%E5%A4%9A%E4%BB%8E-%E4%B8%80%E4%B8%AA%E5%80%99%E9%80%89%E4%B8%BB%E5%BA%93"><span class="nav-number">6.0.3.</span> <span class="nav-text">一主多从,一个候选主库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%8C%E4%B8%BB"><span class="nav-number">6.0.4.</span> <span class="nav-text">双主</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%89%E5%B1%82%E5%A4%8D%E5%88%B6"><span class="nav-number">6.0.5.</span> <span class="nav-text">三层复制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%89%E5%B1%82%E5%A4%8D%E5%88%B6-%E5%8F%8C%E4%B8%BB"><span class="nav-number">6.0.6.</span> <span class="nav-text">三层复制,双主</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

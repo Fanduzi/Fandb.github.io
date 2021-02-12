@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>percona monitoring and management架构 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLPMM" />
+  
+  
+  
+  
+  <meta name="description" content="Percona Monitoring and Management架构PMM基于简单的client-server模型,可实现高效的扩展性,它包含以下模块:  PMM Client,安装在任何你希望被监控的数据库服务器上.它会手机服务器指标和查询分析数据以提供一份完整的性能概览.数据被收集并发送到PMM Server PMM Server是PMM的核心部分,它聚合手机的数据,并以Web界面的表格,仪">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Percona Monitoring and Management架构">
+<meta property="og:url" content="http://fuxkdb.com/2017/08/02/Percona%20Monitoring%20and%20Management%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Percona Monitoring and Management架构PMM基于简单的client-server模型,可实现高效的扩展性,它包含以下模块:  PMM Client,安装在任何你希望被监控的数据库服务器上.它会手机服务器指标和查询分析数据以提供一份完整的性能概览.数据被收集并发送到PMM Server PMM Server是PMM的核心部分,它聚合手机的数据,并以Web界面的表格,仪">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.percona.com/doc/percona-monitoring-and-management/_images/pmm-diagram.png">
+<meta property="article:published_time" content="2017-08-02T14:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-04T15:45:39.000Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="PMM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.percona.com/doc/percona-monitoring-and-management/_images/pmm-diagram.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-Percona Monitoring and Management架构" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Percona Monitoring and Management架构
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/02/Percona%20Monitoring%20and%20Management%E6%9E%B6%E6%9E%84/" class="article-date">
+	  <time datetime="2017-08-02T14:00:00.000Z" itemprop="datePublished">2017-08-02</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Percona-Monitoring-and-Management架构"><a href="#Percona-Monitoring-and-Management架构" class="headerlink" title="Percona Monitoring and Management架构"></a>Percona Monitoring and Management架构</h2><p>PMM基于简单的client-server模型,可实现高效的扩展性,它包含以下模块:</p>
+<ul>
+<li>PMM Client,安装在任何你希望被监控的数据库服务器上.它会手机服务器指标和查询分析数据以提供一份完整的性能概览.数据被收集并发送到PMM Server</li>
+<li>PMM Server是PMM的核心部分,它聚合手机的数据,并以Web界面的表格,仪表盘和图形的形式展现</li>
+</ul>
+<p>这些模块被封装以提供简单的安装和使用给用户,无需关心它的内部实现方法.但是，如果要利用PMM的全部潜力，内部结构就很重要.</p>
+<ul>
+<li><a href="#pmm_client">PMM Client</a></li>
+<li><a href="#pmm_server">PMM Server</a></li>
+<li><a href="#部署方案">部署方案</a><ul>
+<li><a href="#简单场景">简单场景</a></li>
+<li><a href="#典型场景">典型场景</a></li>
+</ul>
+</li>
+</ul>
+<p>PMM是旨在无缝协同工作的工具集合。 一些是由Percona开发的，一些是第三方开源工具。<br><a id="more"></a></p>
+<blockquote>
+<p>Note</p>
+<p>整个客户端 - 服务器模型不太可能发生变化，但组合每个组件的工具集可能随产品而变化。</p>
+</blockquote>
+<p>下图说明了PMM当前的结构：</p>
+<p><img src="https://www.percona.com/doc/percona-monitoring-and-management/_images/pmm-diagram.png" alt="img"></p>
+<p><span style="color:#ffffff;" id="pmm_client"></span></p>
+<h3 id="PMM-Client"><a href="#PMM-Client" class="headerlink" title="PMM Client"></a>PMM Client</h3><p>PMM客户端软件包适用于大多数流行的Linux发行版：</p>
+<ul>
+<li>DEB用于基于Debian的发行版（包括Ubuntu等）</li>
+<li>Red Hat Enterprise Linux衍生产品的RPM（包括CentOS，Oracle Linux，Amazon Linux等）</li>
+</ul>
+<p>还有可以在任何Linux系统上使用的通用tarball二进制文件。</p>
+<p>有关详细信息，请参阅安装PMM客户端。</p>
+<p>PMM客户端软件包包含以下内容：</p>
+<ul>
+<li><p><code>pmm-admin</code>是一个用于管理PMM Client的命令行工具,例如:添加删除数你想要监控的数据库实例</p>
+</li>
+<li><p><code>percona-qan-agent</code>是一个用于管理 Query Analytics (QAN) agent的服务</p>
+<blockquote>
+<p>is a service that manages the Query Analytics (QAN) agent as it collects query performance data. It also connects with QAN API in <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/architecture.html#pmm-server">PMM Server</a> and sends over collected data.</p>
+</blockquote>
+</li>
+<li><p><code>node-exporter</code>是一个Prometheus exporter用于收集系统指标For more information, see <a target="_blank" rel="noopener" href="https://github.com/percona/node_exporter">https://github.com/percona/node_exporter</a>.</p>
+</li>
+<li><p><code>mysqld_exporter</code>是一个Prometheus exporter用于收集MySQL server指标.For more information, see <a target="_blank" rel="noopener" href="https://github.com/percona/mysqld_exporter">https://github.com/percona/mysqld_exporter</a>.</p>
+</li>
+<li><p><code>mongodb_exporter</code>是一个Prometheus exporter用于收集MongoDB server指标.For more information, see <a target="_blank" rel="noopener" href="https://github.com/percona/mongodb_exporter">https://github.com/percona/mongodb_exporter</a>.</p>
+</li>
+<li><p><code>proxysql_exporter</code>是一个Prometheus exporter用于收集ProxySQL性能指标. For more information, see <a target="_blank" rel="noopener" href="https://github.com/percona/proxysql_exporter">https://github.com/percona/proxysql_exporter</a>.</p>
+</li>
+</ul>
+<p><span style="color:#ffffff;" id="pmm_server"></span></p>
+<h3 id="PMM-Server"><a href="#PMM-Server" class="headerlink" title="PMM Server"></a>PMM Server</h3><p>PMM服务器将作为您的中央监控主机的机器运行。 它通过以下方式作为设备分发：</p>
+<ul>
+<li>Docker image that you can use to run a container</li>
+<li>Open Virtual Appliance（OVA），您可以在VirtualBox或其他管理程序中运行</li>
+<li>Amazon Machine Image (AMI) that you can run via Amazon Web Services (AWS)</li>
+</ul>
+<p>有关更多信息，请参阅<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/deploy/server/index.html#run-server">Running PMM Server</a>.</p>
+<p>PMM服务器由以下工具组成：</p>
+<ul>
+<li><p><strong>Query Analytics</strong> (QAN)使你能够分析MySQL查询性能. 除客户端QAN代理外，还包括以下内容：</p>
+<ul>
+<li><strong>QAN API</strong>是用于存储和访问在PMM客户端上运行的<code>percona-qan-agent</code>收集的查询数据的后端。</li>
+<li><strong>QAN Web App</strong>是一个web程序用于可视化收集的Query Analytics数据</li>
+</ul>
+</li>
+<li><p><strong>Metrics Monitor</strong> (MM)提供对MySQL或MongoDB服务器实例至关重要的指标的历史视图。 它包括以下内容：</p>
+<ul>
+<li><p><strong>Prometheus</strong>是一个第三方的时间序列数据库,连接到PMM Client上运行的exporters并聚合收集到的指标.更多信息请参阅<a target="_blank" rel="noopener" href="https://prometheus.io/docs/introduction/overview/">Prometheus Docs</a> <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/architecture.html#id3">[1]</a>.</p>
+<ul>
+<li><p><strong>Consul</strong>provides an API that a PMM Client can use to remotely list,add, and remove hosts for Prometheus. It also stores monitoring metadata. For more information, see <a target="_blank" rel="noopener" href="https://www.consul.io/docs/">Consul Docs</a> <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/architecture.html#id5">[2]</a>.</p>
+<blockquote>
+<p>Warning</p>
+<p>Although the Consul web UI is accessible, do not make any changes to the configuration.</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p><strong>Grafana</strong>是第三方仪表板和图形构建器，用于在直观的Web界面中可视化由Prometheus汇总的数据。 有关更多信息，请参阅<a target="_blank" rel="noopener" href="http://docs.grafana.org/">Grafana Docs</a><a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/architecture.html#id7">[3]</a>.</p>
+<ul>
+<li><strong>Percona Dashboards</strong>是由Percona开发的Grafana仪表板.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>Orchestrator</strong>是一个MySQL的复制拓扑管理和可视化工具。 有关详细信息，请参阅<a target="_blank" rel="noopener" href="https://github.com/outbrain/orchestrator/wiki/Orchestrator-Manual">Orchestrator Manual</a> <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/architecture.html#id9">[4]</a>.</p>
+</li>
+</ul>
+<p>所有工具都可以通过PMM Server web界面(登录页面)访问.For more information, see <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/using.html#using">Using the Percona Monitoring and Management Platform</a>.</p>
+<p><span style="color:#ffffff;" id="部署方案"></span></p>
+<h3 id="部署方案"><a href="#部署方案" class="headerlink" title="部署方案"></a>部署方案</h3><p>PMM旨在针对各种环境进行扩展。 根据您的基础架构的大小和复杂性，您可以通过多种方式进行部署。</p>
+<p><span style="color:#ffffff;" id="简单场景"></span></p>
+<h4 id="简单场景"><a href="#简单场景" class="headerlink" title="简单场景"></a>简单场景</h4><p>如果您只有一个MySQL或MongoDB服务器，则可以在此数据库主机上安装和运行两个模块（PMM客户端和PMM服务器）。</p>
+<p><span style="color:#ffffff;" id="典型场景"></span></p>
+<h4 id="典型场景"><a href="#典型场景" class="headerlink" title="典型场景"></a>典型场景</h4><p>将典型的MySQL和MongoDB服务器实例分布在不同的主机上。 在这种情况下，您可以在专用监控主机上运行PMM Server，并在要监视的每个数据库主机上安装PMM Client。 来自主机的数据将聚合在PMM服务器上。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2017/08/02/Percona Monitoring and Management架构/" target="_blank" title="Percona Monitoring and Management架构">http://fuxkdb.com/2017/08/02/Percona Monitoring and Management架构/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PMM/" rel="tag">PMM</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/08/05/%E4%BD%BF%E7%94%A8Hexo-+-github%E5%BF%AB%E9%80%9F%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          使用Hexo + github快速搭建个人博客
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/08/01/PMM%E9%83%A8%E7%BD%B2%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">PMM部署遇到的坑</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Percona-Monitoring-and-Management%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">Percona Monitoring and Management架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PMM-Client"><span class="nav-number">1.1.</span> <span class="nav-text">PMM Client</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PMM-Server"><span class="nav-number">1.2.</span> <span class="nav-text">PMM Server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E7%BD%B2%E6%96%B9%E6%A1%88"><span class="nav-number">1.3.</span> <span class="nav-text">部署方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.1.</span> <span class="nav-text">简单场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.2.</span> <span class="nav-text">典型场景</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>
