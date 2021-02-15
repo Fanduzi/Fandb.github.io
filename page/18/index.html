@@ -305,6 +305,57 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-MySQL误DROP表恢复,innodb_file_per_table=ON"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2016/12/26/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=ON/">MySQL误DROP表恢复,innodb_file_per_table=ON</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/12/26/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=ON/" class="article-date">
+	  <time datetime="2016-12-26T14:00:00.000Z" itemprop="datePublished">2016-12-26</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL误DROP表恢复-innodb-file-per-table-ON"><a href="#MySQL误DROP表恢复-innodb-file-per-table-ON" class="headerlink" title="MySQL误DROP表恢复,innodb_file_per_table=ON"></a>MySQL误DROP表恢复,innodb_file_per_table=ON</h1><blockquote>
+<p>参考<br><a target="_blank" rel="noopener" href="https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-on/">https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-on/</a></p>
+</blockquote>
+<h2 id="Undrop-for-innodb安装"><a href="#Undrop-for-innodb安装" class="headerlink" title="Undrop-for-innodb安装"></a>Undrop-for-innodb安装</h2><p>详见<a target="_blank" rel="noopener" href="https://github.com/chhabhaiya/undrop-for-innodb">https://github.com/chhabhaiya/undrop-for-innodb</a></p>
+<h2 id="删除Country表并恢复"><a href="#删除Country表并恢复" class="headerlink" title="删除Country表并恢复"></a>删除Country表并恢复</h2><p>使用sakila示例数据库作为例子,sakila相当于Oracle的SCOTT<br>innodb每个表包含两个文件.frm文件包含建表语句.ibd文件包含数据<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">mysql@</span>master sakila]$ ll country.*</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql  <span class="number">8652</span> Aug <span class="number">26</span> <span class="number">14</span>:<span class="number">25</span> country.frm</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql <span class="number">98304</span> Aug <span class="number">26</span> <span class="number">14</span>:<span class="number">25</span> country.ibd</span><br></pre></td></tr></table></figure></p>
+<p>接下来删除country表,删之前看一下checksum<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt; use sakila</span></span><br><span class="line"><span class="emphasis">Database changed</span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt; select count(<span class="strong">*) from country;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|      109 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;checksum table country;</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| Table               | Checksum   |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| sakila.country      | 2039770088 |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>接下来删除country表<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">SESSION_A</span>&gt;drop table country;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">01</span> sec)</span><br></pre></td></tr></table></figure></p>
+<p>drop table后,.frm和.ibd文件也被删除了<br><figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysql@<span class="keyword">master</span> <span class="title">sakila</span>]$ ll country*</span><br><span class="line">ls: cannot access country*: No such file <span class="keyword">or</span> directory</span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-Auto_increment-产生-GAP的原因"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -585,65 +636,11 @@
 
 
   
-    <article id="post-hello-world"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2016/01/01/hello-world/">Hello World</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2016/01/01/hello-world/" class="article-date">
-	  <time datetime="2015-12-31T17:02:03.000Z" itemprop="datePublished">2016-01-01</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/deployment.html">Deployment</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/17/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span>
+    <a class="extend prev" rel="prev" href="/page/17/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/19/">下一页 &amp;raquo;</a>
   </nav>
 
 </section>

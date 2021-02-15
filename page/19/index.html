@@ -11,7 +11,7 @@
   
   <meta property="og:type" content="website">
 <meta property="og:title" content="Fan()">
-<meta property="og:url" content="http://fuxkdb.com/page/2/index.html">
+<meta property="og:url" content="http://fuxkdb.com/page/19/index.html">
 <meta property="og:site_name" content="Fan()">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:author" content="大范">
@@ -305,7 +305,7 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-2020-09-20-增强半同步会不会丢数据"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-hello-world"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -313,7 +313,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/09/20/2020-09-20-%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B8%A2%E6%95%B0%E6%8D%AE/">增强半同步会不会丢数据</a>
+      <a class="article-title" href="/2016/01/01/hello-world/">Hello World</a>
     </h1>
   
 
@@ -321,8 +321,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/09/20/2020-09-20-%E5%A2%9E%E5%BC%BA%E5%8D%8A%E5%90%8C%E6%AD%A5%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B8%A2%E6%95%B0%E6%8D%AE/" class="article-date">
-	  <time datetime="2020-09-20T14:46:00.000Z" itemprop="datePublished">2020-09-20</time>
+	<a href="/2016/01/01/hello-world/" class="article-date">
+	  <time datetime="2015-12-31T17:02:03.000Z" itemprop="datePublished">2016-01-01</time>
 	</a>
 
       
@@ -332,278 +332,16 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>只讨论5.7增强半同步和双1的情况</p>
-<h1 id="增强半同步会不会丢数据"><a href="#增强半同步会不会丢数据" class="headerlink" title="增强半同步会不会丢数据?"></a>增强半同步会不会丢数据?</h1><p>这里涉及两个过程:</p>
-<ul>
-<li>主库 Innodb与Binlog日志的2PC</li>
-<li>增强半同步</li>
-</ul>
-<h2 id="Innodb与Binlog日志的2PC"><a href="#Innodb与Binlog日志的2PC" class="headerlink" title="Innodb与Binlog日志的2PC"></a>Innodb与Binlog日志的2PC</h2><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/%E4%B8%A4%E9%98%B6%E6%AE%B5%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A42PC.png" alt="image-20200920221245427"></p>
-<p>在开启Binlog后, MySQL内部会自动将普通事务当做一个XA事务来处理：</p>
-<ul>
-<li>自动为每个事务分配一个唯一的ID</li>
-<li>COMMIT会被自动的分成Prepare和Commit两个阶段</li>
-<li>Binlog会被当做事务协调者(Transaction Coordinator), Binlog Event会被当做协调者日志
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
+        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/deployment.html">Deployment</a></p>
 
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-09-13-innodb_status_file-innodb_status_output-innodb_status_output_locks和innodb_show_verbose_locks"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/09/13/2020-09-13-innodb_status_file-innodb_status_output-innodb_status_output_locks%E5%92%8Cinnodb_show_verbose_locks/">innodb_status_file innodb_status_output innodb_status_output_locks和innodb_show_verbose_locks</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/09/13/2020-09-13-innodb_status_file-innodb_status_output-innodb_status_output_locks%E5%92%8Cinnodb_show_verbose_locks/" class="article-date">
-	  <time datetime="2020-09-13T02:33:00.000Z" itemprop="datePublished">2020-09-13</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="innodb-status-file"><a href="#innodb-status-file" class="headerlink" title="innodb_status_file"></a>innodb_status_file</h1><p>这个参数官方文档<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-system-variable-reference.html">https://dev.mysql.com/doc/refman/5.7/en/server-system-variable-reference.html</a> 中没有</p>
-<p>在<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html">https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html</a> 中有</p>
-<p><code>--innodb-status-file</code></p>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Command-Line Format</td>
-<td>`–innodb-status-file[={OFF</td>
-<td>ON}]`</td>
-</tr>
-<tr>
-<td>Type</td>
-<td>Boolean</td>
-</tr>
-<tr>
-<td>Default Value</td>
-<td><code>OFF</code></td>
-</tr>
-</tbody>
-</table>
-<p>The <code>--innodb-status-file</code> startup option controls whether <code>InnoDB</code> creates a file named <code>innodb_status.*</code>pid<code>*</code> in the data directory and writes <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/show-engine.html"><code>SHOW ENGINE INNODB STATUS</code></a> output to it every 15 seconds, approximately.</p>
-<p>The <code>innodb_status.*</code>pid<code>*</code> file is not created by default. To create it, start <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/mysqld.html"><strong>mysqld</strong></a> with the <code>--innodb-status-file</code> option. <code>InnoDB</code> removes the file when the server is shut down normally. If an abnormal shutdown occurs, the status file may have to be removed manually.</p>
-<p>The <code>--innodb-status-file</code> option is intended for temporary use, as <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/show-engine.html"><code>SHOW ENGINE INNODB STATUS</code></a> output generation can affect performance, and the <code>innodb_status.*</code>pid<code>*</code> file can become quite large over time.</p>
-<p>For related information, see <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-enabling-monitors.html">Section 14.18.2, “Enabling InnoDB Monitors”</a>.</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-08-28-ClickHouse查询分布式表LEFT-JOIN改RIGHT-JOIN的大坑"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/28/2020-08-28-ClickHouse%E6%9F%A5%E8%AF%A2%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8LEFT-JOIN%E6%94%B9RIGHT-JOIN%E7%9A%84%E5%A4%A7%E5%9D%91/">ClickHouse查询分布式表LEFT JOIN改RIGHT JOIN的大坑</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/28/2020-08-28-ClickHouse%E6%9F%A5%E8%AF%A2%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8LEFT-JOIN%E6%94%B9RIGHT-JOIN%E7%9A%84%E5%A4%A7%E5%9D%91/" class="article-date">
-	  <time datetime="2020-08-28T09:06:00.000Z" itemprop="datePublished">2020-08-28</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="由一个慢查询衍生出的问题"><a href="#由一个慢查询衍生出的问题" class="headerlink" title="由一个慢查询衍生出的问题"></a>由一个慢查询衍生出的问题</h1><p>我们线上有一个ClickHouse集群, 总共6个服务器, 配置均为16C 64G SSD, 集群配置为三分片两副本</p>
-<p>有两个表这里称为<code>small_table</code>和<code>big_table</code>. 都是<code>ReplicatedMergeTree</code>引擎(三个分片两个副本).</p>
-<p><code>small_table</code>有79w数据, <code>big_table</code>有5亿数据(数据在之后的示例中没有任何变化), 在下文中<code>small_table</code>和<code>big_table</code>都为分布式表, 可以获取全量数据, <code>small_table_local</code>和<code>big_table_local</code>为各节点上的本地表名称</p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    <span class="keyword">table</span>, </span><br><span class="line">    formatReadableSize(sum(data_compressed_bytes)) <span class="keyword">AS</span> tc, </span><br><span class="line">    formatReadableSize(sum(data_uncompressed_bytes)) <span class="keyword">AS</span> tu, </span><br><span class="line">    sum(data_compressed_bytes) / sum(data_uncompressed_bytes) <span class="keyword">AS</span> ratio</span><br><span class="line"><span class="keyword">FROM</span> <span class="keyword">system</span>.<span class="keyword">columns</span></span><br><span class="line"><span class="keyword">WHERE</span> (<span class="keyword">database</span> = currentDatabase()) <span class="keyword">AND</span> (<span class="keyword">table</span> <span class="keyword">IN</span> (<span class="string">&#x27;small_table_local&#x27;</span>, <span class="string">&#x27;big_table_local&#x27;</span>))</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">table</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">table</span> <span class="keyword">ASC</span></span><br><span class="line"></span><br><span class="line">┌─<span class="keyword">table</span>─────────────────────────┬─tc────────┬─tu────────┬──────────────ratio─┐</span><br><span class="line">│ small_table_local             │ <span class="number">12.87</span> MiB │ <span class="number">14.91</span> MiB │ <span class="number">0.8633041477100831</span> │</span><br><span class="line">│ big_table_local               │ <span class="number">15.46</span> GiB │ <span class="number">57.31</span> GiB │ <span class="number">0.2697742507036428</span> │</span><br><span class="line">└───────────────────────────────┴───────────┴───────────┴────────────────────┘</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-2"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-2/">译文 ClickHouse Materialized Views Illuminated, Part 2</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-2/" class="article-date">
-	  <time datetime="2020-08-23T11:05:00.000Z" itemprop="datePublished">2020-08-23</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-2"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-2" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 2"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-2">ClickHouse Materialized Views Illuminated, Part 2</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/d1a1c-stockvault-abstract-glowing-multicolor-wireframe-background268674_small.png" alt="header"></p>
-<p><strong><a target="_blank" rel="noopener" href="https://www.altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">Read part 1</a></strong></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-1"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-1/">译文 ClickHouse Materialized Views Illuminated, Part 1</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-1/" class="article-date">
-	  <time datetime="2020-08-23T11:04:00.000Z" itemprop="datePublished">2020-08-23</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-1"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-1" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 1"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">ClickHouse Materialized Views Illuminated, Part 1</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/4c9e8-stockvault-abstract-background-big-data-concept264047.jpg" alt="header"></p>
-<p><a target="_blank" rel="noopener" href="https://altinity.com/blog/">Altinity blog</a>的读者们知道我们喜欢ClickHouse的<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/sql-reference/statements/create/view/#materialized">物化视图</a>. 物化视图可以实现聚合计算, 从Kafka读取数据, 实现最后点查询(last point queries)以及重组表主键索引和排序顺序. 除了这些功能之外, 物化视图可以在大量节点上很好地扩缩, 并可以处理大型数据集. 它们是ClickHouse的独特功能之一.</p>
-<p>在计算领域, 强大的功能至少意味着一点点复杂性. 这篇由两部分组成的文章通过解释物化视图的工作原理来填补空白, 从而使初学者也可以有效地使用它们. 我们将通过几个详细的示例, 您可以根据自己的使用进行调整. 在此过程中, 我们将探索用于创建视图的语法的确切含义, 并让您深入了解ClickHouse在做什么.  示例是完全自包含的, 因此您可以将它们复制/粘贴到clickhouse-client中并自己运行它们.<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-08-23-为什么pt-osc和gh-osc在拷贝源表数据时要使用insert-IGNORE-into-select-lock-in-share-mode"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-%E4%B8%BA%E4%BB%80%E4%B9%88pt-osc%E5%92%8Cgh-osc%E5%9C%A8%E6%8B%B7%E8%B4%9D%E6%BA%90%E8%A1%A8%E6%95%B0%E6%8D%AE%E6%97%B6%E8%A6%81%E4%BD%BF%E7%94%A8insert-IGNORE-into-select-lock-in-share-mode/">为什么pt-osc和gh-osc在拷贝源表数据时要使用insert IGNORE into select lock in share mode</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/23/2020-08-23-%E4%B8%BA%E4%BB%80%E4%B9%88pt-osc%E5%92%8Cgh-osc%E5%9C%A8%E6%8B%B7%E8%B4%9D%E6%BA%90%E8%A1%A8%E6%95%B0%E6%8D%AE%E6%97%B6%E8%A6%81%E4%BD%BF%E7%94%A8insert-IGNORE-into-select-lock-in-share-mode/" class="article-date">
-	  <time datetime="2020-08-23T10:58:00.000Z" itemprop="datePublished">2020-08-23</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="insert-IGNORE-into-select-lock-in-share-mode-的作用"><a href="#insert-IGNORE-into-select-lock-in-share-mode-的作用" class="headerlink" title="insert IGNORE into select lock in share mode 的作用"></a>insert IGNORE into select lock in share mode 的作用</h1><p>pt-osc和gh-osc在拷贝旧数据时逻辑是一样的, 都是用insert ignore into 影子表 select * from 原表force index (<code>PRIMARY</code>) where chunk范围 lock in share mode<br>
       
     </div>
     <footer class="article-footer">
@@ -625,7 +363,7 @@
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/3/">下一页 &amp;raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/18/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/17/">17</a><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span>
   </nav>
 
 </section>

@@ -305,6 +305,55 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2019-06-22-MySQL大表传输表空间的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/">MySQL大表传输表空间的坑</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/" class="article-date">
+	  <time datetime="2019-06-22T11:23:00.000Z" itemprop="datePublished">2019-06-22</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL大表传输表空间的坑"><a href="#MySQL大表传输表空间的坑" class="headerlink" title="MySQL大表传输表空间的坑"></a>MySQL大表传输表空间的坑</h1><p>  最近刚帮业务线拆分完数据库, 源环境遗留了一张700G的大表, 虽说现在不用了, 但是业务方还是不希望删掉, 于是打算把这张表迁移到归档库, 这样有需要是还可以查询.<br>  700G的表想了想, 如果是逻辑导出再导入的话, 感觉会很慢. 于是决定使用传输表空间方式恢复到归档库中</p>
+<blockquote>
+<p>源库和归档库均为MGR集群 Multi-Primary Mode.</p>
+</blockquote>
+<h2 id="恢复备份"><a href="#恢复备份" class="headerlink" title="恢复备份"></a>恢复备份</h2><p>过程简单写, 并非本文重点<br><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xbstream -vx <span class="params">--parallel=10</span> &lt; mysql_backup_20190618.xbstream -C <span class="string">/rundata/backup/</span> &gt; <span class="string">/tmp/xb.log</span> 2&gt;&amp;1 &amp;</span><br><span class="line"><span class="keyword">cd</span> <span class="string">/rundata/backup/datadir</span></span><br><span class="line">rm 除这张700g表A的所有其他表的qp文件</span><br><span class="line">xtrabackup <span class="params">--decompress</span> <span class="params">--parallel=10</span> <span class="params">--remove-original</span> <span class="params">--target-dir=/rundata/backup/</span></span><br><span class="line">innobackupex <span class="params">--apply-log</span> <span class="params">--export</span> <span class="string">/rundata/backup/</span></span><br></pre></td></tr></table></figure></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-限制备份速度防止网卡打满"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -565,87 +614,11 @@
 
 
   
-    <article id="post-MGR vs PXC Benchmark"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/09/11/MGR%20vs%20PXC%20Benchmark/">MGR vs PXC Benchmark</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/09/11/MGR%20vs%20PXC%20Benchmark/" class="article-date">
-	  <time datetime="2018-09-11T14:23:00.000Z" itemprop="datePublished">2018-09-11</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="MGR-vs-PXC-Benchmark"><a href="#MGR-vs-PXC-Benchmark" class="headerlink" title="MGR vs PXC Benchmark"></a>MGR vs PXC Benchmark</h1><p>本次测试将MGR与PXC进行对比, 意在比较MGR自身不同流控阈值下性能表现以及观察MGR与PXC相同负载下的性能表现. 测试工具使用<code>sysbench 1.1.0-431660d</code></p>
-<p>基础环将信息如下表所示, 在三个测试服务器部署了3306, 3307两套集群</p>
-<table>
-<thead>
-<tr>
-<th>Host</th>
-<th>IP</th>
-<th>MGR</th>
-<th>PXC</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>data-191</td>
-<td>192.168.8.191</td>
-<td>3306</td>
-<td>3307</td>
-</tr>
-<tr>
-<td>data-219</td>
-<td>192.168.8.219</td>
-<td>3306</td>
-<td>3307</td>
-</tr>
-<tr>
-<td>data-220</td>
-<td>192.168.8.220</td>
-<td>3306</td>
-<td>3307</td>
-</tr>
-</tbody>
-</table>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/7/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><a class="extend next" rel="next" href="/page/9/">下一页 &amp;raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/7/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/9/">下一页 &amp;raquo;</a>
   </nav>
 
 </section>

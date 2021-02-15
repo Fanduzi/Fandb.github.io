@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-05-03-A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/05/03/2020-05-03-A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL/">译文-A Simple Approach to Troubleshooting High CPU in MySQL</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/05/03/2020-05-03-A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL/" class="article-date">
+	  <time datetime="2020-05-03T04:21:00.000Z" itemprop="datePublished">2020-05-03</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL-在MySQL中对高CPU进行故障排除的简单方法"><a href="#A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL-在MySQL中对高CPU进行故障排除的简单方法" class="headerlink" title="A Simple Approach to Troubleshooting High CPU in MySQL - 在MySQL中对高CPU进行故障排除的简单方法"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/04/23/a-simple-approach-to-troubleshooting-high-cpu-in-mysql/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=86927141&amp;_hsenc=p2ANqtz-9FKmIBbxMf6uIKGVu8XOdzrDOdN3z9Pu3rppuxgjHmw0XPCCQ3GMztIb71uO4Zj60pTwMNwr1h6a3GDJQXK4cuZ5Xc3Q&amp;_hsmi=86927141">A Simple Approach to Troubleshooting High CPU in MySQL</a> - 在MySQL中对高CPU进行故障排除的简单方法</h1><p>我们的一位客户最近问，是否有可能从MySQL方面识别导致系统CPU使用率高的查询。 PostgreSQL和Oracle DBA长期以来一直使用简单的OS工具查找罪魁祸首，但是它对MySQL无效，因为历史上我们一直缺乏将OS线程与内部线程进行匹配的工具 - 直到最近。</p>
+<p>Percona添加了支持，可从针对MySQL 5.6.27的Percona Server开始，通过information_schema.processlist表的TID列将进程列表ID映射到OS线程ID。 在5.7发行版中，MySQL扩展了PERFORMANCE_SCHEMA.THREADS表并添加了一个名为THREAD_OS_ID的新列，从而实现了自己的实现，Percona Server for MySQL代替了自己的列，因为它通常尽可能地靠近上游。 </p>
+<p>对于在其他内核正常运行时查询使一个特定CPU过载的情况，以下方法很有用。 对于一般的CPU使用问题，可以使用不同的方法，例如另一篇博客文章<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2019/03/07/reducing-high-cpu-on-mysql-a-case-study/">Reducing High CPU on MySQL: A Case Study</a>的方法.<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-05-03-译文-Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -542,56 +589,11 @@
 
 
   
-    <article id="post-2020-04-15-Kafka版本升级"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/04/15/2020-04-15-Kafka%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/">Kafka版本升级</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/04/15/2020-04-15-Kafka%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/" class="article-date">
-	  <time datetime="2020-04-15T15:29:00.000Z" itemprop="datePublished">2020-04-15</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="Kafka版本升级"><a href="#Kafka版本升级" class="headerlink" title="Kafka版本升级"></a>Kafka版本升级</h1><p>本文档介绍<code>kafka_2.11_2.1.1</code>升级到<code>2.12-2.4.1</code>的具体操作方法. 其他版本大同小异, 详见<a target="_blank" rel="noopener" href="http://kafka.apache.org/documentation/#upgrade">1.5 Upgrading From Previous Versions</a></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/3/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><a class="extend next" rel="next" href="/page/5/">下一页 &amp;raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/3/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/5/">下一页 &amp;raquo;</a>
   </nav>
 
 </section>

@@ -305,6 +305,66 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-CONFIG REWRITE命令"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+    <div class="article-meta">
+      
+	<a href="/2018/01/19/CONFIG%20REWRITE%E5%91%BD%E4%BB%A4/" class="article-date">
+	  <time datetime="2018-01-19T03:09:11.000Z" itemprop="datePublished">2018-01-19</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="CONFIG-REWRITE"><a href="#CONFIG-REWRITE" class="headerlink" title="CONFIG REWRITE"></a>CONFIG REWRITE</h1><blockquote>
+<p>Available since 2.8.0.</p>
+</blockquote>
+<p>CONFIG REWRITE命令用于重写redis server启动时使用的配置文件,以最小的变动反映当前server的实际配置,当前的实际配置可能会由于CONFIG SET的使用而与启动时的配置文件不同.</p>
+<blockquote>
+<p>类似 scope=spfile</p>
+</blockquote>
+<p>重写以非常保守的方式执行:</p>
+<ul>
+<li>尽可能保留原始redis.conf的注释和整体结构.</li>
+<li>如果一个选项已经存在于旧的redis.conf文件中,它将被原地更新.</li>
+<li>如果某个选项尚不存在,但设置为其默认值,则不会由重写过程添加.</li>
+<li>如果某个选项尚不存在,但它被设置为非默认值,则会将其附加到文件末尾.</li>
+<li>Non used lines are blanked. For instance if you used to have multiple save directives, but the current configuration has fewer or none as you disabled RDB persistence, all the lines will be blanked.<blockquote>
+<p>未使用的行将被删除.例如,如果您曾经设置多个save,但是后来却通过config set只设置了更少的或者config set save ‘’,那么所有的未使用save将被删除</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@cn_mu_binlog_backup ~]# redis-cli -p 6379<span class="built_in"> config </span><span class="builtin-name">get</span> save</span><br><span class="line">1) <span class="string">&quot;save&quot;</span></span><br><span class="line">2) <span class="string">&quot;&quot;</span></span><br><span class="line">[root@cn_mu_binlog_backup ~]# cat /usr/local/redis/etc/6379_redis.conf|grep save</span><br><span class="line"><span class="comment">#   save &lt;seconds&gt; &lt;changes&gt;</span></span><br><span class="line"><span class="comment">#   Will save the DB if both the given number of seconds and the given</span></span><br><span class="line"><span class="comment">#   In the example below the behaviour will be to save:</span></span><br><span class="line"><span class="comment">#   <span class="doctag">Note:</span> you can disable saving completely by commenting out all &quot;save&quot; lines.</span></span><br><span class="line"><span class="comment">#   It is also possible to remove all the previously configured save</span></span><br><span class="line"><span class="comment">#   points by adding a save directive with a single empty string argument</span></span><br><span class="line"><span class="comment">#   save &quot;&quot;</span></span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line"></span><br><span class="line">重写</span><br><span class="line">[root@cn_mu_binlog_backup ~]# redis-cli -p 6379<span class="built_in"> config </span>rewrite</span><br><span class="line">OK</span><br><span class="line"></span><br><span class="line">[root@cn_mu_binlog_backup ~]# cat /usr/local/redis/etc/6379_redis.conf|grep save</span><br><span class="line"><span class="comment">#   save &lt;seconds&gt; &lt;changes&gt;</span></span><br><span class="line"><span class="comment">#   Will save the DB if both the given number of seconds and the given</span></span><br><span class="line"><span class="comment">#   In the example below the behaviour will be to save:</span></span><br><span class="line"><span class="comment">#   <span class="doctag">Note:</span> you can disable saving completely by commenting out all &quot;save&quot; lines.</span></span><br><span class="line"><span class="comment">#   It is also possible to remove all the previously configured save</span></span><br><span class="line"><span class="comment">#   points by adding a save directive with a single empty string argument</span></span><br><span class="line"><span class="comment">#   save &quot;&quot;</span></span><br><span class="line"><span class="comment"># (at least one save point) and the latest background save failed.</span></span><br><span class="line">stop-writes-on-bgsave-<span class="builtin-name">error</span> <span class="literal">yes</span></span><br><span class="line"><span class="comment"># If you want to save some CPU in the saving child set it to &#x27;no&#x27; but</span></span><br><span class="line"><span class="comment"># algorithms (in order to save memory), so you can tune it for speed or</span></span><br><span class="line"><span class="comment"># the configured save points).</span></span><br><span class="line"><span class="comment"># saving process (a background save or AOF log background rewriting) is</span></span><br><span class="line"><span class="comment"># Lists are also encoded in a special way to save a lot of space.</span></span><br><span class="line"><span class="comment"># order to save a lot of space. This encoding is only used when the length and</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+</ul>
+<p>如果由于某种原因原来的配置文件不再存在,CONFIG REWRITE也可以重写配置文件. 但是,如果服务器启动时没有配置文件,CONFIG REWRITE将只返回一个错误.</p>
+<h2 id="原子重写过程"><a href="#原子重写过程" class="headerlink" title="原子重写过程"></a>原子重写过程</h2><p>In order to make sure the redis.conf file is always consistent, that is, on errors or crashes you always end with the old file, or the new one, the rewrite is performed with a single write(2) call that has enough content to be at least as big as the old file. Sometimes additional padding in the form of comments is added in order to make sure the resulting file is big enough, and later the file gets truncated to remove the padding at the end.</p>
+<blockquote>
+<p>为了确保redis.conf文件始终保持一致,即在出现错误或崩溃时总是以旧文件或新文件结束,重写将使用具有足够内容的单次写入(2)调用来执行 至少与旧文件一样大. 有时会添加注释形式的其他填充以确保生成的文件足够大,然后文件被截断以删除最后的填充.</p>
+</blockquote>
+<h2 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h2><p><a target="_blank" rel="noopener" href="https://redis.io/topics/protocol#simple-string-reply">Simple string reply</a>: OK 当配置被正确重写. 否则,返回错误</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-redis-cli"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -550,57 +610,11 @@
 
 
   
-    <article id="post-为什么双主建议单节点写入"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/10/31/%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%8C%E4%B8%BB%E5%BB%BA%E8%AE%AE%E5%8D%95%E8%8A%82%E7%82%B9%E5%86%99%E5%85%A5/">为什么双主只建议单节点写入?</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/10/31/%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%8C%E4%B8%BB%E5%BB%BA%E8%AE%AE%E5%8D%95%E8%8A%82%E7%82%B9%E5%86%99%E5%85%A5/" class="article-date">
-	  <time datetime="2017-10-31T09:23:00.000Z" itemprop="datePublished">2017-10-31</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="为什么双主只建议单节点写入"><a href="#为什么双主只建议单节点写入" class="headerlink" title="为什么双主只建议单节点写入"></a>为什么双主只建议单节点写入</h2><p>通过下面的案例,你应该可以明白为啥了</p>
-<h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p>线上一套双主环境<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">CentOS release 6.8 (Final)</span><br><span class="line">Server version: 5.5.56</span><br><span class="line">binlog_format : STATEMENT</span><br><span class="line">tx_isolation  : REPEATABLE-READ</span><br><span class="line">主1 server_id : 32</span><br><span class="line">主2 server_id : 33</span><br></pre></td></tr></table></figure><br>有一个表,每分钟load data. 由于一天会插入近1亿行数据,导致磁盘使用率增长很快,所以现在用计划任务每四天切换一次表<br><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#mobile_ad_50表切换</span><br><span class="line"><span class="number">0</span> <span class="number">3</span> <span class="number">2</span>,<span class="number">6</span>,<span class="number">10</span>,<span class="number">14</span>,<span class="number">19</span>,<span class="number">23</span>,<span class="number">27</span> * * <span class="keyword">source</span> <span class="regexp">/etc/</span>profile;<span class="keyword">source</span> <span class="regexp">/root/</span>.bash_profile;sh <span class="regexp">/data/</span>scripts<span class="regexp">/bin/m</span>obile_ad_50.sh &gt;&gt;<span class="regexp">/data/</span>scripts<span class="regexp">/log/m</span>obile_ad_50.log</span><br></pre></td></tr></table></figure><br>切换逻辑是,先rename源表,再重建表<br><figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$&#123;DB_COMMAND&#125; dbe<span class="number">8</span>je<span class="number">6</span><span class="keyword">i4</span><span class="keyword">c</span><span class="number">3</span>gjd<span class="number">50</span> -ss -e <span class="string">&quot;drop table mobile_ad_50_20170531&quot;</span></span><br><span class="line">echo <span class="string">&quot;drop ok&quot;</span></span><br><span class="line">$&#123;DB_COMMAND&#125; dbe<span class="number">8</span>je<span class="number">6</span><span class="keyword">i4</span><span class="keyword">c</span><span class="number">3</span>gjd<span class="number">50</span> -ss -e <span class="string">&quot;rename table mobile_ad_50 to mobile_ad_50_20170531&quot;</span></span><br><span class="line">echo <span class="string">&quot;rename ok&quot;</span></span><br><span class="line">$&#123;DB_COMMAND&#125; dbe<span class="number">8</span>je<span class="number">6</span><span class="keyword">i4</span><span class="keyword">c</span><span class="number">3</span>gjd<span class="number">50</span> -ss -e <span class="string">&quot;CREATE TABLE mobile_ad_50 (</span></span><br></pre></td></tr></table></figure><br>表结构<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">*************************** 1. row ***************************</span><br><span class="line">       Table: mobile_ad_50</span><br><span class="line">Create Table: CREATE TABLE `mobile_ad_50` (</span><br><span class="line">  `id` bigint(20) unsigned <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT COMMENT <span class="string">&#x27;主键&#x27;</span>,</span><br><span class="line">  `dtime` datetime <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0000-00-00 00:00:00&#x27;</span> COMMENT <span class="string">&#x27;时间段 年月日时&#x27;</span>,</span><br><span class="line">  `union_id` int(11) unsigned <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;1&#x27;</span> COMMENT <span class="string">&#x27;媒体ID&#x27;</span>,</span><br><span class="line">  `ad_id` varchar(100)<span class="built_in"> DEFAULT </span><span class="literal">NULL</span> COMMENT <span class="string">&#x27;广告位ID&#x27;</span>,</span><br><span class="line">  `ifa` varchar(50) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;ifa&#x27;</span>,</span><br><span class="line">  `mac` varchar(50) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;mac&#x27;</span>,</span><br><span class="line">  `cb_url` varchar(1000) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;回调地址&#x27;</span>,</span><br><span class="line">  `state` tinyint(1) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;是否激活&#x27;</span>,</span><br><span class="line">  `domain` varchar(30) <span class="keyword">NOT</span> <span class="literal">NULL</span> COMMENT <span class="string">&#x27;游戏域名&#x27;</span>,</span><br><span class="line">  `game_code` varchar(50) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;&#x27;</span> COMMENT <span class="string">&#x27;游戏编码&#x27;</span>,</span><br><span class="line">  `union_app_id` char(50) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;&#x27;</span> COMMENT <span class="string">&#x27;渠道商的appid&#x27;</span>,</span><br><span class="line">  `openudid` char(50) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;&#x27;</span> COMMENT <span class="string">&#x27;开源广告标示符&#x27;</span>,</span><br><span class="line">  `is_send` tinyint(1) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;同步次数a&#x27;</span>,</span><br><span class="line">  `ip` bigint(20) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;点击ip&#x27;</span>,</span><br><span class="line">  `actip` bigint(20) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;激活ip&#x27;</span>,</span><br><span class="line">  `opentime` int(10) unsigned <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;打开时间&#x27;</span>,</span><br><span class="line">  `acttime` int(10) unsigned <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;激活时间&#x27;</span>,</span><br><span class="line">  `is_open` tinyint(1) <span class="keyword">NOT</span> <span class="literal">NULL</span><span class="built_in"> DEFAULT </span><span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;是否打开&#x27;</span>,</span><br><span class="line">  PRIMARY KEY (`id`),</span><br><span class="line">  KEY `ifa` (`ifa`),</span><br><span class="line">  KEY `d_u_s` (`domain`,`union_id`,`state`),</span><br><span class="line">  KEY `union_id` (`union_id`),</span><br><span class="line">  KEY `mac` (`mac`),</span><br><span class="line">  KEY `dtime` (`dtime`),</span><br><span class="line">  KEY `ip` (`ip`),</span><br><span class="line">  KEY `actip` (`actip`),</span><br><span class="line">  KEY `union_app_id` (`union_app_id`),</span><br><span class="line">  KEY `openudid` (`openudid`),</span><br><span class="line">  KEY `state` (`state`),</span><br><span class="line">  KEY `acttime` (`acttime`)</span><br><span class="line">) <span class="attribute">ENGINE</span>=InnoDB <span class="attribute">AUTO_INCREMENT</span>=6154739813<span class="built_in"> DEFAULT </span><span class="attribute">CHARSET</span>=utf8 <span class="attribute">COMMENT</span>=<span class="string">&#x27;手机广告&#x27;</span></span><br><span class="line">1 row <span class="keyword">in</span> <span class="builtin-name">set</span> (0.00 sec)</span><br></pre></td></tr></table></figure><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/10/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><a class="extend next" rel="next" href="/page/12/">下一页 &amp;raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/10/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/12/">下一页 &amp;raquo;</a>
   </nav>
 
 </section>

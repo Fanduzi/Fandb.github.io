@@ -305,6 +305,51 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-04-15-Kafka版本升级"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/04/15/2020-04-15-Kafka%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/">Kafka版本升级</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/04/15/2020-04-15-Kafka%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/" class="article-date">
+	  <time datetime="2020-04-15T15:29:00.000Z" itemprop="datePublished">2020-04-15</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Kafka版本升级"><a href="#Kafka版本升级" class="headerlink" title="Kafka版本升级"></a>Kafka版本升级</h1><p>本文档介绍<code>kafka_2.11_2.1.1</code>升级到<code>2.12-2.4.1</code>的具体操作方法. 其他版本大同小异, 详见<a target="_blank" rel="noopener" href="http://kafka.apache.org/documentation/#upgrade">1.5 Upgrading From Previous Versions</a></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2017-08-22-使用Ansible自动部署MGR中生成group_replication_group_seeds值的方法"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -541,63 +586,11 @@
 
 
   
-    <article id="post-2020-01-12-Canal-dynamicTopic问题"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/">Canal dynamicTopic问题</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/" class="article-date">
-	  <time datetime="2020-01-12T04:23:00.000Z" itemprop="datePublished">2020-01-12</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>未来同事跑了几个月的canal突然报下面的错, 使用了dynamicTopic. 其实我没有用过dynamicTopic, 只能搜一搜issue</p>
-<blockquote>
-<p>关于dynamicTopic和partitionHash的说明</p>
-<h3 id="canal-mq-dynamicTopic-表达式说明"><a href="#canal-mq-dynamicTopic-表达式说明" class="headerlink" title="canal.mq.dynamicTopic 表达式说明"></a>canal.mq.dynamicTopic 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema 或 schema.table，多个配置之间使用逗号或分号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以test_test为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..* 匹配所有表，则每个表都会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到库名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：<span class="built_in">test</span>,test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到<span class="built_in">test</span>的topic上，test1\\.test1的表发送到对应的test1_test1 topic上，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">为满足更大的灵活性，允许对匹配条件的规则指定发送的topic名字，配置格式：topicName:schema 或 topicName:schema.table</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1: <span class="built_in">test</span>:<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以<span class="built_in">test</span>为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2: <span class="built_in">test</span>:.*\\..* 匹配所有表，因为有指定topic，则每个表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3: <span class="built_in">test</span>:<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：testA:<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到testA的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：test0:<span class="built_in">test</span>,test1:test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到test0的topic下，test1\\.test1的表发送到对应的test1的topic下，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">大家可以结合自己的业务需求，设置匹配规则，建议MQ开启自动创建topic的能力</span></span><br></pre></td></tr></table></figure>
-<h3 id="canal-mq-partitionHash-表达式说明"><a href="#canal-mq-partitionHash-表达式说明" class="headerlink" title="canal.mq.partitionHash 表达式说明"></a>canal.mq.partitionHash 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema.table:pk1^pk2，多个配置之间使用逗号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span>:pk1^pk2 指定匹配的单表，对应的<span class="built_in">hash</span>字段为pk1 + pk2</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..*:id 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为id</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：.*\\..*:<span class="variable">$pk</span>$ 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为表主键(自动查找)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4: 匹配规则啥都不写，则默认发到0这个partition上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：.*\\..* ，不指定pk信息的正则匹配，将所有正则匹配的表,对应的<span class="built_in">hash</span>字段为表名</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">按表<span class="built_in">hash</span>: 一张表的所有数据可以发到同一个分区，不同表之间会做散列 (会有热点表分区过大问题)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子6: <span class="built_in">test</span>\\.<span class="built_in">test</span>:id,.\\..* , 针对<span class="built_in">test</span>的表按照id散列,其余的表按照table散列</span></span><br></pre></td></tr></table></figure>
-<p>注意：大家可以结合自己的业务需求，设置匹配规则，多条匹配规则之间是按照顺序进行匹配(命中一条规则就返回)</p>
-<p>其他详细参数可参考<a target="_blank" rel="noopener" href="https://github.com/alibaba/canal/wiki/AdminGuide">Canal AdminGuide</a></p>
-</blockquote>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/4/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><a class="extend next" rel="next" href="/page/6/">下一页 &amp;raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/4/">&amp;laquo; 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/6/">下一页 &amp;raquo;</a>
   </nav>
 
 </section>
