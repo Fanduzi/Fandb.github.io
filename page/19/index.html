@@ -305,6 +305,54 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-Auto_increment详解"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2016/07/31/Auto_increment%E8%AF%A6%E8%A7%A3/">Auto_increment详解</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/07/31/Auto_increment%E8%AF%A6%E8%A7%A3/" class="article-date">
+	  <time datetime="2016-07-31T14:00:00.000Z" itemprop="datePublished">2016-07-31</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Auto-increment"><a href="#Auto-increment" class="headerlink" title="Auto_increment"></a>Auto_increment</h2><p>Mysql AUTO_INCREMENT</p>
+<h3 id="1-Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值"><a href="#1-Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值" class="headerlink" title="1.Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值"></a>1.Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create table t1(id int not null auto<span class="emphasis">_increment primary key,name varchar(10));</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.06 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; desc t1;</span></span><br><span class="line"><span class="emphasis">+-------+-------------+------+-----+---------+----------------+</span></span><br><span class="line"><span class="emphasis">| Field | Type        | Null | Key | Default | Extra          |</span></span><br><span class="line"><span class="emphasis">+-------+-------------+------+-----+---------+----------------+</span></span><br><span class="line"><span class="emphasis">| id    | int(11)     | NO   | PRI | NULL    | auto_</span>increment |</span><br><span class="line">| name  | varchar(10) | YES  |     | NULL    |                |</span><br><span class="line"><span class="code">+-------+</span>-------------<span class="code">+------+</span>-----<span class="code">+---------+</span>----------------+</span><br><span class="line">2 rows in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into t1 values(0,<span class="emphasis">&#x27;fanboshi&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into t1 values(null,<span class="emphasis">&#x27;duyalan&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t1;</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">| id | name     |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">|  1 | fanboshi |</span><br><span class="line">|  2 | duyalan  |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h3 id="2-可以通过alter-table-t1-auto-incremenrt-n-语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置"><a href="#2-可以通过alter-table-t1-auto-incremenrt-n-语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置" class="headerlink" title="2.可以通过alter table t1 auto_incremenrt=n 语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置"></a>2.可以通过alter table t1 auto_incremenrt=n 语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; alter table t1 auto<span class="emphasis">_increment=5;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis">Records: 0  Duplicates: 0  Warnings: 0</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; insert into t1 values(null,&#x27;handudu&#x27;);</span></span><br><span class="line"><span class="emphasis">Query OK, 1 row affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; select * from t1;</span></span><br><span class="line"><span class="emphasis">+----+----------+</span></span><br><span class="line"><span class="emphasis">| id | name     |</span></span><br><span class="line"><span class="emphasis">+----+----------+</span></span><br><span class="line"><span class="emphasis">|  1 | fanboshi |</span></span><br><span class="line"><span class="emphasis">|  2 | duyalan  |</span></span><br><span class="line"><span class="emphasis">|  5 | handudu  |</span></span><br><span class="line"><span class="emphasis">+----+----------+</span></span><br><span class="line"><span class="emphasis">3 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-可以是用last-insert-id-查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。"><a href="#3-可以是用last-insert-id-查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。" class="headerlink" title="3.可以是用last_insert_id()查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。"></a>3.可以是用last_insert_id()查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。</h3>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-hello-world"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     

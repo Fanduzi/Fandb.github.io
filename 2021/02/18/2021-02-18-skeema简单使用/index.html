@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>skeema简单使用 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQL" />
+  
+  
+  
+  
+  <meta name="description" content="简介Skeema is a tool for managing MySQL tables and schema changes in a declarative fashion using pure SQL. It provides a CLI tool allowing you to:  Export CREATE TABLE statements to the filesystem, for">
+<meta property="og:type" content="article">
+<meta property="og:title" content="skeema简单使用">
+<meta property="og:url" content="http://fuxkdb.com/2021/02/18/2021-02-18-skeema%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="简介Skeema is a tool for managing MySQL tables and schema changes in a declarative fashion using pure SQL. It provides a CLI tool allowing you to:  Export CREATE TABLE statements to the filesystem, for">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-02-18T05:08:00.000Z">
+<meta property="article:modified_time" content="2021-02-18T05:10:58.351Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2021-02-18-skeema简单使用" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      skeema简单使用
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2021/02/18/2021-02-18-skeema%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="article-date">
+	  <time datetime="2021-02-18T05:08:00.000Z" itemprop="datePublished">2021-02-18</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>Skeema is a tool for managing MySQL tables and schema changes in a declarative fashion using pure SQL. It provides a CLI tool allowing you to:</p>
+<ul>
+<li>Export CREATE TABLE statements to the filesystem, for tracking in a repo (git, hg, svn, etc)</li>
+<li>Diff changes in the schema repo against live DBs to automatically generate DDL</li>
+<li>Manage multiple environments (e.g. dev, staging, prod) and keep them in sync with ease</li>
+<li>Configure use of online schema change tools, such as pt-online-schema-change, for performing ALTERs</li>
+<li>Convert non-online migrations from frameworks like Rails or Django into online schema changes in production</li>
+</ul>
+<p>Skeema supports a pull-request-based workflow for schema change submission, review, and execution. This permits your team to manage schema changes in exactly the same way as you manage code changes. Our new companion <a target="_blank" rel="noopener" href="https://www.skeema.io/cloud/">Cloud Linter for GitHub repos</a> provides automatic linting of schema change commits and pull requests.</p>
+<p>我这的需求是同步生产环境表结构到演练环境, 以下是针对我这个场景的具体使用方法</p>
+<h2 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h2><p>skeema需要的用户权限具体见<a target="_blank" rel="noopener" href="https://www.skeema.io/docs/requirements/">https://www.skeema.io/docs/requirements/</a></p>
+<p>这里说一下重点, <code>skeema diff</code>时会在目标环境创建一个<code>_skeema_tmp</code>临时数据库, 然后会删除这个库</p>
+<a id="more"></a>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>安装go环境</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget https:<span class="regexp">//</span>dl.google.com<span class="regexp">/go/g</span>o1.<span class="number">16</span>.linux-amd64.tar.gz</span><br><span class="line">tar -C <span class="regexp">/usr/</span>local -xzf go1.<span class="number">16</span>.linux-amd64.tar.gz                 </span><br><span class="line">export PATH=<span class="variable">$PATH</span>:<span class="regexp">/usr/</span>local<span class="regexp">/go/</span>bin</span><br></pre></td></tr></table></figure>
+<p>安装skeema</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -LO https:<span class="regexp">//gi</span>thub.com<span class="regexp">/skeema/</span>skeema<span class="regexp">/releases/</span>latest<span class="regexp">/download/</span>skeema_amd64.rpm</span><br><span class="line">rpm -ivh skeema</span><br></pre></td></tr></table></figure>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><h3 id="init"><a href="#init" class="headerlink" title="init"></a>init</h3><p>在演练环境</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skeema init -h <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> -P <span class="number">3358</span> -u fanboshi -p -d <span class="number">3358</span> --schema sss</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>-d dump的sql文件存储路径</p>
+<p>–schema 只导出sss这个数据库的结构信息</p>
+</blockquote>
+<p>随后3358目录下回包含一些.sql文件和一个<code>.skeema</code>文件</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">213</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">37</span> .skeema</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root <span class="number">1521</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_instances.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">305</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_vip.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root <span class="number">1122</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_host_host.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">388</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_cluster_domain_name_config.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">369</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_cluster_portrayal_mapping.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">602</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_cluster.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root <span class="number">1148</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_cluster_users.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">304</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_instance_ports.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">756</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_instances_port.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">244</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_productlines.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">595</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_services.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">274</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_dbms_environment.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">815</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_dbms_sql_config.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">625</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_environments.sql</span><br></pre></td></tr></table></figure>
+<p>编辑.skeema文件</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#cat .skeema </span></span><br><span class="line"><span class="attr">default-character-set</span>=utf8</span><br><span class="line"><span class="attr">default-collation</span>=utf8_general_ci</span><br><span class="line"><span class="attr">schema</span>=sss</span><br><span class="line"></span><br><span class="line"><span class="section">[production]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">127.0</span>.<span class="number">0.1</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br></pre></td></tr></table></figure>
+<p>我们这里修改<code>[production]</code>为<code>[drill]</code>, 并增加一些参数</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">alter-wrapper</span>=<span class="string">&quot;gh-ost --allow-on-master --assume-rbr  --initially-drop-ghost-table --initially-drop-old-table -exact-rowcount --approve-renamed-columns --concurrent-rowcount=false --chunk-size=800 --hooks-path=/tmp/hook --user=&#123;USER&#125; --ask-pass --host=&#123;HOST&#125; --port=&#123;PORT&#125; --database=&#123;SCHEMA&#125; --table=&#123;TABLE&#125; --alter=&#123;CLAUSES&#125; --execute&quot;</span></span><br><span class="line"><span class="attr">default-character-set</span>=utf8</span><br><span class="line"><span class="attr">default-collation</span>=utf8_general_ci</span><br><span class="line"><span class="attr">schema</span>=sss</span><br><span class="line"></span><br><span class="line"><span class="section">[drill]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">127.0</span>.<span class="number">0.1</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br><span class="line"><span class="attr">password</span>=superpass <span class="comment">#可加可不加, 如果没有定义password, 则需要在命令行增加-p参数</span></span><br></pre></td></tr></table></figure>
+<p>添加生产环境</p>
+<figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skeema<span class="built_in"> add-environment </span>product -h 172.16.120.11 -P 3358 -u fanboshi </span><br></pre></td></tr></table></figure>
+<p>或者直接在<code>.skeema</code>添加如下信息</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[product]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">172.16</span>.<span class="number">120.11</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br></pre></td></tr></table></figure>
+<p>最终的<code>.skeema</code>文件如下</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">alter-wrapper</span>=<span class="string">&quot;gh-ost --allow-on-master --assume-rbr  --initially-drop-ghost-table --initially-drop-old-table -exact-rowcount --approve-renamed-columns --concurrent-rowcount=false --chunk-size=800 --hooks-path=/tmp/hook --user=&#123;USER&#125; --ask-pass --host=&#123;HOST&#125; --port=&#123;PORT&#125; --database=&#123;SCHEMA&#125; --table=&#123;TABLE&#125; --alter=&#123;CLAUSES&#125; --execute&quot;</span></span><br><span class="line"><span class="attr">default-character-set</span>=utf8</span><br><span class="line"><span class="attr">default-collation</span>=utf8_general_ci</span><br><span class="line"><span class="attr">schema</span>=sss</span><br><span class="line"></span><br><span class="line"><span class="section">[drill]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">127.0</span>.<span class="number">0.1</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br><span class="line"><span class="comment">#password=superpass #可加可不加, 如果没有定义password, 则需要在命令行增加-p参数</span></span><br><span class="line"></span><br><span class="line"><span class="section">[product]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">172.16</span>.<span class="number">120.11</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br></pre></td></tr></table></figure>
+<h3 id="拉取生产环境表结构"><a href="#拉取生产环境表结构" class="headerlink" title="拉取生产环境表结构"></a>拉取生产环境表结构</h3><figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">cd</span> <span class="string">3358</span></span><br><span class="line"><span class="attr">skeema</span> <span class="string">pull product -p</span></span><br></pre></td></tr></table></figure>
+<h3 id="生成drill环境与生产环境的差异sql文件"><a href="#生成drill环境与生产环境的差异sql文件" class="headerlink" title="生成drill环境与生产环境的差异sql文件"></a>生成drill环境与生产环境的差异sql文件</h3><figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skeema diff drill --allow-unsafe -psuperpass &gt; <span class="regexp">/tmp/</span>diff.sql </span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果没有在<code>.skeema</code>文件中指定password参数, 则要在命令行指定-p参数并填写密码</p>
+</blockquote>
+<p>查看生产的文件</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- instance: 127.0.0.1:3358</span></span><br><span class="line"><span class="keyword">USE</span> <span class="string">`sss`</span>;</span><br><span class="line">\! gh-ost <span class="comment">--allow-on-master --assume-rbr  --initially-drop-ghost-table --initially-drop-old-table -exact-rowcount --approve-renamed-columns --concurrent-rowcount=false --chunk-size=800 --hooks-path=/tmp/hook --user=fanboshi --ask-pass --host=127.0.0.1 --port=3358 --database=sss --table=sss_cmdb_service_name --alter=&#x27;DROP COLUMN `environment_name`, DROP COLUMN `productline_name`, DROP COLUMN `cmdb_cluster_name`&#x27; --execute</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`sss_domain_manage`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">...</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`domain_name`</span> (<span class="string">`domain_name`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`sss_iam_role_members`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">...</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`sss_iam_role_members_role_id_profile_id_93c492ff_uniq`</span> (<span class="string">`role_id`</span>,<span class="string">`profile_id`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`ytree_iam_role_members_profile_id_ce949eff_fk_users_profile_uid`</span> (<span class="string">`profile_id`</span>),</span><br><span class="line">  <span class="keyword">CONSTRAINT</span> <span class="string">`sss_iam_role_members_profile_id_ce949eff_fk_users_profile_uid`</span> <span class="keyword">FOREIGN</span> <span class="keyword">KEY</span> (<span class="string">`profile_id`</span>) <span class="keyword">REFERENCES</span> <span class="string">`sss_users_profile`</span> (<span class="string">`uid`</span>),</span><br><span class="line">  <span class="keyword">CONSTRAINT</span> <span class="string">`sss_iam_role_members_role_id_8a1e407b_fk_ytree_iam_role_id`</span> <span class="keyword">FOREIGN</span> <span class="keyword">KEY</span> (<span class="string">`role_id`</span>) <span class="keyword">REFERENCES</span> <span class="string">`sss_iam_role`</span> (<span class="string">`id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8;</span><br></pre></td></tr></table></figure>
+<p>可以看到这就是一个<code>.sql</code>文件, 注意生成的gh-ost语句前有一个<code>\!</code>, 大家应该明白是啥意思吧</p>
+<blockquote>
+<p>如果是想手动执行gh-ost命令, 记得吧”`”转义掉</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2021/02/18/2021-02-18-skeema简单使用/" target="_blank" title="skeema简单使用">http://fuxkdb.com/2021/02/18/2021-02-18-skeema简单使用/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/02/12/2021-02-12-DorisDB-vs-ClickHouse-SSB%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%95/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">DorisDB vs ClickHouse SSB对比测试</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%83%E9%99%90"><span class="nav-number">1.1.</span> <span class="nav-text">权限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-number">1.3.</span> <span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#init"><span class="nav-number">1.3.1.</span> <span class="nav-text">init</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8B%89%E5%8F%96%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="nav-number">1.3.2.</span> <span class="nav-text">拉取生产环境表结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90drill%E7%8E%AF%E5%A2%83%E4%B8%8E%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E7%9A%84%E5%B7%AE%E5%BC%82sql%E6%96%87%E4%BB%B6"><span class="nav-number">1.3.3.</span> <span class="nav-text">生成drill环境与生产环境的差异sql文件</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2021 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

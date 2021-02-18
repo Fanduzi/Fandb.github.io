@@ -305,6 +305,52 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2019-12-02-TiDB-Binlog部署"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/">TiDB Binlog部署</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/" class="article-date">
+	  <time datetime="2019-12-02T11:31:00.000Z" itemprop="datePublished">2019-12-02</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="TiDB-Binlog部署"><a href="#TiDB-Binlog部署" class="headerlink" title="TiDB Binlog部署"></a>TiDB Binlog部署</h1><h2 id="环境信息"><a href="#环境信息" class="headerlink" title="环境信息"></a>环境信息</h2><p>中控机是<code>10.152.x.133</code></p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-attr">[tidb_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[tikv_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[pd_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## <span class="selector-tag">Monitoring</span> <span class="selector-tag">Part</span></span><br><span class="line"># <span class="selector-tag">prometheus</span> <span class="selector-tag">and</span> <span class="selector-tag">pushgateway</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitoring_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[grafana_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"># <span class="selector-tag">node_exporter</span> <span class="selector-tag">and</span> <span class="selector-tag">blackbox_exporter</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitored_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[alertmanager_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2019-11-12-ProxySQL平滑下线节点"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -577,52 +623,6 @@
 <blockquote>
 <p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/f3be9cce9b77">https://www.jianshu.com/p/f3be9cce9b77</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/3cf0e2a8d23d">https://www.jianshu.com/p/3cf0e2a8d23d</a></p>
 </blockquote>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2019-07-03-记录一些有用的pt-query-digest-filter"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/07/03/2019-07-03-%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%89%E7%94%A8%E7%9A%84pt-query-digest-filter/">记录一些有用的pt-query-digest filter</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/07/03/2019-07-03-%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%89%E7%94%A8%E7%9A%84pt-query-digest-filter/" class="article-date">
-	  <time datetime="2019-07-03T15:03:33.000Z" itemprop="datePublished">2019-07-03</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>自己写了一些和整理了些filter, 百度是搜不到的哈, 除了最后那俩anemometer的</p>
-<p>不输出Database 为 mysql|performance_schema|information_schema|sys|db_monitor 的查询<br><figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">((\$event-&gt;&#123;db&#125; || &#x27;&#x27;) =~ m/^(?!(<span class="name">mysql</span><span class="name">|performance_schema|</span><span class="name">information_schema</span><span class="name">|sys|</span><span class="name">db_monitor</span>))/ </span><br></pre></td></tr></table></figure><br>
       
     </div>
     <footer class="article-footer">

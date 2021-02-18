@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://fuxkdb.com/"/>
-  <updated>2021-02-12T09:25:10.704Z</updated>
+  <updated>2021-02-18T05:10:58.351Z</updated>
   <id>http://fuxkdb.com/</id>
   
   <author>
@@ -14,6 +14,83 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>skeema简单使用</title>
+    <link href="http://fuxkdb.com/2021/02/18/2021-02-18-skeema%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/"/>
+    <id>http://fuxkdb.com/2021/02/18/2021-02-18-skeema简单使用/</id>
+    <published>2021-02-18T05:08:00.000Z</published>
+    <updated>2021-02-18T05:10:58.351Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>Skeema is a tool for managing MySQL tables and schema changes in a declarative fashion using pure SQL. It provides a CLI tool allowing you to:</p>
+<ul>
+<li>Export CREATE TABLE statements to the filesystem, for tracking in a repo (git, hg, svn, etc)</li>
+<li>Diff changes in the schema repo against live DBs to automatically generate DDL</li>
+<li>Manage multiple environments (e.g. dev, staging, prod) and keep them in sync with ease</li>
+<li>Configure use of online schema change tools, such as pt-online-schema-change, for performing ALTERs</li>
+<li>Convert non-online migrations from frameworks like Rails or Django into online schema changes in production</li>
+</ul>
+<p>Skeema supports a pull-request-based workflow for schema change submission, review, and execution. This permits your team to manage schema changes in exactly the same way as you manage code changes. Our new companion <a href="https://www.skeema.io/cloud/">Cloud Linter for GitHub repos</a> provides automatic linting of schema change commits and pull requests.</p>
+<p>我这的需求是同步生产环境表结构到演练环境, 以下是针对我这个场景的具体使用方法</p>
+<h2 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h2><p>skeema需要的用户权限具体见<a href="https://www.skeema.io/docs/requirements/">https://www.skeema.io/docs/requirements/</a></p>
+<p>这里说一下重点, <code>skeema diff</code>时会在目标环境创建一个<code>_skeema_tmp</code>临时数据库, 然后会删除这个库</p>
+<a id="more"></a>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>安装go环境</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget https:<span class="regexp">//</span>dl.google.com<span class="regexp">/go/g</span>o1.<span class="number">16</span>.linux-amd64.tar.gz</span><br><span class="line">tar -C <span class="regexp">/usr/</span>local -xzf go1.<span class="number">16</span>.linux-amd64.tar.gz                 </span><br><span class="line">export PATH=<span class="variable">$PATH</span>:<span class="regexp">/usr/</span>local<span class="regexp">/go/</span>bin</span><br></pre></td></tr></table></figure>
+<p>安装skeema</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -LO https:<span class="regexp">//gi</span>thub.com<span class="regexp">/skeema/</span>skeema<span class="regexp">/releases/</span>latest<span class="regexp">/download/</span>skeema_amd64.rpm</span><br><span class="line">rpm -ivh skeema</span><br></pre></td></tr></table></figure>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><h3 id="init"><a href="#init" class="headerlink" title="init"></a>init</h3><p>在演练环境</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skeema init -h <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> -P <span class="number">3358</span> -u fanboshi -p -d <span class="number">3358</span> --schema sss</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>-d dump的sql文件存储路径</p>
+<p>–schema 只导出sss这个数据库的结构信息</p>
+</blockquote>
+<p>随后3358目录下回包含一些.sql文件和一个<code>.skeema</code>文件</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">213</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">37</span> .skeema</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root <span class="number">1521</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_instances.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">305</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_vip.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root <span class="number">1122</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_host_host.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">388</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_cluster_domain_name_config.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">369</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_cluster_portrayal_mapping.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">602</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_cluster.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root <span class="number">1148</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_cluster_users.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">304</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_instance_ports.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">756</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_instances_port.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">244</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_productlines.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">595</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_services.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">274</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_dbms_environment.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">815</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_dbms_sql_config.sql</span><br><span class="line">-rw-r--r--   <span class="number">1</span> root root  <span class="number">625</span> Feb <span class="number">18</span> <span class="number">12</span>:<span class="number">33</span> sss_cmdb_environments.sql</span><br></pre></td></tr></table></figure>
+<p>编辑.skeema文件</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#cat .skeema </span></span><br><span class="line"><span class="attr">default-character-set</span>=utf8</span><br><span class="line"><span class="attr">default-collation</span>=utf8_general_ci</span><br><span class="line"><span class="attr">schema</span>=sss</span><br><span class="line"></span><br><span class="line"><span class="section">[production]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">127.0</span>.<span class="number">0.1</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br></pre></td></tr></table></figure>
+<p>我们这里修改<code>[production]</code>为<code>[drill]</code>, 并增加一些参数</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">alter-wrapper</span>=<span class="string">&quot;gh-ost --allow-on-master --assume-rbr  --initially-drop-ghost-table --initially-drop-old-table -exact-rowcount --approve-renamed-columns --concurrent-rowcount=false --chunk-size=800 --hooks-path=/tmp/hook --user=&#123;USER&#125; --ask-pass --host=&#123;HOST&#125; --port=&#123;PORT&#125; --database=&#123;SCHEMA&#125; --table=&#123;TABLE&#125; --alter=&#123;CLAUSES&#125; --execute&quot;</span></span><br><span class="line"><span class="attr">default-character-set</span>=utf8</span><br><span class="line"><span class="attr">default-collation</span>=utf8_general_ci</span><br><span class="line"><span class="attr">schema</span>=sss</span><br><span class="line"></span><br><span class="line"><span class="section">[drill]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">127.0</span>.<span class="number">0.1</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br><span class="line"><span class="attr">password</span>=superpass <span class="comment">#可加可不加, 如果没有定义password, 则需要在命令行增加-p参数</span></span><br></pre></td></tr></table></figure>
+<p>添加生产环境</p>
+<figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skeema<span class="built_in"> add-environment </span>product -h 172.16.120.11 -P 3358 -u fanboshi </span><br></pre></td></tr></table></figure>
+<p>或者直接在<code>.skeema</code>添加如下信息</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[product]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">172.16</span>.<span class="number">120.11</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br></pre></td></tr></table></figure>
+<p>最终的<code>.skeema</code>文件如下</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">alter-wrapper</span>=<span class="string">&quot;gh-ost --allow-on-master --assume-rbr  --initially-drop-ghost-table --initially-drop-old-table -exact-rowcount --approve-renamed-columns --concurrent-rowcount=false --chunk-size=800 --hooks-path=/tmp/hook --user=&#123;USER&#125; --ask-pass --host=&#123;HOST&#125; --port=&#123;PORT&#125; --database=&#123;SCHEMA&#125; --table=&#123;TABLE&#125; --alter=&#123;CLAUSES&#125; --execute&quot;</span></span><br><span class="line"><span class="attr">default-character-set</span>=utf8</span><br><span class="line"><span class="attr">default-collation</span>=utf8_general_ci</span><br><span class="line"><span class="attr">schema</span>=sss</span><br><span class="line"></span><br><span class="line"><span class="section">[drill]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">127.0</span>.<span class="number">0.1</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br><span class="line"><span class="comment">#password=superpass #可加可不加, 如果没有定义password, 则需要在命令行增加-p参数</span></span><br><span class="line"></span><br><span class="line"><span class="section">[product]</span></span><br><span class="line"><span class="attr">flavor</span>=percona:<span class="number">5.7</span></span><br><span class="line"><span class="attr">host</span>=<span class="number">172.16</span>.<span class="number">120.11</span></span><br><span class="line"><span class="attr">port</span>=<span class="number">3358</span></span><br><span class="line"><span class="attr">user</span>=fanboshi</span><br></pre></td></tr></table></figure>
+<h3 id="拉取生产环境表结构"><a href="#拉取生产环境表结构" class="headerlink" title="拉取生产环境表结构"></a>拉取生产环境表结构</h3><figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">cd</span> <span class="string">3358</span></span><br><span class="line"><span class="attr">skeema</span> <span class="string">pull product -p</span></span><br></pre></td></tr></table></figure>
+<h3 id="生成drill环境与生产环境的差异sql文件"><a href="#生成drill环境与生产环境的差异sql文件" class="headerlink" title="生成drill环境与生产环境的差异sql文件"></a>生成drill环境与生产环境的差异sql文件</h3><figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skeema diff drill --allow-unsafe -psuperpass &gt; <span class="regexp">/tmp/</span>diff.sql </span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果没有在<code>.skeema</code>文件中指定password参数, 则要在命令行指定-p参数并填写密码</p>
+</blockquote>
+<p>查看生产的文件</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- instance: 127.0.0.1:3358</span></span><br><span class="line"><span class="keyword">USE</span> <span class="string">`sss`</span>;</span><br><span class="line">\! gh-ost <span class="comment">--allow-on-master --assume-rbr  --initially-drop-ghost-table --initially-drop-old-table -exact-rowcount --approve-renamed-columns --concurrent-rowcount=false --chunk-size=800 --hooks-path=/tmp/hook --user=fanboshi --ask-pass --host=127.0.0.1 --port=3358 --database=sss --table=sss_cmdb_service_name --alter=&#x27;DROP COLUMN `environment_name`, DROP COLUMN `productline_name`, DROP COLUMN `cmdb_cluster_name`&#x27; --execute</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`sss_domain_manage`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">...</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`domain_name`</span> (<span class="string">`domain_name`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`sss_iam_role_members`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">...</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`sss_iam_role_members_role_id_profile_id_93c492ff_uniq`</span> (<span class="string">`role_id`</span>,<span class="string">`profile_id`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`ytree_iam_role_members_profile_id_ce949eff_fk_users_profile_uid`</span> (<span class="string">`profile_id`</span>),</span><br><span class="line">  <span class="keyword">CONSTRAINT</span> <span class="string">`sss_iam_role_members_profile_id_ce949eff_fk_users_profile_uid`</span> <span class="keyword">FOREIGN</span> <span class="keyword">KEY</span> (<span class="string">`profile_id`</span>) <span class="keyword">REFERENCES</span> <span class="string">`sss_users_profile`</span> (<span class="string">`uid`</span>),</span><br><span class="line">  <span class="keyword">CONSTRAINT</span> <span class="string">`sss_iam_role_members_role_id_8a1e407b_fk_ytree_iam_role_id`</span> <span class="keyword">FOREIGN</span> <span class="keyword">KEY</span> (<span class="string">`role_id`</span>) <span class="keyword">REFERENCES</span> <span class="string">`sss_iam_role`</span> (<span class="string">`id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8;</span><br></pre></td></tr></table></figure>
+<p>可以看到这就是一个<code>.sql</code>文件, 注意生成的gh-ost语句前有一个<code>\!</code>, 大家应该明白是啥意思吧</p>
+<blockquote>
+<p>如果是想手动执行gh-ost命令, 记得吧”`”转义掉</p>
+</blockquote>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h1&gt;&lt;p&gt;Skeema is a tool for managing MySQL tables and schema changes in a declarative fashion using pure SQL. It provides a CLI tool allowing you to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Export CREATE TABLE statements to the filesystem, for tracking in a repo (git, hg, svn, etc)&lt;/li&gt;
+&lt;li&gt;Diff changes in the schema repo against live DBs to automatically generate DDL&lt;/li&gt;
+&lt;li&gt;Manage multiple environments (e.g. dev, staging, prod) and keep them in sync with ease&lt;/li&gt;
+&lt;li&gt;Configure use of online schema change tools, such as pt-online-schema-change, for performing ALTERs&lt;/li&gt;
+&lt;li&gt;Convert non-online migrations from frameworks like Rails or Django into online schema changes in production&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Skeema supports a pull-request-based workflow for schema change submission, review, and execution. This permits your team to manage schema changes in exactly the same way as you manage code changes. Our new companion &lt;a href=&quot;https://www.skeema.io/cloud/&quot;&gt;Cloud Linter for GitHub repos&lt;/a&gt; provides automatic linting of schema change commits and pull requests.&lt;/p&gt;
+&lt;p&gt;我这的需求是同步生产环境表结构到演练环境, 以下是针对我这个场景的具体使用方法&lt;/p&gt;
+&lt;h2 id=&quot;权限&quot;&gt;&lt;a href=&quot;#权限&quot; class=&quot;headerlink&quot; title=&quot;权限&quot;&gt;&lt;/a&gt;权限&lt;/h2&gt;&lt;p&gt;skeema需要的用户权限具体见&lt;a href=&quot;https://www.skeema.io/docs/requirements/&quot;&gt;https://www.skeema.io/docs/requirements/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;这里说一下重点, &lt;code&gt;skeema diff&lt;/code&gt;时会在目标环境创建一个&lt;code&gt;_skeema_tmp&lt;/code&gt;临时数据库, 然后会删除这个库&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="MySQL" scheme="http://fuxkdb.com/tags/MySQL/"/>
+    
+  </entry>
   
   <entry>
     <title>DorisDB vs ClickHouse SSB对比测试</title>
@@ -2312,179 +2389,6 @@
     
     
       <category term="MySQL" scheme="http://fuxkdb.com/tags/MySQL/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>译文-Group Replication and Percona XtraDB Cluster: Overview of Common Operations</title>
-    <link href="http://fuxkdb.com/2020/05/03/2020-05-03-%E8%AF%91%E6%96%87-Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations/"/>
-    <id>http://fuxkdb.com/2020/05/03/2020-05-03-译文-Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations/</id>
-    <published>2020-05-03T04:20:00.000Z</published>
-    <updated>2020-05-03T04:28:19.223Z</updated>
-    
-    <content type="html"><![CDATA[<h1 id="Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations"><a href="#Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations" class="headerlink" title="Group Replication and Percona XtraDB Cluster: Overview of Common Operations"></a><a href="https://www.percona.com/blog/2020/04/28/group-replication-and-percona-xtradb-cluster-overview-of-common-operations/">Group Replication and Percona XtraDB Cluster: Overview of Common Operations</a></h1><p>在这篇博客文章中，我将概述使用MySQL Group Replication 8.0.19 (aka GR 国内爱叫MGR发现国外还是习惯叫GR)和<a href="https://www.percona.com/downloads/Percona-XtraDB-Cluster-80/LATEST/">Percona XtraDB Cluster 8</a> (PXC)(基于Galera)时最常见的故障转移场景和操作，并解释每种技术如何处理每种情况。我已经创建了一个包含三个节点的集群，使用一个主节点和一个包含三个节点的PXC进行组复制，它们均使用默认参数配置。 我还将使用ProxySQL与两个群集进行交互。</p>
-<p>在这两个群集中，节点的名称分别为<code>mysql1</code>，<code>mysql2</code>和<code>mysql3</code>。 在组复制中，如果我们使用单主模式，则主节点处理写请求。 在PXC中，我也将使用相同的术语，并将在发送写操作的节点称为Primary。 请注意，在PXC中没有主节点的概念，所有节点都是相等的。<br><a id="more"></a><br>这是两种解决方案的设置示意图。</p>
-<p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost1-1.png" alt="Group Replication"></p>
-<h2 id="Primary-Server-Crashes"><a href="#Primary-Server-Crashes" class="headerlink" title="Primary Server Crashes"></a>Primary Server Crashes</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost2.png" alt="primary server crashes"></p>
-<h4 id="Group-Replication-–-Writing"><a href="#Group-Replication-–-Writing" class="headerlink" title="Group Replication – Writing"></a>Group Replication – Writing</h4><p>在此测试中，我仅向集群发送写请求。 当我杀死GR上的主节点时，重新组织拓扑需要花费5到15秒的时间，ProxySQL识别新的拓扑结构后将写入发送到新的主节点。 启动旧的主数据库并将其重新添加到集群中不会导致任何中断(不会影响业务)。</p>
-<h4 id="Group-Replication-–-Reading"><a href="#Group-Replication-–-Reading" class="headerlink" title="Group Replication – Reading"></a>Group Replication – Reading</h4><p>如果我仅向集群发送读取请求，主节点崩溃将导致读取中断吗？ ProxySQL只会将流量重定向到其他节点。 重组期间不会阻塞查询。</p>
-<h4 id="Percona-XtraDB-Cluster-–-Writing-Reading"><a href="#Percona-XtraDB-Cluster-–-Writing-Reading" class="headerlink" title="Percona XtraDB Cluster – Writing/Reading"></a>Percona XtraDB Cluster – Writing/Reading</h4><p>在PXC中，读取和写入之间没有区别，一旦节点崩溃/消失/分离(crashes/goes away/gets separated)，群集必须重新创建群集视图并检查仲裁。 这样做时，它不接受任何读取或写入。 通常，这需要3到10秒，在此时间范围内，应用程序会受到影响。</p>
-<h2 id="Removing-Adding-Node"><a href="#Removing-Adding-Node" class="headerlink" title="Removing/Adding Node"></a>Removing/Adding Node</h2><p>如果我们删除或添加一个新节点，集群会如何做。</p>
-<h4 id="Group-Replication"><a href="#Group-Replication" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>在GR中，添加或删除节点不会影响或导致应用程序中断。 如果我们使用克隆插件添加新节点，则集群会将数据传播到新节点。</p>
-<h4 id="Percona-XtraDB-Cluster"><a href="#Percona-XtraDB-Cluster" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>删除或添加节点不会导致任何中断。 类似地，就像在GR中添加新节点时一样，它将执行SST（State Snapshot Transfer状态快照传输）以从另一个节点获取所有数据。</p>
-<h2 id="Partial-Network-Failure"><a href="#Partial-Network-Failure" class="headerlink" title="Partial Network Failure"></a>Partial Network Failure</h2><p>如果读节点与主节点分离，但仍能够看到其他节点，则群集会发生什么情况？</p>
-<p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost3.png" alt="Partial Network Failure"></p>
-<p>在这种情况下，mysql2（主）和mysql3之间存在网络中断。</p>
-<h4 id="Group-Replication-1"><a href="#Group-Replication-1" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>在我之前的一篇博文<a href="https://www.percona.com/blog/2020/04/21/mysql-group-replication-partial-network-failure-performance-impact/">MySQL Group Replication – Partial Network Failure Performance Impact</a>中我更详细地解释了这个特殊情况。基本上，部分网络中断会严重影响集群中的写性能，从而导致应用程序问题和/或停机。</p>
-<blockquote>
-<p>8.0.19有bug,官方已经复现并确认bug, 但是一个朋友没有复现</p>
-<p>目前最新版本为8.0.20, 在<a href="https://dev.mysql.com/doc/relnotes/mysql/8.0/en/news-8-0-20.html">release note</a>没有看到修复此bug</p>
-</blockquote>
-<h4 id="Percona-XtraDB-Cluster-1"><a href="#Percona-XtraDB-Cluster-1" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>在PXC中，当群集重新创建群集视图并开始将流量中继到可看到该服务器的节点时，将发生3-5秒的中断。 之后，它将像以前一样继续工作，而不会对性能造成任何严重影响。</p>
-<blockquote>
-<p>In PXC there is going to be a 3-5s outage while the cluster re-creates the cluster view and begins relaying the traffic to a node that sees that server. After that, it will continue working just like before without any serious performance impact.</p>
-</blockquote>
-<h2 id="Total-Network-Isolation"><a href="#Total-Network-Isolation" class="headerlink" title="Total Network Isolation"></a>Total Network Isolation</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost5.png" alt="Total Network Isolation"></p>
-<p>现在，mysql3与所有其他节点完全分离。</p>
-<h4 id="Group-Replication-2"><a href="#Group-Replication-2" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>群集可以接受读取和写入而不会发生任何中断，ProxySQL会将读取重定向到其他节点。</p>
-<h4 id="Percona-XtraDB-Cluster-2"><a href="#Percona-XtraDB-Cluster-2" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>在PXC上，将有3-5秒的停机时间，而群集意识到一个节点不可用，并将如上所述重新创建群集视图。 在那之后，它能够处理读写。</p>
-<h2 id="Local-Applications"><a href="#Local-Applications" class="headerlink" title="Local Applications"></a>Local Applications</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost6.png" alt="Local Applications"></p>
-<p>如果一个节点或部分节点与集群分开(网络分区, 5节点集群,形成3, 2结构), 那个对于分区中的2个节点, 可能应用仍然能和它们通信, 此时会发生什么情况?</p>
-<blockquote>
-<p>What happens if a node or part of the nodes are separated and they do not have the quorum, but they have the application server in the same network segments which could still connect to the server.</p>
-</blockquote>
-<h4 id="Group-Replication-3"><a href="#Group-Replication-3" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>分离的节点仍将接受读取流量，因此应用程序可以根据过时的数据做出决策。 这是默认设置，但是您可以使用名为<a href="https://dev.mysql.com/doc/refman/8.0/en/group-replication-options.html#sysvar_group_replication_exit_state_action">group_replication_exit_state_action</a>的参数做出调整</p>
-<blockquote>
-<p><a href="https://dev.mysql.com/doc/refman/8.0/en/group-replication-options.html#sysvar_group_replication_exit_state_action"><code>group_replication_exit_state_action</code></a></p>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Command-Line Format</strong></td>
-<td><code>--group-replication-exit-state-action=value</code></td>
-</tr>
-<tr>
-<td><strong>Introduced</strong></td>
-<td>8.0.12</td>
-</tr>
-<tr>
-<td><strong>System Variable</strong></td>
-<td><code>group_replication_exit_state_action</code></td>
-</tr>
-<tr>
-<td><strong>Scope</strong></td>
-<td>Global</td>
-</tr>
-<tr>
-<td><strong>Dynamic</strong></td>
-<td>Yes</td>
-</tr>
-<tr>
-<td><strong><a href="https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html#optimizer-hints-set-var"><code>SET_VAR</code></a> Hint Applies</strong></td>
-<td>No</td>
-</tr>
-<tr>
-<td><strong>Type</strong></td>
-<td>Enumeration</td>
-</tr>
-<tr>
-<td><strong>Default Value</strong> (≥ 8.0.16)</td>
-<td><code>READ_ONLY</code></td>
-</tr>
-<tr>
-<td><strong>Default Value</strong> (≥ 8.0.12, ≤ 8.0.15)</td>
-<td><code>ABORT_SERVER</code></td>
-</tr>
-<tr>
-<td><strong>Valid Values</strong> (≥ 8.0.18)</td>
-<td><code>ABORT_SERVER``OFFLINE_MODE``READ_ONLY</code></td>
-</tr>
-<tr>
-<td><strong>Valid Values</strong> (≥ 8.0.12, ≤ 8.0.17)</td>
-<td><code>ABORT_SERVER``READ_ONLY</code></td>
-</tr>
-</tbody>
-</table>
-<p><code>ABORT_SERVER</code>节点实例会被shutdown</p>
-<p><code>OFFLINE_MODE</code>连接的客户端用户在下一个请求时断开连接，不再接受连接</p>
-<p><code>READ_ONLY</code> 实例变为只读模式</p>
-</blockquote>
-<h4 id="Percona-XtraDB-Cluster-3"><a href="#Percona-XtraDB-Cluster-3" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>在PXC中，如果节点分离，则它将不接受任何读取或写入。 优先级是数据一致性，只有具有quorum的segment才能接受任何读取和写入。</p>
-<blockquote>
-<p>In PXC, if a node gets separated, it is not going to accept any reads or writes. The priority is the data consistency and only the segment which has the quorum will accept any reads and writes.</p>
-</blockquote>
-<h2 id="Changing-Primary"><a href="#Changing-Primary" class="headerlink" title="Changing Primary"></a>Changing Primary</h2><h4 id="Group-Replication-4"><a href="#Group-Replication-4" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>If you would like to use a new Primary node you have to promote a reader to be the new primary:</p>
-<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">cluster</span><span class="selector-class">.setPrimaryInstance</span>(&quot;<span class="selector-tag">mysql2</span><span class="selector-pseudo">:3306&quot;)</span></span><br></pre></td></tr></table></figure>
-<p>ProxySQL将遵循这些更改，但是在群集重新组织自身时，它将导致几秒钟的中断。</p>
-<h4 id="Percona-XtraDB-Cluster-4"><a href="#Percona-XtraDB-Cluster-4" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>在PXC上没有Primary的概念，任何节点都可以在任何时间进行写操作，因此我们只需要将流量重定向到负载均衡器中的另一个节点（即ProxySQL）。 PXC中还有一个pxc_maint_mode变量。 将其更改为MAINTENANCE可以从节点上软删除该连接，即使该连接是Primary，也是如此，但是ProxySQL Native Galera支持对此的支持很差。 I would recommend using the <a href="https://github.com/percona/proxysql-admin-tool/tree/v1.4">1.4 scheduler which respects</a> this variable.</p>
-<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><table>
-<thead>
-<tr>
-<th></th>
-<th>Group Replication</th>
-<th>Percona XtraDB Cluster</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Primary Crashes</td>
-<td>5-15s outage</td>
-<td>5-10s outage</td>
-</tr>
-<tr>
-<td>Reader Crashes</td>
-<td>No impact</td>
-<td>3-5s outage</td>
-</tr>
-<tr>
-<td>Adding a Node</td>
-<td>No impact</td>
-<td>No impact</td>
-</tr>
-<tr>
-<td>Removing a Node</td>
-<td>No impact</td>
-<td>No impact</td>
-</tr>
-<tr>
-<td>Partial Network Failure</td>
-<td>Performance Impact</td>
-<td>3-5s outage, than normal performance</td>
-</tr>
-<tr>
-<td>Total Network Isolation</td>
-<td>No impact</td>
-<td>3-5s outage</td>
-</tr>
-<tr>
-<td>Changing Primary</td>
-<td>1-3s outage</td>
-<td>No impact on the cluster</td>
-</tr>
-</tbody>
-</table>
-<p>如果读取节点发生故障或分离，则组复制的影响较小。 在PXC中，由于所有节点都是相同的，因此没有专用的主节点。 如果任何节点发生任何事情，则集群必须投票并重新创建集群视图，这可能会对应用程序产生一些影响。 但是，PXC可以更好地处理主节点切换(primary promotions)和网络故障。</p>
-<p>如我们所见，这两种集群解决方案都有各自的优缺点。 希望本摘要将帮助您对它们有更多的了解，并使您对使用哪种技术的决策更加容易。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h1 id=&quot;Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations&quot;&gt;&lt;a href=&quot;#Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations&quot; class=&quot;headerlink&quot; title=&quot;Group Replication and Percona XtraDB Cluster: Overview of Common Operations&quot;&gt;&lt;/a&gt;&lt;a href=&quot;https://www.percona.com/blog/2020/04/28/group-replication-and-percona-xtradb-cluster-overview-of-common-operations/&quot;&gt;Group Replication and Percona XtraDB Cluster: Overview of Common Operations&lt;/a&gt;&lt;/h1&gt;&lt;p&gt;在这篇博客文章中，我将概述使用MySQL Group Replication 8.0.19 (aka GR 国内爱叫MGR发现国外还是习惯叫GR)和&lt;a href=&quot;https://www.percona.com/downloads/Percona-XtraDB-Cluster-80/LATEST/&quot;&gt;Percona XtraDB Cluster 8&lt;/a&gt; (PXC)(基于Galera)时最常见的故障转移场景和操作，并解释每种技术如何处理每种情况。我已经创建了一个包含三个节点的集群，使用一个主节点和一个包含三个节点的PXC进行组复制，它们均使用默认参数配置。 我还将使用ProxySQL与两个群集进行交互。&lt;/p&gt;
-&lt;p&gt;在这两个群集中，节点的名称分别为&lt;code&gt;mysql1&lt;/code&gt;，&lt;code&gt;mysql2&lt;/code&gt;和&lt;code&gt;mysql3&lt;/code&gt;。 在组复制中，如果我们使用单主模式，则主节点处理写请求。 在PXC中，我也将使用相同的术语，并将在发送写操作的节点称为Primary。 请注意，在PXC中没有主节点的概念，所有节点都是相等的。&lt;br&gt;
-    
-    </summary>
-    
-    
-      <category term="MySQL" scheme="http://fuxkdb.com/tags/MySQL/"/>
-    
-      <category term="MGR" scheme="http://fuxkdb.com/tags/MGR/"/>
-    
-      <category term="PXC" scheme="http://fuxkdb.com/tags/PXC/"/>
     
   </entry>
   

@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-抓跑得慢的SQL，查看正在跑的sql的等待事件"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/09/%E6%8A%93%E8%B7%91%E5%BE%97%E6%85%A2%E7%9A%84SQL%EF%BC%8C%E6%9F%A5%E7%9C%8B%E6%AD%A3%E5%9C%A8%E8%B7%91%E7%9A%84sql%E7%9A%84%E7%AD%89%E5%BE%85%E4%BA%8B%E4%BB%B6/">抓跑得慢的SQL，查看正在跑的sql的等待事件</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/09/%E6%8A%93%E8%B7%91%E5%BE%97%E6%85%A2%E7%9A%84SQL%EF%BC%8C%E6%9F%A5%E7%9C%8B%E6%AD%A3%E5%9C%A8%E8%B7%91%E7%9A%84sql%E7%9A%84%E7%AD%89%E5%BE%85%E4%BA%8B%E4%BB%B6/" class="article-date">
+	  <time datetime="2017-08-09T13:00:00.000Z" itemprop="datePublished">2017-08-09</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">select (sysdate-<span class="selector-tag">a</span>.logon_time)*<span class="number">24</span>*<span class="number">60</span> minutes,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.username</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.BLOCKING_INSTANCE</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.BLOCKING_SESSION</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.program</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.machine</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.osuser</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.status</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.sid</span>,</span><br><span class="line">       <span class="selector-tag">a</span>.serial#,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.event</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.p1</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.p2</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.p3</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.sql_id</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.sql_child_number</span>,</span><br><span class="line">       <span class="selector-tag">b</span>.sql_text</span><br><span class="line">  from v<span class="variable">$session</span> <span class="selector-tag">a</span>, v<span class="variable">$sql</span> b</span><br><span class="line"> where</span><br><span class="line">   <span class="selector-tag">a</span><span class="selector-class">.sql_address</span> = <span class="selector-tag">b</span>.address</span><br><span class="line">   and <span class="selector-tag">a</span><span class="selector-class">.sql_hash_value</span> = <span class="selector-tag">b</span>.hash_value</span><br><span class="line">   and <span class="selector-tag">a</span>.sql_child_number=<span class="selector-tag">b</span>.child_number</span><br><span class="line">   and <span class="selector-tag">a</span><span class="selector-class">.event</span> not <span class="keyword">in</span> (<span class="string">&#x27;SQL*Net message from client&#x27;</span>,<span class="string">&#x27;Space Manager: slave idle wait&#x27;</span>)</span><br><span class="line">  -- and <span class="selector-tag">a</span><span class="selector-class">.username</span> like <span class="string">&#x27;%USERNAME%&#x27;</span> </span><br><span class="line">   <span class="attribute">order</span> by <span class="number">1</span> desc;</span><br></pre></td></tr></table></figure>
+<p>在查执行计划<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Select</span> * from table(dbms_xplan.display_cursor(&#x27;<span class="number">91</span>prd<span class="number">0</span>dh<span class="number">0</span>bs<span class="number">8</span>d&#x27;,<span class="number">0</span>,&#x27;<span class="literal">ALL</span>&#x27;));</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-Hexo博客配置"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -667,60 +714,6 @@
 <p>装完一定要用<code>pmm-admin check-network</code>检查,下面的是正常的<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">[root@iZbp1igpeohje7z5ugkdr9Z log]# pmm-admin check-network</span><br><span class="line">PMM<span class="built_in"> Network </span>Status</span><br><span class="line"></span><br><span class="line">Server<span class="built_in"> Address </span>| xx.xx.xx.xx</span><br><span class="line">Client<span class="built_in"> Address </span>| xx.xx.xx.xx </span><br><span class="line"></span><br><span class="line">*<span class="built_in"> System </span>Time</span><br><span class="line">NTP<span class="built_in"> Server </span>(0.pool.ntp.org)        | 2017-09-28 15:44:39 +0800 CST</span><br><span class="line">PMM<span class="built_in"> Server </span>                         | 2017-09-28 07:44:38 +0000 GMT</span><br><span class="line">PMM<span class="built_in"> Client </span>                         | 2017-09-28 15:44:39 +0800 CST</span><br><span class="line">PMM<span class="built_in"> Server </span>Time Drift              | OK</span><br><span class="line">PMM<span class="built_in"> Client </span>Time Drift              | OK</span><br><span class="line">PMM<span class="built_in"> Client </span><span class="keyword">to</span> PMM<span class="built_in"> Server </span>Time Drift | OK</span><br><span class="line"></span><br><span class="line">* Connection:<span class="built_in"> Client </span>--&gt; Server</span><br><span class="line">-------------------- -------      </span><br><span class="line">SERVER<span class="built_in"> SERVICE </span>     STATUS      </span><br><span class="line">-------------------- -------      </span><br><span class="line">Consul API          OK</span><br><span class="line">Prometheus API      OK</span><br><span class="line">Query Analytics API  OK</span><br><span class="line"></span><br><span class="line">Connection duration | 31.032856ms</span><br><span class="line">Request duration    | 31.557981ms</span><br><span class="line">Full round trip    | 62.590837ms</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">* Connection:<span class="built_in"> Client </span>&lt;-- Server</span><br><span class="line">-------------- ---------- -------------------- ------- ---------- ---------</span><br><span class="line">SERVICE<span class="built_in"> TYPE </span> NAME      REMOTE ENDPOINT      STATUS  HTTPS/TLS  PASSWORD </span><br><span class="line">-------------- ---------- -------------------- ------- ---------- ---------</span><br><span class="line">linux:metrics  pt_slave5  101.37.14.213:42000  OK      <span class="literal">YES</span>        -        </span><br><span class="line">mysql:metrics  pt_slave5  101.37.14.213:42002  OK      <span class="literal">YES</span>        -        </span><br></pre></td></tr></table></figure><br>修改容器时区(你试试不改时区grafana邮件告警的时候时间对吗 :) )<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp <span class="regexp">/usr/</span>share<span class="regexp">/zoneinfo/</span>Asia<span class="regexp">/Shanghai /</span>etc/localtime</span><br></pre></td></tr></table></figure></p>
 <p>重启<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>test2 ~]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED            STATUS                      PORTS                        NAMES</span><br><span class="line"><span class="number">69195</span>dca404b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/opt/entrypoint.sh&quot;</span>  <span class="number">28</span> hours ago        Exited (<span class="number">128</span>) <span class="number">6</span> minutes ago  <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:<span class="number">80</span>-&gt;<span class="number">80</span>/tcp, <span class="number">443</span>/tcp  pmm-server          </span><br><span class="line"><span class="number">094</span>c63bd911b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/bin/true&quot;</span>            <span class="number">28</span> hours ago                                                                  pmm-data            </span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker start <span class="number">69195</span>dca404b</span><br><span class="line">Error response <span class="keyword">from</span> daemon: Cannot start container <span class="number">69195</span>dca404b: Error getting container <span class="number">69195</span>dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03 <span class="keyword">from</span> driver devicemapper: Error mounting <span class="string">&#x27;/dev/mapper/docker-253:0-6947028-69195dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03&#x27;</span> on <span class="string">&#x27;/var/lib/docker/devicemapper/mnt/69195dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03&#x27;</span>: device <span class="keyword">or</span> resource busy</span><br><span class="line">Error: failed to start containers: [<span class="number">69195</span>dca404b]</span><br><span class="line"></span><br><span class="line">umount /var/lib/docker/devicemapper/mnt/<span class="number">69195</span>dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03</span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED            STATUS                      PORTS                        NAMES</span><br><span class="line"><span class="number">69195</span>dca404b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/opt/entrypoint.sh&quot;</span>  <span class="number">28</span> hours ago        Exited (<span class="number">128</span>) <span class="number">8</span> minutes ago  <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:<span class="number">80</span>-&gt;<span class="number">80</span>/tcp, <span class="number">443</span>/tcp  pmm-server          </span><br><span class="line"><span class="number">094</span>c63bd911b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/bin/true&quot;</span>            <span class="number">28</span> hours ago                                                                  pmm-data            </span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker start <span class="number">69195</span>dca404b</span><br><span class="line"><span class="number">69195</span>dca404b</span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED            STATUS              PORTS                        NAMES</span><br><span class="line"><span class="number">69195</span>dca404b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/opt/entrypoint.sh&quot;</span>  <span class="number">28</span> hours ago        Up <span class="number">5</span> seconds        <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:<span class="number">80</span>-&gt;<span class="number">80</span>/tcp, <span class="number">443</span>/tcp  pmm-server          </span><br><span class="line"><span class="number">094</span>c63bd911b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/bin/true&quot;</span>            <span class="number">28</span> hours ago                                                          pmm-data          </span><br></pre></td></tr></table></figure></p>
 
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-MHA在监控和故障转移时都做了什么"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/07/24/MHA%E5%9C%A8%E7%9B%91%E6%8E%A7%E5%92%8C%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB%E6%97%B6%E9%83%BD%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88/">MHA在监控和故障转移时都做了什么</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/07/24/MHA%E5%9C%A8%E7%9B%91%E6%8E%A7%E5%92%8C%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB%E6%97%B6%E9%83%BD%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88/" class="article-date">
-	  <time datetime="2017-07-24T14:00:00.000Z" itemprop="datePublished">2017-07-24</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="MHA在监控和故障转移时都做了什么"><a href="#MHA在监控和故障转移时都做了什么" class="headerlink" title="MHA在监控和故障转移时都做了什么"></a>MHA在监控和故障转移时都做了什么</h2><p>以下是MHA(masterha_manager)在监控和故障切换上的基本流程</p>
-<h3 id="验证复制配置和识别当前主库"><a href="#验证复制配置和识别当前主库" class="headerlink" title="验证复制配置和识别当前主库"></a>验证复制配置和识别当前主库</h3><ul>
-<li><p>通过连接配置文件中描述的所有主机来识别当前主库.你不必手动指明那个主句是主库,MHA会自动检查复制设置并识别当前主库.</p>
-<blockquote>
-<p>注意:MHA本身不能构建复制环境,MHA监控已存在的复制环境</p>
-</blockquote>
-</li>
-<li><p>If any slave is dead at this stage, terminating the script for safety reasons(If any slave is dead, MHA can not recover the dead slave, of course). 开启监控时任何slave发生故障都会导致监控退出,MHA并不能修复从库</p>
-</li>
-<li><p>如果任何必要的脚本没有安装在所有Node,MHA abort而不会启动监控</p>
       
     </div>
     <footer class="article-footer">

@@ -305,6 +305,62 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2021-02-18-skeema简单使用"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2021/02/18/2021-02-18-skeema%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/">skeema简单使用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2021/02/18/2021-02-18-skeema%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="article-date">
+	  <time datetime="2021-02-18T05:08:00.000Z" itemprop="datePublished">2021-02-18</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>Skeema is a tool for managing MySQL tables and schema changes in a declarative fashion using pure SQL. It provides a CLI tool allowing you to:</p>
+<ul>
+<li>Export CREATE TABLE statements to the filesystem, for tracking in a repo (git, hg, svn, etc)</li>
+<li>Diff changes in the schema repo against live DBs to automatically generate DDL</li>
+<li>Manage multiple environments (e.g. dev, staging, prod) and keep them in sync with ease</li>
+<li>Configure use of online schema change tools, such as pt-online-schema-change, for performing ALTERs</li>
+<li>Convert non-online migrations from frameworks like Rails or Django into online schema changes in production</li>
+</ul>
+<p>Skeema supports a pull-request-based workflow for schema change submission, review, and execution. This permits your team to manage schema changes in exactly the same way as you manage code changes. Our new companion <a target="_blank" rel="noopener" href="https://www.skeema.io/cloud/">Cloud Linter for GitHub repos</a> provides automatic linting of schema change commits and pull requests.</p>
+<p>我这的需求是同步生产环境表结构到演练环境, 以下是针对我这个场景的具体使用方法</p>
+<h2 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h2><p>skeema需要的用户权限具体见<a target="_blank" rel="noopener" href="https://www.skeema.io/docs/requirements/">https://www.skeema.io/docs/requirements/</a></p>
+<p>这里说一下重点, <code>skeema diff</code>时会在目标环境创建一个<code>_skeema_tmp</code>临时数据库, 然后会删除这个库</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2021-02-12-DorisDB-vs-ClickHouse-SSB对比测试"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -840,54 +896,6 @@
 </ol>
 <p>所以当时基本使用MHA+VIP作为MySQL复制集的高可用方案.</p>
 <p>不谈vip的脑裂问题, 这种架构的一个关键点在于, MHA是作为一个外部机制检测MySQL复制集状态, 并变更复制集拓扑, 变更后漂移vip, 也就是说MHA既控制了集群拓扑的变化, 又控制了app的访问路径(写通过vip)</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-09-22-ClickHouse到底改写本地表还是分布式表"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/09/22/2020-09-22-ClickHouse%E5%88%B0%E5%BA%95%E6%94%B9%E5%86%99%E6%9C%AC%E5%9C%B0%E8%A1%A8%E8%BF%98%E6%98%AF%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8/">ClickHouse到底改写本地表还是分布式表</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/09/22/2020-09-22-ClickHouse%E5%88%B0%E5%BA%95%E6%94%B9%E5%86%99%E6%9C%AC%E5%9C%B0%E8%A1%A8%E8%BF%98%E6%98%AF%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8/" class="article-date">
-	  <time datetime="2020-09-22T02:30:00.000Z" itemprop="datePublished">2020-09-22</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><p>如果预估自己的业务数据量不大(日增不到百万行), 那么写分布式表和本地表都可以, 但要注意如果选择写本地表, 请保证每次写入数据都建立新的连接, 且每个连接写入的数据量基本相同</p>
-<p>如果预估自己的业务数据量大(日增百万以上, 并发插入大于10), 那么请写本地表</p>
-<p>建议每次插入50W行左右数据, 最多不可超过100W行. 总之CH不像MySQL要小事务. 比如1000W行数据, MySQL建议一次插入1W左右, 使用小事务, 执行1000次. CH建议20次,每次50W. 这是MergeTree引擎原理决定的, 频繁少量插入会导致data part过多, 合并不过来.</p>
-<p>再有, AP不像TP, TP为了避免建立新连接产生的损耗影响性能, 通常会使用长连接, 连接池等技术做优化. 但AP业务不需要, 因为AP的属性就不会有高并发, 小SQL.<br>
       
     </div>
     <footer class="article-footer">
