@@ -1038,37 +1038,6 @@
   </entry>
   
   <entry>
-    <title>2020年的一点点总结和感悟</title>
-    <link href="http://fuxkdb.com/2021/02/06/2021-02-06-2020%E5%B9%B4%E7%9A%84%E4%B8%80%E7%82%B9%E7%82%B9%E6%80%BB%E7%BB%93%E5%92%8C%E6%84%9F%E6%82%9F/"/>
-    <id>http://fuxkdb.com/2021/02/06/2021-02-06-2020年的一点点总结和感悟/</id>
-    <published>2021-02-06T03:52:00.000Z</published>
-    <updated>2021-02-08T05:50:42.214Z</updated>
-    
-    <content type="html"><![CDATA[<p>2020年总的来说生活过得还不错, 但是工作和学习属实拉胯, 自己有很大原因.</p>
-<h2 id="工作变动"><a href="#工作变动" class="headerlink" title="工作变动"></a>工作变动</h2><p>2020年底, 前公司发生很大变动, 很多同事相继离职, 但这其实并不是我离职的导火索, 导火索是和新来的直属上级无法合作, 这里不谈具体事原因和对错, 现在回过头来看, 对这个离职的决定也谈不上后悔, 只是唏嘘, 马蜂窝的工作环境和氛围确实是我工作以来最好的, 可现在已物是人非…<br>新工作不算满意, 工作所能提供的学习场景极其有限, 团队氛围大不如前, 已经没有在马蜂窝时那种几个人在会议室白板上写写画画讨论技术问题的氛围了(一部分客观原因是根本就没有白板..). 团队对技术的选型有很多时候并非理性而是主观意向(未经实际测试)或者面向绩效的(向上管理味道太浓), 感觉自己的所做的工作也没有那么被认可(也确实没做啥说的上让自己满意的工作), 另外, 现在DBA只要不写web平台就感觉没干活的氛围在整个市场也越来越浓郁了. </p>
-<p>确实, 自己在web开发方面是个小白, 菜就是菜, 落后就要挨打! 但这一年在数据库方面的成长速度也实在大不如前, 这可能是我专职MySQL DBA三年多里成长最慢的一年, 这里客观上也有自己的原因.</p>
-<p>总之, 今年的教训是工作不开心不要冲动离职, 换工作也不要朝钱看, 成长才是最重要的.</p>
-<h2 id="学习状态"><a href="#学习状态" class="headerlink" title="学习状态"></a>学习状态</h2><p>今年学习上投入的时间和效率大不如前, 有工作的原因, 更多的可能还是个人原因. </p>
-<p>虽然自己明知道应该完善自己的开发能力, 但就是提不起劲头, 始终是没有去学习数据库时那种可以不吃饭不睡觉的状态. 我想如果可以抛开生活的压力, 可能每个人都会去选择学习自己感兴趣的东西, 但是作为一个社畜(今年我有点理解了社畜定义)必须要满足市场的需求, 才能在竞争中不被淘汰.</p>
-<p>绩效, 职级, 薪水都只是你在当前公司暂时的状态, 最终评价个人的是市场, 所以不要太在意这些, 2021年要多花时间私下学习, 哪怕所学的东西不是当前工作需要的, 工作上不必太较真. 优秀的人都是自驱的, 还是多从自身找原因吧.</p>
-<h2 id="生活"><a href="#生活" class="headerlink" title="生活"></a>生活</h2><p>明年会很忙, 装修, 搬家..</p>
-<p>键盘打算放一放了, switch也尽量少玩了(其实现在也基本不玩..)</p>
-<p>加油吧, 2021得对得起自己.</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;2020年总的来说生活过得还不错, 但是工作和学习属实拉胯, 自己有很大原因.&lt;/p&gt;
-&lt;h2 id=&quot;工作变动&quot;&gt;&lt;a href=&quot;#工作变动&quot; class=&quot;headerlink&quot; title=&quot;工作变动&quot;&gt;&lt;/a&gt;工作变动&lt;/h2&gt;&lt;p&gt;2020年底, 前公司发生很大
-    
-    </summary>
-    
-    
-      <category term="生活" scheme="http://fuxkdb.com/tags/%E7%94%9F%E6%B4%BB/"/>
-    
-  </entry>
-  
-  <entry>
     <title>使用Canal + ClickHouse实时分析MySQL事务信息</title>
     <link href="http://fuxkdb.com/2020/12/31/2020-12-31-%E4%BD%BF%E7%94%A8Canal-+-ClickHouse%E5%AE%9E%E6%97%B6%E5%88%86%E6%9E%90MySQL%E4%BA%8B%E5%8A%A1%E4%BF%A1%E6%81%AF/"/>
     <id>http://fuxkdb.com/2020/12/31/2020-12-31-使用Canal-+-ClickHouse实时分析MySQL事务信息/</id>
@@ -2389,6 +2358,179 @@
     
     
       <category term="MySQL" scheme="http://fuxkdb.com/tags/MySQL/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>译文-Group Replication and Percona XtraDB Cluster: Overview of Common Operations</title>
+    <link href="http://fuxkdb.com/2020/05/03/2020-05-03-%E8%AF%91%E6%96%87-Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations/"/>
+    <id>http://fuxkdb.com/2020/05/03/2020-05-03-译文-Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations/</id>
+    <published>2020-05-03T04:20:00.000Z</published>
+    <updated>2020-05-03T04:28:19.223Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations"><a href="#Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations" class="headerlink" title="Group Replication and Percona XtraDB Cluster: Overview of Common Operations"></a><a href="https://www.percona.com/blog/2020/04/28/group-replication-and-percona-xtradb-cluster-overview-of-common-operations/">Group Replication and Percona XtraDB Cluster: Overview of Common Operations</a></h1><p>在这篇博客文章中，我将概述使用MySQL Group Replication 8.0.19 (aka GR 国内爱叫MGR发现国外还是习惯叫GR)和<a href="https://www.percona.com/downloads/Percona-XtraDB-Cluster-80/LATEST/">Percona XtraDB Cluster 8</a> (PXC)(基于Galera)时最常见的故障转移场景和操作，并解释每种技术如何处理每种情况。我已经创建了一个包含三个节点的集群，使用一个主节点和一个包含三个节点的PXC进行组复制，它们均使用默认参数配置。 我还将使用ProxySQL与两个群集进行交互。</p>
+<p>在这两个群集中，节点的名称分别为<code>mysql1</code>，<code>mysql2</code>和<code>mysql3</code>。 在组复制中，如果我们使用单主模式，则主节点处理写请求。 在PXC中，我也将使用相同的术语，并将在发送写操作的节点称为Primary。 请注意，在PXC中没有主节点的概念，所有节点都是相等的。<br><a id="more"></a><br>这是两种解决方案的设置示意图。</p>
+<p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost1-1.png" alt="Group Replication"></p>
+<h2 id="Primary-Server-Crashes"><a href="#Primary-Server-Crashes" class="headerlink" title="Primary Server Crashes"></a>Primary Server Crashes</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost2.png" alt="primary server crashes"></p>
+<h4 id="Group-Replication-–-Writing"><a href="#Group-Replication-–-Writing" class="headerlink" title="Group Replication – Writing"></a>Group Replication – Writing</h4><p>在此测试中，我仅向集群发送写请求。 当我杀死GR上的主节点时，重新组织拓扑需要花费5到15秒的时间，ProxySQL识别新的拓扑结构后将写入发送到新的主节点。 启动旧的主数据库并将其重新添加到集群中不会导致任何中断(不会影响业务)。</p>
+<h4 id="Group-Replication-–-Reading"><a href="#Group-Replication-–-Reading" class="headerlink" title="Group Replication – Reading"></a>Group Replication – Reading</h4><p>如果我仅向集群发送读取请求，主节点崩溃将导致读取中断吗？ ProxySQL只会将流量重定向到其他节点。 重组期间不会阻塞查询。</p>
+<h4 id="Percona-XtraDB-Cluster-–-Writing-Reading"><a href="#Percona-XtraDB-Cluster-–-Writing-Reading" class="headerlink" title="Percona XtraDB Cluster – Writing/Reading"></a>Percona XtraDB Cluster – Writing/Reading</h4><p>在PXC中，读取和写入之间没有区别，一旦节点崩溃/消失/分离(crashes/goes away/gets separated)，群集必须重新创建群集视图并检查仲裁。 这样做时，它不接受任何读取或写入。 通常，这需要3到10秒，在此时间范围内，应用程序会受到影响。</p>
+<h2 id="Removing-Adding-Node"><a href="#Removing-Adding-Node" class="headerlink" title="Removing/Adding Node"></a>Removing/Adding Node</h2><p>如果我们删除或添加一个新节点，集群会如何做。</p>
+<h4 id="Group-Replication"><a href="#Group-Replication" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>在GR中，添加或删除节点不会影响或导致应用程序中断。 如果我们使用克隆插件添加新节点，则集群会将数据传播到新节点。</p>
+<h4 id="Percona-XtraDB-Cluster"><a href="#Percona-XtraDB-Cluster" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>删除或添加节点不会导致任何中断。 类似地，就像在GR中添加新节点时一样，它将执行SST（State Snapshot Transfer状态快照传输）以从另一个节点获取所有数据。</p>
+<h2 id="Partial-Network-Failure"><a href="#Partial-Network-Failure" class="headerlink" title="Partial Network Failure"></a>Partial Network Failure</h2><p>如果读节点与主节点分离，但仍能够看到其他节点，则群集会发生什么情况？</p>
+<p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost3.png" alt="Partial Network Failure"></p>
+<p>在这种情况下，mysql2（主）和mysql3之间存在网络中断。</p>
+<h4 id="Group-Replication-1"><a href="#Group-Replication-1" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>在我之前的一篇博文<a href="https://www.percona.com/blog/2020/04/21/mysql-group-replication-partial-network-failure-performance-impact/">MySQL Group Replication – Partial Network Failure Performance Impact</a>中我更详细地解释了这个特殊情况。基本上，部分网络中断会严重影响集群中的写性能，从而导致应用程序问题和/或停机。</p>
+<blockquote>
+<p>8.0.19有bug,官方已经复现并确认bug, 但是一个朋友没有复现</p>
+<p>目前最新版本为8.0.20, 在<a href="https://dev.mysql.com/doc/relnotes/mysql/8.0/en/news-8-0-20.html">release note</a>没有看到修复此bug</p>
+</blockquote>
+<h4 id="Percona-XtraDB-Cluster-1"><a href="#Percona-XtraDB-Cluster-1" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>在PXC中，当群集重新创建群集视图并开始将流量中继到可看到该服务器的节点时，将发生3-5秒的中断。 之后，它将像以前一样继续工作，而不会对性能造成任何严重影响。</p>
+<blockquote>
+<p>In PXC there is going to be a 3-5s outage while the cluster re-creates the cluster view and begins relaying the traffic to a node that sees that server. After that, it will continue working just like before without any serious performance impact.</p>
+</blockquote>
+<h2 id="Total-Network-Isolation"><a href="#Total-Network-Isolation" class="headerlink" title="Total Network Isolation"></a>Total Network Isolation</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost5.png" alt="Total Network Isolation"></p>
+<p>现在，mysql3与所有其他节点完全分离。</p>
+<h4 id="Group-Replication-2"><a href="#Group-Replication-2" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>群集可以接受读取和写入而不会发生任何中断，ProxySQL会将读取重定向到其他节点。</p>
+<h4 id="Percona-XtraDB-Cluster-2"><a href="#Percona-XtraDB-Cluster-2" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>在PXC上，将有3-5秒的停机时间，而群集意识到一个节点不可用，并将如上所述重新创建群集视图。 在那之后，它能够处理读写。</p>
+<h2 id="Local-Applications"><a href="#Local-Applications" class="headerlink" title="Local Applications"></a>Local Applications</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2020/04/blogpost6.png" alt="Local Applications"></p>
+<p>如果一个节点或部分节点与集群分开(网络分区, 5节点集群,形成3, 2结构), 那个对于分区中的2个节点, 可能应用仍然能和它们通信, 此时会发生什么情况?</p>
+<blockquote>
+<p>What happens if a node or part of the nodes are separated and they do not have the quorum, but they have the application server in the same network segments which could still connect to the server.</p>
+</blockquote>
+<h4 id="Group-Replication-3"><a href="#Group-Replication-3" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>分离的节点仍将接受读取流量，因此应用程序可以根据过时的数据做出决策。 这是默认设置，但是您可以使用名为<a href="https://dev.mysql.com/doc/refman/8.0/en/group-replication-options.html#sysvar_group_replication_exit_state_action">group_replication_exit_state_action</a>的参数做出调整</p>
+<blockquote>
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/group-replication-options.html#sysvar_group_replication_exit_state_action"><code>group_replication_exit_state_action</code></a></p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Command-Line Format</strong></td>
+<td><code>--group-replication-exit-state-action=value</code></td>
+</tr>
+<tr>
+<td><strong>Introduced</strong></td>
+<td>8.0.12</td>
+</tr>
+<tr>
+<td><strong>System Variable</strong></td>
+<td><code>group_replication_exit_state_action</code></td>
+</tr>
+<tr>
+<td><strong>Scope</strong></td>
+<td>Global</td>
+</tr>
+<tr>
+<td><strong>Dynamic</strong></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><strong><a href="https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html#optimizer-hints-set-var"><code>SET_VAR</code></a> Hint Applies</strong></td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Type</strong></td>
+<td>Enumeration</td>
+</tr>
+<tr>
+<td><strong>Default Value</strong> (≥ 8.0.16)</td>
+<td><code>READ_ONLY</code></td>
+</tr>
+<tr>
+<td><strong>Default Value</strong> (≥ 8.0.12, ≤ 8.0.15)</td>
+<td><code>ABORT_SERVER</code></td>
+</tr>
+<tr>
+<td><strong>Valid Values</strong> (≥ 8.0.18)</td>
+<td><code>ABORT_SERVER``OFFLINE_MODE``READ_ONLY</code></td>
+</tr>
+<tr>
+<td><strong>Valid Values</strong> (≥ 8.0.12, ≤ 8.0.17)</td>
+<td><code>ABORT_SERVER``READ_ONLY</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>ABORT_SERVER</code>节点实例会被shutdown</p>
+<p><code>OFFLINE_MODE</code>连接的客户端用户在下一个请求时断开连接，不再接受连接</p>
+<p><code>READ_ONLY</code> 实例变为只读模式</p>
+</blockquote>
+<h4 id="Percona-XtraDB-Cluster-3"><a href="#Percona-XtraDB-Cluster-3" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>在PXC中，如果节点分离，则它将不接受任何读取或写入。 优先级是数据一致性，只有具有quorum的segment才能接受任何读取和写入。</p>
+<blockquote>
+<p>In PXC, if a node gets separated, it is not going to accept any reads or writes. The priority is the data consistency and only the segment which has the quorum will accept any reads and writes.</p>
+</blockquote>
+<h2 id="Changing-Primary"><a href="#Changing-Primary" class="headerlink" title="Changing Primary"></a>Changing Primary</h2><h4 id="Group-Replication-4"><a href="#Group-Replication-4" class="headerlink" title="Group Replication"></a>Group Replication</h4><p>If you would like to use a new Primary node you have to promote a reader to be the new primary:</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">cluster</span><span class="selector-class">.setPrimaryInstance</span>(&quot;<span class="selector-tag">mysql2</span><span class="selector-pseudo">:3306&quot;)</span></span><br></pre></td></tr></table></figure>
+<p>ProxySQL将遵循这些更改，但是在群集重新组织自身时，它将导致几秒钟的中断。</p>
+<h4 id="Percona-XtraDB-Cluster-4"><a href="#Percona-XtraDB-Cluster-4" class="headerlink" title="Percona XtraDB Cluster"></a>Percona XtraDB Cluster</h4><p>在PXC上没有Primary的概念，任何节点都可以在任何时间进行写操作，因此我们只需要将流量重定向到负载均衡器中的另一个节点（即ProxySQL）。 PXC中还有一个pxc_maint_mode变量。 将其更改为MAINTENANCE可以从节点上软删除该连接，即使该连接是Primary，也是如此，但是ProxySQL Native Galera支持对此的支持很差。 I would recommend using the <a href="https://github.com/percona/proxysql-admin-tool/tree/v1.4">1.4 scheduler which respects</a> this variable.</p>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>Group Replication</th>
+<th>Percona XtraDB Cluster</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primary Crashes</td>
+<td>5-15s outage</td>
+<td>5-10s outage</td>
+</tr>
+<tr>
+<td>Reader Crashes</td>
+<td>No impact</td>
+<td>3-5s outage</td>
+</tr>
+<tr>
+<td>Adding a Node</td>
+<td>No impact</td>
+<td>No impact</td>
+</tr>
+<tr>
+<td>Removing a Node</td>
+<td>No impact</td>
+<td>No impact</td>
+</tr>
+<tr>
+<td>Partial Network Failure</td>
+<td>Performance Impact</td>
+<td>3-5s outage, than normal performance</td>
+</tr>
+<tr>
+<td>Total Network Isolation</td>
+<td>No impact</td>
+<td>3-5s outage</td>
+</tr>
+<tr>
+<td>Changing Primary</td>
+<td>1-3s outage</td>
+<td>No impact on the cluster</td>
+</tr>
+</tbody>
+</table>
+<p>如果读取节点发生故障或分离，则组复制的影响较小。 在PXC中，由于所有节点都是相同的，因此没有专用的主节点。 如果任何节点发生任何事情，则集群必须投票并重新创建集群视图，这可能会对应用程序产生一些影响。 但是，PXC可以更好地处理主节点切换(primary promotions)和网络故障。</p>
+<p>如我们所见，这两种集群解决方案都有各自的优缺点。 希望本摘要将帮助您对它们有更多的了解，并使您对使用哪种技术的决策更加容易。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations&quot;&gt;&lt;a href=&quot;#Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations&quot; class=&quot;headerlink&quot; title=&quot;Group Replication and Percona XtraDB Cluster: Overview of Common Operations&quot;&gt;&lt;/a&gt;&lt;a href=&quot;https://www.percona.com/blog/2020/04/28/group-replication-and-percona-xtradb-cluster-overview-of-common-operations/&quot;&gt;Group Replication and Percona XtraDB Cluster: Overview of Common Operations&lt;/a&gt;&lt;/h1&gt;&lt;p&gt;在这篇博客文章中，我将概述使用MySQL Group Replication 8.0.19 (aka GR 国内爱叫MGR发现国外还是习惯叫GR)和&lt;a href=&quot;https://www.percona.com/downloads/Percona-XtraDB-Cluster-80/LATEST/&quot;&gt;Percona XtraDB Cluster 8&lt;/a&gt; (PXC)(基于Galera)时最常见的故障转移场景和操作，并解释每种技术如何处理每种情况。我已经创建了一个包含三个节点的集群，使用一个主节点和一个包含三个节点的PXC进行组复制，它们均使用默认参数配置。 我还将使用ProxySQL与两个群集进行交互。&lt;/p&gt;
+&lt;p&gt;在这两个群集中，节点的名称分别为&lt;code&gt;mysql1&lt;/code&gt;，&lt;code&gt;mysql2&lt;/code&gt;和&lt;code&gt;mysql3&lt;/code&gt;。 在组复制中，如果我们使用单主模式，则主节点处理写请求。 在PXC中，我也将使用相同的术语，并将在发送写操作的节点称为Primary。 请注意，在PXC中没有主节点的概念，所有节点都是相等的。&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="MySQL" scheme="http://fuxkdb.com/tags/MySQL/"/>
+    
+      <category term="MGR" scheme="http://fuxkdb.com/tags/MGR/"/>
+    
+      <category term="PXC" scheme="http://fuxkdb.com/tags/PXC/"/>
     
   </entry>
   

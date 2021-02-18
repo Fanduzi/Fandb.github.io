@@ -305,54 +305,6 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-2020-09-22-ClickHouse到底改写本地表还是分布式表"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/09/22/2020-09-22-ClickHouse%E5%88%B0%E5%BA%95%E6%94%B9%E5%86%99%E6%9C%AC%E5%9C%B0%E8%A1%A8%E8%BF%98%E6%98%AF%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8/">ClickHouse到底改写本地表还是分布式表</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/09/22/2020-09-22-ClickHouse%E5%88%B0%E5%BA%95%E6%94%B9%E5%86%99%E6%9C%AC%E5%9C%B0%E8%A1%A8%E8%BF%98%E6%98%AF%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8/" class="article-date">
-	  <time datetime="2020-09-22T02:30:00.000Z" itemprop="datePublished">2020-09-22</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><p>如果预估自己的业务数据量不大(日增不到百万行), 那么写分布式表和本地表都可以, 但要注意如果选择写本地表, 请保证每次写入数据都建立新的连接, 且每个连接写入的数据量基本相同</p>
-<p>如果预估自己的业务数据量大(日增百万以上, 并发插入大于10), 那么请写本地表</p>
-<p>建议每次插入50W行左右数据, 最多不可超过100W行. 总之CH不像MySQL要小事务. 比如1000W行数据, MySQL建议一次插入1W左右, 使用小事务, 执行1000次. CH建议20次,每次50W. 这是MergeTree引擎原理决定的, 频繁少量插入会导致data part过多, 合并不过来.</p>
-<p>再有, AP不像TP, TP为了避免建立新连接产生的损耗影响性能, 通常会使用长连接, 连接池等技术做优化. 但AP业务不需要, 因为AP的属性就不会有高并发, 小SQL.<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
     <article id="post-2020-09-20-增强半同步会不会丢数据"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -607,6 +559,51 @@
         <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-1"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-1" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 1"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">ClickHouse Materialized Views Illuminated, Part 1</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/4c9e8-stockvault-abstract-background-big-data-concept264047.jpg" alt="header"></p>
 <p><a target="_blank" rel="noopener" href="https://altinity.com/blog/">Altinity blog</a>的读者们知道我们喜欢ClickHouse的<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/sql-reference/statements/create/view/#materialized">物化视图</a>. 物化视图可以实现聚合计算, 从Kafka读取数据, 实现最后点查询(last point queries)以及重组表主键索引和排序顺序. 除了这些功能之外, 物化视图可以在大量节点上很好地扩缩, 并可以处理大型数据集. 它们是ClickHouse的独特功能之一.</p>
 <p>在计算领域, 强大的功能至少意味着一点点复杂性. 这篇由两部分组成的文章通过解释物化视图的工作原理来填补空白, 从而使初学者也可以有效地使用它们. 我们将通过几个详细的示例, 您可以根据自己的使用进行调整. 在此过程中, 我们将探索用于创建视图的语法的确切含义, 并让您深入了解ClickHouse在做什么.  示例是完全自包含的, 因此您可以将它们复制/粘贴到clickhouse-client中并自己运行它们.<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2020-08-23-为什么pt-osc和gh-osc在拷贝源表数据时要使用insert-IGNORE-into-select-lock-in-share-mode"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/08/23/2020-08-23-%E4%B8%BA%E4%BB%80%E4%B9%88pt-osc%E5%92%8Cgh-osc%E5%9C%A8%E6%8B%B7%E8%B4%9D%E6%BA%90%E8%A1%A8%E6%95%B0%E6%8D%AE%E6%97%B6%E8%A6%81%E4%BD%BF%E7%94%A8insert-IGNORE-into-select-lock-in-share-mode/">为什么pt-osc和gh-osc在拷贝源表数据时要使用insert IGNORE into select lock in share mode</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/08/23/2020-08-23-%E4%B8%BA%E4%BB%80%E4%B9%88pt-osc%E5%92%8Cgh-osc%E5%9C%A8%E6%8B%B7%E8%B4%9D%E6%BA%90%E8%A1%A8%E6%95%B0%E6%8D%AE%E6%97%B6%E8%A6%81%E4%BD%BF%E7%94%A8insert-IGNORE-into-select-lock-in-share-mode/" class="article-date">
+	  <time datetime="2020-08-23T10:58:00.000Z" itemprop="datePublished">2020-08-23</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="insert-IGNORE-into-select-lock-in-share-mode-的作用"><a href="#insert-IGNORE-into-select-lock-in-share-mode-的作用" class="headerlink" title="insert IGNORE into select lock in share mode 的作用"></a>insert IGNORE into select lock in share mode 的作用</h1><p>pt-osc和gh-osc在拷贝旧数据时逻辑是一样的, 都是用insert ignore into 影子表 select * from 原表force index (<code>PRIMARY</code>) where chunk范围 lock in share mode<br>
       
     </div>
     <footer class="article-footer">

@@ -305,51 +305,6 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-2020-08-23-为什么pt-osc和gh-osc在拷贝源表数据时要使用insert-IGNORE-into-select-lock-in-share-mode"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-%E4%B8%BA%E4%BB%80%E4%B9%88pt-osc%E5%92%8Cgh-osc%E5%9C%A8%E6%8B%B7%E8%B4%9D%E6%BA%90%E8%A1%A8%E6%95%B0%E6%8D%AE%E6%97%B6%E8%A6%81%E4%BD%BF%E7%94%A8insert-IGNORE-into-select-lock-in-share-mode/">为什么pt-osc和gh-osc在拷贝源表数据时要使用insert IGNORE into select lock in share mode</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/23/2020-08-23-%E4%B8%BA%E4%BB%80%E4%B9%88pt-osc%E5%92%8Cgh-osc%E5%9C%A8%E6%8B%B7%E8%B4%9D%E6%BA%90%E8%A1%A8%E6%95%B0%E6%8D%AE%E6%97%B6%E8%A6%81%E4%BD%BF%E7%94%A8insert-IGNORE-into-select-lock-in-share-mode/" class="article-date">
-	  <time datetime="2020-08-23T10:58:00.000Z" itemprop="datePublished">2020-08-23</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="insert-IGNORE-into-select-lock-in-share-mode-的作用"><a href="#insert-IGNORE-into-select-lock-in-share-mode-的作用" class="headerlink" title="insert IGNORE into select lock in share mode 的作用"></a>insert IGNORE into select lock in share mode 的作用</h1><p>pt-osc和gh-osc在拷贝旧数据时逻辑是一样的, 都是用insert ignore into 影子表 select * from 原表force index (<code>PRIMARY</code>) where chunk范围 lock in share mode<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
     <article id="post-2020-08-23-ProxySQL升级时对默认部署的实例的影响"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -569,6 +524,54 @@
         <h1 id="New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication"><a href="#New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication" class="headerlink" title="New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/05/15/new-feature-in-percona-xtradb-cluster-8-0-streaming-replication/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=88003187&amp;_hsenc=p2ANqtz-8AwEjtYpEuWSlNMk6OX4QGFsnPUWMEcW9o9FWOjQI_UGqkjKzcXPvfKm7evqRE0EuwXnrLs-tTDdcMby4ADbQWg5nLqw&amp;_hsmi=88003187">New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication</a></h1><p>Percona XtraDB Cluster 8.0附带了一个升级的Galera 4.0库, 它提供了一个新特性—<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>.让我们回顾一下它是什么, 什么时候可能有用</p>
 <p>以前版本的Percona XtraDB集群和Galera 3.x在处理大事务方面有限制.</p>
 <p>让我们看一下sysbench-tpcc工作负载下的性能, 与此同时, 我们对一个表执行了一个大的更新语句, 该更新甚至与主工作负载中的表都不相关.<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2020-05-16-[译文]Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/05/16/2020-05-16-%5B%E8%AF%91%E6%96%87%5DGalera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/">译文 Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/05/16/2020-05-16-%5B%E8%AF%91%E6%96%87%5DGalera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/" class="article-date">
+	  <time datetime="2020-05-16T14:40:00.000Z" itemprop="datePublished">2020-05-16</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8-0"><a href="#Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8-0" class="headerlink" title="Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/05/13/galera-4-streaming-replication-in-percona-xtradb-cluster-8-0/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=88003187&amp;_hsenc=p2ANqtz-8AwEjtYpEuWSlNMk6OX4QGFsnPUWMEcW9o9FWOjQI_UGqkjKzcXPvfKm7evqRE0EuwXnrLs-tTDdcMby4ADbQWg5nLqw&amp;_hsmi=88003187">Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0</a></h1><p>我正在测试最新的<a target="_blank" rel="noopener" href="https://www.percona.com/software/mysql-database/percona-xtradb-cluster">Percona XtraDB Cluster</a> 8.0 (PXC)版本, 其中包含了Galera 4插件, 我想分享一下到目前为止我在<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>特性方面的经验和想法, </p>
+<h3 id="What-Is-Streaming-Replication-in-One-Sentence"><a href="#What-Is-Streaming-Replication-in-One-Sentence" class="headerlink" title="What Is Streaming Replication, in One Sentence?"></a>What Is Streaming Replication, in One Sentence?</h3><p>在Galera 4中, 大型事务可以分割成更小的片段, 甚至在提交之前, 这些片段就已经被复制到其他节点, 并且已经开始了认证(certification)和应用(apply)过程.</p>
+<p>手册描述了所有的优点和缺点, 但是让我们看看它是如何工作的. 我已经创建了一个包含1千万行的表, 我将在这个表上运行一些大的update语句, </p>
+<p>首先, 我在不使用Streaming Replication的情况下运行更新, 由于默认情况下Streaming Replication是disabled, 所以我们不需要做任何事情, 只需运行更新即可. 在<code>node1</code>上, 我记录更新之前和之后的时间, 在<code>node2</code>上, 我每秒钟运行一次select,   以查看这个更新在其他节点上实际提交的时间.<br>
       
     </div>
     <footer class="article-footer">

@@ -305,54 +305,6 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-pybackup使用文档"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/11/12/pybackup%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/">pybackup使用文档</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/11/12/pybackup%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/" class="article-date">
-	  <time datetime="2017-11-12T14:04:00.000Z" itemprop="datePublished">2017-11-12</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="pybackup使用文档"><a href="#pybackup使用文档" class="headerlink" title="pybackup使用文档"></a>pybackup使用文档</h1><p><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/pybackup">https://github.com/Fanduzi/pybackup</a><br>pybackup源自于对线上备份脚本的改进和对备份情况的监控需求.<br>原本生产库的备份是通过shell脚本调用mydumper,之后再将备份通过rsync传输到备份机.<br>想要获取备份状态,时间,rsync传输时间等信息只能通过解析日志.<br>pybackup由python编写,调用mydumper和rsync,将备份信息存入数据库中,后期可以通过grafana图形化展示和监控备份<br>目前不支持2.6,仅在2.7.14做过测试</p>
-<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>帮助信息<br><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@iZ23t8cwo3iZ backup_db]# <span class="keyword">python</span> pybackup.<span class="keyword">py</span> -h</span><br><span class="line">Usage:</span><br><span class="line">        pybackup.<span class="keyword">py</span> mydumper ARG_WITH_NO_--... (([--<span class="keyword">no</span>-rsync] [--<span class="keyword">no</span>-<span class="keyword">history</span>]) | [--<span class="keyword">only</span>-backup])</span><br><span class="line">        pybackup.<span class="keyword">py</span> <span class="keyword">only</span>-rsync [--backup-dir=<span class="symbol">&lt;DIR&gt;</span>] [--bk-id=<span class="symbol">&lt;id&gt;</span>] [--<span class="built_in">log</span>-<span class="keyword">file</span>=<span class="symbol">&lt;log&gt;</span>]</span><br><span class="line">        pybackup.<span class="keyword">py</span> -h | --<span class="keyword">help</span></span><br><span class="line">        pybackup.<span class="keyword">py</span> --<span class="keyword">version</span></span><br><span class="line"></span><br><span class="line">Option<span class="variable">s:</span></span><br><span class="line">        -h --<span class="keyword">help</span>                      Show <span class="keyword">help</span> information.</span><br><span class="line">        --<span class="keyword">version</span>                      Show <span class="keyword">version</span>.</span><br><span class="line">        --<span class="keyword">no</span>-rsync                     Do not use rsync.</span><br><span class="line">        --<span class="keyword">no</span>-<span class="keyword">history</span>                   Do not record backup <span class="keyword">history</span> information.</span><br><span class="line">        --<span class="keyword">only</span>-backup                  Equal <span class="keyword">to</span> use both --<span class="keyword">no</span>-rsync <span class="built_in">and</span> --<span class="keyword">no</span>-<span class="keyword">history</span>.</span><br><span class="line">        --<span class="keyword">only</span>-rsync                   When you backup <span class="built_in">complete</span>, but rsync failed, use this option <span class="keyword">to</span> rsync your backup.</span><br><span class="line">        --backup-dir=<span class="symbol">&lt;DIR&gt;</span>             The directory where the backup <span class="keyword">files</span> need <span class="keyword">to</span> <span class="keyword">be</span> rsync are located. [defaul<span class="variable">t:</span> ./]</span><br><span class="line">        --bk-id=<span class="symbol">&lt;id&gt;</span>                   bk-id in table user_backup.</span><br><span class="line">        --<span class="built_in">log</span>-<span class="keyword">file</span>=<span class="symbol">&lt;log&gt;</span>               <span class="built_in">log</span> <span class="keyword">file</span> [defaul<span class="variable">t:</span> ./rsync.<span class="built_in">log</span>]</span><br><span class="line"></span><br><span class="line">more <span class="keyword">help</span> information in:</span><br><span class="line">http<span class="variable">s:</span>//github.<span class="keyword">com</span>/Fanduzi</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pybackup.<span class="keyword">py</span> mydumper ARG_WITH_NO_--... (([--<span class="keyword">no</span>-rsync] [--<span class="keyword">no</span>-<span class="keyword">history</span>]) | [--<span class="keyword">only</span>-backup])</span><br></pre></td></tr></table></figure>
-<p>除了最后三个参数,使用的所有参数和mydumper -h中列出的参数相同. 只不过目前只支持长选项,并且不带’–’</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
     <article id="post-为什么双主建议单节点写入"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -579,6 +531,52 @@
         <p>源库这边跑一个sysbench,为了测试之后kill -HUP是不是会有影响<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sysbench /usr/share/sysbench/oltp_read_write.lua  <span class="attribute">--mysql-user</span>=root <span class="attribute">--mysql-password</span>=mysql <span class="attribute">--mysql-port</span>=3306 \</span><br><span class="line"><span class="attribute">--mysql-socket</span>=/data/mysqldata/3306/mysql.sock  <span class="attribute">--mysql-host</span>=localhost \</span><br><span class="line"><span class="attribute">--mysql-db</span>=sysbenchtest  <span class="attribute">--tables</span>=10 <span class="attribute">--table-size</span>=5000000  <span class="attribute">--threads</span>=30 \</span><br><span class="line"><span class="attribute">--events</span>=5000000 <span class="attribute">--report-interval</span>=5  <span class="attribute">--db-driver</span>=mysql prepare</span><br><span class="line"></span><br><span class="line">sysbench \</span><br><span class="line">/usr/share/sysbench/oltp_read_write.lua \</span><br><span class="line"><span class="attribute">--mysql-user</span>=root  <span class="attribute">--mysql-password</span>=mysql <span class="attribute">--mysql-port</span>=3306 \</span><br><span class="line"><span class="attribute">--mysql-socket</span>=/data/mysqldata/3306/mysql.sock  <span class="attribute">--mysql-host</span>=localhost \</span><br><span class="line"><span class="attribute">--mysql-db</span>=sysbenchtest  <span class="attribute">--tables</span>=10 <span class="attribute">--table-size</span>=5000000 \</span><br><span class="line"><span class="attribute">--threads</span>=30 <span class="attribute">--report-interval</span>=5 <span class="attribute">--time</span>=7000 <span class="attribute">--db-driver</span>=mysql <span class="builtin-name">run</span> &gt; binlog_off.txt</span><br></pre></td></tr></table></figure></p>
 <p>把忘记密码的库的mysql.user表传到一个知道密码的测试库<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">root@uz22199</span> <span class="string">mysql</span>]<span class="comment"># scp -p user.* 10.4.3.100:/data/mysqldata/3306/data/fandb/</span></span><br><span class="line"><span class="string">root@10.4.3.100&#x27;s</span> <span class="attr">password:</span> </span><br><span class="line"><span class="string">user.frm</span>                                                                                                                                                                                  <span class="number">100</span><span class="string">%</span>  <span class="string">11KB</span>  <span class="number">10.</span><span class="string">6KB/s</span>  <span class="number">00</span><span class="string">:00</span>    </span><br><span class="line"><span class="string">user.MYD</span>                                                                                                                                                                                  <span class="number">100</span><span class="string">%</span>  <span class="number">736</span>    <span class="number">0.</span><span class="string">7KB/s</span>  <span class="number">00</span><span class="string">:00</span>    </span><br><span class="line"><span class="string">user.MYI</span>                                                                                                                                                                                  <span class="number">100</span><span class="string">%</span> <span class="number">4096    </span><span class="number">4.</span><span class="string">0KB/s</span>  <span class="number">00</span><span class="string">:00</span> </span><br></pre></td></tr></table></figure></p>
 <p>生成一下insert语句,后面用<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@test43100 ~]# mysqldump <span class="attribute">--user</span>=root <span class="attribute">--password</span>=<span class="string">&#x27;mysql&#x27;</span> fandb<span class="built_in"> user </span><span class="attribute">--where</span>=<span class="string">&quot;host=&#x27;localhost&#x27; and user=&#x27;root&#x27;&quot;</span> |grep INSERT</span><br><span class="line">mysqldump: [<span class="builtin-name">Warning</span>] Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line">Warning: A partial dump <span class="keyword">from</span> a<span class="built_in"> server </span>that has GTIDs will by<span class="built_in"> default </span>include the GTIDs of all transactions, even those that changed suppressed parts of the database. <span class="keyword">If</span> you don<span class="string">&#x27;t want to restore GTIDs, pass --set-gtid-purged=OFF. To make a complete dump, pass --all-databases --triggers --routines --events. </span></span><br><span class="line"><span class="string">INSERT INTO `user` VALUES (&#x27;</span>localhost<span class="string">&#x27;,&#x27;</span>root<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span>Y<span class="string">&#x27;,&#x27;</span><span class="string">&#x27;,&#x27;</span><span class="string">&#x27;,&#x27;</span><span class="string">&#x27;,&#x27;</span><span class="string">&#x27;,0,0,0,0,&#x27;</span>mysql_native_password<span class="string">&#x27;,&#x27;</span><span class="number">*81F5E21E35407D884A6CD4A731AEBFB6AF209E1B</span><span class="string">&#x27;,&#x27;</span>N<span class="string">&#x27;,&#x27;</span>2017-08-04 08:12:53<span class="string">&#x27;,NULL,&#x27;</span>N<span class="string">&#x27;);</span></span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-MySQL不完全恢复"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/09/11/MySQL%E4%B8%8D%E5%AE%8C%E5%85%A8%E6%81%A2%E5%A4%8D/">MySQL不完全恢复</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/09/11/MySQL%E4%B8%8D%E5%AE%8C%E5%85%A8%E6%81%A2%E5%A4%8D/" class="article-date">
+	  <time datetime="2017-09-11T10:16:00.000Z" itemprop="datePublished">2017-09-11</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="不完全恢复"><a href="#不完全恢复" class="headerlink" title="不完全恢复"></a>不完全恢复</h2><h3 id="通过做Slave恢复"><a href="#通过做Slave恢复" class="headerlink" title="通过做Slave恢复"></a>通过做Slave恢复</h3><p>找到问题语句的位置,这里是1315<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#<span class="number">170911</span> <span class="number">14</span>:<span class="number">42</span>:<span class="number">19</span> server id <span class="number">330641</span>  end_log_pos <span class="number">2508</span> CRC32 <span class="number">0xf697b7bb</span>    Xid = <span class="number">215</span></span><br><span class="line">COMMIT<span class="comment">/*!*/</span>;</span><br><span class="line"># at <span class="number">2508</span></span><br><span class="line">#<span class="number">170911</span> <span class="number">14</span>:<span class="number">50</span>:<span class="number">56</span> server id <span class="number">330641</span>  end_log_pos <span class="number">2573</span> CRC32 <span class="number">0x8309dea0</span>    GTID    last_committed=<span class="number">9</span>        sequence_number=<span class="number">10</span></span><br><span class="line">SET @@SESSION.GTID_NEXT= <span class="string">&#x27;5c351518-78ec-11e7-8e7a-005056a610c3:1315&#x27;</span><span class="comment">/*!*/</span>;</span><br><span class="line"># at <span class="number">2573</span></span><br><span class="line">#<span class="number">170911</span> <span class="number">14</span>:<span class="number">50</span>:<span class="number">56</span> server id <span class="number">330641</span>  end_log_pos <span class="number">2693</span> CRC32 <span class="number">0xb06b9074</span>    Query   thread_id=<span class="number">25</span>    exec_time=<span class="number">1</span>     error_code=<span class="number">0</span></span><br><span class="line">use `fandb`<span class="comment">/*!*/</span>;</span><br><span class="line">SET TIMESTAMP=<span class="number">1505112656</span><span class="comment">/*!*/</span>;</span><br><span class="line">DROP TABLE `users` <span class="comment">/* generated by server */</span></span><br><span class="line"><span class="comment">/*!*/</span>;</span><br><span class="line">SET @@SESSION.GTID_NEXT= <span class="string">&#x27;AUTOMATIC&#x27;</span> <span class="comment">/* added by mysqlbinlog */</span> <span class="comment">/*!*/</span>;</span><br><span class="line">DELIMITER ;</span><br><span class="line"># End of log file</span><br><span class="line"><span class="comment">/*!50003 SET COMPLETION_TYPE=@OLD_COMPLETION_TYPE*/</span>;</span><br><span class="line"><span class="comment">/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=0*/</span>;</span><br></pre></td></tr></table></figure></p>
+<p>那一份备份,恢复出来,启动,reset slave all;然后change master<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">change master <span class="keyword">to</span></span><br><span class="line"><span class="attribute">master_host</span>=<span class="string">&#x27;10.4.3.100&#x27;</span>,</span><br><span class="line"><span class="attribute">master_user</span>=<span class="string">&#x27;repl&#x27;</span>,</span><br><span class="line"><span class="attribute">master_password</span>=<span class="string">&#x27;repl&#x27;</span>,</span><br><span class="line"><span class="attribute">master_port</span>=3306,</span><br><span class="line"><span class="attribute">master_auto_position</span>=1;</span><br><span class="line"></span><br><span class="line">重点</span><br><span class="line">start slave sql_thread until <span class="attribute">SQL_BEFORE_GTIDS</span>=<span class="string">&#x27;5c351518-78ec-11e7-8e7a-005056a610c3:1315&#x27;</span>;</span><br><span class="line">start slave io_thread;</span><br></pre></td></tr></table></figure><br>
       
     </div>
     <footer class="article-footer">

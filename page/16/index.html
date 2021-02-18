@@ -305,60 +305,6 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-MHA在监控和故障转移时都做了什么"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/07/24/MHA%E5%9C%A8%E7%9B%91%E6%8E%A7%E5%92%8C%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB%E6%97%B6%E9%83%BD%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88/">MHA在监控和故障转移时都做了什么</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/07/24/MHA%E5%9C%A8%E7%9B%91%E6%8E%A7%E5%92%8C%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB%E6%97%B6%E9%83%BD%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88/" class="article-date">
-	  <time datetime="2017-07-24T14:00:00.000Z" itemprop="datePublished">2017-07-24</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="MHA在监控和故障转移时都做了什么"><a href="#MHA在监控和故障转移时都做了什么" class="headerlink" title="MHA在监控和故障转移时都做了什么"></a>MHA在监控和故障转移时都做了什么</h2><p>以下是MHA(masterha_manager)在监控和故障切换上的基本流程</p>
-<h3 id="验证复制配置和识别当前主库"><a href="#验证复制配置和识别当前主库" class="headerlink" title="验证复制配置和识别当前主库"></a>验证复制配置和识别当前主库</h3><ul>
-<li><p>通过连接配置文件中描述的所有主机来识别当前主库.你不必手动指明那个主句是主库,MHA会自动检查复制设置并识别当前主库.</p>
-<blockquote>
-<p>注意:MHA本身不能构建复制环境,MHA监控已存在的复制环境</p>
-</blockquote>
-</li>
-<li><p>If any slave is dead at this stage, terminating the script for safety reasons(If any slave is dead, MHA can not recover the dead slave, of course). 开启监控时任何slave发生故障都会导致监控退出,MHA并不能修复从库</p>
-</li>
-<li><p>如果任何必要的脚本没有安装在所有Node,MHA abort而不会启动监控</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
     <article id="post-MHA 配置文件"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -581,6 +527,56 @@
     <div class="article-entry" itemprop="articleBody">
       
         <h1 id="Plot-Sysbench"><a href="#Plot-Sysbench" class="headerlink" title="Plot-Sysbench"></a>Plot-Sysbench</h1><p>prepare<br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">sysbench /tmp/sysbench-master/src/lua/oltp_read_write.lua  <span class="comment">--mysql-user=root --mysql-password=mysql --mysql-port=3306 \</span></span><br><span class="line"><span class="comment">--mysql-socket=/data/mysql55/mysql.sock  --mysql-host=localhost \</span></span><br><span class="line"><span class="comment">--mysql-db=sysbenchtest  --tables=10 --table-size=5000000  --threads=30 \</span></span><br><span class="line"><span class="comment">--events=5000000 --report-interval=5 prepare</span></span><br><span class="line"></span><br><span class="line"><span class="comment">##--table-size=五百万,一个表五百万 10个表 五千万</span></span><br><span class="line"><span class="comment">##--threads=30 开30个线程并发prepare</span></span><br><span class="line"></span><br><span class="line">Initializing worker threads...</span><br><span class="line"></span><br><span class="line">Creating table <span class="string">&#x27;sbtest6&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest4&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest5&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest10&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest8&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest3&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest9&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest1&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest2&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest7&#x27;</span>...</span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest4&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest5&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest6&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest8&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest3&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest9&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest10&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest7&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest1&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest2&#x27;</span></span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest6&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest9&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest4&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest8&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest3&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest7&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest2&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest1&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest5&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest10&#x27;</span>...</span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-docopt详解"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/06/28/docopt%E8%AF%A6%E8%A7%A3/">docopt详解</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/06/28/docopt%E8%AF%A6%E8%A7%A3/" class="article-date">
+	  <time datetime="2017-06-28T14:00:00.000Z" itemprop="datePublished">2017-06-28</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Naval Fate.</span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line">  naval_fate ship <span class="keyword">new</span> <span class="symbol">&lt;name&gt;</span>...</span><br><span class="line">  naval_fate ship <span class="symbol">&lt;name&gt;</span> <span class="keyword">move</span> <span class="symbol">&lt;x&gt;</span> <span class="symbol">&lt;y&gt;</span> [--speed=<span class="symbol">&lt;kn&gt;</span>]</span><br><span class="line">  naval_fate ship shoot <span class="symbol">&lt;x&gt;</span> <span class="symbol">&lt;y&gt;</span></span><br><span class="line">  naval_fate mine (<span class="keyword">set</span>|<span class="built_in">remove</span>) <span class="symbol">&lt;x&gt;</span> <span class="symbol">&lt;y&gt;</span> [--moored|--drifting]</span><br><span class="line">  naval_fate -h | --<span class="keyword">help</span></span><br><span class="line">  naval_fate --<span class="keyword">version</span></span><br><span class="line"></span><br><span class="line">Option<span class="variable">s:</span></span><br><span class="line">  -h --<span class="keyword">help</span>     Show this screen.</span><br><span class="line">  --<span class="keyword">version</span>     Show <span class="keyword">version</span>.</span><br><span class="line">  --speed=<span class="symbol">&lt;kn&gt;</span>  Speed in knots [defaul<span class="variable">t:</span> <span class="number">10</span>].</span><br><span class="line">  --moored      Moored (anchored) mine.</span><br><span class="line">  --drifting    Drifting mine.</span><br></pre></td></tr></table></figure>
+<p>该示例描述了可执行的naval_fate的界面，可以使用命令(ship，new，move等)的不同组合，选项(-h，–help，–speed = <kn>等)和 位置参数(<name>，<x>，<y>).</p>
+<p>示例使用方括号“[]”，圆括号“()”，管道“|” 和省略号“…”来描述可选的，必需的，相互排斥的和重复的元素. 一起，这些元素形成有效的使用模式，每个都以程序的名称naval_fate开头.</p>
+<p>Below the usage patterns，有一个包含说明的选项列表. 它们描述一个选项是否具有短/长形式(-h，–help)，选项是否具有参数(-speed = <kn>)，以及该参数是否具有默认值([default:10]).</p>
+<h3 id="Usage模式"><a href="#Usage模式" class="headerlink" title="Usage模式"></a>Usage模式</h3><p>在Usage:(不区分大小写) 关键字 间出现,并且显示的空了一行的部分 被解释为 usage pattern<br>在”Usage:”后出现的第一个单词被解释为程序的名字. 下面是一个最简单的示例,该示例没有任何命令行参数<br><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#### Usage: my_program</span><br></pre></td></tr></table></figure><br>程序可以使用用于描述模式的各种元素列出几个模式:<br><figure class="highlight fsharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Usage:</span><br><span class="line">  my_program command --option &lt;argument&gt;</span><br><span class="line">  my_program <span class="meta">[&lt;optional-argument&gt;]</span></span><br><span class="line">  my_program --another-option=&lt;<span class="keyword">with</span>-argument&gt;</span><br><span class="line">  my_program (--either-that-option | &lt;<span class="keyword">or</span>-this-argument&gt;)</span><br><span class="line">  my_program &lt;repeating-argument&gt; &lt;repeating-argument&gt;...</span><br></pre></td></tr></table></figure></p>
+<h4 id="ARGUMENT"><a href="#ARGUMENT" class="headerlink" title=" ARGUMENT"></a><argument> ARGUMENT</h4>
       
     </div>
     <footer class="article-footer">
