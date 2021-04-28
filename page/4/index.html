@@ -305,6 +305,54 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-05-16-[译文]Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/05/16/2020-05-16-%5B%E8%AF%91%E6%96%87%5DGalera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/">译文 Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/05/16/2020-05-16-%5B%E8%AF%91%E6%96%87%5DGalera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/" class="article-date">
+	  <time datetime="2020-05-16T14:40:00.000Z" itemprop="datePublished">2020-05-16</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8-0"><a href="#Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8-0" class="headerlink" title="Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/05/13/galera-4-streaming-replication-in-percona-xtradb-cluster-8-0/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=88003187&amp;_hsenc=p2ANqtz-8AwEjtYpEuWSlNMk6OX4QGFsnPUWMEcW9o9FWOjQI_UGqkjKzcXPvfKm7evqRE0EuwXnrLs-tTDdcMby4ADbQWg5nLqw&amp;_hsmi=88003187">Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0</a></h1><p>我正在测试最新的<a target="_blank" rel="noopener" href="https://www.percona.com/software/mysql-database/percona-xtradb-cluster">Percona XtraDB Cluster</a> 8.0 (PXC)版本, 其中包含了Galera 4插件, 我想分享一下到目前为止我在<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>特性方面的经验和想法, </p>
+<h3 id="What-Is-Streaming-Replication-in-One-Sentence"><a href="#What-Is-Streaming-Replication-in-One-Sentence" class="headerlink" title="What Is Streaming Replication, in One Sentence?"></a>What Is Streaming Replication, in One Sentence?</h3><p>在Galera 4中, 大型事务可以分割成更小的片段, 甚至在提交之前, 这些片段就已经被复制到其他节点, 并且已经开始了认证(certification)和应用(apply)过程.</p>
+<p>手册描述了所有的优点和缺点, 但是让我们看看它是如何工作的. 我已经创建了一个包含1千万行的表, 我将在这个表上运行一些大的update语句, </p>
+<p>首先, 我在不使用Streaming Replication的情况下运行更新, 由于默认情况下Streaming Replication是disabled, 所以我们不需要做任何事情, 只需运行更新即可. 在<code>node1</code>上, 我记录更新之前和之后的时间, 在<code>node2</code>上, 我每秒钟运行一次select,   以查看这个更新在其他节点上实际提交的时间.<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-05-03-A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -527,51 +575,6 @@
       
         <h1 id="ClickHouse多实例部署"><a href="#ClickHouse多实例部署" class="headerlink" title="ClickHouse多实例部署"></a>ClickHouse多实例部署</h1><p>本人刚接触ClickHouse两周, 难免有错误之处, 感谢指正. 另外一些参数我也不甚理解, 大家也可以先不必纠结参数, 先部署起来再说, 我的感触是部署后就会对整体结构有了一遍认识. 如果多实例都可以部署完毕, 那么生产单实例部署当然就不成问题了.</p>
 <p>生产环境并不建议多实例部署, ClickHouse一个查询可以用到多个CPU, 本例只适用于测试环境</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-04-15-Zookeeper3.6.0集群部署文档"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/04/15/2020-04-15-Zookeeper3.6.0%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">Zookeeper3.6.0集群部署文档</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/04/15/2020-04-15-Zookeeper3.6.0%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" class="article-date">
-	  <time datetime="2020-04-15T15:32:00.000Z" itemprop="datePublished">2020-04-15</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="Zookeeper3-6-0集群部署文档"><a href="#Zookeeper3-6-0集群部署文档" class="headerlink" title="Zookeeper3.6.0集群部署文档"></a>Zookeeper3.6.0集群部署文档</h1><p>一点一点完善…</p>
       
     </div>
     <footer class="article-footer">

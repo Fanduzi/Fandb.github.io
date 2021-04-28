@@ -305,6 +305,52 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2019-07-03-记录一些有用的pt-query-digest-filter"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/07/03/2019-07-03-%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%89%E7%94%A8%E7%9A%84pt-query-digest-filter/">记录一些有用的pt-query-digest filter</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/07/03/2019-07-03-%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%89%E7%94%A8%E7%9A%84pt-query-digest-filter/" class="article-date">
+	  <time datetime="2019-07-03T15:03:33.000Z" itemprop="datePublished">2019-07-03</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>自己写了一些和整理了些filter, 百度是搜不到的哈, 除了最后那俩anemometer的</p>
+<p>不输出Database 为 mysql|performance_schema|information_schema|sys|db_monitor 的查询<br><figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">((\$event-&gt;&#123;db&#125; || &#x27;&#x27;) =~ m/^(?!(<span class="name">mysql</span><span class="name">|performance_schema|</span><span class="name">information_schema</span><span class="name">|sys|</span><span class="name">db_monitor</span>))/ </span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2019-06-22-MySQL大表传输表空间的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -549,54 +595,6 @@
       
         <h1 id="假如Kafka集群中一个broker宕机无法恢复-应该如何处理"><a href="#假如Kafka集群中一个broker宕机无法恢复-应该如何处理" class="headerlink" title="假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?"></a>假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?</h1><p>坐地铁时想到这个问题, 印象中书中说添加新的broker, 是不会自动同步旧数据的.</p>
 <h2 id="笨办法"><a href="#笨办法" class="headerlink" title="笨办法"></a>笨办法</h2><h3 id="环境介绍"><a href="#环境介绍" class="headerlink" title="环境介绍"></a>环境介绍</h3><p>三个broker的集群, zk,kafka装在一起<br><figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">|<span class="string"> broker </span>|<span class="string"> IP </span>|<span class="string"> broker.id </span>|</span><br><span class="line">|<span class="string">---------</span>|<span class="string">---------------</span>|<span class="string">-----------</span>|</span><br><span class="line">|<span class="string"> broker1 </span>|<span class="string"> 172.18.12.211 </span>|<span class="string"> 211 </span>|</span><br><span class="line">|<span class="string"> broker2 </span>|<span class="string"> 172.18.12.212 </span>|<span class="string"> 212 </span>|</span><br><span class="line">|<span class="string"> broker3 </span>|<span class="string"> 172.18.12.213 </span>|<span class="string"> 213 </span>|</span><br></pre></td></tr></table></figure><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2019-01-26-Kafka-SASL_SCRAM+ACL实现动态创建用户及权限控制"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/01/26/2019-01-26-Kafka-SASL_SCRAM+ACL%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E5%8F%8A%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6/">Kafka SASL_SCRAM+ACL实现动态创建用户及权限控制</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/01/26/2019-01-26-Kafka-SASL_SCRAM+ACL%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E5%8F%8A%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6/" class="article-date">
-	  <time datetime="2019-01-26T14:01:00.000Z" itemprop="datePublished">2019-01-26</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="SASL-SCRAM-ACL实现动态创建用户及权限控制"><a href="#SASL-SCRAM-ACL实现动态创建用户及权限控制" class="headerlink" title="SASL_SCRAM+ACL实现动态创建用户及权限控制"></a>SASL_SCRAM+ACL实现动态创建用户及权限控制</h1><p>&nbsp;&nbsp;研究了一段时间Kafka的权限控制. 之前一直看SASL_PLAINTEXT, 结果发现这玩意不能动态创建用户. 今天没死心又查了查,发现这个人也问了这个问题<br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/54147460/kafka-adding-sasl-users-dynamically-without-cluster-restart">https://stackoverflow.com/questions/54147460/kafka-adding-sasl-users-dynamically-without-cluster-restart</a><br>于是研究了下SCRAM. 写了这篇完整的文档</p>
-<blockquote>
-<p>本篇文档中使用的是自己部署的zookeeper, zookeeper无需做任何特殊配置</p>
-</blockquote>
       
     </div>
     <footer class="article-footer">

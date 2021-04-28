@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-01-21-mlanuch文档翻译"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/01/21/2020-01-21-mlanuch%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/">mlanuch文档翻译</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/01/21/2020-01-21-mlanuch%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/" class="article-date">
+	  <time datetime="2020-01-21T10:09:00.000Z" itemprop="datePublished">2020-01-21</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>[TOC]</p>
+<h1 id="mlanuch"><a href="#mlanuch" class="headerlink" title="mlanuch"></a>mlanuch</h1><p>使用此工具，您可以快速启动并监视本地计算机上的MongoDB环境。 它支持独立服务器，副本集和分片群集的各种配置。 单个节点或节点组可以轻松停止并重新启动。</p>
+<p>除了下面列出的mlaunch的所有列出的参数之外，您还可以传递<code>mongos</code>或<code>mongod</code>二进制文件可以理解的任意选项，mlaunch会传递正确的参数给<code>mongos</code>或<code>mongod</code>二进制文件。 这包括<code>-f</code>或<code>--config</code>选项，以传递带有更多选项的配置文件。<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-01-12-Canal-dynamicTopic问题"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -535,52 +582,6 @@
 <blockquote>
 <p>To specify a whitelist manually, use the <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_ip_whitelist"><code>group_replication_ip_whitelist</code></a> option. You cannot change the whitelist on a server while it is an active member of a replication group. If the member is active, you must issue a <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/stop-group-replication.html"><code>STOP GROUP_REPLICATION</code></a> statement before changing the whitelist, and a <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/start-group-replication.html"><code>START GROUP_REPLICATION</code></a> statement afterwards.</p>
 </blockquote>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2019-12-02-TiDB-Binlog部署"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/">TiDB Binlog部署</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/" class="article-date">
-	  <time datetime="2019-12-02T11:31:00.000Z" itemprop="datePublished">2019-12-02</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="TiDB-Binlog部署"><a href="#TiDB-Binlog部署" class="headerlink" title="TiDB Binlog部署"></a>TiDB Binlog部署</h1><h2 id="环境信息"><a href="#环境信息" class="headerlink" title="环境信息"></a>环境信息</h2><p>中控机是<code>10.152.x.133</code></p>
-<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-attr">[tidb_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[tikv_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[pd_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## <span class="selector-tag">Monitoring</span> <span class="selector-tag">Part</span></span><br><span class="line"># <span class="selector-tag">prometheus</span> <span class="selector-tag">and</span> <span class="selector-tag">pushgateway</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitoring_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[grafana_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"># <span class="selector-tag">node_exporter</span> <span class="selector-tag">and</span> <span class="selector-tag">blackbox_exporter</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitored_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[alertmanager_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
