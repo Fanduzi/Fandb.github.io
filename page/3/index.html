@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-1"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-1/">译文 ClickHouse Materialized Views Illuminated, Part 1</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-1/" class="article-date">
+	  <time datetime="2020-08-23T11:04:00.000Z" itemprop="datePublished">2020-08-23</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-1"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-1" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 1"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">ClickHouse Materialized Views Illuminated, Part 1</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/4c9e8-stockvault-abstract-background-big-data-concept264047.jpg" alt="header"></p>
+<p><a target="_blank" rel="noopener" href="https://altinity.com/blog/">Altinity blog</a>的读者们知道我们喜欢ClickHouse的<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/sql-reference/statements/create/view/#materialized">物化视图</a>. 物化视图可以实现聚合计算, 从Kafka读取数据, 实现最后点查询(last point queries)以及重组表主键索引和排序顺序. 除了这些功能之外, 物化视图可以在大量节点上很好地扩缩, 并可以处理大型数据集. 它们是ClickHouse的独特功能之一.</p>
+<p>在计算领域, 强大的功能至少意味着一点点复杂性. 这篇由两部分组成的文章通过解释物化视图的工作原理来填补空白, 从而使初学者也可以有效地使用它们. 我们将通过几个详细的示例, 您可以根据自己的使用进行调整. 在此过程中, 我们将探索用于创建视图的语法的确切含义, 并让您深入了解ClickHouse在做什么.  示例是完全自包含的, 因此您可以将它们复制/粘贴到clickhouse-client中并自己运行它们.<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-08-23-为什么pt-osc和gh-osc在拷贝源表数据时要使用insert-IGNORE-into-select-lock-in-share-mode"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -522,53 +569,6 @@
 <p>我理解是不需要做的, 因为已经明确只有主节点才能写入数据了, 那么必然不会有数据冲突的可能, 没必要再做冲突检测浪费性能了.</p>
 <p>看了下<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/group-replication-single-primary-mode.html">官方文档</a></p>
 <figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">In</span> single-primary mode,<span class="built_in"> Group </span>Replication enforces that only a single<span class="built_in"> server </span>writes <span class="keyword">to</span> the group, so compared <span class="keyword">to</span> multi-primary mode, consistency checking can be less strict <span class="keyword">and</span> DDL statements <span class="keyword">do</span> <span class="keyword">not</span> need <span class="keyword">to</span> be handled with any extra care</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-05-16-译文-New-Feature-in-Percona-XtraDB-Cluster-8.0-–-Streaming-Replication"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/16/2020-05-16-%E8%AF%91%E6%96%87-New-Feature-in-Percona-XtraDB-Cluster-8.0-%E2%80%93-Streaming-Replication/">译文 New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/05/16/2020-05-16-%E8%AF%91%E6%96%87-New-Feature-in-Percona-XtraDB-Cluster-8.0-%E2%80%93-Streaming-Replication/" class="article-date">
-	  <time datetime="2020-05-16T14:56:00.000Z" itemprop="datePublished">2020-05-16</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication"><a href="#New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication" class="headerlink" title="New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/05/15/new-feature-in-percona-xtradb-cluster-8-0-streaming-replication/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=88003187&amp;_hsenc=p2ANqtz-8AwEjtYpEuWSlNMk6OX4QGFsnPUWMEcW9o9FWOjQI_UGqkjKzcXPvfKm7evqRE0EuwXnrLs-tTDdcMby4ADbQWg5nLqw&amp;_hsmi=88003187">New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication</a></h1><p>Percona XtraDB Cluster 8.0附带了一个升级的Galera 4.0库, 它提供了一个新特性—<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>.让我们回顾一下它是什么, 什么时候可能有用</p>
-<p>以前版本的Percona XtraDB集群和Galera 3.x在处理大事务方面有限制.</p>
-<p>让我们看一下sysbench-tpcc工作负载下的性能, 与此同时, 我们对一个表执行了一个大的更新语句, 该更新甚至与主工作负载中的表都不相关.<br>
       
     </div>
     <footer class="article-footer">

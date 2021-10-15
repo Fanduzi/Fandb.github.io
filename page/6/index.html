@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-03-06-canal.mq.flatMessage参数"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/03/06/2020-03-06-canal.mq.flatMessage%E5%8F%82%E6%95%B0/">canal.mq.flatMessage参数</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/03/06/2020-03-06-canal.mq.flatMessage%E5%8F%82%E6%95%B0/" class="article-date">
+	  <time datetime="2020-03-06T14:23:00.000Z" itemprop="datePublished">2020-03-06</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>canal.mq.flatMessage</p>
+<p>是否为json格式<br>如果设置为false,对应MQ收到的消息为protobuf格式<br>需要通过CanalMessageDeserializer进行解码</p>
+<p>canal.mq.flatMessage = true 生产到kafka的消息就是json的, 否则就是protobuf二进制的<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-01-21-mlanuch文档翻译"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -531,57 +578,6 @@
       
         <h1 id="Drainer不支持的DDL-1"><a href="#Drainer不支持的DDL-1" class="headerlink" title="Drainer不支持的DDL-1"></a>Drainer不支持的DDL-1</h1><p>版本3.0.5</p>
 <h2 id="1-rename-table-t1-to-b-db-b-t1"><a href="#1-rename-table-t1-to-b-db-b-t1" class="headerlink" title="1.rename table t1 to b_db.b_t1"></a>1.rename table t1 to b_db.b_t1</h2><p>已经做好TiDB-&gt;MySQL的同步, 开启了pump, drainer</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2019-12-10-MGR参数之group_replication_ip_whitelist"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/12/10/2019-12-10-MGR%E5%8F%82%E6%95%B0%E4%B9%8Bgroup_replication_ip_whitelist/">MGR参数之group_replication_ip_whitelist</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/12/10/2019-12-10-MGR%E5%8F%82%E6%95%B0%E4%B9%8Bgroup_replication_ip_whitelist/" class="article-date">
-	  <time datetime="2019-12-10T09:45:00.000Z" itemprop="datePublished">2019-12-10</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mgr/group_replication_ip_whitelist/group_replication_ip_whitelist1.png" alt="img"></p>
-<p>尝试将10.133.1.46加入192.168.2.224的集群失败</p>
-<p>需要设置参数<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_ip_whitelist">group_replication_ip_whitelist </a></p>
-<p>此参数虽然是动态参数, 但是要使之生效需要节点重新加入集群</p>
-<blockquote>
-<p>To specify a whitelist manually, use the <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_ip_whitelist"><code>group_replication_ip_whitelist</code></a> option. You cannot change the whitelist on a server while it is an active member of a replication group. If the member is active, you must issue a <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/stop-group-replication.html"><code>STOP GROUP_REPLICATION</code></a> statement before changing the whitelist, and a <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/start-group-replication.html"><code>START GROUP_REPLICATION</code></a> statement afterwards.</p>
-</blockquote>
       
     </div>
     <footer class="article-footer">

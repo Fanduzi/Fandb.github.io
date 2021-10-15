@@ -305,6 +305,54 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-MySQL误DROP表恢复,innodb_file_per_table=OFF"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2016/12/27/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=OFF/">MySQL误DROP表恢复,innodb_file_per_table=OFF</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/12/27/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=OFF/" class="article-date">
+	  <time datetime="2016-12-27T14:00:00.000Z" itemprop="datePublished">2016-12-27</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL误DROP表恢复-innodb-file-per-table-OFF"><a href="#MySQL误DROP表恢复-innodb-file-per-table-OFF" class="headerlink" title="MySQL误DROP表恢复,innodb_file_per_table=OFF"></a>MySQL误DROP表恢复,innodb_file_per_table=OFF</h1><p>原文<a target="_blank" rel="noopener" href="https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-off/">https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-off/</a></p>
+<h2 id="Undrop-for-innodb安装"><a href="#Undrop-for-innodb安装" class="headerlink" title="Undrop-for-innodb安装"></a>Undrop-for-innodb安装</h2><p>详见<a target="_blank" rel="noopener" href="https://github.com/chhabhaiya/undrop-for-innodb">https://github.com/chhabhaiya/undrop-for-innodb</a></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>误操作是不可避免的.错误的DROP DATABASE或DROP TABLE会摧毁重要的数据,更悲剧的是备份又不可用.<br>恢复方法取决于InnoDB是将所有数据保存在单个ibdata1中还是每个表都有自己的表空间.在这篇文章中,我们将考虑innodb_file_per_table = OFF的情况.此选项假定所有表都存储在通用文件中,通常位于/var/lib/mysql/ibdata1.</p>
+<h2 id="误删表恢复"><a href="#误删表恢复" class="headerlink" title="误删表恢复"></a>误删表恢复</h2><p>这里使用sakila库,假设我们误删除了actor表<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM actor LIMIT 10;</span><br><span class="line"><span class="code">+----------+</span>------------<span class="code">+--------------+</span>---------------------+</span><br><span class="line">| actor<span class="emphasis">_id | first_</span>name | last<span class="emphasis">_name    | last_</span>update         |</span><br><span class="line"><span class="code">+----------+</span>------------<span class="code">+--------------+</span>---------------------+</span><br><span class="line">|        1 | PENELOPE   | GUINESS      | 2006-02-15 04:34:33 |</span><br><span class="line">|        2 | NICK       | WAHLBERG     | 2006-02-15 04:34:33 |</span><br><span class="line">|        3 | ED         | CHASE        | 2006-02-15 04:34:33 |</span><br><span class="line">|        4 | JENNIFER   | DAVIS        | 2006-02-15 04:34:33 |</span><br><span class="line">|        5 | JOHNNY     | LOLLOBRIGIDA | 2006-02-15 04:34:33 |</span><br><span class="line">|        6 | BETTE      | NICHOLSON    | 2006-02-15 04:34:33 |</span><br><span class="line">|        7 | GRACE      | MOSTEL       | 2006-02-15 04:34:33 |</span><br><span class="line">|        8 | MATTHEW    | JOHANSSON    | 2006-02-15 04:34:33 |</span><br><span class="line">|        9 | JOE        | SWANK        | 2006-02-15 04:34:33 |</span><br><span class="line">|       10 | CHRISTIAN  | GABLE        | 2006-02-15 04:34:33 |</span><br><span class="line"><span class="code">+----------+</span>------------<span class="code">+--------------+</span>---------------------+</span><br><span class="line">10 rows in set (0.02 sec)</span><br><span class="line"></span><br><span class="line">查看一下checksum</span><br><span class="line">mysql&gt; CHECKSUM TABLE actor;</span><br><span class="line"><span class="code">+--------------+</span>------------+</span><br><span class="line">| Table        | Checksum   |</span><br><span class="line"><span class="code">+--------------+</span>------------+</span><br><span class="line">| sakila.actor | 1702520518 |</span><br><span class="line"><span class="code">+--------------+</span>------------+</span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select count(<span class="strong">*) from actor;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|      200 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; DROP TABLE actor;</span><br><span class="line">Query OK, 0 rows affected (0.03 sec)</span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-恢复表结构"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -563,60 +611,6 @@
 <p>Because gap locking is disabled, phantom problems may occur, as other sessions can insert new rows into the gaps</p>
 </blockquote>
 <p>因为gap locking被 disabled,幻读问题可能会产生,其他会话可以在 gap 中插入新的记录</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-MySQL(InnoDB)如何避免幻读"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2016/12/12/MySQL(InnoDB)%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E5%B9%BB%E8%AF%BB/">MySQL(InnoDB)如何避免幻读</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2016/12/12/MySQL(InnoDB)%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E5%B9%BB%E8%AF%BB/" class="article-date">
-	  <time datetime="2016-12-12T14:00:00.000Z" itemprop="datePublished">2016-12-12</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="幻读Phantom-Rows"><a href="#幻读Phantom-Rows" class="headerlink" title="幻读Phantom Rows"></a>幻读Phantom Rows</h3><blockquote>
-<p>The so-called phantom problem occurs within a transaction when the same query produces different sets of rows at different times. For example, if a SELECT is executed twice, but returns a row the second time that was not returned the first time, the row is a “phantom” row.</p>
-</blockquote>
-<p>幻读问题是指一个事务的两次不同时间的相同查询返回了不同的的结果集。例如:一个 select 语句执行了两次，但是在第二次返回了第一次没有返回的行,那么这些行就是“phantom” row.</p>
-<h3 id="read-view-或者说-MVCC-实现了一致性不锁定读-Consistent-Nonlocking-Reads-，从而避免了幻读"><a href="#read-view-或者说-MVCC-实现了一致性不锁定读-Consistent-Nonlocking-Reads-，从而避免了幻读" class="headerlink" title="read view(或者说 MVCC)实现了一致性不锁定读(Consistent Nonlocking Reads)，从而避免了幻读"></a>read view(或者说 MVCC)实现了一致性不锁定读(Consistent Nonlocking Reads)，从而避免了幻读</h3><h4 id="实验1"><a href="#实验1" class="headerlink" title="实验1:"></a>实验1:</h4><p>开两个窗口设置<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> tx_isolation=<span class="string">&#x27;REPEATABLE-READ&#x27;</span>;</span><br><span class="line"><span class="keyword">select</span> @@session.autocommit;<span class="keyword">select</span> @@global.tx_isolation,@@session.tx_isolation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> read_view(<span class="built_in">text</span> <span class="built_in">varchar</span>(<span class="number">50</span>));</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> read_view <span class="keyword">values</span>(<span class="string">&#x27;init&#x27;</span>);</span><br></pre></td></tr></table></figure></p>
-<p>两个会话开始事务<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">SESSION_A</span>&gt;begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="attribute">SESSION_B</span>&gt;begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br></pre></td></tr></table></figure></p>
-<p>SESSION_A执行一个查询，这个查询可以访问任何表，这个查询的目的是创建一个当前时间点的快照<br><code>START TRANSACTION WITH CONSISTENT SNAPSHOT;</code>也可以达到同样的效果</p>
-<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;select * from dept;</span></span><br><span class="line"><span class="emphasis">+--------+------------+----------+</span></span><br><span class="line"><span class="emphasis">| deptno | dname      | loc      |</span></span><br><span class="line"><span class="emphasis">+--------+------------+----------+</span></span><br><span class="line"><span class="emphasis">|     10 | ACCOUNTING | NEW YORK |</span></span><br><span class="line"><span class="emphasis">|     20 | RESEARCH   | DALLAS   |</span></span><br><span class="line"><span class="emphasis">|     30 | SALES      | CHICAGO  |</span></span><br><span class="line"><span class="emphasis">|     40 | OPERATIONS | BOSTON   |</span></span><br><span class="line"><span class="emphasis">+--------+------------+----------+</span></span><br><span class="line"><span class="emphasis">4 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure>
-<p>SESSION_B 插入一条记录并提交<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SESSION_B&gt;<span class="keyword">insert</span> <span class="keyword">into</span> read_view <span class="keyword">values</span>(<span class="string">&#x27;after session A select&#x27;</span>);</span><br><span class="line">Query OK, <span class="number">1</span> <span class="keyword">row</span> affected (<span class="number">0.01</span> sec)</span><br><span class="line"></span><br><span class="line">SESSION_B&gt;<span class="keyword">commit</span>;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure></p>
-<p>SESSION_A<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;select * from read_</span>view;</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">| text |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">| init |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;commit;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from read<span class="emphasis">_view;</span></span><br><span class="line"><span class="emphasis">+------------------------+</span></span><br><span class="line"><span class="emphasis">| text                   |</span></span><br><span class="line"><span class="emphasis">+------------------------+</span></span><br><span class="line"><span class="emphasis">| init                   |</span></span><br><span class="line"><span class="emphasis">| after session A select |</span></span><br><span class="line"><span class="emphasis">+------------------------+</span></span><br><span class="line"><span class="emphasis">2 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>由于 SESSION_A 第一次的查询开始于 SESSION_B 插入数据前，通过创建了一个以SELECT操作的时间为基准点的 read view,避免了幻读的产生<br>所以在 SESSION_A 的事务结束前,无法看到 SESSION_B 对表 read_view 做出的任何更改 (insert,delete,update)</p>
       
     </div>
     <footer class="article-footer">

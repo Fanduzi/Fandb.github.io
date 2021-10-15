@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-05-16-译文-New-Feature-in-Percona-XtraDB-Cluster-8.0-–-Streaming-Replication"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/05/16/2020-05-16-%E8%AF%91%E6%96%87-New-Feature-in-Percona-XtraDB-Cluster-8.0-%E2%80%93-Streaming-Replication/">译文 New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/05/16/2020-05-16-%E8%AF%91%E6%96%87-New-Feature-in-Percona-XtraDB-Cluster-8.0-%E2%80%93-Streaming-Replication/" class="article-date">
+	  <time datetime="2020-05-16T14:56:00.000Z" itemprop="datePublished">2020-05-16</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication"><a href="#New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication" class="headerlink" title="New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/05/15/new-feature-in-percona-xtradb-cluster-8-0-streaming-replication/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=88003187&amp;_hsenc=p2ANqtz-8AwEjtYpEuWSlNMk6OX4QGFsnPUWMEcW9o9FWOjQI_UGqkjKzcXPvfKm7evqRE0EuwXnrLs-tTDdcMby4ADbQWg5nLqw&amp;_hsmi=88003187">New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication</a></h1><p>Percona XtraDB Cluster 8.0附带了一个升级的Galera 4.0库, 它提供了一个新特性—<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>.让我们回顾一下它是什么, 什么时候可能有用</p>
+<p>以前版本的Percona XtraDB集群和Galera 3.x在处理大事务方面有限制.</p>
+<p>让我们看一下sysbench-tpcc工作负载下的性能, 与此同时, 我们对一个表执行了一个大的更新语句, 该更新甚至与主工作负载中的表都不相关.<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-05-16-[译文]Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -529,52 +576,6 @@
 </ul>
 <p>但是它在其他情况下表现如何? Let’s try to use a steam-hammer to crack nuts, 并检查ClickHouse每秒将如何处理数千个小请求。 这将帮助我们更好地理解可能的用例范围和限制。</p>
 <p>这篇文章分为两个部分。 第一部分介绍连接性基准测试和测试设置。 下一部分将介绍涉及实际数据的方案中的最大QPS。<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-05-02-ClickHouse多实例部署"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/02/2020-05-02-ClickHouse%E5%A4%9A%E5%AE%9E%E4%BE%8B%E9%83%A8%E7%BD%B2/">ClickHouse多实例部署</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/05/02/2020-05-02-ClickHouse%E5%A4%9A%E5%AE%9E%E4%BE%8B%E9%83%A8%E7%BD%B2/" class="article-date">
-	  <time datetime="2020-05-02T15:46:00.000Z" itemprop="datePublished">2020-05-02</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="ClickHouse多实例部署"><a href="#ClickHouse多实例部署" class="headerlink" title="ClickHouse多实例部署"></a>ClickHouse多实例部署</h1><p>本人刚接触ClickHouse两周, 难免有错误之处, 感谢指正. 另外一些参数我也不甚理解, 大家也可以先不必纠结参数, 先部署起来再说, 我的感触是部署后就会对整体结构有了一遍认识. 如果多实例都可以部署完毕, 那么生产单实例部署当然就不成问题了.</p>
-<p>生产环境并不建议多实例部署, ClickHouse一个查询可以用到多个CPU, 本例只适用于测试环境</p>
       
     </div>
     <footer class="article-footer">

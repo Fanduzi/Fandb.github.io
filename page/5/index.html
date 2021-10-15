@@ -305,6 +305,52 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-05-02-ClickHouse多实例部署"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/05/02/2020-05-02-ClickHouse%E5%A4%9A%E5%AE%9E%E4%BE%8B%E9%83%A8%E7%BD%B2/">ClickHouse多实例部署</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/05/02/2020-05-02-ClickHouse%E5%A4%9A%E5%AE%9E%E4%BE%8B%E9%83%A8%E7%BD%B2/" class="article-date">
+	  <time datetime="2020-05-02T15:46:00.000Z" itemprop="datePublished">2020-05-02</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="ClickHouse多实例部署"><a href="#ClickHouse多实例部署" class="headerlink" title="ClickHouse多实例部署"></a>ClickHouse多实例部署</h1><p>本人刚接触ClickHouse两周, 难免有错误之处, 感谢指正. 另外一些参数我也不甚理解, 大家也可以先不必纠结参数, 先部署起来再说, 我的感触是部署后就会对整体结构有了一遍认识. 如果多实例都可以部署完毕, 那么生产单实例部署当然就不成问题了.</p>
+<p>生产环境并不建议多实例部署, ClickHouse一个查询可以用到多个CPU, 本例只适用于测试环境</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-04-15-Zookeeper3.6.0集群部署文档"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -520,53 +566,6 @@
         <p>最近在新公司搭了一套canal. 按照&lt;<dynamicTopic问题>&gt;设置了<code>canal.mq.topic</code>和<code>canal.mq.dynamicTopic</code></p>
 <p>意图将一些不符合dynamicTopic匹配的语句的消息发送到一个默认的topic而避免报错<code>INVALID_TOPIC_EXCEPTION</code></p>
 <figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># table regex</span></span><br><span class="line">canal.instance.filter.regex=fanboshi\\..*,sysbench\\..*</span><br><span class="line"><span class="meta"># table black regex</span></span><br><span class="line">canal.instance.filter.black.regex=.*\\.\\_.*\\_ghc,.*\\.\\_.*\\_gho,.*\\.\\_.*\\_del</span><br><span class="line"><span class="meta"># table field filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.field=test1.t_product:id/subject/keywords,test2.t_company:id/name/contact/ch</span></span><br><span class="line"><span class="meta"># table field black filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.black.field=test1.t_product:subject/product_image,test2.t_company:id/name/contact/ch</span></span><br><span class="line"></span><br><span class="line"><span class="meta"># mq config</span></span><br><span class="line">canal.mq.topic=default_topic</span><br><span class="line"><span class="meta"># dynamic topic route by schema or table regex</span></span><br><span class="line"><span class="meta">#canal.mq.dynamicTopic=mytest1.user,mytest2\\..*,.*\\..*</span></span><br><span class="line">canal.mq.dynamicTopic=.*\\..*</span><br><span class="line"><span class="meta">#canal.mq.partition=0</span></span><br><span class="line"><span class="meta"># hash partition config</span></span><br><span class="line"><span class="meta">#canal.mq.partitionsNum=3</span></span><br><span class="line"><span class="meta">#canal.mq.partitionHash=test.table:id^name,.*\\..*</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-03-06-canal.mq.flatMessage参数"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/03/06/2020-03-06-canal.mq.flatMessage%E5%8F%82%E6%95%B0/">canal.mq.flatMessage参数</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/03/06/2020-03-06-canal.mq.flatMessage%E5%8F%82%E6%95%B0/" class="article-date">
-	  <time datetime="2020-03-06T14:23:00.000Z" itemprop="datePublished">2020-03-06</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>canal.mq.flatMessage</p>
-<p>是否为json格式<br>如果设置为false,对应MQ收到的消息为protobuf格式<br>需要通过CanalMessageDeserializer进行解码</p>
-<p>canal.mq.flatMessage = true 生产到kafka的消息就是json的, 否则就是protobuf二进制的<br>
       
     </div>
     <footer class="article-footer">

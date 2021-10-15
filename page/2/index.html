@@ -305,6 +305,63 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-09-24-类MHA高可用方案存在的问题"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/09/24/2020-09-24-%E7%B1%BBMHA%E9%AB%98%E5%8F%AF%E7%94%A8%E6%96%B9%E6%A1%88%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98/">类MHA高可用方案存在的问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/09/24/2020-09-24-%E7%B1%BBMHA%E9%AB%98%E5%8F%AF%E7%94%A8%E6%96%B9%E6%A1%88%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
+	  <time datetime="2020-09-24T11:00:00.000Z" itemprop="datePublished">2020-09-24</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="类MHA高可用方案存在的问题"><a href="#类MHA高可用方案存在的问题" class="headerlink" title="类MHA高可用方案存在的问题"></a>类MHA高可用方案存在的问题</h2><p>MHA Generaly Available since 2011?</p>
+<p>MHA在当时主要解决两个问题:</p>
+<ol>
+<li>自动的数据补偿</li>
+<li>自动的主从切换</li>
+</ol>
+<p>还有两个重要的背景需要交代:</p>
+<ol>
+<li>当时主要使用异步复制</li>
+<li>当时还没有ProxySQL</li>
+</ol>
+<p>所以当时基本使用MHA+VIP作为MySQL复制集的高可用方案.</p>
+<p>不谈vip的脑裂问题, 这种架构的一个关键点在于, MHA是作为一个外部机制检测MySQL复制集状态, 并变更复制集拓扑, 变更后漂移vip, 也就是说MHA既控制了集群拓扑的变化, 又控制了app的访问路径(写通过vip)</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-09-22-ClickHouse到底改写本地表还是分布式表"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -560,53 +617,6 @@
       
         <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-2"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-2" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 2"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-2">ClickHouse Materialized Views Illuminated, Part 2</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/d1a1c-stockvault-abstract-glowing-multicolor-wireframe-background268674_small.png" alt="header"></p>
 <p><strong><a target="_blank" rel="noopener" href="https://www.altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">Read part 1</a></strong></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-1"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-1/">译文 ClickHouse Materialized Views Illuminated, Part 1</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-1/" class="article-date">
-	  <time datetime="2020-08-23T11:04:00.000Z" itemprop="datePublished">2020-08-23</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-1"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-1" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 1"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">ClickHouse Materialized Views Illuminated, Part 1</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/4c9e8-stockvault-abstract-background-big-data-concept264047.jpg" alt="header"></p>
-<p><a target="_blank" rel="noopener" href="https://altinity.com/blog/">Altinity blog</a>的读者们知道我们喜欢ClickHouse的<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/sql-reference/statements/create/view/#materialized">物化视图</a>. 物化视图可以实现聚合计算, 从Kafka读取数据, 实现最后点查询(last point queries)以及重组表主键索引和排序顺序. 除了这些功能之外, 物化视图可以在大量节点上很好地扩缩, 并可以处理大型数据集. 它们是ClickHouse的独特功能之一.</p>
-<p>在计算领域, 强大的功能至少意味着一点点复杂性. 这篇由两部分组成的文章通过解释物化视图的工作原理来填补空白, 从而使初学者也可以有效地使用它们. 我们将通过几个详细的示例, 您可以根据自己的使用进行调整. 在此过程中, 我们将探索用于创建视图的语法的确切含义, 并让您深入了解ClickHouse在做什么.  示例是完全自包含的, 因此您可以将它们复制/粘贴到clickhouse-client中并自己运行它们.<br>
       
     </div>
     <footer class="article-footer">

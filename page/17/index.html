@@ -305,6 +305,51 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-Sysbench出图"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/07/06/Sysbench%E5%87%BA%E5%9B%BE/">Sysbench出图</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/06/Sysbench%E5%87%BA%E5%9B%BE/" class="article-date">
+	  <time datetime="2017-07-06T14:00:00.000Z" itemprop="datePublished">2017-07-06</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Plot-Sysbench"><a href="#Plot-Sysbench" class="headerlink" title="Plot-Sysbench"></a>Plot-Sysbench</h1><p>prepare<br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">sysbench /tmp/sysbench-master/src/lua/oltp_read_write.lua  <span class="comment">--mysql-user=root --mysql-password=mysql --mysql-port=3306 \</span></span><br><span class="line"><span class="comment">--mysql-socket=/data/mysql55/mysql.sock  --mysql-host=localhost \</span></span><br><span class="line"><span class="comment">--mysql-db=sysbenchtest  --tables=10 --table-size=5000000  --threads=30 \</span></span><br><span class="line"><span class="comment">--events=5000000 --report-interval=5 prepare</span></span><br><span class="line"></span><br><span class="line"><span class="comment">##--table-size=五百万,一个表五百万 10个表 五千万</span></span><br><span class="line"><span class="comment">##--threads=30 开30个线程并发prepare</span></span><br><span class="line"></span><br><span class="line">Initializing worker threads...</span><br><span class="line"></span><br><span class="line">Creating table <span class="string">&#x27;sbtest6&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest4&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest5&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest10&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest8&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest3&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest9&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest1&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest2&#x27;</span>...</span><br><span class="line">Creating table <span class="string">&#x27;sbtest7&#x27;</span>...</span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest4&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest5&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest6&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest8&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest3&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest9&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest10&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest7&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest1&#x27;</span></span><br><span class="line">Inserting <span class="number">5000000</span> records <span class="keyword">into</span> <span class="string">&#x27;sbtest2&#x27;</span></span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest6&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest9&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest4&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest8&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest3&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest7&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest2&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest1&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest5&#x27;</span>...</span><br><span class="line">Creating <span class="keyword">a</span> secondary index <span class="keyword">on</span> <span class="string">&#x27;sbtest10&#x27;</span>...</span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-docopt详解"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -580,54 +625,6 @@
 <li>如果您使用XA事务与InnoDB，请在升级之前运行XA RECOVER以检查未提交的XA事务。如果返回结果，则通过发出XA COMMIT或XA ROLLBACK语句来提交或回滚XA事务。</li>
 <li>如果您的MySQL安装包含大量数据，在就地升级后可能需要很长时间进行转换，您可能会发现创建一个“虚拟”数据库实例，用于评估可能需要的转换和涉及的工作执行它们。制作一份包含mysql数据库完整副本的MySQL实例的副本，以及没有数据的所有其他数据库。在此虚拟实例上运行升级过程，以查看可能需要执行哪些操作，以便在原始数据库实例上执行实际数据转换时，可以更好地评估所涉及的工作。</li>
 <li>当您安装或升级到新版本的MySQL时，建议重建和重新安装MySQL语言接口。这适用于MySQL接口，如PHP mysql扩展，Perl DBD :: mysql模块和Python MySQLdb模块。
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-MySQL误DROP表恢复,innodb_file_per_table=OFF"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2016/12/27/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=OFF/">MySQL误DROP表恢复,innodb_file_per_table=OFF</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2016/12/27/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=OFF/" class="article-date">
-	  <time datetime="2016-12-27T14:00:00.000Z" itemprop="datePublished">2016-12-27</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="MySQL误DROP表恢复-innodb-file-per-table-OFF"><a href="#MySQL误DROP表恢复-innodb-file-per-table-OFF" class="headerlink" title="MySQL误DROP表恢复,innodb_file_per_table=OFF"></a>MySQL误DROP表恢复,innodb_file_per_table=OFF</h1><p>原文<a target="_blank" rel="noopener" href="https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-off/">https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-off/</a></p>
-<h2 id="Undrop-for-innodb安装"><a href="#Undrop-for-innodb安装" class="headerlink" title="Undrop-for-innodb安装"></a>Undrop-for-innodb安装</h2><p>详见<a target="_blank" rel="noopener" href="https://github.com/chhabhaiya/undrop-for-innodb">https://github.com/chhabhaiya/undrop-for-innodb</a></p>
-<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>误操作是不可避免的.错误的DROP DATABASE或DROP TABLE会摧毁重要的数据,更悲剧的是备份又不可用.<br>恢复方法取决于InnoDB是将所有数据保存在单个ibdata1中还是每个表都有自己的表空间.在这篇文章中,我们将考虑innodb_file_per_table = OFF的情况.此选项假定所有表都存储在通用文件中,通常位于/var/lib/mysql/ibdata1.</p>
-<h2 id="误删表恢复"><a href="#误删表恢复" class="headerlink" title="误删表恢复"></a>误删表恢复</h2><p>这里使用sakila库,假设我们误删除了actor表<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM actor LIMIT 10;</span><br><span class="line"><span class="code">+----------+</span>------------<span class="code">+--------------+</span>---------------------+</span><br><span class="line">| actor<span class="emphasis">_id | first_</span>name | last<span class="emphasis">_name    | last_</span>update         |</span><br><span class="line"><span class="code">+----------+</span>------------<span class="code">+--------------+</span>---------------------+</span><br><span class="line">|        1 | PENELOPE   | GUINESS      | 2006-02-15 04:34:33 |</span><br><span class="line">|        2 | NICK       | WAHLBERG     | 2006-02-15 04:34:33 |</span><br><span class="line">|        3 | ED         | CHASE        | 2006-02-15 04:34:33 |</span><br><span class="line">|        4 | JENNIFER   | DAVIS        | 2006-02-15 04:34:33 |</span><br><span class="line">|        5 | JOHNNY     | LOLLOBRIGIDA | 2006-02-15 04:34:33 |</span><br><span class="line">|        6 | BETTE      | NICHOLSON    | 2006-02-15 04:34:33 |</span><br><span class="line">|        7 | GRACE      | MOSTEL       | 2006-02-15 04:34:33 |</span><br><span class="line">|        8 | MATTHEW    | JOHANSSON    | 2006-02-15 04:34:33 |</span><br><span class="line">|        9 | JOE        | SWANK        | 2006-02-15 04:34:33 |</span><br><span class="line">|       10 | CHRISTIAN  | GABLE        | 2006-02-15 04:34:33 |</span><br><span class="line"><span class="code">+----------+</span>------------<span class="code">+--------------+</span>---------------------+</span><br><span class="line">10 rows in set (0.02 sec)</span><br><span class="line"></span><br><span class="line">查看一下checksum</span><br><span class="line">mysql&gt; CHECKSUM TABLE actor;</span><br><span class="line"><span class="code">+--------------+</span>------------+</span><br><span class="line">| Table        | Checksum   |</span><br><span class="line"><span class="code">+--------------+</span>------------+</span><br><span class="line">| sakila.actor | 1702520518 |</span><br><span class="line"><span class="code">+--------------+</span>------------+</span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select count(<span class="strong">*) from actor;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|      200 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; DROP TABLE actor;</span><br><span class="line">Query OK, 0 rows affected (0.03 sec)</span><br></pre></td></tr></table></figure><br>
       
     </div>
     <footer class="article-footer">
