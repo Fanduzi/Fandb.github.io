@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://fuxkdb.com/"/>
-  <updated>2021-10-15T07:26:37.796Z</updated>
+  <updated>2021-10-15T08:54:55.283Z</updated>
   <id>http://fuxkdb.com/</id>
   
   <author>
@@ -16,17 +16,17 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title></title>
+    <title>MySQL page cleaner占用CPU较高问题</title>
     <link href="http://fuxkdb.com/2021/10/15/2021-10-15-MySQL%20page%20cleaner%E5%8D%A0%E7%94%A8CPU%E8%BE%83%E9%AB%98%E9%97%AE%E9%A2%98/"/>
     <id>http://fuxkdb.com/2021/10/15/2021-10-15-MySQL page cleaner占用CPU较高问题/</id>
-    <published>2021-10-15T07:26:37.796Z</published>
-    <updated>2021-10-15T07:26:37.796Z</updated>
+    <published>2021-10-15T04:23:00.000Z</published>
+    <updated>2021-10-15T08:54:55.283Z</updated>
     
-    <content type="html"><![CDATA[<p>[TOC]</p>
-<h1 id="背景说明"><a href="#背景说明" class="headerlink" title="背景说明"></a>背景说明</h1><p>众所周知, <a href="https://blog.csdn.net/devcloud/article/details/106709969">Seconds_Behind_Master 无法准确反应复制延迟</a>. 为了准确的反应复制延迟, 业界的办法是, 创建一个延迟监控表, 周期性(往往是每秒)更新这个表的时间戳字段, 计算当前时间与该字段差值, 因此判断复制延迟. 典型的例子是Percona的<a href="https://www.percona.com/doc/percona-toolkit/3.0/pt-heartbeat.html">pt-heartbeat</a>. 另外TIDB DM也是用了相同的方法监控同步延迟.</p>
+    <content type="html"><![CDATA[<h1 id="背景说明"><a href="#背景说明" class="headerlink" title="背景说明"></a>背景说明</h1><p>众所周知, <a href="https://blog.csdn.net/devcloud/article/details/106709969">Seconds_Behind_Master 无法准确反应复制延迟</a>. 为了准确的反应复制延迟, 业界的办法是, 创建一个延迟监控表, 周期性(往往是每秒)更新这个表的时间戳字段, 计算当前时间与该字段差值, 因此判断复制延迟. 典型的例子是Percona的<a href="https://www.percona.com/doc/percona-toolkit/3.0/pt-heartbeat.html">pt-heartbeat</a>. 另外TIDB DM也是用了相同的方法监控同步延迟.</p>
 <p>在我们这里, 使用了复制和MGR两种架构集群, 为了更好地监控延迟, DBA开发了一个python脚本, 脚本从CMDB获取所有集群ProxySQL节点, 连接ProxySQL, 每秒更新dbms_monitor.monitor_delay表. 表结构和执行的语句为:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 13:23:42 [dbms_monitor]&gt; show create table monitor_delay\G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">       Table: monitor_delay</span><br><span class="line"><span class="keyword">Create</span> <span class="keyword">Table</span>: <span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`monitor_delay`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">tinyint</span>(<span class="number">3</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`ctime`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_unicode_ci</span><br><span class="line"><span class="number">1</span> <span class="keyword">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">更新时间戳语句</span><br><span class="line"><span class="keyword">REPLACE</span> <span class="keyword">INTO</span> dbms_monitor.monitor_delay(<span class="keyword">id</span>) <span class="keyword">VALUES</span>(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
 <p>为了保证”每秒”更新, 脚本做了超时处理, 如果某个集群执行语句超时, 则抛出异常, sleep 一段时间(这个时间+处理时间=1s), 进入下次循环</p>
+<a id="more"></a>
 <h1 id="问题产生"><a href="#问题产生" class="headerlink" title="问题产生"></a>问题产生</h1><p>2021.10.14 15:45左右, DBA在rc环境进行演练, 部分集群宕机</p>
 <p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20211015145238757.png" alt=""></p>
 <p>从脚本日志也可以看出, 部分rc集群异常</p>
@@ -82,11 +82,15 @@
     
     <summary type="html">
     
-      &lt;p&gt;[TOC]&lt;/p&gt;
-&lt;h1 id=&quot;背景说明&quot;&gt;&lt;a href=&quot;#背景说明&quot; class=&quot;headerlink&quot; title=&quot;背景说明&quot;&gt;&lt;/a&gt;背景说明&lt;/h1&gt;&lt;p&gt;众所周知, &lt;a href=&quot;https://blog.csdn.net/devcloud/art
+      &lt;h1 id=&quot;背景说明&quot;&gt;&lt;a href=&quot;#背景说明&quot; class=&quot;headerlink&quot; title=&quot;背景说明&quot;&gt;&lt;/a&gt;背景说明&lt;/h1&gt;&lt;p&gt;众所周知, &lt;a href=&quot;https://blog.csdn.net/devcloud/article/details/106709969&quot;&gt;Seconds_Behind_Master 无法准确反应复制延迟&lt;/a&gt;. 为了准确的反应复制延迟, 业界的办法是, 创建一个延迟监控表, 周期性(往往是每秒)更新这个表的时间戳字段, 计算当前时间与该字段差值, 因此判断复制延迟. 典型的例子是Percona的&lt;a href=&quot;https://www.percona.com/doc/percona-toolkit/3.0/pt-heartbeat.html&quot;&gt;pt-heartbeat&lt;/a&gt;. 另外TIDB DM也是用了相同的方法监控同步延迟.&lt;/p&gt;
+&lt;p&gt;在我们这里, 使用了复制和MGR两种架构集群, 为了更好地监控延迟, DBA开发了一个python脚本, 脚本从CMDB获取所有集群ProxySQL节点, 连接ProxySQL, 每秒更新dbms_monitor.monitor_delay表. 表结构和执行的语句为:&lt;/p&gt;
+&lt;figure class=&quot;highlight sql&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;root@localhost 13:23:42 [dbms_monitor]&amp;gt; show create table monitor_delay\G&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;*************************** 1. row ***************************&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;       Table: monitor_delay&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;Create&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;Table&lt;/span&gt;: &lt;span class=&quot;keyword&quot;&gt;CREATE&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;TABLE&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;`monitor_delay`&lt;/span&gt; (&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;string&quot;&gt;`id`&lt;/span&gt; &lt;span class=&quot;built_in&quot;&gt;tinyint&lt;/span&gt;(&lt;span class=&quot;number&quot;&gt;3&lt;/span&gt;) &lt;span class=&quot;keyword&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;literal&quot;&gt;NULL&lt;/span&gt;,&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;string&quot;&gt;`ctime`&lt;/span&gt; datetime &lt;span class=&quot;keyword&quot;&gt;NOT&lt;/span&gt; &lt;span class=&quot;literal&quot;&gt;NULL&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;CURRENT_TIMESTAMP&lt;/span&gt;,&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  PRIMARY &lt;span class=&quot;keyword&quot;&gt;KEY&lt;/span&gt; (&lt;span class=&quot;string&quot;&gt;`id`&lt;/span&gt;)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;) &lt;span class=&quot;keyword&quot;&gt;ENGINE&lt;/span&gt;=&lt;span class=&quot;keyword&quot;&gt;InnoDB&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;DEFAULT&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;CHARSET&lt;/span&gt;=utf8 &lt;span class=&quot;keyword&quot;&gt;COLLATE&lt;/span&gt;=utf8_unicode_ci&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;number&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;set&lt;/span&gt; (&lt;span class=&quot;number&quot;&gt;0.00&lt;/span&gt; sec)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt; &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt; &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt; &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;更新时间戳语句&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;REPLACE&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;INTO&lt;/span&gt; dbms_monitor.monitor_delay(&lt;span class=&quot;keyword&quot;&gt;id&lt;/span&gt;) &lt;span class=&quot;keyword&quot;&gt;VALUES&lt;/span&gt;(&lt;span class=&quot;number&quot;&gt;1&lt;/span&gt;)&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;为了保证”每秒”更新, 脚本做了超时处理, 如果某个集群执行语句超时, 则抛出异常, sleep 一段时间(这个时间+处理时间=1s), 进入下次循环&lt;/p&gt;
     
     </summary>
     
+    
+      <category term="MySQL" scheme="http://fuxkdb.com/tags/MySQL/"/>
     
   </entry>
   

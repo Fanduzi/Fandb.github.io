@@ -309,10 +309,20 @@
   <div id="articleInner" class="article-inner">
     
     
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2021/10/15/2021-10-15-MySQL%20page%20cleaner%E5%8D%A0%E7%94%A8CPU%E8%BE%83%E9%AB%98%E9%97%AE%E9%A2%98/">MySQL page cleaner占用CPU较高问题</a>
+    </h1>
+  
+
+      </header>
+    
     <div class="article-meta">
       
 	<a href="/2021/10/15/2021-10-15-MySQL%20page%20cleaner%E5%8D%A0%E7%94%A8CPU%E8%BE%83%E9%AB%98%E9%97%AE%E9%A2%98/" class="article-date">
-	  <time datetime="2021-10-15T07:26:37.796Z" itemprop="datePublished">2021-10-15</time>
+	  <time datetime="2021-10-15T04:23:00.000Z" itemprop="datePublished">2021-10-15</time>
 	</a>
 
       
@@ -322,63 +332,10 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>[TOC]</p>
-<h1 id="背景说明"><a href="#背景说明" class="headerlink" title="背景说明"></a>背景说明</h1><p>众所周知, <a target="_blank" rel="noopener" href="https://blog.csdn.net/devcloud/article/details/106709969">Seconds_Behind_Master 无法准确反应复制延迟</a>. 为了准确的反应复制延迟, 业界的办法是, 创建一个延迟监控表, 周期性(往往是每秒)更新这个表的时间戳字段, 计算当前时间与该字段差值, 因此判断复制延迟. 典型的例子是Percona的<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-toolkit/3.0/pt-heartbeat.html">pt-heartbeat</a>. 另外TIDB DM也是用了相同的方法监控同步延迟.</p>
+        <h1 id="背景说明"><a href="#背景说明" class="headerlink" title="背景说明"></a>背景说明</h1><p>众所周知, <a target="_blank" rel="noopener" href="https://blog.csdn.net/devcloud/article/details/106709969">Seconds_Behind_Master 无法准确反应复制延迟</a>. 为了准确的反应复制延迟, 业界的办法是, 创建一个延迟监控表, 周期性(往往是每秒)更新这个表的时间戳字段, 计算当前时间与该字段差值, 因此判断复制延迟. 典型的例子是Percona的<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-toolkit/3.0/pt-heartbeat.html">pt-heartbeat</a>. 另外TIDB DM也是用了相同的方法监控同步延迟.</p>
 <p>在我们这里, 使用了复制和MGR两种架构集群, 为了更好地监控延迟, DBA开发了一个python脚本, 脚本从CMDB获取所有集群ProxySQL节点, 连接ProxySQL, 每秒更新dbms_monitor.monitor_delay表. 表结构和执行的语句为:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 13:23:42 [dbms_monitor]&gt; show create table monitor_delay\G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">       Table: monitor_delay</span><br><span class="line"><span class="keyword">Create</span> <span class="keyword">Table</span>: <span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`monitor_delay`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">tinyint</span>(<span class="number">3</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`ctime`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_unicode_ci</span><br><span class="line"><span class="number">1</span> <span class="keyword">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">更新时间戳语句</span><br><span class="line"><span class="keyword">REPLACE</span> <span class="keyword">INTO</span> dbms_monitor.monitor_delay(<span class="keyword">id</span>) <span class="keyword">VALUES</span>(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
 <p>为了保证”每秒”更新, 脚本做了超时处理, 如果某个集群执行语句超时, 则抛出异常, sleep 一段时间(这个时间+处理时间=1s), 进入下次循环</p>
-<h1 id="问题产生"><a href="#问题产生" class="headerlink" title="问题产生"></a>问题产生</h1><p>2021.10.14 15:45左右, DBA在rc环境进行演练, 部分集群宕机</p>
-<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20211015145238757.png" alt=""></p>
-<p>从脚本日志也可以看出, 部分rc集群异常</p>
-<p>随后数据库cpu趋势监控报警</p>
-<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20211015145330507.png" alt=""></p>
-<p>查看监控, 发现很多8核心服务器cpu使用率有明显上升</p>
-<blockquote>
-<p>这部分服务器会采用多实例部署方式, 部署非核心业务集群, 往往比较空闲</p>
-</blockquote>
-<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20211015145437409.png" alt=""></p>
-<p>DBA在经过一些列分析定位后排查后, 发现一个奇怪的现象:</p>
-<ul>
-<li>关闭延迟监控脚本CPU使用率上升</li>
-<li>开启延迟监控脚本CPU使用率下降</li>
-</ul>
-<h1 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h1><h3 id="定位占用CPU真凶"><a href="#定位占用CPU真凶" class="headerlink" title="定位占用CPU真凶"></a>定位占用CPU真凶</h3><p>上面的现象奇怪就奇怪在与我们的通常认知相反, 即: 如果是开启脚本CPU使用率上升, 关闭脚本CPU使用率下降还可以理解, 这种情况8成是脚本问题</p>
-<p>我们登录一个问题服务器, 选择一个mysql实例, 使用如下命令知道占用CPU高的mysql线程id</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">pidstat -t -p 16904 1</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">01:39:22 PM   UID      TGID       TID    %usr %system  %guest    %CPU   CPU  Command</span><br><span class="line">01:39:23 PM  3001     16904         -  100.00    0.00    0.00  100.00     6  mysqld</span><br><span class="line">01:39:23 PM  3001         -     16904    0.00    0.00    0.00    0.00     6  |__mysqld</span><br><span class="line">...</span><br><span class="line">01:39:23 PM  3001         -     17986    0.00    0.00    0.00    0.00     6  |__mysqld</span><br><span class="line">01:39:23 PM  3001         -     17987  100.00    0.00    0.00  100.00     5  |__mysqld</span><br><span class="line">01:39:23 PM  3001         -     17988    0.00    0.00    0.00    0.00     6  |__mysqld</span><br><span class="line">01:39:23 PM  3001         -     18016    0.00    0.00    0.00    0.00     0  |__mysqld</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p>如上所示, TID:17987 占用CPU高, 我们登录数据库查看这个线程在干什么</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">fan@127.0.0.1 13:41:03 [(none)]&gt; select * from performance_schema.threads where THREAD_OS_ID = 17987 \G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">          THREAD_ID: 19</span><br><span class="line">               NAME: thread/innodb/page_cleaner_thread</span><br><span class="line">               TYPE: BACKGROUND</span><br><span class="line">     PROCESSLIST_ID: NULL</span><br><span class="line">   PROCESSLIST_USER: NULL</span><br><span class="line">   PROCESSLIST_HOST: NULL</span><br><span class="line">     PROCESSLIST_DB: NULL</span><br><span class="line">PROCESSLIST_COMMAND: NULL</span><br><span class="line">   PROCESSLIST_TIME: NULL</span><br><span class="line">  PROCESSLIST_STATE: NULL</span><br><span class="line">   PROCESSLIST_INFO: NULL</span><br><span class="line">   PARENT_THREAD_ID: NULL</span><br><span class="line">               ROLE: NULL</span><br><span class="line">       INSTRUMENTED: YES</span><br><span class="line">            HISTORY: YES</span><br><span class="line">    CONNECTION_TYPE: NULL</span><br><span class="line">       THREAD_OS_ID: 17987</span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
-<p>如上所示, 这个线程是innodb后台线程page_cleaner_thread; page_cleaner_thread是用来刷脏页的</p>
-<p>通过google 搜索 “page_cleaner High cpu usage”, 找到一篇阿里内核月报 <a target="_blank" rel="noopener" href="https://www.bookstack.cn/read/aliyun-rds-core/65d73409b2953f7e.md">MySQL · 引擎特性 · page cleaner 算法</a></p>
-<p>这篇文章大致说的是, page cleaner的刷脏逻辑, 逻辑如下图所示</p>
-<p><img src="https://static.sitestack.cn/projects/aliyun-rds-core/aadaa078bf7798f26289fd58a72a7e41.png" alt="image.png"></p>
-<h4 id="pc-sleep-if-needed"><a href="#pc-sleep-if-needed" class="headerlink" title="pc_sleep_if_needed"></a>pc_sleep_if_needed</h4><p>page cleaner 的循环刷脏周期是 1s，如果不足 1s 就需要 sleep，超过 1s 可能是刷脏太慢，不足 1s 可能是被其它线程唤醒的。</p>
-<h4 id="是否持续缓慢刷脏"><a href="#是否持续缓慢刷脏" class="headerlink" title="是否持续缓慢刷脏"></a>是否持续缓慢刷脏</h4><p>错误日志里有时候会看到这样的日志：</p>
-<ol>
-<li><code>Page cleaner took xx ms to flush xx and evict xx pages</code></li>
-</ol>
-<p>这个表示上一轮刷脏进行的比较缓慢，首先 ret_sleep == OS_SYNC_TIME_EXCEEDED, 并且本轮刷脏和上一轮刷脏超过 3s，warn_interval 控制输出日志的频率，如果持续打日志，就要看看 IO 延迟了。</p>
-<h4 id="sync-flush"><a href="#sync-flush" class="headerlink" title="sync flush"></a>sync flush</h4><p>Sync flush 不受 io_capacity/io_capacity_max 的限制，所以会对性能产生比较大的影响。</p>
-<h4 id="normal-flush"><a href="#normal-flush" class="headerlink" title="normal flush"></a>normal flush</h4><p>当系统有负载的时候，为了避免频繁刷脏影响用户，会计算出每次刷脏的 page 数量</p>
-<h4 id="idle-flush"><a href="#idle-flush" class="headerlink" title="idle flush"></a>idle flush</h4><p>系统空闲的时候不用担心刷脏影响用户线程，可以使用最大的 io_capacity 刷脏。RDS 有参数 srv_idle_flush_pct 控制刷脏比例，默认是 100%。</p>
-<h3 id="这里就是问题的关键"><a href="#这里就是问题的关键" class="headerlink" title="这里就是问题的关键:"></a>这里就是问题的关键:</h3><ul>
-<li>系统空闲的时候不用担心刷脏影响用户线程，可以使用最大的 io_capacity 刷脏; </li>
-<li>当系统有负载的时候，为了避免频繁刷脏影响用户，会计算出每次刷脏的 page 数量</li>
-</ul>
-<p>看到这里我们猜测, 当监控脚本启动时, innodb认为”系统有负载”, 采用<strong>normal flush</strong>方式刷脏页, 避免频繁刷脏影响用户; 当脚本关闭时, innodb认为系统空闲, 采用<strong>idle flush</strong>方式尽力刷脏</p>
-<p>我们在测试服务器, 使用 while true; do mysql -udbms_monitor_rw -psuperpass -h172.16.23.x -P3307 dbms_monitor -e”REPLACE INTO dbms_monitor.monitor_delay(id) VALUES(1)” ; sleep 1 ; done 模拟监控脚本每秒更新</p>
-<blockquote>
-<p>这样做的目的是排除python脚本和proxysql</p>
-</blockquote>
-<p>结果CPU使用率有明显下降</p>
-<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/wecom-temp-6fae016504de926e600e915c34e51789.png" alt=""></p>
-<p>关闭脚本CPU使用率上升</p>
-<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20211015145606564.png" alt=""></p>
-<p>我们选取非核心业务节点测试, 也产生了相同的效果, 至此基本定位了问题发生原因</p>
-<h1 id="如何处理"><a href="#如何处理" class="headerlink" title="如何处理?"></a>如何处理?</h1><p>不需要处理.</p>
-<p>在8.0版本增加了参数<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html#sysvar_innodb_idle_flush_pct">innodb_idle_flush_pct</a></p>
-<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/wecom-temp-1ba901ad672a91c6d332cdf6e9f596bc.png" alt=""></p>
-<p>来控制idle flush模式下的刷脏量</p>
-
       
     </div>
     <footer class="article-footer">
