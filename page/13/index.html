@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-PMM出问题排查"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/09/29/PMM%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/">PMM出问题排查</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/09/29/PMM%E5%87%BA%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/" class="article-date">
+	  <time datetime="2017-09-29T01:52:00.000Z" itemprop="datePublished">2017-09-29</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>看各种日志<br>monitoring service<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node4 ~]# ll /var/log/pmm-*</span><br><span class="line">-rw-r--r--. <span class="number">1</span> root root <span class="number">1880</span> Sep <span class="number">27</span> <span class="number">18</span>:<span class="number">02</span> /var/log/pmm-linux-metrics<span class="number">-42000.</span>log</span><br><span class="line">-rw-r--r--. <span class="number">1</span> root root  <span class="number">783</span> Sep <span class="number">27</span> <span class="number">18</span>:<span class="number">02</span> /var/log/pmm-mysql-metrics<span class="number">-42002.</span>log</span><br><span class="line">-rw-r--r--. <span class="number">1</span> root root <span class="number">7143</span> Sep <span class="number">27</span> <span class="number">18</span>:<span class="number">08</span> /var/log/pmm-mysql-queries<span class="number">-0.</span>log</span><br><span class="line"></span><br></pre></td></tr></table></figure><br>docker里的日志<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@node4 log]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED            STATUS              PORTS                        NAMES</span><br><span class="line">e4916410b314        percona/pmm-server:latest  <span class="string">&quot;/opt/entrypoint.sh&quot;</span>  2 hours ago        Up 31 minutes      0.0.0.0:80-&gt;80/tcp, 443/tcp  pmm-server</span><br><span class="line">948a9aeb047e        percona/pmm-server:latest  <span class="string">&quot;/bin/true&quot;</span>            2 hours ago        Created                                          pmm-data</span><br><span class="line">[root@node4 log]# docker logs e4916410b314</span><br><span class="line">2017-09-27 08:39:47,175 CRIT Supervisor running as root (<span class="literal">no</span><span class="built_in"> user </span><span class="keyword">in</span><span class="built_in"> config </span>file)</span><br><span class="line">2017-09-27 08:39:47,175 WARN Included extra file <span class="string">&quot;/etc/supervisord.d/pmm.ini&quot;</span> during parsing</span><br><span class="line">Unlinking stale socket /var/run/supervisor/supervisor.sock</span><br><span class="line">2017-09-27 08:39:47,527 <span class="builtin-name">INFO</span> RPC<span class="built_in"> interface </span><span class="string">&#x27;supervisor&#x27;</span> initialized</span><br><span class="line">2017-09-27 08:39:47,528 <span class="builtin-name">INFO</span> supervisord started with pid 1</span><br><span class="line">2017-09-27 08:39:48,536 <span class="builtin-name">INFO</span> spawned: <span class="string">&#x27;mysql&#x27;</span> with pid 15</span><br><span class="line">2017-09-27 08:39:48,543 <span class="builtin-name">INFO</span> spawned: <span class="string">&#x27;consul&#x27;</span> with pid 16</span><br><span class="line">2017-09-27 08:39:48,552 <span class="builtin-name">INFO</span> spawned: <span class="string">&#x27;grafana&#x27;</span> with pid 17</span><br><span class="line">2017-09-27 08:39:48,563 <span class="builtin-name">INFO</span> spawned: <span class="string">&#x27;nginx&#x27;</span> with pid 18</span><br><span class="line">2017-09-27 08:39:48,610 <span class="builtin-name">INFO</span> spawned: <span class="string">&#x27;cron&#x27;</span> with pid 19</span><br><span class="line">2017-09-27 08:39:48,612 <span class="builtin-name">INFO</span> spawned: <span class="string">&#x27;qan-api&#x27;</span> with pid 20</span><br></pre></td></tr></table></figure><br>进去容器看<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it e4916410b314 <span class="regexp">/bin/</span>bash</span><br><span class="line"><span class="regexp">/var/</span>log 下面各种日志</span><br><span class="line"><span class="regexp">/var/</span>log<span class="regexp">/grafana/g</span>rafana.log</span><br><span class="line"><span class="regexp">/var/</span>log/prometheus.log</span><br></pre></td></tr></table></figure></p>
+<p>pmm-admin list是yes不代表没问题,check-network看看<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">[root@node4 ~]# pmm-admin check-network</span><br><span class="line">PMM<span class="built_in"> Network </span>Status</span><br><span class="line"></span><br><span class="line">Server<span class="built_in"> Address </span>| 172.16.83.103</span><br><span class="line">Client<span class="built_in"> Address </span>| 172.16.83.103 </span><br><span class="line"></span><br><span class="line">*<span class="built_in"> System </span>Time</span><br><span class="line">NTP<span class="built_in"> Server </span>(0.pool.ntp.org)        | 2017-09-27 17:13:58 +0800 CST</span><br><span class="line">PMM<span class="built_in"> Server </span>                         | 2017-09-27 09:13:58 +0000 GMT</span><br><span class="line">PMM<span class="built_in"> Client </span>                         | 2017-09-27 17:13:58 +0800 CST</span><br><span class="line">PMM<span class="built_in"> Server </span>Time Drift              | OK</span><br><span class="line">PMM<span class="built_in"> Client </span>Time Drift              | OK</span><br><span class="line">PMM<span class="built_in"> Client </span><span class="keyword">to</span> PMM<span class="built_in"> Server </span>Time Drift | OK</span><br><span class="line"></span><br><span class="line">* Connection:<span class="built_in"> Client </span>--&gt; Server</span><br><span class="line">-------------------- -------      </span><br><span class="line">SERVER<span class="built_in"> SERVICE </span>     STATUS      </span><br><span class="line">-------------------- -------      </span><br><span class="line">Consul API          OK</span><br><span class="line">Prometheus API      OK</span><br><span class="line">Query Analytics API  OK</span><br><span class="line"></span><br><span class="line">Connection duration | 551.133µs</span><br><span class="line">Request duration    | 2.467879ms</span><br><span class="line">Full round trip    | 3.019012ms</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">* Connection:<span class="built_in"> Client </span>&lt;-- Server</span><br><span class="line">-------------- ------ -------------------- ------- ---------- ---------</span><br><span class="line">SERVICE<span class="built_in"> TYPE </span> NAME  REMOTE ENDPOINT      STATUS  HTTPS/TLS  PASSWORD </span><br><span class="line">-------------- ------ -------------------- ------- ---------- ---------</span><br><span class="line">linux:metrics  node4  172.16.83.103:42000  OK      <span class="literal">YES</span>        -        </span><br><span class="line">mysql:metrics  node4  172.16.83.103:42002  OK      <span class="literal">YES</span>        -        </span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-PMM设置grafana登录用户"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -538,51 +585,6 @@
 </li>
 </ul>
 
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-innobackupex遇到的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/08/31/innobackupex%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/">innobackupex遇到的坑</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/08/31/innobackupex%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" class="article-date">
-	  <time datetime="2017-08-31T10:19:00.000Z" itemprop="datePublished">2017-08-31</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="stream选择使用tar方式压缩到时slave-info信息不完整"><a href="#stream选择使用tar方式压缩到时slave-info信息不完整" class="headerlink" title="stream选择使用tar方式压缩到时slave_info信息不完整"></a>stream选择使用tar方式压缩到时slave_info信息不完整</h2><p>版本<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># innobackupex --version</span></span><br><span class="line">innobackupex <span class="keyword">version</span> <span class="number">2.4</span><span class="number">.8</span> Linux (x86_64) (revision <span class="keyword">id</span>: <span class="number">97330</span>f7)</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># cat /etc/redhat-release </span></span><br><span class="line">CentOS <span class="keyword">release</span> <span class="number">6.4</span> (<span class="keyword">Final</span>)</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># gzip --version</span></span><br><span class="line">gzip <span class="number">1.3</span><span class="number">.12</span></span><br><span class="line">Copyright (C) <span class="number">2007</span> Free Software Foundation, Inc.</span><br><span class="line">Copyright (C) <span class="number">1993</span> Jean-loup Gailly.</span><br><span class="line">This <span class="keyword">is</span> free software.  You may redistribute copies <span class="keyword">of</span> it <span class="keyword">under</span> the terms <span class="keyword">of</span></span><br><span class="line">the GNU <span class="keyword">General</span> <span class="keyword">Public</span> License &lt;<span class="keyword">http</span>://www.gnu.org/licenses/gpl.html&gt;.</span><br><span class="line">There <span class="keyword">is</span> <span class="keyword">NO</span> WARRANTY, <span class="keyword">to</span> the <span class="keyword">extent</span> permitted <span class="keyword">by</span> law.</span><br><span class="line"></span><br><span class="line">Written <span class="keyword">by</span> Jean-loup Gailly.</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># mysql -e&quot;\s&quot;</span></span><br><span class="line"><span class="comment">--------------</span></span><br><span class="line">mysql  Ver <span class="number">14.14</span> Distrib <span class="number">5.7</span><span class="number">.18</span>, <span class="keyword">for</span> linux-glibc2<span class="number">.5</span> (x86_64) <span class="keyword">using</span>  EditLine wrapper</span><br><span class="line"></span><br><span class="line"><span class="keyword">Connection</span> <span class="keyword">id</span>:          <span class="number">11</span></span><br><span class="line"><span class="keyword">Current</span> <span class="keyword">database</span>:</span><br><span class="line"><span class="keyword">Current</span> <span class="keyword">user</span>:           root@localhost</span><br><span class="line">SSL:                    <span class="keyword">Not</span> <span class="keyword">in</span> <span class="keyword">use</span></span><br><span class="line"><span class="keyword">Current</span> pager:          stdout</span><br><span class="line"><span class="keyword">Using</span> <span class="keyword">outfile</span>:          <span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">Using</span> delimiter:        ;</span><br><span class="line">Server version:         5.7.18-log MySQL Community Server (GPL)</span><br><span class="line">Protocol version:       10</span><br><span class="line">Connection:             Localhost via UNIX socket</span><br><span class="line">Server characterset:    utf8mb4</span><br><span class="line">Db     characterset:    utf8mb4</span><br><span class="line">Client characterset:    utf8mb4</span><br><span class="line">Conn.  characterset:    utf8mb4</span><br><span class="line">UNIX socket:            /data/mysqldata/3306/mysql.sock</span><br><span class="line">Uptime:                 15 min 52 sec</span><br><span class="line"></span><br><span class="line">Threads: 3  Questions: 61  Slow queries: 0  Opens: 116  <span class="keyword">Flush</span> <span class="keyword">tables</span>: <span class="number">5</span>  <span class="keyword">Open</span> <span class="keyword">tables</span>: <span class="number">0</span>  Queries per <span class="keyword">second</span> <span class="keyword">avg</span>: <span class="number">0.064</span></span><br><span class="line"><span class="comment">--------------</span></span><br></pre></td></tr></table></figure><br>备份命令<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innobackupex <span class="attribute">--user</span>=backup <span class="attribute">--password</span>=<span class="string">&#x27;backup&#x27;</span> --slave-<span class="builtin-name">info</span> <span class="attribute">--stream</span>=tar /tmp | gzip -&gt; /data/mysqldata/backup/xtra_full.tar.gz</span><br></pre></td></tr></table></figure><br>期望得到的完整信息<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@test1 slave_info]<span class="comment"># more xtrabackup_slave_info </span></span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> gtid_purged=<span class="string">&#x27;5c351518-78ec-11e7-8e7a-005056a610c3:1-1164&#x27;</span>;</span><br><span class="line"><span class="keyword">CHANGE</span> <span class="keyword">MASTER</span> <span class="keyword">TO</span> MASTER_AUTO_POSITION=<span class="number">1</span>;</span><br></pre></td></tr></table></figure><br>
       
     </div>
     <footer class="article-footer">

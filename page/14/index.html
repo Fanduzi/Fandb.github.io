@@ -305,6 +305,51 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-innobackupex遇到的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/31/innobackupex%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/">innobackupex遇到的坑</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/31/innobackupex%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" class="article-date">
+	  <time datetime="2017-08-31T10:19:00.000Z" itemprop="datePublished">2017-08-31</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="stream选择使用tar方式压缩到时slave-info信息不完整"><a href="#stream选择使用tar方式压缩到时slave-info信息不完整" class="headerlink" title="stream选择使用tar方式压缩到时slave_info信息不完整"></a>stream选择使用tar方式压缩到时slave_info信息不完整</h2><p>版本<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># innobackupex --version</span></span><br><span class="line">innobackupex <span class="keyword">version</span> <span class="number">2.4</span><span class="number">.8</span> Linux (x86_64) (revision <span class="keyword">id</span>: <span class="number">97330</span>f7)</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># cat /etc/redhat-release </span></span><br><span class="line">CentOS <span class="keyword">release</span> <span class="number">6.4</span> (<span class="keyword">Final</span>)</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># gzip --version</span></span><br><span class="line">gzip <span class="number">1.3</span><span class="number">.12</span></span><br><span class="line">Copyright (C) <span class="number">2007</span> Free Software Foundation, Inc.</span><br><span class="line">Copyright (C) <span class="number">1993</span> Jean-loup Gailly.</span><br><span class="line">This <span class="keyword">is</span> free software.  You may redistribute copies <span class="keyword">of</span> it <span class="keyword">under</span> the terms <span class="keyword">of</span></span><br><span class="line">the GNU <span class="keyword">General</span> <span class="keyword">Public</span> License &lt;<span class="keyword">http</span>://www.gnu.org/licenses/gpl.html&gt;.</span><br><span class="line">There <span class="keyword">is</span> <span class="keyword">NO</span> WARRANTY, <span class="keyword">to</span> the <span class="keyword">extent</span> permitted <span class="keyword">by</span> law.</span><br><span class="line"></span><br><span class="line">Written <span class="keyword">by</span> Jean-loup Gailly.</span><br><span class="line">[root@test1 <span class="keyword">backup</span>]<span class="comment"># mysql -e&quot;\s&quot;</span></span><br><span class="line"><span class="comment">--------------</span></span><br><span class="line">mysql  Ver <span class="number">14.14</span> Distrib <span class="number">5.7</span><span class="number">.18</span>, <span class="keyword">for</span> linux-glibc2<span class="number">.5</span> (x86_64) <span class="keyword">using</span>  EditLine wrapper</span><br><span class="line"></span><br><span class="line"><span class="keyword">Connection</span> <span class="keyword">id</span>:          <span class="number">11</span></span><br><span class="line"><span class="keyword">Current</span> <span class="keyword">database</span>:</span><br><span class="line"><span class="keyword">Current</span> <span class="keyword">user</span>:           root@localhost</span><br><span class="line">SSL:                    <span class="keyword">Not</span> <span class="keyword">in</span> <span class="keyword">use</span></span><br><span class="line"><span class="keyword">Current</span> pager:          stdout</span><br><span class="line"><span class="keyword">Using</span> <span class="keyword">outfile</span>:          <span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">Using</span> delimiter:        ;</span><br><span class="line">Server version:         5.7.18-log MySQL Community Server (GPL)</span><br><span class="line">Protocol version:       10</span><br><span class="line">Connection:             Localhost via UNIX socket</span><br><span class="line">Server characterset:    utf8mb4</span><br><span class="line">Db     characterset:    utf8mb4</span><br><span class="line">Client characterset:    utf8mb4</span><br><span class="line">Conn.  characterset:    utf8mb4</span><br><span class="line">UNIX socket:            /data/mysqldata/3306/mysql.sock</span><br><span class="line">Uptime:                 15 min 52 sec</span><br><span class="line"></span><br><span class="line">Threads: 3  Questions: 61  Slow queries: 0  Opens: 116  <span class="keyword">Flush</span> <span class="keyword">tables</span>: <span class="number">5</span>  <span class="keyword">Open</span> <span class="keyword">tables</span>: <span class="number">0</span>  Queries per <span class="keyword">second</span> <span class="keyword">avg</span>: <span class="number">0.064</span></span><br><span class="line"><span class="comment">--------------</span></span><br></pre></td></tr></table></figure><br>备份命令<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innobackupex <span class="attribute">--user</span>=backup <span class="attribute">--password</span>=<span class="string">&#x27;backup&#x27;</span> --slave-<span class="builtin-name">info</span> <span class="attribute">--stream</span>=tar /tmp | gzip -&gt; /data/mysqldata/backup/xtra_full.tar.gz</span><br></pre></td></tr></table></figure><br>期望得到的完整信息<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@test1 slave_info]<span class="comment"># more xtrabackup_slave_info </span></span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">GLOBAL</span> gtid_purged=<span class="string">&#x27;5c351518-78ec-11e7-8e7a-005056a610c3:1-1164&#x27;</span>;</span><br><span class="line"><span class="keyword">CHANGE</span> <span class="keyword">MASTER</span> <span class="keyword">TO</span> MASTER_AUTO_POSITION=<span class="number">1</span>;</span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-主从传输表空间的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -595,59 +640,6 @@
 <p>Note<br>如果您的数据库仅使用InnoDB引擎,可能会更容易地转储所有数据库,停止服务器,删除所有数据库和InnoDB日志文件,重新启动服务器以及导入转储文件.</p>
 </blockquote>
 
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-MySQL数据库设计规范"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/08/10/MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/">MySQL数据库设计规范</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/08/10/MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/" class="article-date">
-	  <time datetime="2017-08-10T08:00:00.000Z" itemprop="datePublished">2017-08-10</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="MySQL数据库设计规范"><a href="#MySQL数据库设计规范" class="headerlink" title="MySQL数据库设计规范"></a>MySQL数据库设计规范</h1><p>MySQL数据库与Oracle、sqlserver等数据库相比，有其内核上的优势与劣势。我们在使用MySQL数据库的时候需要遵循一定规范，扬长避短。本规范旨在帮助或指导RD、QA、OP等技术人员做出适合线上业务的数据库设计。在数据库变更和处理流程、数据库表设计、SQL编写等方面予以规范，从而为公司业务系统稳定、健康地运行提供保障。</p>
-<h2 id="数据库设计"><a href="#数据库设计" class="headerlink" title="数据库设计"></a>数据库设计</h2><p>以下所有规范会按照【高危】、【强制】、【建议】三个级别进行标注，遵守优先级从高到低。<br>对于不满足【高危】和【强制】两个级别的设计，DBA会强制打回要求修改。</p>
-<h3 id="库名"><a href="#库名" class="headerlink" title="库名"></a>库名</h3><p><strong>1.【强制】库的名称必须控制在32个字符以内，相关模块的表名与表名之间尽量提现join的关系，如user表和user_login表。</strong><br>2.【建议】库的名称格式：业务系统名称<em>子系统名，同一模块使用的表名尽量使用统一前缀。<br>**3.【强制】一般分库名称命名格式是“库通配名</em>编号”，编号从“0”开始递增，比如“wenda<em>001” **<br>以时间进行分库的名称格式是“库通配名</em>时间”<br><strong>4.【强制】创建数据库时必须显式指定字符集，并且字符集只能是utf8或者utf8mb4</strong></p>
-<p>创建数据库SQL举例：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Create</span> <span class="keyword">database</span> db1 <span class="keyword">default</span> <span class="built_in">character</span> <span class="keyword">set</span> utf8;</span><br></pre></td></tr></table></figure>
-<h3 id="表结构"><a href="#表结构" class="headerlink" title="表结构"></a>表结构</h3><p><strong>1.【强制】表和列的名称必须控制在32个字符以内，表名只能使用字母、数字和下划线，一律小写。</strong><br>2.【建议】表名要求模块名强相关，如师资系统采用”sz”作为前缀，渠道系统采用”qd”作为前缀等。<br><strong>3.【强制】创建表时必须显式指定字符集为utf8或utf8mb4。</strong><br><strong>4.【强制】创建表时必须显式指定表存储引擎类型，如无特殊需求，一律为InnoDB。</strong></p>
-<blockquote>
-<p>当需使用除InnoDB以外的存储引擎时,必须通过DBA审核才能在生产环境中使用</p>
-<p>因为Innodb表支持事务、行锁、宕机恢复、MVCC等关系型数据库重要特性，为业界使用最多的MySQL存储引擎。而这是其他大多数存储引擎不具备的，因此首推InnoDB<br>
       
     </div>
     <footer class="article-footer">

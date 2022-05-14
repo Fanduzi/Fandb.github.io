@@ -305,6 +305,51 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2019-07-21-MySQL-Error-log监控"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/07/21/2019-07-21-MySQL-Error-log%E7%9B%91%E6%8E%A7/">MySQL Error log监控</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/07/21/2019-07-21-MySQL-Error-log%E7%9B%91%E6%8E%A7/" class="article-date">
+	  <time datetime="2019-07-21T01:59:00.000Z" itemprop="datePublished">2019-07-21</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL-Error-log监控"><a href="#MySQL-Error-log监控" class="headerlink" title="MySQL Error log监控"></a>MySQL Error log监控</h1><p>告警日志监控其实比较简单了, 怎么做都行. 目前我们这里是使用下面的方法<br>FileBeat采集日志 -&gt; Kafka -&gt; 自己写脚本消费出来 -&gt; 企业微信机器人告警<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_1.png" alt="image"><br>效果如下<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_2.png" alt="image"></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2019-07-20-记一次PMM容器被误删除的恢复"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -544,53 +589,6 @@
 </blockquote>
 <h2 id="我们这里主要目的是限速-照猫画虎-可以这样实现"><a href="#我们这里主要目的是限速-照猫画虎-可以这样实现" class="headerlink" title="我们这里主要目的是限速, 照猫画虎, 可以这样实现"></a>我们这里主要目的是限速, 照猫画虎, 可以这样实现</h2><p>导出限速<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump <span class="string">| pv -q -L10m &gt; xx.sql</span></span><br></pre></td></tr></table></figure><br>限速导入<br><figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat xx.sql | <span class="type">pv</span> -q -L10m | <span class="type">mysql</span></span><br></pre></td></tr></table></figure><br>导入查看进度<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pv xx.sql <span class="string">| mysql</span></span><br></pre></td></tr></table></figure></p>
 
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-修改sysbench输出格式为csv或json 添加自定义指标"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/03/12/%E4%BF%AE%E6%94%B9sysbench%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F%E4%B8%BAcsv%E6%88%96json%20%E6%B7%BB%E5%8A%A0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E6%A0%87/">修改sysbench输出格式为csv或json, 添加自定义指标</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/03/12/%E4%BF%AE%E6%94%B9sysbench%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F%E4%B8%BAcsv%E6%88%96json%20%E6%B7%BB%E5%8A%A0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E6%A0%87/" class="article-date">
-	  <time datetime="2019-03-12T09:53:00.000Z" itemprop="datePublished">2019-03-12</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="修改sysbench输出格式为csv或json-添加自定义指标"><a href="#修改sysbench输出格式为csv或json-添加自定义指标" class="headerlink" title="修改sysbench输出格式为csv或json, 添加自定义指标"></a>修改sysbench输出格式为csv或json, 添加自定义指标</h1><p>在oltp_common.lua添加(二选一)</p>
-<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">-- 输出csv</span><br><span class="line"></span><br><span class="line">-- <span class="keyword">function</span> sysbench.hooks.report<span class="constructor">_intermediate(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">--     sysbench.report<span class="constructor">_csv(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">-- <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">-- 输出json</span><br><span class="line"></span><br><span class="line">-- <span class="keyword">function</span> sysbench.hooks.report<span class="constructor">_intermediate(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">--     sysbench.report<span class="constructor">_json(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">-- <span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>自己去掉 <code>--</code> 注释</p>
       
     </div>
     <footer class="article-footer">

@@ -305,6 +305,59 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-MySQL数据库设计规范"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/10/MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/">MySQL数据库设计规范</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/10/MySQL%E6%95%B0%E6%8D%AE%E5%BA%93%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/" class="article-date">
+	  <time datetime="2017-08-10T08:00:00.000Z" itemprop="datePublished">2017-08-10</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL数据库设计规范"><a href="#MySQL数据库设计规范" class="headerlink" title="MySQL数据库设计规范"></a>MySQL数据库设计规范</h1><p>MySQL数据库与Oracle、sqlserver等数据库相比，有其内核上的优势与劣势。我们在使用MySQL数据库的时候需要遵循一定规范，扬长避短。本规范旨在帮助或指导RD、QA、OP等技术人员做出适合线上业务的数据库设计。在数据库变更和处理流程、数据库表设计、SQL编写等方面予以规范，从而为公司业务系统稳定、健康地运行提供保障。</p>
+<h2 id="数据库设计"><a href="#数据库设计" class="headerlink" title="数据库设计"></a>数据库设计</h2><p>以下所有规范会按照【高危】、【强制】、【建议】三个级别进行标注，遵守优先级从高到低。<br>对于不满足【高危】和【强制】两个级别的设计，DBA会强制打回要求修改。</p>
+<h3 id="库名"><a href="#库名" class="headerlink" title="库名"></a>库名</h3><p><strong>1.【强制】库的名称必须控制在32个字符以内，相关模块的表名与表名之间尽量提现join的关系，如user表和user_login表。</strong><br>2.【建议】库的名称格式：业务系统名称<em>子系统名，同一模块使用的表名尽量使用统一前缀。<br>**3.【强制】一般分库名称命名格式是“库通配名</em>编号”，编号从“0”开始递增，比如“wenda<em>001” **<br>以时间进行分库的名称格式是“库通配名</em>时间”<br><strong>4.【强制】创建数据库时必须显式指定字符集，并且字符集只能是utf8或者utf8mb4</strong></p>
+<p>创建数据库SQL举例：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Create</span> <span class="keyword">database</span> db1 <span class="keyword">default</span> <span class="built_in">character</span> <span class="keyword">set</span> utf8;</span><br></pre></td></tr></table></figure>
+<h3 id="表结构"><a href="#表结构" class="headerlink" title="表结构"></a>表结构</h3><p><strong>1.【强制】表和列的名称必须控制在32个字符以内，表名只能使用字母、数字和下划线，一律小写。</strong><br>2.【建议】表名要求模块名强相关，如师资系统采用”sz”作为前缀，渠道系统采用”qd”作为前缀等。<br><strong>3.【强制】创建表时必须显式指定字符集为utf8或utf8mb4。</strong><br><strong>4.【强制】创建表时必须显式指定表存储引擎类型，如无特殊需求，一律为InnoDB。</strong></p>
+<blockquote>
+<p>当需使用除InnoDB以外的存储引擎时,必须通过DBA审核才能在生产环境中使用</p>
+<p>因为Innodb表支持事务、行锁、宕机恢复、MVCC等关系型数据库重要特性，为业界使用最多的MySQL存储引擎。而这是其他大多数存储引擎不具备的，因此首推InnoDB<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-数据分布不均匀走HASH-JOIN导致的性能问题"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -527,66 +580,6 @@
 <h4 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h4><p>Mac下最简单的做法便是直接下载pkg文件进行安装，最新版本的下载地址如下，选择后缀为pkg的文件下载安装即可：<br><a target="_blank" rel="noopener" href="https://nodejs.org/download/release/latest/">https://nodejs.org/download/release/latest/</a><br>安装完成后修改环境变量<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.bash_profile</span><br><span class="line">添加</span><br><span class="line"><span class="builtin-name">export</span> <span class="attribute">PATH</span>=/usr/local/bin:$PATH</span><br></pre></td></tr></table></figure></p>
 <h4 id="将npm源替换成淘宝源"><a href="#将npm源替换成淘宝源" class="headerlink" title="将npm源替换成淘宝源"></a>将npm源替换成淘宝源</h4><figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm config <span class="keyword">set</span> <span class="keyword">registry</span> <span class="keyword">http</span>://<span class="keyword">registry</span>.npm.taobao.org/</span><br></pre></td></tr></table></figure>
 <h4 id="安装Hexo"><a href="#安装Hexo" class="headerlink" title="安装Hexo"></a>安装Hexo</h4><p>安装前先介绍几个hexo常用的命令<br><figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>hexo g <span class="comment">#完整命令为hexo generate，用于生成静态文件</span></span><br><span class="line"><span class="variable">$ </span>hexo s <span class="comment">#完整命令为hexo server，用于启动服务器，主要用来本地预览</span></span><br><span class="line"><span class="variable">$ </span>hexo d <span class="comment">#完整命令为hexo deploy，用于将本地文件发布到github上</span></span><br><span class="line"><span class="variable">$ </span>hexo n <span class="comment">#完整命令为hexo new，用于新建一篇文章</span></span><br></pre></td></tr></table></figure><br>利用 npm 命令安装：<br><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo npm <span class="keyword">install</span> -g hexo</span><br></pre></td></tr></table></figure><br>报错可尝试<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm <span class="keyword">install</span> <span class="comment">--unsafe-perm -g hexo</span></span><br></pre></td></tr></table></figure><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-Percona Monitoring and Management架构"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/08/02/Percona%20Monitoring%20and%20Management%E6%9E%B6%E6%9E%84/">Percona Monitoring and Management架构</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/08/02/Percona%20Monitoring%20and%20Management%E6%9E%B6%E6%9E%84/" class="article-date">
-	  <time datetime="2017-08-02T14:00:00.000Z" itemprop="datePublished">2017-08-02</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Percona-Monitoring-and-Management架构"><a href="#Percona-Monitoring-and-Management架构" class="headerlink" title="Percona Monitoring and Management架构"></a>Percona Monitoring and Management架构</h2><p>PMM基于简单的client-server模型,可实现高效的扩展性,它包含以下模块:</p>
-<ul>
-<li>PMM Client,安装在任何你希望被监控的数据库服务器上.它会手机服务器指标和查询分析数据以提供一份完整的性能概览.数据被收集并发送到PMM Server</li>
-<li>PMM Server是PMM的核心部分,它聚合手机的数据,并以Web界面的表格,仪表盘和图形的形式展现</li>
-</ul>
-<p>这些模块被封装以提供简单的安装和使用给用户,无需关心它的内部实现方法.但是，如果要利用PMM的全部潜力，内部结构就很重要.</p>
-<ul>
-<li><a href="#pmm_client">PMM Client</a></li>
-<li><a href="#pmm_server">PMM Server</a></li>
-<li><a href="#部署方案">部署方案</a><ul>
-<li><a href="#简单场景">简单场景</a></li>
-<li><a href="#典型场景">典型场景</a></li>
-</ul>
-</li>
-</ul>
-<p>PMM是旨在无缝协同工作的工具集合。 一些是由Percona开发的，一些是第三方开源工具。<br>
       
     </div>
     <footer class="article-footer">

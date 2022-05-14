@@ -305,6 +305,121 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2021-02-07-MHA-Failover测试"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2021/02/07/2021-02-07-MHA-Failover%E6%B5%8B%E8%AF%95/">MHA Failover测试</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2021/02/07/2021-02-07-MHA-Failover%E6%B5%8B%E8%AF%95/" class="article-date">
+	  <time datetime="2021-02-07T14:16:00.000Z" itemprop="datePublished">2021-02-07</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h1><table>
+<thead>
+<tr>
+<th>用例</th>
+<th>ping_type=CONNECT</th>
+<th>ping_type=INSERT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>master too many connection</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>master hang</td>
+<td>不会触发failover</td>
+<td>会触发failover且成功</td>
+</tr>
+<tr>
+<td>仅manager无法连通master</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>manager无法连通master, 且无法ssh slave1</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>manager无法连通master, 且无法ssh slave1和slave2</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>manager无法连通master, ssh到slave1后无法连通master</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>manager无法连通master, ssh到slave1和slave2后均无法连通master</td>
+<td>会触发failover且成功</td>
+<td>会触发failover且成功(长连接断开后才会)</td>
+</tr>
+<tr>
+<td>master宕机前slave1也宕机了</td>
+<td>会触发failover, 但failover失败</td>
+<td>会触发failover, 但failover失败</td>
+</tr>
+<tr>
+<td>master挂了, 在此之前slave-1 io_thread stop了</td>
+<td>会failover且成功</td>
+<td>会failover且成功</td>
+</tr>
+<tr>
+<td>master挂了, 在此之前slave-1 io_thread error了</td>
+<td>会failover且成功</td>
+<td>会failover且成功</td>
+</tr>
+<tr>
+<td>master挂了, 在此之前slave-1 sql_thread stop了</td>
+<td>会failover且成功</td>
+<td>会failover且成功</td>
+</tr>
+<tr>
+<td>master挂了, 在此之前slave-1 sql_thread error了</td>
+<td>会触发failover, 但failover失败</td>
+<td>会触发failover, 但failover失败</td>
+</tr>
+</tbody>
+</table>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-12-31-使用Canal-+-ClickHouse实时分析MySQL事务信息"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -581,54 +696,6 @@
 <p>The <code>innodb_status.*</code>pid<code>*</code> file is not created by default. To create it, start <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/mysqld.html"><strong>mysqld</strong></a> with the <code>--innodb-status-file</code> option. <code>InnoDB</code> removes the file when the server is shut down normally. If an abnormal shutdown occurs, the status file may have to be removed manually.</p>
 <p>The <code>--innodb-status-file</code> option is intended for temporary use, as <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/show-engine.html"><code>SHOW ENGINE INNODB STATUS</code></a> output generation can affect performance, and the <code>innodb_status.*</code>pid<code>*</code> file can become quite large over time.</p>
 <p>For related information, see <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-enabling-monitors.html">Section 14.18.2, “Enabling InnoDB Monitors”</a>.</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-08-28-ClickHouse查询分布式表LEFT-JOIN改RIGHT-JOIN的大坑"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/28/2020-08-28-ClickHouse%E6%9F%A5%E8%AF%A2%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8LEFT-JOIN%E6%94%B9RIGHT-JOIN%E7%9A%84%E5%A4%A7%E5%9D%91/">ClickHouse查询分布式表LEFT JOIN改RIGHT JOIN的大坑</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/28/2020-08-28-ClickHouse%E6%9F%A5%E8%AF%A2%E5%88%86%E5%B8%83%E5%BC%8F%E8%A1%A8LEFT-JOIN%E6%94%B9RIGHT-JOIN%E7%9A%84%E5%A4%A7%E5%9D%91/" class="article-date">
-	  <time datetime="2020-08-28T09:06:00.000Z" itemprop="datePublished">2020-08-28</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="由一个慢查询衍生出的问题"><a href="#由一个慢查询衍生出的问题" class="headerlink" title="由一个慢查询衍生出的问题"></a>由一个慢查询衍生出的问题</h1><p>我们线上有一个ClickHouse集群, 总共6个服务器, 配置均为16C 64G SSD, 集群配置为三分片两副本</p>
-<p>有两个表这里称为<code>small_table</code>和<code>big_table</code>. 都是<code>ReplicatedMergeTree</code>引擎(三个分片两个副本).</p>
-<p><code>small_table</code>有79w数据, <code>big_table</code>有5亿数据(数据在之后的示例中没有任何变化), 在下文中<code>small_table</code>和<code>big_table</code>都为分布式表, 可以获取全量数据, <code>small_table_local</code>和<code>big_table_local</code>为各节点上的本地表名称</p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> </span><br><span class="line">    <span class="keyword">table</span>, </span><br><span class="line">    formatReadableSize(sum(data_compressed_bytes)) <span class="keyword">AS</span> tc, </span><br><span class="line">    formatReadableSize(sum(data_uncompressed_bytes)) <span class="keyword">AS</span> tu, </span><br><span class="line">    sum(data_compressed_bytes) / sum(data_uncompressed_bytes) <span class="keyword">AS</span> ratio</span><br><span class="line"><span class="keyword">FROM</span> <span class="keyword">system</span>.<span class="keyword">columns</span></span><br><span class="line"><span class="keyword">WHERE</span> (<span class="keyword">database</span> = currentDatabase()) <span class="keyword">AND</span> (<span class="keyword">table</span> <span class="keyword">IN</span> (<span class="string">&#x27;small_table_local&#x27;</span>, <span class="string">&#x27;big_table_local&#x27;</span>))</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="keyword">table</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">table</span> <span class="keyword">ASC</span></span><br><span class="line"></span><br><span class="line">┌─<span class="keyword">table</span>─────────────────────────┬─tc────────┬─tu────────┬──────────────ratio─┐</span><br><span class="line">│ small_table_local             │ <span class="number">12.87</span> MiB │ <span class="number">14.91</span> MiB │ <span class="number">0.8633041477100831</span> │</span><br><span class="line">│ big_table_local               │ <span class="number">15.46</span> GiB │ <span class="number">57.31</span> GiB │ <span class="number">0.2697742507036428</span> │</span><br><span class="line">└───────────────────────────────┴───────────┴───────────┴────────────────────┘</span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">

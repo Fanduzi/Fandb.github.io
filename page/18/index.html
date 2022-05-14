@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-Tpcc-MySQL"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/05/07/Tpcc-MySQL/">Tpcc-MySQL</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/05/07/Tpcc-MySQL/" class="article-date">
+	  <time datetime="2017-05-07T14:00:00.000Z" itemprop="datePublished">2017-05-07</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Tpcc-MySQL"><a href="#Tpcc-MySQL" class="headerlink" title="Tpcc-MySQL"></a>Tpcc-MySQL</h2><h3 id="下载安装tpcc-mysql"><a href="#下载安装tpcc-mysql" class="headerlink" title="下载安装tpcc-mysql"></a>下载安装tpcc-mysql</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd <span class="regexp">/usr/</span>local</span><br><span class="line">wget https:<span class="regexp">//gi</span>thub.com<span class="regexp">/Percona-Lab/</span>tpcc-mysql<span class="regexp">/archive/m</span>aster.zip</span><br><span class="line">mv tpcc-mysql-master tpcc-mysql</span><br></pre></td></tr></table></figure>
+<h3 id="安装之前需要保证将mysql-config添加到-PATH-环境变量中"><a href="#安装之前需要保证将mysql-config添加到-PATH-环境变量中" class="headerlink" title="安装之前需要保证将mysql_config添加到$PATH 环境变量中"></a>安装之前需要保证将mysql_config添加到$PATH 环境变量中</h3><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd src <span class="comment">; make ( you should have mysql_config available in $PATH)</span></span><br></pre></td></tr></table></figure>
+<h3 id="初始化数据"><a href="#初始化数据" class="headerlink" title="初始化数据"></a>初始化数据</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master ~]$ mysqladmin -umysql -p -S /data/mysqldata/3306/mysql.sock create tpcc10</span><br><span class="line">Enter password: </span><br><span class="line">[mysql@master ~]$ mysql -umysql -pmysql -S  /data/mysqldata/3306/mysql.sock tpcc10 &lt; /usr/local/tpcc-mysql/create_table.sql </span><br><span class="line">Warning: Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line">[mysql@master ~]$ mysql -umysql -pmysql -S  /data/mysqldata/3306/mysql.sock -e  <span class="string">&quot; show tables from tpcc10;&quot;</span></span><br><span class="line">Warning: Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line">+------------------+</span><br><span class="line">| Tables_in_tpcc10 |</span><br><span class="line">+------------------+</span><br><span class="line">|<span class="built_in"> customer </span>        |</span><br><span class="line">| district         |</span><br><span class="line">| history          |</span><br><span class="line">| item             |</span><br><span class="line">| new_orders       |</span><br><span class="line">| order_line       |</span><br><span class="line">| orders           |</span><br><span class="line">| stock            |</span><br><span class="line">| warehouse        |</span><br><span class="line">+------------------+</span><br><span class="line">[mysql@master ~]$ mysql -umysql -pmysql -S  /data/mysqldata/3306/mysql.sock tpcc10 &lt; /usr/local/tpcc-mysql/add_fkey_idx.sql </span><br><span class="line">Warning: Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-MySQL升级"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -554,65 +601,6 @@
       
         <p>原文<br><a target="_blank" rel="noopener" href="http://thenoyes.com/littlenoise/?p=187">http://thenoyes.com/littlenoise/?p=187</a></p>
 <h2 id="Auto-increment-产生-GAP的原因"><a href="#Auto-increment-产生-GAP的原因" class="headerlink" title="Auto_increment 产生 GAP的原因"></a>Auto_increment 产生 GAP的原因</h2><p>Why are there gaps in my auto_increment sequence, even if there are no deletes or rolled back transactions?<br>Is it a bug?<br>The manual says, “For lock modes 1 or 2, gaps may occur between successive statements because for bulk inserts the exact number of auto-increment values required by each statement may not be known and overestimation is possible.”<br>Where does that overestimation come from?<br>An example to illustrate:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> <span class="keyword">IF</span> <span class="keyword">EXISTS</span> t;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> t (a <span class="built_in">bigint</span> <span class="keyword">unsigned</span> auto_increment primary <span class="keyword">key</span>) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">AS</span> a;</span><br><span class="line"><span class="comment">/* #1 */</span> <span class="keyword">INSERT</span> <span class="keyword">INTO</span> t <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">FROM</span> t;</span><br><span class="line"><span class="comment">/* #2 */</span> <span class="keyword">INSERT</span> <span class="keyword">INTO</span> t <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">FROM</span> t;</span><br><span class="line"><span class="comment">/* #3 */</span> <span class="keyword">INSERT</span> <span class="keyword">INTO</span> t <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">FROM</span> t;</span><br><span class="line"><span class="comment">/* #4 */</span> <span class="keyword">INSERT</span> <span class="keyword">INTO</span> t <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">FROM</span> t;</span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t;</span><br><span class="line"></span><br><span class="line">+<span class="comment">----+</span></span><br><span class="line">| a |</span><br><span class="line">+<span class="comment">----+</span></span><br><span class="line">| 1 |</span><br><span class="line">| 2 |</span><br><span class="line">| 3 |</span><br><span class="line">| 4 |</span><br><span class="line">| 6 |</span><br><span class="line">| 7 |</span><br><span class="line">| 8 |</span><br><span class="line">| 9 |</span><br><span class="line">| 13 |</span><br><span class="line">| 14 |</span><br><span class="line">| 15 |</span><br><span class="line">| 16 |</span><br><span class="line">| 17 |</span><br><span class="line">| 18 |</span><br><span class="line">| 19 |</span><br><span class="line">| 20 |</span><br><span class="line">+<span class="comment">----+</span></span><br><span class="line">16 rows in <span class="keyword">set</span> (<span class="number">0.02</span> sec)</span><br><span class="line"></span><br></pre></td></tr></table></figure><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-AUTO-INC锁和AUTO_INCREMENT在InnoDB中处理方式"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2016/12/15/AUTO-INC%E9%94%81%E5%92%8CAUTO_INCREMENT%E5%9C%A8InnoDB%E4%B8%AD%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F/">AUTO-INC锁和AUTO_INCREMENT在InnoDB中处理方式</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2016/12/15/AUTO-INC%E9%94%81%E5%92%8CAUTO_INCREMENT%E5%9C%A8InnoDB%E4%B8%AD%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F/" class="article-date">
-	  <time datetime="2016-12-15T14:00:00.000Z" itemprop="datePublished">2016-12-15</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="AUTO-INC-Locks"><a href="#AUTO-INC-Locks" class="headerlink" title="AUTO-INC Locks"></a>AUTO-INC Locks</h2><blockquote>
-<p>An AUTO-INC lock is a special table-level lock taken by transactions inserting into tables with AUTO_INCREMENT columns. In the simplest case, if one transaction is inserting values into the table, any other transactions must wait to do their own inserts into that table, so that rows inserted by the first transaction receive consecutive primary key values.</p>
-</blockquote>
-<p>The innodb_autoinc_lock_mode configuration option controls the algorithm used for auto-increment locking. It allows you to choose how to trade off between predictable sequences of auto-increment values and maximum concurrency for insert operations.</p>
-<p>AUTO-INC锁是当向使用含有AUTO_INCREMENT列的表中插入数据时需要获取的一种特殊的表级锁<br>在最简单的情况下，如果一个事务正在向表中插入值，则任何其他事务必须等待对该表执行自己的插入操作，以便第一个事务插入的行的值是连续的。<br>innodb_autoinc_lock_mode配置选项控制用于自动增量锁定的算法。 它允许您选择如何在可预测的自动递增值序列和插入操作的最大并发性之间进行权衡。</p>
-<h2 id="AUTO-INCREMENT-Handling-in-InnoDB"><a href="#AUTO-INCREMENT-Handling-in-InnoDB" class="headerlink" title="AUTO_INCREMENT Handling in InnoDB"></a>AUTO_INCREMENT Handling in InnoDB</h2><p>InnoDB提供了一个可配置的锁定机制，可以显着提高使用AUTO_INCREMENT列向表中添加行的SQL语句的可伸缩性和性能。 要对InnoDB表使用AUTO_INCREMENT机制，必须将AUTO_INCREMENT列定义为索引的一部分，以便可以对表执行相当于索引的<code>SELECT MAX（ai_col）</code>查找以获取最大列值。 通常，这是通过使列成为某些表索引的第一列来实现的。</p>
-<p>本节介绍AUTO_INCREMENT锁定模式的行为，对不同AUTO_INCREMENT锁定模式设置的使用含义，以及InnoDB如何初始化AUTO_INCREMENT计数器。</p>
-<ul>
-<li><p>InnoDB AUTO_INCREMENT锁定模式</p>
-</li>
-<li><p>InnoDB AUTO_INCREMENT锁定模式使用含义</p>
-</li>
-<li><p>InnoDB AUTO_INCREMENT计数器初始化</p>
-</li>
-</ul>
       
     </div>
     <footer class="article-footer">

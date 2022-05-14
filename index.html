@@ -305,6 +305,82 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2022-05-11-Orchestrator-Failover过程源码分析-I"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2022/05/11/2022-05-11-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-I/">Orchestrator Failover过程源码分析-I</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2022/05/11/2022-05-11-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-I/" class="article-date">
+	  <time datetime="2022-05-11T07:08:00.000Z" itemprop="datePublished">2022-05-11</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="模拟故障"><a href="#模拟故障" class="headerlink" title="模拟故障"></a>模拟故障</h2><p>使用测试环境, 模拟<code>3307</code>集群故障</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>IP</th>
+<th>端口</th>
+<th>主机名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主库</td>
+<td>172.16.120.10</td>
+<td>3307</td>
+<td>centos-1</td>
+</tr>
+<tr>
+<td>从库</td>
+<td>172.16.120.11</td>
+<td>3307</td>
+<td>centos-2</td>
+</tr>
+<tr>
+<td>从库</td>
+<td>172.16.120.12</td>
+<td>3307</td>
+<td>centos-3</td>
+</tr>
+</tbody>
+</table>
+<p>关闭3307主库<code>172.16.120.10:3307</code><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[2022-04-25 13:10:56][root@centos-1 13:10:56 ~]</span><br><span class="line">[2022-04-25 13:11:22]<span class="comment">#systemctl stop mysql3307</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">mysql日志</span><br><span class="line">2022-04-25T13:11:35.959667+08:00 0 [Note] /usr/<span class="built_in">local</span>/mysql5732/bin/mysqld: Shutdown complete</span><br></pre></td></tr></table></figure></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2022-04-26-Orchestrator-Discover源码分析"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -761,121 +837,6 @@
 <td>2,140</td>
 <td>15,685</td>
 <td>14,838</td>
-</tr>
-</tbody>
-</table>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2021-02-07-MHA-Failover测试"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2021/02/07/2021-02-07-MHA-Failover%E6%B5%8B%E8%AF%95/">MHA Failover测试</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2021/02/07/2021-02-07-MHA-Failover%E6%B5%8B%E8%AF%95/" class="article-date">
-	  <time datetime="2021-02-07T14:16:00.000Z" itemprop="datePublished">2021-02-07</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h1><table>
-<thead>
-<tr>
-<th>用例</th>
-<th>ping_type=CONNECT</th>
-<th>ping_type=INSERT</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>master too many connection</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>master hang</td>
-<td>不会触发failover</td>
-<td>会触发failover且成功</td>
-</tr>
-<tr>
-<td>仅manager无法连通master</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>manager无法连通master, 且无法ssh slave1</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>manager无法连通master, 且无法ssh slave1和slave2</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>manager无法连通master, ssh到slave1后无法连通master</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>manager无法连通master, ssh到slave1和slave2后均无法连通master</td>
-<td>会触发failover且成功</td>
-<td>会触发failover且成功(长连接断开后才会)</td>
-</tr>
-<tr>
-<td>master宕机前slave1也宕机了</td>
-<td>会触发failover, 但failover失败</td>
-<td>会触发failover, 但failover失败</td>
-</tr>
-<tr>
-<td>master挂了, 在此之前slave-1 io_thread stop了</td>
-<td>会failover且成功</td>
-<td>会failover且成功</td>
-</tr>
-<tr>
-<td>master挂了, 在此之前slave-1 io_thread error了</td>
-<td>会failover且成功</td>
-<td>会failover且成功</td>
-</tr>
-<tr>
-<td>master挂了, 在此之前slave-1 sql_thread stop了</td>
-<td>会failover且成功</td>
-<td>会failover且成功</td>
-</tr>
-<tr>
-<td>master挂了, 在此之前slave-1 sql_thread error了</td>
-<td>会触发failover, 但failover失败</td>
-<td>会触发failover, 但failover失败</td>
 </tr>
 </tbody>
 </table>

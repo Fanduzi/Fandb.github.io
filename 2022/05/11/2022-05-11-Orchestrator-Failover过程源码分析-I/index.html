@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>orchestrator failover过程源码分析-i | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLOrchestrator" />
+  
+  
+  
+  
+  <meta name="description" content="模拟故障使用测试环境, 模拟3307集群故障    角色 IP 端口 主机名     主库 172.16.120.10 3307 centos-1   从库 172.16.120.11 3307 centos-2   从库 172.16.120.12 3307 centos-3    关闭3307主库172.16.120.10:3307123456[2022-04-25 13:10:56][roo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Orchestrator Failover过程源码分析-I">
+<meta property="og:url" content="http://fuxkdb.com/2022/05/11/2022-05-11-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-I/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="模拟故障使用测试环境, 模拟3307集群故障    角色 IP 端口 主机名     主库 172.16.120.10 3307 centos-1   从库 172.16.120.11 3307 centos-2   从库 172.16.120.12 3307 centos-3    关闭3307主库172.16.120.10:3307123456[2022-04-25 13:10:56][roo">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/14/21-10-51-流程图-d254c0.jpeg">
+<meta property="og:image" content="https://raw.githubusercontent.com/openark/orchestrator/master/docs/images/orchestrator-deployment-raft.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/14/21-16-05-Jietu20220428-153051-4f053d.jpeg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/14/21-16-50-Orchestrator%20Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-I-Excalidraw-6235a2.png">
+<meta property="article:published_time" content="2022-05-11T07:08:00.000Z">
+<meta property="article:modified_time" content="2022-05-14T13:27:03.923Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Orchestrator">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/14/21-10-51-流程图-d254c0.jpeg">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2022-05-11-Orchestrator-Failover过程源码分析-I" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Orchestrator Failover过程源码分析-I
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2022/05/11/2022-05-11-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-I/" class="article-date">
+	  <time datetime="2022-05-11T07:08:00.000Z" itemprop="datePublished">2022-05-11</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="模拟故障"><a href="#模拟故障" class="headerlink" title="模拟故障"></a>模拟故障</h2><p>使用测试环境, 模拟<code>3307</code>集群故障</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>IP</th>
+<th>端口</th>
+<th>主机名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主库</td>
+<td>172.16.120.10</td>
+<td>3307</td>
+<td>centos-1</td>
+</tr>
+<tr>
+<td>从库</td>
+<td>172.16.120.11</td>
+<td>3307</td>
+<td>centos-2</td>
+</tr>
+<tr>
+<td>从库</td>
+<td>172.16.120.12</td>
+<td>3307</td>
+<td>centos-3</td>
+</tr>
+</tbody>
+</table>
+<p>关闭3307主库<code>172.16.120.10:3307</code><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[2022-04-25 13:10:56][root@centos-1 13:10:56 ~]</span><br><span class="line">[2022-04-25 13:11:22]<span class="comment">#systemctl stop mysql3307</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">mysql日志</span><br><span class="line">2022-04-25T13:11:35.959667+08:00 0 [Note] /usr/<span class="built_in">local</span>/mysql5732/bin/mysqld: Shutdown complete</span><br></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p>我的思路是通过日志找入口.<br>在下文中:</p>
+<ul>
+<li>对主库简称为centos-1</li>
+<li>对两个从库分别简称为:<ul>
+<li>centos-2</li>
+<li>centos-3<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[mysql] 2022/04/25 13:11:27 packets.go:37: unexpected EOF</span><br><span class="line">2022-04-25 13:11:27 ERROR invalid connection</span><br><span class="line">2022-04-25 13:11:27 ERROR ReadTopologyInstance(172.16.120.10:3307) <span class="keyword">show</span> <span class="keyword">global</span> <span class="keyword">status</span> <span class="keyword">like</span> <span class="string">&#x27;Uptime&#x27;</span>: <span class="keyword">Error</span> <span class="number">1053</span>: <span class="keyword">Server</span> <span class="keyword">shutdown</span> <span class="keyword">in</span> progress</span><br><span class="line">[mysql] <span class="number">2022</span>/<span class="number">04</span>/<span class="number">25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">27</span> packets.go:<span class="number">37</span>: unexpected EOF</span><br><span class="line"><span class="number">2022</span><span class="number">-04</span><span class="number">-25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">27</span> <span class="keyword">ERROR</span> invalid <span class="keyword">connection</span></span><br><span class="line">[mysql] <span class="number">2022</span>/<span class="number">04</span>/<span class="number">25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">27</span> packets.go:<span class="number">37</span>: unexpected EOF</span><br><span class="line"><span class="number">2022</span><span class="number">-04</span><span class="number">-25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">27</span> <span class="keyword">ERROR</span> invalid <span class="keyword">connection</span></span><br><span class="line"><span class="number">2022</span><span class="number">-04</span><span class="number">-25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">27</span> <span class="keyword">ERROR</span> dial tcp <span class="number">172.16</span><span class="number">.120</span><span class="number">.10</span>:<span class="number">3307</span>: <span class="keyword">connect</span>: <span class="keyword">connection</span> refused</span><br><span class="line"><span class="number">2022</span><span class="number">-04</span><span class="number">-25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">28</span> <span class="keyword">ERROR</span> dial tcp <span class="number">172.16</span><span class="number">.120</span><span class="number">.10</span>:<span class="number">3307</span>: <span class="keyword">connect</span>: <span class="keyword">connection</span> refused</span><br><span class="line"><span class="number">2022</span><span class="number">-04</span><span class="number">-25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">28</span> DEBUG writeInstance: will <span class="keyword">not</span> <span class="keyword">update</span> database_instance due <span class="keyword">to</span> <span class="keyword">error</span>: invalid <span class="keyword">connection</span></span><br><span class="line"><span class="number">2022</span><span class="number">-04</span><span class="number">-25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">32</span> <span class="keyword">WARNING</span> DiscoverInstance(<span class="number">172.16</span><span class="number">.120</span><span class="number">.10</span>:<span class="number">3307</span>) <span class="keyword">instance</span> <span class="keyword">is</span> nil <span class="keyword">in</span> <span class="number">0.104</span>s (Backend: <span class="number">0.001</span>s, <span class="keyword">Instance</span>: <span class="number">0.103</span>s), <span class="keyword">error</span>=dial tcp <span class="number">172.16</span><span class="number">.120</span><span class="number">.10</span>:<span class="number">3307</span>: <span class="keyword">connect</span>: <span class="keyword">connection</span> refused</span><br><span class="line"><span class="number">2022</span><span class="number">-04</span><span class="number">-25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">33</span> DEBUG analysis: ClusterName: <span class="number">172.16</span><span class="number">.120</span><span class="number">.10</span>:<span class="number">3307</span>, IsMaster: <span class="literal">true</span>, LastCheckValid: <span class="literal">false</span>, LastCheckPartialSuccess: <span class="literal">false</span>, CountReplicas: <span class="number">2</span>, CountValidReplicas: <span class="number">2</span>, CountValidReplicatingReplicas: <span class="number">2</span>, CountLaggingReplicas: <span class="number">0</span>, CountDelayedReplicas: <span class="number">0</span>, CountReplicasFailingToConnectToMaster: <span class="number">0</span></span><br><span class="line"><span class="number">2022</span><span class="number">-04</span><span class="number">-25</span> <span class="number">13</span>:<span class="number">11</span>:<span class="number">33</span> INFO executeCheckAndRecoverFunction: proceeding <span class="keyword">with</span> UnreachableMaster detection <span class="keyword">on</span> <span class="number">172.16</span><span class="number">.120</span><span class="number">.10</span>:<span class="number">3307</span>; isActionable?: false; skipProcesses: false</span><br><span class="line">2022-04-25 13:11:33 INFO topology_recovery: detected UnreachableMaster failure on 172.16.120.10:3307</span><br><span class="line">2022-04-25 13:11:33 INFO topology_recovery: Running 1 OnFailureDetectionProcesses hooks</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<p>关闭centos-1后, 从日志可以看出:</p>
+<ul>
+<li>orchestrator对centos-1的<code>一些探测</code>操作失败了</li>
+<li>executeCheckAndRecoverFunction: proceeding with UnreachableMaster</li>
+</ul>
+<h3 id="通过第二条信息找”入口”"><a href="#通过第二条信息找”入口”" class="headerlink" title="通过第二条信息找”入口”"></a>通过第二条信息找”入口”</h3><p>全局搜索<code>executeCheckAndRecoverFunction: proceeding with</code></p>
+<p>搜索到函数executeCheckAndRecoverFunction</p>
+<p>这个函数比较长, 先不看. 先看一下是谁调用 executeCheckAndRecoverFunction . </p>
+<p>搜索<code>executeCheckAndRecoverFunction(</code>, 搜到CheckAndRecover</p>
+<p>继续搜索CheckAndRecover, 查到是ContinuousDiscovery在调用它</p>
+<p>ContinuousDiscovery 在logic包中, 被http.standardHttp调用, 而http.standardHttp又被http.Http调用, http.Http是在启动orchestrator时被调用的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">go</span>/cmd/orchestrator/main.<span class="keyword">go</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 截取部分代码</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> &#123;  </span><br><span class="line">   <span class="keyword">case</span> helpTopic != <span class="string">&quot;&quot;</span>:  </span><br><span class="line">      app.HelpCommand(helpTopic)  </span><br><span class="line">   <span class="keyword">case</span> <span class="built_in">len</span>(flag.Args()) == <span class="number">0</span> || flag.Arg(<span class="number">0</span>) == <span class="string">&quot;cli&quot;</span>:  </span><br><span class="line">      app.CliWrapper(*command, *strict, *instance, *destination, *owner, *reason, *duration, *pattern, *clusterAlias, *pool, *hostnameFlag)  </span><br><span class="line">   <span class="keyword">case</span> flag.Arg(<span class="number">0</span>) == <span class="string">&quot;http&quot;</span>:  </span><br><span class="line">      app.Http(*discovery)  </span><br><span class="line">   <span class="keyword">default</span>:  </span><br><span class="line">      fmt.Fprintln(os.Stderr, <span class="string">`Usage:  </span></span><br><span class="line"><span class="string">  orchestrator --options... [cli|http]See complete list of commands:  </span></span><br><span class="line"><span class="string">  orchestrator -c helpFull blown documentation:  </span></span><br><span class="line"><span class="string">  orchestrator`</span>)  </span><br><span class="line">      os.Exit(<span class="number">1</span>)  </span><br><span class="line">   &#125;&#125;</span><br></pre></td></tr></table></figure></p>
+<p>也就是说, 当我们用以下命令启动orchestrator后<br><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">orchestrator </span>-<span class="built_in">config</span> <span class="keyword">orchestrator.conf.json </span>-<span class="built_in">debug</span> http</span><br></pre></td></tr></table></figure></p>
+<p>就会 http.Http -&gt; http.standardHttp -&gt; <code>go logic.ContinuousDiscovery()</code></p>
+<h2 id="ContinuousDiscovery都干了啥"><a href="#ContinuousDiscovery都干了啥" class="headerlink" title="ContinuousDiscovery都干了啥"></a>ContinuousDiscovery都干了啥</h2><h3 id="持续发现"><a href="#持续发现" class="headerlink" title="持续发现"></a>持续发现</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ContinuousDiscovery starts an asynchronuous infinite discovery process where instances are</span></span><br><span class="line"><span class="comment">// periodically investigated and their status captured, and long since unseen instances are  </span></span><br><span class="line"><span class="comment">// purged and forgotten.</span></span><br><span class="line">ContinuousDiscovery启动一个永不停止的异步<span class="string">&quot;发现&quot;</span>过程, 在这个过程中, 实例被周期性地调查并捕获它们的状态, 长期以来不可见的实例被清除和遗忘.</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这段注释中 asynchronuous 还拼写错了, 应该是 asynchronous</p>
+</blockquote>
+<p>ContinuousDiscovery 先启动一个协程<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ContinuousDiscovery</span><span class="params">()</span></span> &#123;  </span><br><span class="line">   ...</span><br><span class="line">   <span class="keyword">go</span> handleDiscoveryRequests()</span><br></pre></td></tr></table></figure></p>
+<p>handleDiscoveryRequests 在<a target="_blank" rel="noopener" href="https://blog.csdn.net/ashic/article/details/124773909">Orchestrator Discover源码分析</a>中介绍过<br>handleDiscoveryRequests迭代<code>discoveryQueue</code> channel 并在每个条目上调用<a href="http://fuxkdb.com/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/#%E6%A0%91%E8%97%A4%E6%91%B8%E7%93%9CDiscoverInstance">DiscoverInstance</a>, 而<a href="http://fuxkdb.com/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/#%E6%A0%91%E8%97%A4%E6%91%B8%E7%93%9CDiscoverInstance">DiscoverInstance</a>又会调用<a href="http://fuxkdb.com/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/#gt-ReadTopologyInstanceBufferable">ReadTopologyInstanceBufferable</a>, 后者会实际连接MySQL实例, 获取各种指标/参数信息, 最终将结果写入<code>database_instance database_instance</code> 表</p>
+<p>那么<code>discoveryQueue</code>里的”数据”又是谁放进来的呢?, 有两个地方</p>
+<ul>
+<li>通过命令行或前端页面手动触发”发现”时(本质是调用<a href="http://fuxkdb.com/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/#orchestrator-discover%E6%8E%A5%E5%8F%A3">orchestrator discover接口</a>), 会将指定instance的<code>ReplicaKey</code>和<code>MasterKey</code>放入discoveryQueue</li>
+<li>ContinuousDiscovery 还会创建一个<code>healthTick</code>定时器, 周期性(每秒)调用onHealthTick, onHealthTick会取出所有”过期”的instance, 放到discoverQueue中<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> HealthPollSeconds = <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ContinuousDiscovery</span><span class="params">()</span></span> &#123;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    healthTick := time.Tick(config.HealthPollSeconds * time.Second)</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> &lt;-healthTick:</span><br><span class="line">            <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">                onHealthTick()</span><br><span class="line">            &#125;()</span><br><span class="line">    ...省略部分代码</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// onHealthTick handles the actions to take to discover/poll instances</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">onHealthTick</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">...省略部分代码</span><br><span class="line">    instanceKeys, err := inst.ReadOutdatedInstanceKeys() <span class="comment">// 读出过期的实例. 过期的定义是: InstancePollSeconds秒未探测的connectable实例 或 2*InstancePollSeconds秒未探测的连接出现异常(hang)的实例</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// avoid any logging unless there&#x27;s something to be done  </span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(instanceKeys) &gt; <span class="number">0</span> &#123;  </span><br><span class="line">       <span class="keyword">for</span> _, instanceKey := <span class="keyword">range</span> instanceKeys &#123;  </span><br><span class="line">          <span class="keyword">if</span> instanceKey.IsValid() &#123;  </span><br><span class="line">             discoveryQueue.Push(instanceKey)  </span><br><span class="line">          &#125;   </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+那么就是说, 每秒钟(HealthPollSeconds=1), onHealthTick会把所有”过期”的实例放到discoveryQueue</li>
+</ul>
+<h4 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h4><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/14/21-10-51-流程图-d254c0.jpeg" alt=""></p>
+<h3 id="需要与实例轮询-或大致-相同频率的常规操作"><a href="#需要与实例轮询-或大致-相同频率的常规操作" class="headerlink" title="需要与实例轮询(或大致)相同频率的常规操作"></a>需要与实例轮询(或大致)相同频率的常规操作</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ContinuousDiscovery</span><span class="params">()</span></span> &#123;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    instancePollTick := time.Tick(instancePollSecondsDuration()) <span class="comment">// InstancePollSeconds 默认5秒</span></span><br><span class="line">    ...省略部分代码</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        ...省略部分代码</span><br><span class="line">        <span class="keyword">case</span> &lt;-instancePollTick: <span class="comment">// 5秒一次</span></span><br><span class="line">            <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">                <span class="comment">// This tick does NOT do instance poll (these are handled by the oversampling discoveryTick)</span></span><br><span class="line">                <span class="comment">// But rather should invoke such routinely operations that need to be as (or roughly as) frequent</span></span><br><span class="line">                <span class="comment">// as instance poll</span></span><br><span class="line">                <span class="keyword">if</span> IsLeaderOrActive() &#123;</span><br><span class="line">                    <span class="keyword">go</span> inst.UpdateClusterAliases()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireDowntime()</span><br><span class="line">                    <span class="keyword">go</span> injectSeeds(&amp;seedOnce)</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;()</span><br><span class="line">    ...省略部分代码</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看起来都是些不太重要的操作</p>
+<h3 id="定时注入伪GTID"><a href="#定时注入伪GTID" class="headerlink" title="定时注入伪GTID"></a>定时注入伪GTID</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> PseudoGTIDIntervalSeconds = <span class="number">5</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ContinuousDiscovery</span><span class="params">()</span></span> &#123;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    autoPseudoGTIDTick := time.Tick(time.Duration(config.PseudoGTIDIntervalSeconds) * time.Second)</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        ...省略部分代码</span><br><span class="line">        <span class="keyword">case</span> &lt;-autoPseudoGTIDTick:</span><br><span class="line">            <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">                <span class="keyword">if</span> config.Config.AutoPseudoGTID &amp;&amp; IsLeader() &#123;</span><br><span class="line">                    <span class="keyword">go</span> InjectPseudoGTIDOnWriters()</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;()</span><br><span class="line">    ...省略部分代码</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Various/Pseudo%20GTID.md">Pseudo GTID</a> , 不太重要, 现在还会有人不开GTID吗?</p>
+<h3 id="护理工作"><a href="#护理工作" class="headerlink" title="护理工作"></a>护理工作</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ContinuousDiscovery</span><span class="params">()</span></span> &#123;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    caretakingTick := time.Tick(time.Minute)</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        ...省略部分代码</span><br><span class="line">        <span class="keyword">case</span> &lt;-caretakingTick:</span><br><span class="line">            <span class="comment">// Various periodic internal maintenance tasks</span></span><br><span class="line">            <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">                <span class="keyword">if</span> IsLeaderOrActive() &#123;</span><br><span class="line">                    <span class="keyword">go</span> inst.RecordInstanceCoordinatesHistory()</span><br><span class="line">                    <span class="keyword">go</span> inst.ReviewUnseenInstances()</span><br><span class="line">                    <span class="keyword">go</span> inst.InjectUnseenMasters()</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">go</span> inst.ForgetLongUnseenInstances()</span><br><span class="line">                    <span class="keyword">go</span> inst.ForgetLongUnseenClusterAliases()</span><br><span class="line">                    <span class="keyword">go</span> inst.ForgetUnseenInstancesDifferentlyResolved()</span><br><span class="line">                    <span class="keyword">go</span> inst.ForgetExpiredHostnameResolves()</span><br><span class="line">                    <span class="keyword">go</span> inst.DeleteInvalidHostnameResolves()</span><br><span class="line">                    <span class="keyword">go</span> inst.ResolveUnknownMasterHostnameResolves()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireMaintenance()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireCandidateInstances()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireHostnameUnresolve()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireClusterDomainName()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireAudit()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireMasterPositionEquivalence()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpirePoolInstances()</span><br><span class="line">                    <span class="keyword">go</span> inst.FlushNontrivialResolveCacheToDatabase()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireInjectedPseudoGTID()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireStaleInstanceBinlogCoordinates()</span><br><span class="line">                    <span class="keyword">go</span> process.ExpireNodesHistory()</span><br><span class="line">                    <span class="keyword">go</span> process.ExpireAccessTokens()</span><br><span class="line">                    <span class="keyword">go</span> process.ExpireAvailableNodes()</span><br><span class="line">                    <span class="keyword">go</span> ExpireFailureDetectionHistory()</span><br><span class="line">                    <span class="keyword">go</span> ExpireTopologyRecoveryHistory()</span><br><span class="line">                    <span class="keyword">go</span> ExpireTopologyRecoveryStepsHistory()</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> runCheckAndRecoverOperationsTimeRipe() &amp;&amp; IsLeader() &#123;</span><br><span class="line">                        <span class="keyword">go</span> SubmitMastersToKvStores(<span class="string">&quot;&quot;</span>, <span class="literal">false</span>)</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// Take this opportunity to refresh yourself</span></span><br><span class="line">                    <span class="keyword">go</span> inst.LoadHostnameResolveCache()</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;()</span><br></pre></td></tr></table></figure>
+<p>从方法名字可以看出来, 就是做一些”护理”工作, 如:</p>
+<ul>
+<li>清理unseened instance, 详见参数: <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/91f843197ef5c70d6a0f001b8fa9e0c7d7d30acf/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#unseeninstanceforgethours">UnseenInstanceForgetHours</a></li>
+<li>清理过期审计日志</li>
+</ul>
+<h3 id="raft护理工作"><a href="#raft护理工作" class="headerlink" title="raft护理工作"></a>raft护理工作</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ContinuousDiscovery</span><span class="params">()</span></span> &#123;</span><br><span class="line">    raftCaretakingTick := time.Tick(<span class="number">10</span> * time.Minute)</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        ...省略部分代码</span><br><span class="line">        <span class="keyword">case</span> &lt;-raftCaretakingTick:</span><br><span class="line">            <span class="keyword">if</span> orcraft.IsRaftEnabled() &amp;&amp; orcraft.IsLeader() &#123;</span><br><span class="line">            <span class="comment">// publishDiscoverMasters will publish to raft a discovery request for all known masters.</span></span><br><span class="line">            <span class="comment">// This makes for a best-effort keep-in-sync between raft nodes, where some may have  </span></span><br><span class="line">            <span class="comment">// inconsistent data due to hosts being forgotten, for example.</span></span><br><span class="line">                <span class="keyword">go</span> publishDiscoverMasters()</span><br><span class="line">            &#125;</span><br></pre></td></tr></table></figure>
+<p>如果orchestrator是[[raft模式部署]]的, 并且本节点是leader, 那么leader会发布一个discovery request给每个raft节点, 这些节点会对所有MySQL主库进行discover. 这么做的目的是保持所有raft nodes的数据”同步”</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Deployment/raft%E6%A8%A1%E5%BC%8F%E9%83%A8%E7%BD%B2.md#a-visual-example">A visual example</a></p>
+<p><img src="https://raw.githubusercontent.com/openark/orchestrator/master/docs/images/orchestrator-deployment-raft.png" alt="image"></p>
+<p>如上图所示, 三个<code>orchestrator</code> 组成一个raft cluster, 每个<code>orchestrator</code> 节点使用自己的专用数据库(<code>MySQL</code>或<code>SQLite</code>)</p>
+<ul>
+<li><code>orchestrator</code> 节点之间会进行通信.</li>
+<li>只有一个<code>orchestrator</code> 节点会成为leader.</li>
+<li>所有<code>orchestrator</code>节点探测整个<code>MySQL</code>舰队. 每个<code>MySQL</code> server都被每个raft成员探测.</li>
+</ul>
+</blockquote>
+<h3 id="保存拓扑快照"><a href="#保存拓扑快照" class="headerlink" title="保存拓扑快照"></a>保存拓扑快照</h3><p>如果<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/91f843197ef5c70d6a0f001b8fa9e0c7d7d30acf/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#snapshottopologiesintervalhours">SnapshotTopologiesIntervalHours</a>值大于0, 那么会每<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/91f843197ef5c70d6a0f001b8fa9e0c7d7d30acf/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#snapshottopologiesintervalhours">SnapshotTopologiesIntervalHours</a>小时保存database_instance到database_instance_topology_history<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ContinuousDiscovery</span><span class="params">()</span></span> &#123;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="keyword">var</span> snapshotTopologiesTick &lt;-<span class="keyword">chan</span> time.Time</span><br><span class="line">    <span class="keyword">if</span> config.Config.SnapshotTopologiesIntervalHours &gt; <span class="number">0</span> &#123;  </span><br><span class="line">       snapshotTopologiesTick = time.Tick(time.Duration(config.Config.SnapshotTopologiesIntervalHours) * time.Hour)  </span><br><span class="line">    &#125;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        ..省略部分代码</span><br><span class="line">        <span class="keyword">case</span> &lt;-snapshotTopologiesTick:</span><br><span class="line">            <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">                <span class="keyword">if</span> IsLeaderOrActive() &#123;</span><br><span class="line">                    <span class="keyword">go</span> inst.SnapshotTopologies()</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;()</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure><br>就是执行insert ignore into database_instance_topology_history select x from database_instance<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// SnapshotTopologies records topology graph for all existing topologies</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SnapshotTopologies</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">    writeFunc := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">        _, err := db.ExecOrchestrator(<span class="string">`</span></span><br><span class="line"><span class="string">            insert ignore into</span></span><br><span class="line"><span class="string">                database_instance_topology_history (snapshot_unix_timestamp,</span></span><br><span class="line"><span class="string">                    hostname, port, master_host, master_port, cluster_name, version)</span></span><br><span class="line"><span class="string">            select</span></span><br><span class="line"><span class="string">                UNIX_TIMESTAMP(NOW()),</span></span><br><span class="line"><span class="string">                hostname, port, master_host, master_port, cluster_name, version</span></span><br><span class="line"><span class="string">            from</span></span><br><span class="line"><span class="string">                database_instance</span></span><br><span class="line"><span class="string">                `</span>,</span><br><span class="line">        )</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> log.Errore(err)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ExecDBWriteFunc(writeFunc)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="recover工作"><a href="#recover工作" class="headerlink" title="recover工作"></a>recover工作</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> RecoveryPollSeconds = <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ContinuousDiscovery</span><span class="params">()</span></span> &#123;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    continuousDiscoveryStartTime := time.Now()  </span><br><span class="line">    checkAndRecoverWaitPeriod := <span class="number">3</span> * instancePollSecondsDuration()</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    runCheckAndRecoverOperationsTimeRipe := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">bool</span></span> &#123;  </span><br><span class="line">       <span class="keyword">return</span> time.Since(continuousDiscoveryStartTime) &gt;= checkAndRecoverWaitPeriod  </span><br><span class="line">    &#125;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    recoveryTick := time.Tick(time.Duration(config.RecoveryPollSeconds) * time.Second)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        <span class="keyword">select</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> &lt;-recoveryTick:</span><br><span class="line">            <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">                <span class="keyword">if</span> IsLeaderOrActive() &#123;</span><br><span class="line">                    <span class="keyword">go</span> ClearActiveFailureDetections()</span><br><span class="line">                    <span class="keyword">go</span> ClearActiveRecoveries()</span><br><span class="line">                    <span class="keyword">go</span> ExpireBlockedRecoveries()</span><br><span class="line">                    <span class="keyword">go</span> AcknowledgeCrashedRecoveries()</span><br><span class="line">                    <span class="keyword">go</span> inst.ExpireInstanceAnalysisChangelog()</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">                        <span class="comment">// This function is non re-entrant (it can only be running once at any point in time)</span></span><br><span class="line">                        <span class="keyword">if</span> atomic.CompareAndSwapInt64(&amp;recoveryEntrance, <span class="number">0</span>, <span class="number">1</span>) &#123; <span class="comment">// 如果返回true, 说明当时没有运行中的恢复任务</span></span><br><span class="line">                            <span class="keyword">defer</span> atomic.StoreInt64(&amp;recoveryEntrance, <span class="number">0</span>) </span><br><span class="line">                        &#125; <span class="keyword">else</span> &#123; <span class="comment">// 否则直接return</span></span><br><span class="line">                            <span class="keyword">return</span></span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">if</span> runCheckAndRecoverOperationsTimeRipe() &#123; <span class="comment">// 从开始运行ContinuousDiscovery至今的时间 &gt; (3 * InstancePollSeconds = 15秒) 才可以运行recover</span></span><br><span class="line">                            CheckAndRecover(<span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">false</span>)</span><br><span class="line">                        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                            log.Debugf(<span class="string">&quot;Waiting for %+v seconds to pass before running failure detection/recovery&quot;</span>, checkAndRecoverWaitPeriod.Seconds())</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;()</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;()</span><br></pre></td></tr></table></figure>
+<p>从注释<code>// This function is non re-entrant (it can only be running once at any point in time)</code> 可以看出, 同一时间只能有一个恢复任务运行</p>
+<blockquote>
+<p>atomic.CompareAndSwapInt64<br>在Go语言中，原子包提供lower-level原子内存，这对实现同步算法很有帮助。 Go语言中的CompareAndSwapInt64()函数用于对int64值执行比较和交换操作。此函数在原子包下定义。在这里，您需要导入“sync/atomic”软件包才能使用这些函数。<br><strong>用法:</strong><br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt;<span class="function"><span class="keyword">func</span> <span class="title">CompareAndSwapInt64</span><span class="params">(addr *<span class="keyword">int64</span>, old, <span class="built_in">new</span> <span class="keyword">int64</span>)</span> <span class="params">(swapped <span class="keyword">bool</span>)</span></span></span><br></pre></td></tr></table></figure><br>在这里，addr表示地址，old表示int64值，它是从交换操作返回的旧交换值，而new则是int64新值，它将与旧交换值进行交换。<br><strong>返回值：</strong>如果交换完成，则返回true，否则返回false。</p>
+</blockquote>
+<p>恢复机制的入口在CheckAndRecover</p>
+<h4 id="CheckAndRecover"><a href="#CheckAndRecover" class="headerlink" title="CheckAndRecover"></a>CheckAndRecover</h4><p><code>CheckAndRecover(nil, nil, false)</code> </p>
+<p><code>CheckAndRecover</code> 首先调用GetReplicationAnalysis 获取<code>分析结果replicationAnalysis</code>(是一个切片). 后者实际是通过查询database_instance表, 查出所有有<code>问题</code>的实例信息, 封装成ReplicationAnalysis结构体, 这个结构体中包含实例基础信息(如是否是主库, 是否开启GTID等), <code>Analysis</code>(即orc定义故障名称, 详见<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#failure-detection-scenarios-%E6%95%85%E9%9A%9C%E6%A3%80%E6%B5%8B%E5%9C%BA%E6%99%AF">Failure detection scenarios 故障检测场景</a>)和<code>StructureAnalysis</code>(即拓扑结构的故障列表, 如<code>NotEnoughValidSemiSyncReplicasStructureWarning</code>等)</p>
+<blockquote>
+<p>当然, GetReplicationAnalysis有可能返回一个空切片, 即代表当前无任何故障<br>如果GetReplicationAnalysis返回err!=nil, 那么整个CheckAndRecover也会就此退出return error</p>
+</blockquote>
+<p>接着, <code>CheckAndRecover</code> 按随机顺序迭代replicationAnalysis, 对每一个analysisEntry开启协程调用executeCheckAndRecoverFunction<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;  </span><br><span class="line">   _, _, err := executeCheckAndRecoverFunction(analysisEntry, candidateInstanceKey, <span class="literal">false</span>, skipProcesses)  <span class="comment">// 实际参数是 analysisEntry, nil, false, false</span></span><br><span class="line">   log.Errore(err)  </span><br><span class="line">&#125;()</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>executeCheckAndRecoverFunction 函数注释<br>// executeCheckAndRecoverFunction will choose the correct check &amp; recovery function based on analysis.<br>// It executes the function synchronuously </p>
+<blockquote>
+<p>synchronuously拼写错误, 应为synchronously</p>
+</blockquote>
+<p>直译: executeCheckAndRecoverFunction将根据分析选择正确的检查和恢复函数。它同步地执行该功能</p>
+</blockquote>
+<h5 id="executeCheckAndRecoverFunction"><a href="#executeCheckAndRecoverFunction" class="headerlink" title="executeCheckAndRecoverFunction"></a>executeCheckAndRecoverFunction</h5><p>executeCheckAndRecoverFunction 首先调用getCheckAndRecoverFunction, 后者根据analysisEntry.Analysis(即orc定义故障名称, 详见<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#failure-detection-scenarios-%E6%95%85%E9%9A%9C%E6%A3%80%E6%B5%8B%E5%9C%BA%E6%99%AF">Failure detection scenarios 故障检测场景</a>)返回对应的<code>checkAndRecoverFunction</code>, 以及一个布尔值<code>isActionableRecovery</code>, 这个值会赋值给analysisEntry.IsActionableRecovery<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">checkAndRecoverFunction, isActionableRecovery := getCheckAndRecoverFunction(analysisEntry.Analysis, &amp;analysisEntry.AnalyzedInstanceKey)</span><br></pre></td></tr></table></figure><br>以本次实验模拟的主库宕机为例, 我们关闭主库后, 主库会先被认为处于<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#unreachablemaster">UnreachableMaster</a>状态<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getCheckAndRecoverFunction</span><span class="params">(analysisCode inst.AnalysisCode, analyzedInstanceKey *inst.InstanceKey)</span> <span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    checkAndRecoverFunction <span class="keyword">func</span>(analysisEntry inst.ReplicationAnalysis, candidateInstanceKey *inst.InstanceKey, forceInstanceRecovery <span class="keyword">bool</span>, skipProcesses <span class="keyword">bool</span>)</span> <span class="params">(recoveryAttempted <span class="keyword">bool</span>, topologyRecovery *TopologyRecovery, err error)</span>,</span></span><br><span class="line">    isActionableRecovery <span class="keyword">bool</span>,</span><br><span class="line">) &#123;</span><br><span class="line">    <span class="keyword">switch</span> analysisCode &#123;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="keyword">case</span> inst.UnreachableMaster:</span><br><span class="line">        <span class="keyword">return</span> checkAndRecoverGenericProblem, <span class="literal">false</span></span><br><span class="line">    ...省略部分代码</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Right now this is mostly causing noise with no clear action.</span></span><br><span class="line">    <span class="comment">// Will revisit this in the future.</span></span><br><span class="line">    <span class="comment">// case inst.AllMasterReplicasStale:</span></span><br><span class="line">    <span class="comment">//   return checkAndRecoverGenericProblem, false</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>于是第一次, 拿到的checkAndRecoverFunction是checkAndRecoverGenericProblem, 这个函数啥也没干, 就是返回fale, nil, nil<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// checkAndRecoverGenericProblem is a general-purpose recovery function</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">checkAndRecoverGenericProblem</span><span class="params">(analysisEntry inst.ReplicationAnalysis, candidateInstanceKey *inst.InstanceKey, forceInstanceRecovery <span class="keyword">bool</span>, skipProcesses <span class="keyword">bool</span>)</span> <span class="params">(<span class="keyword">bool</span>, *TopologyRecovery, error)</span></span> &#123;  </span><br><span class="line">   <span class="keyword">return</span> <span class="literal">false</span>, <span class="literal">nil</span>, <span class="literal">nil</span>  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>随后会运行runEmergentOperations<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">runEmergentOperations(&amp;analysisEntry)</span><br></pre></td></tr></table></figure><br>以本次实验模拟的主库宕机为例, 我们关闭主库后, 主库会先被认为处于<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#unreachablemaster">UnreachableMaster</a>状态<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">runEmergentOperations</span><span class="params">(analysisEntry *inst.ReplicationAnalysis)</span></span> &#123;</span><br><span class="line">    <span class="keyword">switch</span> analysisEntry.Analysis &#123;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="keyword">case</span> inst.UnreachableMaster:</span><br><span class="line">        <span class="keyword">go</span> emergentlyReadTopologyInstance(&amp;analysisEntry.AnalyzedInstanceKey, analysisEntry.Analysis)</span><br><span class="line">        <span class="keyword">go</span> emergentlyReadTopologyInstanceReplicas(&amp;analysisEntry.AnalyzedInstanceKey, analysisEntry.Analysis)</span><br></pre></td></tr></table></figure><br> 那么按照代码逻辑, 会运行:</p>
+<ul>
+<li>emergentlyReadTopologyInstance</li>
+<li>emergentlyReadTopologyInstanceReplicas<br>这两步实际是去连接数据库实例(主库, 和其所有的从库), 获取实例的各项信息(如从库的复制延迟, IO_THREAD状态等)</li>
+</ul>
+<blockquote>
+<p>下面分别展示了上述两个函数的注释:<br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// Force <span class="keyword">a</span> re-<span class="built_in">read</span> <span class="keyword">of</span> <span class="keyword">a</span> topology instance; this is done because we need <span class="built_in">to</span> substantiate <span class="keyword">a</span> suspicion</span><br><span class="line">// that we may have <span class="keyword">a</span> failover scenario. we want <span class="built_in">to</span> speed up reading <span class="keyword">the</span> complete picture.</span><br><span class="line">强制重新读取一个拓扑实例；这样做是因为我们需要证实一个怀疑，即我们可能有一个故障转移的情况。我们希望加快读取完整的图片。</span><br><span class="line">// Force reading <span class="keyword">of</span> replicas <span class="keyword">of</span> given instance. This is because we suspect <span class="keyword">the</span> instance is dead, <span class="keyword">and</span> want <span class="built_in">to</span> speed up</span><br><span class="line">// detection <span class="keyword">of</span> replication failure <span class="built_in">from</span> its replicas.</span><br><span class="line">强制读取给定实例的副本。这是因为我们怀疑该实例已经死亡，并希望加快从其副本中检测复制失败。</span><br><span class="line"></span><br><span class="line">从这是可以看出, UnreachableMaster时, orc会立即触发对主从的探测, 目的是加速整个Failover速度, 而不依赖与周期性持续探测</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>接着,  executeCheckAndRecoverFunction运行checkAndRecoverFunction(即checkAndRecoverGenericProblem)<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">recoveryAttempted, topologyRecovery, err = checkAndRecoverFunction(analysisEntry, candidateInstanceKey, forceInstanceRecovery, skipProcesses)</span><br><span class="line"><span class="comment">// 实参为 analysisEntry, nil, false, false</span></span><br></pre></td></tr></table></figure><br>所以这里是recoveryAttempted, topologyRecovery, err就是false, nil .<br>然后代码判断recoveryAttempted为false时, 直接return了<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> !recoveryAttempted &#123;  </span><br><span class="line">   <span class="keyword">return</span> recoveryAttempted, topologyRecovery, err  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>于是至此流程就是</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/14/21-16-05-Jietu20220428-153051-4f053d.jpeg" alt=""></p>
+<p>那么问题来了, 只要GetReplicationAnalysis分析后一直认为故障处于<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#unreachablemaster">UnreachableMaster</a>状态, 就会一直处于这个循环. 所以要看一下<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#deadmaster">DeadMaster</a>的判断逻辑是什么.<br>在官方文档中是这样定义的:</p>
+<ol>
+<li>主库访问失败</li>
+<li>所有主库的副本复制失败</li>
+</ol>
+<p>这里列出分别列出 <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#unreachablemaster">UnreachableMaster</a>  和 <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#deadmaster">DeadMaster</a> 代码判断逻辑<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> a.IsMaster &amp;&amp; !a.LastCheckValid &amp;&amp; a.CountValidReplicas == a.CountReplicas &amp;&amp; a.CountValidReplicatingReplicas == <span class="number">0</span> &#123;  </span><br><span class="line">   a.Analysis = DeadMaster  </span><br><span class="line">   a.Description = <span class="string">&quot;Master cannot be reached by orchestrator and none of its replicas is replicating&quot;</span>  </span><br><span class="line">   <span class="comment">//</span></span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> a.IsMaster &amp;&amp; !a.LastCheckValid &amp;&amp; !a.LastCheckPartialSuccess &amp;&amp; a.CountValidReplicas &gt; <span class="number">0</span> &amp;&amp; a.CountValidReplicatingReplicas &gt; <span class="number">0</span> &#123;  </span><br><span class="line">   <span class="comment">// partial success is here to reduce noise  </span></span><br><span class="line">   a.Analysis = UnreachableMaster  </span><br><span class="line">   a.Description = <span class="string">&quot;Master cannot be reached by orchestrator but it has replicating replicas; possibly a network/host issue&quot;</span>  </span><br><span class="line">   <span class="comment">//  </span></span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> a.IsMaster &amp;&amp; !a.LastCheckValid &amp;&amp; a.LastCheckPartialSuccess &amp;&amp; a.CountReplicasFailingToConnectToMaster &gt; <span class="number">0</span> &amp;&amp; a.CountValidReplicas &gt; <span class="number">0</span> &amp;&amp; a.CountValidReplicatingReplicas &gt; <span class="number">0</span> &#123;  </span><br><span class="line">   <span class="comment">// there&#x27;s partial success, but also at least one replica is failing to connect to master  </span></span><br><span class="line">   a.Analysis = UnreachableMaster  </span><br><span class="line">   a.Description = <span class="string">&quot;Master cannot be reached by orchestrator but it has replicating replicas; possibly a network/host issue&quot;</span>  </span><br><span class="line">   <span class="comment">//</span></span><br></pre></td></tr></table></figure></p>
+<h5 id="database-instance重要列含义解读"><a href="#database-instance重要列含义解读" class="headerlink" title="database_instance重要列含义解读"></a>database_instance重要列含义解读</h5><p>首先, 上面的a.IsMaster, a.LastCheckValid等属性是GetReplicationAnalysis通过SQL查询backend db的database_instance等表获取的. 所以要说清楚这些判断条件, 就要理解SQL含义, 要理解SQL含义, 就又要先了解database_instance表中几个列的含义:</p>
+<ul>
+<li>last_checked 无论被探测的实例是否可以连接, 都会更新此列值为Now()</li>
+<li>last_seen  只有实例探测正常, 才会更新此列值为Now()</li>
+<li>last_check_partial_success 如果被探测实例至少可以连接并执行select @@global.hostname.. 则此列值为1</li>
+<li>last_attempted_check 这个列含义比较复杂. 简单来说, 如果 last_attempted_check &lt;= last_checked 那么这目标实例是正常的, 没有遇到连接hang住的问题</li>
+</ul>
+<h5 id="ReplicationAnalysis-属性含义解读"><a href="#ReplicationAnalysis-属性含义解读" class="headerlink" title="ReplicationAnalysis 属性含义解读"></a>ReplicationAnalysis 属性含义解读</h5><p><strong>IsMaster</strong> 主库(本身没有主库, 也不是MGR成员)<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* To be considered a master, traditional async replication must not be present/valid AND the host should either */</span></span><br><span class="line"><span class="comment">/* not be a replication group member OR be the primary of the replication group */</span></span><br><span class="line">MIN(master_instance.last_check_partial_success) as last_check_partial_success,</span><br><span class="line">MIN(</span><br><span class="line">    (</span><br><span class="line">        master_instance.master_host IN (<span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;_&#x27;</span>)</span><br><span class="line">        OR master_instance.master_port = <span class="number">0</span></span><br><span class="line">        OR substr(master_instance.master_host, <span class="number">1</span>, <span class="number">2</span>) = <span class="string">&#x27;//&#x27;</span></span><br><span class="line">    )</span><br><span class="line">    AND (</span><br><span class="line">        master_instance.replication_group_name = <span class="string">&#x27;&#x27;</span></span><br><span class="line">        OR master_instance.replication_group_member_role = <span class="string">&#x27;PRIMARY&#x27;</span></span><br><span class="line">    )</span><br><span class="line">) AS is_master,</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>substr(master_instance.master_host, 1, 2) = ‘//‘的含义详见<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/91f843197ef5c70d6a0f001b8fa9e0c7d7d30acf/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A1.md#detachlostreplicasaftermasterfailover">DetachLostReplicasAfterMasterFailover</a></p>
+</blockquote>
+<p><strong>LastCheckValid</strong> 本实例最近一次探测正常<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">        MIN(</span><br><span class="line">            master_instance.last_checked &lt;= master_instance.last_seen  </span><br><span class="line">            and master_instance.last_attempted_check &lt;= master_instance.last_seen + interval ? second</span><br><span class="line">        ) = <span class="number">1</span> AS is_last_check_valid</span><br><span class="line"></span><br><span class="line">interval ? 的实际值是</span><br><span class="line"></span><br><span class="line"><span class="comment">// ValidSecondsFromSeenToLastAttemptedCheck returns the maximum allowed elapsed time// between last_attempted_check to last_checked before we consider the instance as invalid.  </span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ValidSecondsFromSeenToLastAttemptedCheck</span><span class="params">()</span> <span class="title">uint</span></span> &#123;  </span><br><span class="line">   <span class="keyword">return</span> config.Config.InstancePollSeconds + config.Config.ReasonableInstanceCheckSeconds  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="number">5</span> + <span class="number">1</span> = <span class="number">6</span>s</span><br><span class="line"></span><br><span class="line">master_instance.last_checked &lt;= master_instance.last_seen 表示主库探测一切正常, 否则表是探测是无法联机数据库或查询出现错误等</span><br><span class="line">master_instance.last_attempted_check &lt;= master_instance.last_seen + <span class="number">6</span>s  </span><br><span class="line">假设</span><br><span class="line">    last_attempted_check = <span class="number">10</span>:<span class="number">10</span></span><br><span class="line">    last_seen = <span class="number">10</span>:<span class="number">00</span></span><br><span class="line">那么这种情况表示主库探测有问题, 可能连接hang住了</span><br><span class="line"></span><br><span class="line">两个都为<span class="literal">true</span>, <span class="literal">true</span> and <span class="literal">true</span>就是 <span class="number">1.</span> 然后再和<span class="number">1</span>比较. </span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<p><strong>LastCheckPartialSuccess</strong> 本实例至少可以连接并执行select @@global.hostname..<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MIN(master_instance.last_check_partial_success) as last_check_partial_success,</span><br></pre></td></tr></table></figure></p>
+<p><strong>CountReplicas</strong>  本实例的从库数量(无论死活)<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">COUNT(replica_instance.server_id) AS count_replicas,</span><br></pre></td></tr></table></figure></p>
+<p><strong>CountValidReplicas</strong> 本实例正常的从库数量(只表示实例正常, 能连接能查询, 但不一定复制正常)<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">IFNULL(</span><br><span class="line">    SUM(</span><br><span class="line">        replica_instance.last_checked &lt;= replica_instance.last_seen</span><br><span class="line">    ),</span><br><span class="line">    <span class="number">0</span></span><br><span class="line">) AS count_valid_replicas,</span><br></pre></td></tr></table></figure></p>
+<p><strong>CountValidReplicatingReplicas</strong> 本实例正常且复制状态正常的从库数量<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">IFNULL(</span><br><span class="line">    SUM(</span><br><span class="line">        replica_instance.last_checked &lt;= replica_instance.last_seen</span><br><span class="line">        AND replica_instance.slave_io_running != <span class="number">0</span></span><br><span class="line">        AND replica_instance.slave_sql_running != <span class="number">0</span></span><br><span class="line">    ),</span><br><span class="line">    <span class="number">0</span></span><br><span class="line">) AS count_valid_replicating_replicas,</span><br></pre></td></tr></table></figure></p>
+<p><strong>CountReplicasFailingToConnectToMaster</strong> 本实例的, 自身正常(可连接可查询), IO线程处于连接异常, SQL线程正常的从库数量<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">IFNULL(</span><br><span class="line">    SUM(</span><br><span class="line">        replica_instance.last_checked &lt;= replica_instance.last_seen</span><br><span class="line">        AND replica_instance.slave_io_running = <span class="number">0</span></span><br><span class="line">        AND replica_instance.last_io_error like <span class="string">&#x27;%%error %%connecting to master%%&#x27;</span></span><br><span class="line">        AND replica_instance.slave_sql_running = <span class="number">1</span></span><br><span class="line">    ),</span><br><span class="line">    <span class="number">0</span></span><br><span class="line">) AS count_replicas_failing_to_connect_to_master,</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<h5 id="再看-UnreachableMaster-和-DeadMaster"><a href="#再看-UnreachableMaster-和-DeadMaster" class="headerlink" title="再看 UnreachableMaster  和 DeadMaster"></a>再看 <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#unreachablemaster">UnreachableMaster</a>  和 <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#deadmaster">DeadMaster</a></h5><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> a.IsMaster &amp;&amp; !a.LastCheckValid &amp;&amp; a.CountValidReplicas == a.CountReplicas &amp;&amp; a.CountValidReplicatingReplicas == <span class="number">0</span> &#123;  </span><br><span class="line">   a.Analysis = DeadMaster  </span><br><span class="line">   a.Description = <span class="string">&quot;Master cannot be reached by orchestrator and none of its replicas is replicating&quot;</span>  </span><br><span class="line">   <span class="comment">//</span></span><br><span class="line">本实例是主库(本身没有主库, 也不是MGR成员) &amp;&amp; 本实例最近一次探测异常 &amp;&amp; 本实例正常的从库数量(只表示实例正常, 能连接能查询, 但不一定复制正常) == 本实例的从库数量(无论死活) &amp;&amp; 本实例正常且复制状态正常的从库数量为<span class="number">0</span></span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> a.IsMaster &amp;&amp; !a.LastCheckValid &amp;&amp; !a.LastCheckPartialSuccess &amp;&amp; a.CountValidReplicas &gt; <span class="number">0</span> &amp;&amp; a.CountValidReplicatingReplicas &gt; <span class="number">0</span> &#123;  </span><br><span class="line">   <span class="comment">// partial success is here to reduce noise  </span></span><br><span class="line">   a.Analysis = UnreachableMaster  </span><br><span class="line">   a.Description = <span class="string">&quot;Master cannot be reached by orchestrator but it has replicating replicas; possibly a network/host issue&quot;</span>  </span><br><span class="line">   <span class="comment">//  </span></span><br><span class="line">本实例是主库(本身没有主库, 也不是MGR成员) &amp;&amp; 本实例最近一次探测异常 &amp;&amp; 本实例无法连接 &amp;&amp; 本实例正常的从库数量(只表示实例正常, 能连接能查询, 但不一定复制正常) &gt; <span class="number">0</span> &amp;&amp; 本实例正常且复制状态正常的从库数量 &gt; <span class="number">0</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> a.IsMaster &amp;&amp; !a.LastCheckValid &amp;&amp; a.LastCheckPartialSuccess &amp;&amp; a.CountReplicasFailingToConnectToMaster &gt; <span class="number">0</span> &amp;&amp; a.CountValidReplicas &gt; <span class="number">0</span> &amp;&amp; a.CountValidReplicatingReplicas &gt; <span class="number">0</span> &#123;  </span><br><span class="line">   <span class="comment">// there&#x27;s partial success, but also at least one replica is failing to connect to master  </span></span><br><span class="line">   a.Analysis = UnreachableMaster  </span><br><span class="line">   a.Description = <span class="string">&quot;Master cannot be reached by orchestrator but it has replicating replicas; possibly a network/host issue&quot;</span>  </span><br><span class="line">   <span class="comment">//</span></span><br><span class="line">本实例是主库(本身没有主库, 也不是MGR成员) &amp;&amp; 本实例最近一次探测异常 &amp;&amp; 本实例无法连接 &amp;&amp; 本实例的, 自身正常(可连接可查询), IO线程处于连接异常, SQL线程正常的从库数量 &gt; <span class="number">0</span> &amp;&amp; 本实例正常且复制状态正常的从库数量 &gt; <span class="number">0</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>由此可以看出, Master宕机后的最初一段时间内, orchestrator已经无法连接Master, 但是并非所有从库都意识到主库已经宕机, IO线程可能还是处于RUNNING状态(这与<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/replication-options-replica.html#sysvar_slave_net_timeout"><code>slave_net_timeout</code></a>有关, <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/91f843197ef5c70d6a0f001b8fa9e0c7d7d30acf/Setup/%E9%85%8D%E7%BD%AE/Configuration%20%20Failure%20detection.md#mysql-configuration">Orchestrator官方文档也有描述</a>) . 所以在这段时间内, orchestrator认为Master处于<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#unreachablemaster">UnreachableMaster</a> 状态, 通过getCheckAndRecoverFunction获取的就永远是checkAndRecoverGenericProblem(也就是啥都不干, 直接return)</p>
+<p>直到所有从库复制状态都出现异常, orchestrator才会认为Master处于<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#deadmaster">DeadMaster</a>状态. 那么此后getCheckAndRecoverFunction会返回checkAndRecoverDeadMaster, 而这才是Failover的真正开始</p>
+<h2 id="初步流程总结"><a href="#初步流程总结" class="headerlink" title="初步流程总结"></a>初步流程总结</h2><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/14/21-16-50-Orchestrator%20Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-I-Excalidraw-6235a2.png" alt=""></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2022/05/11/2022-05-11-Orchestrator-Failover过程源码分析-I/" target="_blank" title="Orchestrator Failover过程源码分析-I">http://fuxkdb.com/2022/05/11/2022-05-11-Orchestrator-Failover过程源码分析-I/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Orchestrator/" rel="tag">Orchestrator</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Orchestrator Discover源码分析</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%A1%E6%8B%9F%E6%95%85%E9%9A%9C"><span class="nav-number">1.</span> <span class="nav-text">模拟故障</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E8%BF%87%E7%AC%AC%E4%BA%8C%E6%9D%A1%E4%BF%A1%E6%81%AF%E6%89%BE%E2%80%9D%E5%85%A5%E5%8F%A3%E2%80%9D"><span class="nav-number">2.1.</span> <span class="nav-text">通过第二条信息找”入口”</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ContinuousDiscovery%E9%83%BD%E5%B9%B2%E4%BA%86%E5%95%A5"><span class="nav-number">3.</span> <span class="nav-text">ContinuousDiscovery都干了啥</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%81%E7%BB%AD%E5%8F%91%E7%8E%B0"><span class="nav-number">3.1.</span> <span class="nav-text">持续发现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">3.1.1.</span> <span class="nav-text">流程图</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9C%80%E8%A6%81%E4%B8%8E%E5%AE%9E%E4%BE%8B%E8%BD%AE%E8%AF%A2-%E6%88%96%E5%A4%A7%E8%87%B4-%E7%9B%B8%E5%90%8C%E9%A2%91%E7%8E%87%E7%9A%84%E5%B8%B8%E8%A7%84%E6%93%8D%E4%BD%9C"><span class="nav-number">3.2.</span> <span class="nav-text">需要与实例轮询(或大致)相同频率的常规操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E6%97%B6%E6%B3%A8%E5%85%A5%E4%BC%AAGTID"><span class="nav-number">3.3.</span> <span class="nav-text">定时注入伪GTID</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%A4%E7%90%86%E5%B7%A5%E4%BD%9C"><span class="nav-number">3.4.</span> <span class="nav-text">护理工作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#raft%E6%8A%A4%E7%90%86%E5%B7%A5%E4%BD%9C"><span class="nav-number">3.5.</span> <span class="nav-text">raft护理工作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98%E6%8B%93%E6%89%91%E5%BF%AB%E7%85%A7"><span class="nav-number">3.6.</span> <span class="nav-text">保存拓扑快照</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#recover%E5%B7%A5%E4%BD%9C"><span class="nav-number">3.7.</span> <span class="nav-text">recover工作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CheckAndRecover"><span class="nav-number">3.7.1.</span> <span class="nav-text">CheckAndRecover</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#executeCheckAndRecoverFunction"><span class="nav-number">3.7.1.1.</span> <span class="nav-text">executeCheckAndRecoverFunction</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#database-instance%E9%87%8D%E8%A6%81%E5%88%97%E5%90%AB%E4%B9%89%E8%A7%A3%E8%AF%BB"><span class="nav-number">3.7.1.2.</span> <span class="nav-text">database_instance重要列含义解读</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ReplicationAnalysis-%E5%B1%9E%E6%80%A7%E5%90%AB%E4%B9%89%E8%A7%A3%E8%AF%BB"><span class="nav-number">3.7.1.3.</span> <span class="nav-text">ReplicationAnalysis 属性含义解读</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%86%8D%E7%9C%8B-UnreachableMaster-%E5%92%8C-DeadMaster"><span class="nav-number">3.7.1.4.</span> <span class="nav-text">再看 UnreachableMaster  和 DeadMaster</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E6%AD%A5%E6%B5%81%E7%A8%8B%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">初步流程总结</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2022 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

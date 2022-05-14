@@ -305,6 +305,54 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-03-19-使用python消费canal-protobuf格式数据"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/03/19/2020-03-19-%E4%BD%BF%E7%94%A8python%E6%B6%88%E8%B4%B9canal-protobuf%E6%A0%BC%E5%BC%8F%E6%95%B0%E6%8D%AE/">使用python消费canal protobuf格式数据</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/03/19/2020-03-19-%E4%BD%BF%E7%94%A8python%E6%B6%88%E8%B4%B9canal-protobuf%E6%A0%BC%E5%BC%8F%E6%95%B0%E6%8D%AE/" class="article-date">
+	  <time datetime="2020-03-19T15:23:00.000Z" itemprop="datePublished">2020-03-19</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>canal -&gt; kafka -&gt; consumer. flatMessage=False<br>参考 <a target="_blank" rel="noopener" href="https://github.com/haozi3156666/canal-python">canal Python客户端</a>.<br>由于<a target="_blank" rel="noopener" href="https://github.com/haozi3156666/canal-python">canal Python客户端</a>是作为canal的client直连canal 11111端口消费数据而非消费kafka数据, 所以example不能照搬, 需要做一些修改</p>
+<p>Python3.7.4</p>
+<p>requriments</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">backcall</span>==<span class="number">0</span>.<span class="number">1</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">bleach</span>==<span class="number">3</span>.<span class="number">1</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">canal</span>-python==<span class="number">0</span>.<span class="number">4</span></span><br><span class="line"><span class="attribute">certifi</span>==<span class="number">2019</span>.<span class="number">6</span>.<span class="number">16</span></span><br><span class="line"><span class="attribute">chardet</span>==<span class="number">3</span>.<span class="number">0</span>.<span class="number">4</span></span><br><span class="line"><span class="attribute">confluent</span>-kafka==<span class="number">1</span>.<span class="number">3</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">decorator</span>==<span class="number">4</span>.<span class="number">4</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">docopt</span>==<span class="number">0</span>.<span class="number">6</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">docutils</span>==<span class="number">0</span>.<span class="number">15</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">idna</span>==<span class="number">2</span>.<span class="number">8</span></span><br><span class="line"><span class="attribute">ipython</span>==<span class="number">7</span>.<span class="number">13</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">ipython</span>-genutils==<span class="number">0</span>.<span class="number">2</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">jedi</span>==<span class="number">0</span>.<span class="number">16</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">parso</span>==<span class="number">0</span>.<span class="number">6</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">pexpect</span>==<span class="number">4</span>.<span class="number">8</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">pickleshare</span>==<span class="number">0</span>.<span class="number">7</span>.<span class="number">5</span></span><br><span class="line"><span class="attribute">pkginfo</span>==<span class="number">1.5.0.1</span></span><br><span class="line"><span class="attribute">prompt</span>-toolkit==<span class="number">3</span>.<span class="number">0</span>.<span class="number">4</span></span><br><span class="line"><span class="attribute">protobuf</span>==<span class="number">3</span>.<span class="number">9</span>.<span class="number">1</span></span><br><span class="line"><span class="attribute">ptyprocess</span>==<span class="number">0</span>.<span class="number">6</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">Pygments</span>==<span class="number">2</span>.<span class="number">4</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">readme</span>-renderer==<span class="number">24</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">requests</span>==<span class="number">2</span>.<span class="number">22</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">requests</span>-toolbelt==<span class="number">0</span>.<span class="number">9</span>.<span class="number">1</span></span><br><span class="line"><span class="attribute">six</span>==<span class="number">1</span>.<span class="number">12</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">tqdm</span>==<span class="number">4</span>.<span class="number">34</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">traitlets</span>==<span class="number">4</span>.<span class="number">3</span>.<span class="number">3</span></span><br><span class="line"><span class="attribute">twine</span>==<span class="number">1</span>.<span class="number">13</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">urllib3</span>==<span class="number">1</span>.<span class="number">25</span>.<span class="number">3</span></span><br><span class="line"><span class="attribute">wcwidth</span>==<span class="number">0</span>.<span class="number">1</span>.<span class="number">8</span></span><br><span class="line"><span class="attribute">webencodings</span>==<span class="number">0</span>.<span class="number">5</span>.<span class="number">1</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-03-07-Canal-dynamicTopic问题续"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -533,52 +581,6 @@
 <p><strong>Pigz: </strong>它代表gzip的并行实现, 它是gzip的全功能替代品, 在压缩数据时利用了多个处理器和多个内核. </p>
 <p><strong>xbstream : （</strong>具有并行性）并行处理多个文件. </p>
 <p>所需软件包: pigz, socat, 当然还有 Percona XtraBackup</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2019-12-12-TiDB-Syncer不同表名库名同步且支持pt-osc改表"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/">TiDB Syncer不同表名库名同步且支持pt-osc改表</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/" class="article-date">
-	  <time datetime="2019-12-12T13:55:00.000Z" itemprop="datePublished">2019-12-12</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="TiDB-Syncer不同表名库名同步且支持pt-osc改表"><a href="#TiDB-Syncer不同表名库名同步且支持pt-osc改表" class="headerlink" title="TiDB Syncer不同表名库名同步且支持pt-osc改表"></a>TiDB Syncer不同表名库名同步且支持pt-osc改表</h1><p>mysql端库名叫sysbench, 表名sbtest11<br>tidb端库名ptosc_sysbench,表名ptosc_sbtest11</p>
-<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_new&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_old&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[route-rules]]</span></span><br><span class="line"><span class="attr">pattern-schema</span> = <span class="string">&quot;sysbench&quot;</span></span><br><span class="line"><span class="attr">pattern-table</span> = <span class="string">&quot;sbtest11&quot;</span></span><br><span class="line"><span class="attr">target-schema</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">target-table</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">

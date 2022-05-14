@@ -305,6 +305,52 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-MHA Tutorial"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/07/19/MHA%20Tutorial/">MHA Tutorial</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/19/MHA%20Tutorial/" class="article-date">
+	  <time datetime="2017-07-19T15:00:00.000Z" itemprop="datePublished">2017-07-19</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="MHA-Tutorial"><a href="#MHA-Tutorial" class="headerlink" title="MHA Tutorial"></a>MHA Tutorial</h2><h3 id="简单故障转移"><a href="#简单故障转移" class="headerlink" title="简单故障转移"></a>简单故障转移</h3><h4 id="构建复制环境"><a href="#构建复制环境" class="headerlink" title="构建复制环境"></a>构建复制环境</h4><p>MHA不会帮你搭建复制环境,所以你需要自己搭建复制.换句话说,你可以在已有环境中使用MHA.举个例子,假设有四台主机:host1,host2,host3,host4.主库运行在host1,两个从库分别运行在host2和host3,而host4负责运行MHA Manager.</p>
+<h4 id="在host1-host4安装MHA-Node"><a href="#在host1-host4安装MHA-Node" class="headerlink" title="在host1-host4安装MHA Node"></a>在host1-host4安装MHA Node</h4><p>See <a target="_blank" rel="noopener" href="https://github.com/yoshinorim/mha4mysql-manager/wiki/Installation#Installing_MHA_Node">Installing MHA Node</a><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-MHA Overview"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -552,53 +598,6 @@
 <h4 id="A切换步骤"><a href="#A切换步骤" class="headerlink" title="A切换步骤"></a>A切换步骤</h4><p>首先在S1制造”错误”<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_log_bin=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> t_error_maker(<span class="keyword">id</span> <span class="built_in">int</span>);</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_log_bin=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> t_error_maker;</span><br></pre></td></tr></table></figure><br>通过在session级别关闭写入binlog,建表,开启写入binlog,删表 制造异常, 当S11 S12 S13都执行到drop语句时,会报错停止sql_thread.<br>通过这种方式,可以让它们停止在同一个位置.<br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">master</span> <span class="keyword">status</span> 获取<span class="keyword">File</span> <span class="keyword">Position</span></span><br></pre></td></tr></table></figure><br>S11 S13<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">stop</span> <span class="keyword">slave</span>;</span><br><span class="line"><span class="keyword">change</span> <span class="keyword">master</span>到S12上</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span>;</span><br></pre></td></tr></table></figure><br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> sql_slave_skip_counter=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span> sql_thread;</span><br></pre></td></tr></table></figure></p>
 <h4 id="B切换步骤"><a href="#B切换步骤" class="headerlink" title="B切换步骤"></a>B切换步骤</h4><p>M 停止业务写操作<br><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> read_only=<span class="keyword">on</span>; 此时只有super权限用户能写入</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> super_read_only=<span class="keyword">on</span>;禁止super权限用户写</span><br><span class="line"><span class="comment">#这里没有通过修改用户密码的方式是因为修改用户密码对已经连接上来的用户无效</span></span><br></pre></td></tr></table></figure><br>等M S1 S12 跑一致后(File Position相同) 停S12 sql_thread, 将业务写入操作接入S1<br>最后M<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> read_only=<span class="keyword">off</span>;</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> super_read_only=<span class="keyword">off</span>;</span><br><span class="line"><span class="keyword">change</span> <span class="keyword">master</span> 到S12</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span></span><br></pre></td></tr></table></figure><br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span> sql_thread;</span><br></pre></td></tr></table></figure></p>
 <p>以上步骤通过脚本完成的话,可以做到对业务造成很小的影响<br>脚本实例如下,注释掉了B步骤,因为需要配合切换业务写入操作<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-Tpcc-MySQL"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/05/07/Tpcc-MySQL/">Tpcc-MySQL</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/05/07/Tpcc-MySQL/" class="article-date">
-	  <time datetime="2017-05-07T14:00:00.000Z" itemprop="datePublished">2017-05-07</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Tpcc-MySQL"><a href="#Tpcc-MySQL" class="headerlink" title="Tpcc-MySQL"></a>Tpcc-MySQL</h2><h3 id="下载安装tpcc-mysql"><a href="#下载安装tpcc-mysql" class="headerlink" title="下载安装tpcc-mysql"></a>下载安装tpcc-mysql</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd <span class="regexp">/usr/</span>local</span><br><span class="line">wget https:<span class="regexp">//gi</span>thub.com<span class="regexp">/Percona-Lab/</span>tpcc-mysql<span class="regexp">/archive/m</span>aster.zip</span><br><span class="line">mv tpcc-mysql-master tpcc-mysql</span><br></pre></td></tr></table></figure>
-<h3 id="安装之前需要保证将mysql-config添加到-PATH-环境变量中"><a href="#安装之前需要保证将mysql-config添加到-PATH-环境变量中" class="headerlink" title="安装之前需要保证将mysql_config添加到$PATH 环境变量中"></a>安装之前需要保证将mysql_config添加到$PATH 环境变量中</h3><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd src <span class="comment">; make ( you should have mysql_config available in $PATH)</span></span><br></pre></td></tr></table></figure>
-<h3 id="初始化数据"><a href="#初始化数据" class="headerlink" title="初始化数据"></a>初始化数据</h3><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">[mysql@master ~]$ mysqladmin -umysql -p -S /data/mysqldata/3306/mysql.sock create tpcc10</span><br><span class="line">Enter password: </span><br><span class="line">[mysql@master ~]$ mysql -umysql -pmysql -S  /data/mysqldata/3306/mysql.sock tpcc10 &lt; /usr/local/tpcc-mysql/create_table.sql </span><br><span class="line">Warning: Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line">[mysql@master ~]$ mysql -umysql -pmysql -S  /data/mysqldata/3306/mysql.sock -e  <span class="string">&quot; show tables from tpcc10;&quot;</span></span><br><span class="line">Warning: Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br><span class="line">+------------------+</span><br><span class="line">| Tables_in_tpcc10 |</span><br><span class="line">+------------------+</span><br><span class="line">|<span class="built_in"> customer </span>        |</span><br><span class="line">| district         |</span><br><span class="line">| history          |</span><br><span class="line">| item             |</span><br><span class="line">| new_orders       |</span><br><span class="line">| order_line       |</span><br><span class="line">| orders           |</span><br><span class="line">| stock            |</span><br><span class="line">| warehouse        |</span><br><span class="line">+------------------+</span><br><span class="line">[mysql@master ~]$ mysql -umysql -pmysql -S  /data/mysqldata/3306/mysql.sock tpcc10 &lt; /usr/local/tpcc-mysql/add_fkey_idx.sql </span><br><span class="line">Warning: Using a password on the command line<span class="built_in"> interface </span>can be insecure.</span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">

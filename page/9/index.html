@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-修改sysbench输出格式为csv或json 添加自定义指标"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/03/12/%E4%BF%AE%E6%94%B9sysbench%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F%E4%B8%BAcsv%E6%88%96json%20%E6%B7%BB%E5%8A%A0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E6%A0%87/">修改sysbench输出格式为csv或json, 添加自定义指标</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/03/12/%E4%BF%AE%E6%94%B9sysbench%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F%E4%B8%BAcsv%E6%88%96json%20%E6%B7%BB%E5%8A%A0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E6%A0%87/" class="article-date">
+	  <time datetime="2019-03-12T09:53:00.000Z" itemprop="datePublished">2019-03-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="修改sysbench输出格式为csv或json-添加自定义指标"><a href="#修改sysbench输出格式为csv或json-添加自定义指标" class="headerlink" title="修改sysbench输出格式为csv或json, 添加自定义指标"></a>修改sysbench输出格式为csv或json, 添加自定义指标</h1><p>在oltp_common.lua添加(二选一)</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">-- 输出csv</span><br><span class="line"></span><br><span class="line">-- <span class="keyword">function</span> sysbench.hooks.report<span class="constructor">_intermediate(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">--     sysbench.report<span class="constructor">_csv(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">-- <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">-- 输出json</span><br><span class="line"></span><br><span class="line">-- <span class="keyword">function</span> sysbench.hooks.report<span class="constructor">_intermediate(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">--     sysbench.report<span class="constructor">_json(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">-- <span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>自己去掉 <code>--</code> 注释</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-使confluent_kafka支持SASL_PLAINTEXT"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -576,60 +623,6 @@
 </blockquote>
 <p>这意味着与Galera相反，Galera的(flow control)阈值是有短板节点决定的，对于我们在MySQL组复制中，编写事务的节点(译注: 写节点)检查其阈值流量控制值并将它们与来自其他节点的统计数据进行比较以决定是否进行flow control。</p>
 <p>您可以在Vitor的文章<a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/zooming-in-on-group-replication-performance/">Zooming-in on Group Replication Performance</a>一文中找到有关组复制流控制的更多信息</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-如何确定Single-Primary模式下的MGR主节点"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/08/25/%E5%A6%82%E4%BD%95%E7%A1%AE%E5%AE%9ASingle-Primary%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84MGR%E4%B8%BB%E8%8A%82%E7%82%B9/">如何确定Single-Primary模式下的MGR主节点</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/08/25/%E5%A6%82%E4%BD%95%E7%A1%AE%E5%AE%9ASingle-Primary%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84MGR%E4%B8%BB%E8%8A%82%E7%82%B9/" class="article-date">
-	  <time datetime="2018-08-25T15:00:00.000Z" itemprop="datePublished">2018-08-25</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="如何确定Single-Primary模式下的MGR主节点-文档-ID-2214438-1"><a href="#如何确定Single-Primary模式下的MGR主节点-文档-ID-2214438-1" class="headerlink" title="如何确定Single-Primary模式下的MGR主节点(文档 ID 2214438.1)"></a><a target="_blank" rel="noopener" href="https://support.oracle.com/epmos/faces/DocumentDisplay?_afrLoop=27962468209367&amp;parent=DOCUMENT&amp;sourceId=2215424.1&amp;id=2214438.1&amp;_afrWindowMode=0&amp;_adf.ctrl-state=s3zl3ux6s_200">如何确定Single-Primary模式下的MGR主节点(文档 ID 2214438.1)</a></h1><h2 id="MySQL-5-7"><a href="#MySQL-5-7" class="headerlink" title="MySQL 5.7"></a>MySQL 5.7</h2><p>可以通过global status <code>group_replication_primary_member</code>确定<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT VARIABLE<span class="emphasis">_VALUE</span></span><br><span class="line"><span class="emphasis">         FROM performance_</span>schema.global<span class="emphasis">_status</span></span><br><span class="line"><span class="emphasis">        WHERE VARIABLE_</span>NAME = <span class="emphasis">&#x27;group_replication_primary_member&#x27;</span>;</span><br><span class="line"><span class="code">+--------------------------------------+</span></span><br><span class="line">| VARIABLE<span class="emphasis">_VALUE                       |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+</span></span><br><span class="line"><span class="emphasis">| 9d7f8c28-c02c-11e6-9829-08002715584a |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br></pre></td></tr></table></figure></p>
-<blockquote>
-<p>如果是Multi-Primary默认则结果为空</p>
-</blockquote>
-<p>可以结合<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/replication-group-members-table.html">performance_schema.replication_group_members</a>表 获取主机名和端口信息:<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">SELECT </span><br><span class="line"><span class="code">    MEMBER_HOST, MEMBER_PORT</span></span><br><span class="line">FROM</span><br><span class="line"><span class="code">    performance_schema.replication_group_members</span></span><br><span class="line">WHERE</span><br><span class="line"><span class="code">    MEMBER_ID = (SELECT </span></span><br><span class="line"><span class="code">            VARIABLE_VALUE</span></span><br><span class="line"><span class="code">        FROM</span></span><br><span class="line"><span class="code">            performance_schema.global_status</span></span><br><span class="line"><span class="code">        WHERE</span></span><br><span class="line"><span class="code">            VARIABLE_NAME = &#x27;group_replication_primary_member&#x27;);</span></span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| MEMBER<span class="emphasis">_HOST | MEMBER_</span>PORT |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| ol7         |        3306 |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>或者获取全部成员信息:<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">SELECT </span><br><span class="line"><span class="code">    MEMBER_ID,</span></span><br><span class="line"><span class="code">    MEMBER_HOST,</span></span><br><span class="line"><span class="code">    MEMBER_PORT,</span></span><br><span class="line"><span class="code">    MEMBER_STATE,</span></span><br><span class="line"><span class="code">    IF(global_status.VARIABLE_NAME IS NOT NULL,</span></span><br><span class="line"><span class="code">        &#x27;PRIMARY&#x27;,</span></span><br><span class="line"><span class="code">        &#x27;SECONDARY&#x27;) AS MEMBER_ROLE</span></span><br><span class="line">FROM</span><br><span class="line"><span class="code">    performance_schema.replication_group_members</span></span><br><span class="line"><span class="code">        LEFT JOIN</span></span><br><span class="line"><span class="code">    performance_schema.global_status ON global_status.VARIABLE_NAME = &#x27;group_replication_primary_member&#x27;</span></span><br><span class="line"><span class="code">        AND global_status.VARIABLE_VALUE = replication_group_members.MEMBER_ID;</span></span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span></span><br><span class="line">| MEMBER<span class="emphasis">_ID                            | MEMBER_</span>HOST | MEMBER<span class="emphasis">_PORT | MEMBER_</span>STATE | MEMBER<span class="emphasis">_ROLE |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+-------------+-------------+--------------+-------------+</span></span><br><span class="line"><span class="emphasis">| 9d7f8c28-c02c-11e6-9829-08002715584a | ol7         |        3306 | ONLINE       | PRIMARY     |</span></span><br><span class="line"><span class="emphasis">| f2bbb11d-c0c4-11e6-98ec-08002715584a | ol7         |        3308 | ONLINE       | SECONDARY   |</span></span><br><span class="line"><span class="emphasis">| f5bb7d78-c02c-11e6-9c56-08002715584a | ol7         |        3307 | ONLINE       | SECONDARY   |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+-------------+-------------+--------------+-------------+</span></span><br><span class="line"><span class="emphasis">3 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure></p>
-<h2 id="MySQL-8-0-2-and-Later"><a href="#MySQL-8-0-2-and-Later" class="headerlink" title="MySQL 8.0.2 and Later"></a>MySQL 8.0.2 and Later</h2><p>MySQL 8.0.2开始, <a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/group-replication-extending-group-replication-performance_schema-tables/">Performance Schema被扩展</a><br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT MEMBER<span class="emphasis">_HOST, MEMBER_</span>PORT</span><br><span class="line"><span class="code">         FROM performance_schema.replication_group_members</span></span><br><span class="line"><span class="code">        WHERE MEMBER_ROLE = &#x27;PRIMARY&#x27;;</span></span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| MEMBER<span class="emphasis">_HOST | MEMBER_</span>PORT |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| ol7         |        3306 |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>或者获取全部成员信息:<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT MEMBER<span class="emphasis">_ID, MEMBER_</span>HOST, MEMBER<span class="emphasis">_PORT, MEMBER_</span>STATE, MEMBER<span class="emphasis">_ROLE, MEMBER_</span>VERSION</span><br><span class="line"><span class="code">         FROM performance_schema.replication_group_members;</span></span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span>----------------+</span><br><span class="line">| MEMBER<span class="emphasis">_ID                            | MEMBER_</span>HOST | MEMBER<span class="emphasis">_PORT | MEMBER_</span>STATE | MEMBER<span class="emphasis">_ROLE | MEMBER_</span>VERSION |</span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span>----------------+</span><br><span class="line">| 33565eab-731f-11e7-8e94-08002715584a | ol7         |        3307 | ONLINE       | SECONDARY   | 8.0.2          |</span><br><span class="line">| 86034b0a-731f-11e7-9f33-08002715584a | ol7         |        3308 | ONLINE       | SECONDARY   | 8.0.2          |</span><br><span class="line">| a45d3804-731e-11e7-9003-08002715584a | ol7         |        3306 | ONLINE       | PRIMARY     | 8.0.2          |</span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span>----------------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure></p>
-<blockquote>
-<p>References<br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/group-replication-find-primary.html">https://dev.mysql.com/doc/refman/en/group-replication-find-primary.html</a><br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/group-replication-options.html#sysvar_group_replication_single_primary_mode">https://dev.mysql.com/doc/refman/en/group-replication-options.html#sysvar_group_replication_single_primary_mode</a><br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/replication-group-members-table.html">https://dev.mysql.com/doc/refman/en/replication-group-members-table.html</a><br><a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/group-replication-extending-group-replication-performance_schema-tables/">http://mysqlhighavailability.com/group-replication-extending-group-replication-performance_schema-tables/</a><br><a target="_blank" rel="noopener" href="http://lefred.be/content/mysql-group-replication-who-is-the-primary-master-updated/">http://lefred.be/content/mysql-group-replication-who-is-the-primary-master-updated/</a> </p>
-</blockquote>
 
       
     </div>

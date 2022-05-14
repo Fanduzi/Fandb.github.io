@@ -305,6 +305,55 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-08-23-死锁案例2-两个UPDATE死锁"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/08/23/2020-08-23-%E6%AD%BB%E9%94%81%E6%A1%88%E4%BE%8B2-%E4%B8%A4%E4%B8%AAUPDATE%E6%AD%BB%E9%94%81/">死锁案例2 两个UPDATE死锁</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/08/23/2020-08-23-%E6%AD%BB%E9%94%81%E6%A1%88%E4%BE%8B2-%E4%B8%A4%E4%B8%AAUPDATE%E6%AD%BB%E9%94%81/" class="article-date">
+	  <time datetime="2020-08-23T10:44:00.000Z" itemprop="datePublished">2020-08-23</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>2020.05.18 16:12 收到报警</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20200519140217826.png" alt=""></p>
+<p>登录主机, 查看error log( 开启了innodb_print_all_deadlocks参数)</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">*** (<span class="number">1</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">1261729280</span>, ACTIVE <span class="number">0</span> sec starting index read</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line">LOCK WAIT <span class="number">3</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">2</span> row lock(s)</span><br><span class="line">MySQL thread id <span class="number">3645828</span>, OS thread handle <span class="number">139681739994880</span>, query id <span class="number">1522438991</span> <span class="number">172.16</span><span class="number">.23</span><span class="number">.82</span> yos_rw Searching rows <span class="keyword">for</span> update</span><br><span class="line">UPDATE f_log SET D_UPDATED_AT = NOW() , I_STATUS = <span class="number">17</span> WHERE I_STATUS = <span class="number">1</span> AND I_TYPE = <span class="number">1</span></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696061</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">1</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">1208</span> page no <span class="number">29439</span> n bits <span class="number">160</span> index PRIMARY of table `yos`.`f_log` trx id <span class="number">1261729280</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696079</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">2</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">1261729278</span>, ACTIVE <span class="number">0</span> sec updating <span class="keyword">or</span> deleting</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line"><span class="number">10</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">7</span> row lock(s), undo log entries <span class="number">3</span></span><br><span class="line">MySQL thread id <span class="number">3056367</span>, OS thread handle <span class="number">139682403342080</span>, query id <span class="number">1522438990</span> <span class="number">172.16</span><span class="number">.23</span><span class="number">.82</span> yos_rw updating</span><br><span class="line">UPDATE f_log SET D_UPDATED_AT=<span class="string">&#x27;2020-05-18 16:11:11.693998&#x27;</span>,I_STATUS=<span class="number">3</span> WHERE (I_FILE_ID=<span class="string">&#x27;92b52d6589ce11a9a3c985e7c5f37462efb66ac7&#x27;</span>)</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696099</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">2</span>) HOLDS THE LOCK(S):</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">1208</span> page no <span class="number">29439</span> n bits <span class="number">160</span> index PRIMARY of table `yos`.`f_log` trx id <span class="number">1261729278</span> lock_mode X locks rec but <span class="keyword">not</span> gap</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696112</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">2</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">1208</span> page no <span class="number">17</span> n bits <span class="number">1120</span> index idx_status_type of table `yos`.`f_log` trx id <span class="number">1261729278</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696223</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** WE ROLL BACK TRANSACTION (<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<p>简单解释一下上面的死锁日志</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-06-18-MGR单主到底做不做冲突检测"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -524,55 +573,6 @@
       
         <h1 id="Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations"><a href="#Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations" class="headerlink" title="Group Replication and Percona XtraDB Cluster: Overview of Common Operations"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/04/28/group-replication-and-percona-xtradb-cluster-overview-of-common-operations/">Group Replication and Percona XtraDB Cluster: Overview of Common Operations</a></h1><p>在这篇博客文章中，我将概述使用MySQL Group Replication 8.0.19 (aka GR 国内爱叫MGR发现国外还是习惯叫GR)和<a target="_blank" rel="noopener" href="https://www.percona.com/downloads/Percona-XtraDB-Cluster-80/LATEST/">Percona XtraDB Cluster 8</a> (PXC)(基于Galera)时最常见的故障转移场景和操作，并解释每种技术如何处理每种情况。我已经创建了一个包含三个节点的集群，使用一个主节点和一个包含三个节点的PXC进行组复制，它们均使用默认参数配置。 我还将使用ProxySQL与两个群集进行交互。</p>
 <p>在这两个群集中，节点的名称分别为<code>mysql1</code>，<code>mysql2</code>和<code>mysql3</code>。 在组复制中，如果我们使用单主模式，则主节点处理写请求。 在PXC中，我也将使用相同的术语，并将在发送写操作的节点称为Primary。 请注意，在PXC中没有主节点的概念，所有节点都是相等的。<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-05-03-[译文]ClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups/">译文-ClickHouse In the Storm. Part 2 - Maximum QPS for key-value lookups</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups/" class="article-date">
-	  <time datetime="2020-05-03T03:43:00.000Z" itemprop="datePublished">2020-05-03</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="ClickHouse-In-the-Storm-Part-2-Maximum-QPS-for-key-value-lookups"><a href="#ClickHouse-In-the-Storm-Part-2-Maximum-QPS-for-key-value-lookups" class="headerlink" title="ClickHouse In the Storm. Part 2: Maximum QPS for key-value lookups"></a>ClickHouse In the Storm. Part 2: Maximum QPS for key-value lookups</h1><p><a target="_blank" rel="noopener" href="https://www.altinity.com/blog/clickhouse-in-the-storm-part-1">上一篇文章</a>调查了ClickHouse的连接性基准，以估计服务器并发的总体性能。 在本文中，我们将以实际示例为例，并在涉及实际数据时探讨并发性能。</p>
-<h2 id="MergeTree-Key-value-lookup"><a href="#MergeTree-Key-value-lookup" class="headerlink" title="MergeTree: Key-value lookup"></a>MergeTree: Key-value lookup</h2><p>让我们看看MergeTree引擎表如何处理高并发性，以及它能够处理多少个QPS用于键值查找。</p>
-<p>我们将使用2个综合数据集：</p>
-<p>‘fs12M’-具有1200万条记录的表，id为FixedString(16)和5个不同类型的参数：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> default.fs12M (</span><br><span class="line">    <span class="keyword">id</span> FixedString(<span class="number">16</span>),</span><br><span class="line">    value1 Float64,</span><br><span class="line">    value2 Float64,</span><br><span class="line">    value3 UInt32,</span><br><span class="line">    value4 UInt64,</span><br><span class="line">    str_value <span class="keyword">String</span></span><br><span class="line">) <span class="keyword">ENGINE</span> = MergeTree <span class="keyword">PARTITION</span> <span class="keyword">BY</span> tuple() <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">id</span></span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">256</span></span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">

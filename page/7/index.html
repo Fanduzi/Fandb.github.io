@@ -305,6 +305,52 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2019-12-12-TiDB-Syncer不同表名库名同步且支持pt-osc改表"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/">TiDB Syncer不同表名库名同步且支持pt-osc改表</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/" class="article-date">
+	  <time datetime="2019-12-12T13:55:00.000Z" itemprop="datePublished">2019-12-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="TiDB-Syncer不同表名库名同步且支持pt-osc改表"><a href="#TiDB-Syncer不同表名库名同步且支持pt-osc改表" class="headerlink" title="TiDB Syncer不同表名库名同步且支持pt-osc改表"></a>TiDB Syncer不同表名库名同步且支持pt-osc改表</h1><p>mysql端库名叫sysbench, 表名sbtest11<br>tidb端库名ptosc_sysbench,表名ptosc_sbtest11</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_new&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_old&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[route-rules]]</span></span><br><span class="line"><span class="attr">pattern-schema</span> = <span class="string">&quot;sysbench&quot;</span></span><br><span class="line"><span class="attr">pattern-table</span> = <span class="string">&quot;sbtest11&quot;</span></span><br><span class="line"><span class="attr">target-schema</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">target-table</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2019-12-10-Drainer不支持的DDL-1"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -575,51 +621,6 @@
 <li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E7%BA%A2%E8%BD%B4">红轴</a></li>
 <li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E9%BB%91%E8%BD%B4">黑轴</a></li>
 </ul>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2019-07-21-MySQL-Error-log监控"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/07/21/2019-07-21-MySQL-Error-log%E7%9B%91%E6%8E%A7/">MySQL Error log监控</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/07/21/2019-07-21-MySQL-Error-log%E7%9B%91%E6%8E%A7/" class="article-date">
-	  <time datetime="2019-07-21T01:59:00.000Z" itemprop="datePublished">2019-07-21</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="MySQL-Error-log监控"><a href="#MySQL-Error-log监控" class="headerlink" title="MySQL Error log监控"></a>MySQL Error log监控</h1><p>告警日志监控其实比较简单了, 怎么做都行. 目前我们这里是使用下面的方法<br>FileBeat采集日志 -&gt; Kafka -&gt; 自己写脚本消费出来 -&gt; 企业微信机器人告警<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_1.png" alt="image"><br>效果如下<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_2.png" alt="image"></p>
       
     </div>
     <footer class="article-footer">
