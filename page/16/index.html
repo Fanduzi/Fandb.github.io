@@ -305,6 +305,98 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-PMM部署遇到的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/01/PMM%E9%83%A8%E7%BD%B2%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/">PMM部署遇到的坑</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/01/PMM%E9%83%A8%E7%BD%B2%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" class="article-date">
+	  <time datetime="2017-08-01T14:00:00.000Z" itemprop="datePublished">2017-08-01</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="PMM部署遇到的坑"><a href="#PMM部署遇到的坑" class="headerlink" title="PMM部署遇到的坑"></a>PMM部署遇到的坑</h1><table>
+<thead>
+<tr>
+<th>系统</th>
+<th>内核版本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CentOS release 6.4 (Final)</td>
+<td>2.6.32-358.el6.x86_64</td>
+</tr>
+</tbody>
+</table>
+<p>1.公司环境pull不下来</p>
+<p>在自己的环境pull下来然后save image</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@slave oracle]# docker images</span><br><span class="line">REPOSITORY                     TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">docker.io/percona/pmm-server   1.2.0               eb82a0e154c8        2 weeks ago         1.266 GB</span><br><span class="line">docker.io/percona/pmm-server   latest              eb82a0e154c8        2 weeks ago         1.266 GB</span><br><span class="line">[root@slave oracle]# docker save eb82a0e154c8 &gt; pmm-server.tar</span><br><span class="line"></span><br><span class="line">[root@slave oracle]# scp pmm-server.tar 10.4.2.43:~/</span><br><span class="line">root@10.4.2.43&#x27;s password: </span><br><span class="line">pmm-server.tar                                                                                                                                                        100% 1232MB 902.5KB/s   23:18  </span><br></pre></td></tr></table></figure>
+<p>在原环境导入</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@test2 ~]# docker load &lt; pmm-server.tar </span><br></pre></td></tr></table></figure>
+<p>repostory和tag是<none></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@test2 ~]# docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              abdf7c1b7a63        2 weeks ago         1.266 GB</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              3690474eb5b4        11 months ago       0 B</span><br></pre></td></tr></table></figure>
+<p>修改tag</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>test2 ~]# docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              abdf7c1b7a63        <span class="number">2</span> weeks ago         <span class="number">1.266</span> GB</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              <span class="number">3690474</span>eb5b4        <span class="number">11</span> months ago       <span class="number">0</span> B</span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker tag abdf7c1b7a63 docker.io/percona/pmm-server:<span class="number">1.2</span><span class="number">.0</span></span><br></pre></td></tr></table></figure>
+<p>2.docker容器无法启动 no such file or directory statusCode=404</p>
+<p>这个搜了半天不知道是什么原因,怀疑是内核版本太低</p>
+<blockquote>
+<p>因为CentOS6.4自带内核版本是2.6.32-358.23.2.el6.x86_64，而Docker要求内核版本大于3.0，推荐3.8以上的内核</p>
+<p><a target="_blank" rel="noopener" href="https://yq.aliyun.com/ziliao/48262">https://yq.aliyun.com/ziliao/48262</a></p>
+</blockquote>
+<p>遂升级内核</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http://elrepo.org/linux/kernel/el6/x86_64/RPMS/kernel-lt-3.10.107-1.el6.elrepo.x86_64.rpm</span><br></pre></td></tr></table></figure>
+<p>如果连接不对,自己去<a target="_blank" rel="noopener" href="http://elrepo.org/linux/kernel/el6/x86_64/RPMS/看一眼,找一个合适的">http://elrepo.org/linux/kernel/el6/x86_64/RPMS/看一眼,找一个合适的</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpm -ivh kernel-lt-3.10.107-1.el6.elrepo.x86_64.rpm</span><br></pre></td></tr></table></figure>
+<p>修改grub.conf</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/grub.conf</span><br><span class="line"><span class="meta">#</span><span class="bash"> grub.conf generated by anaconda</span></span><br><span class="line"><span class="meta">#</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Note that you <span class="keyword">do</span> not have to rerun grub after making changes to this file</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> NOTICE:  You have a /boot partition.  This means that</span></span><br><span class="line"><span class="meta">#</span><span class="bash">          all kernel and initrd paths are relative to /boot/, eg.</span></span><br><span class="line"><span class="meta">#</span><span class="bash">          root (hd0,0)</span></span><br><span class="line"><span class="meta">#</span><span class="bash">          kernel /vmlinuz-version ro root=/dev/mapper/VolGroup-LogVol00</span></span><br><span class="line"><span class="meta">#</span><span class="bash">          initrd /initrd-[generic-]version.img</span></span><br><span class="line"><span class="meta">#</span><span class="bash">boot=/dev/sda</span></span><br><span class="line">default=1</span><br><span class="line">timeout=5</span><br><span class="line">splashimage=(hd0,0)/grub/splash.xpm.gz</span><br><span class="line">hiddenmenu</span><br><span class="line">title CentOS (3.10.107-1.el6.elrepo.x86_64)</span><br><span class="line">        root (hd0,0)</span><br><span class="line">        kernel /vmlinuz-3.10.107-1.el6.elrepo.x86_64 ro root=/dev/mapper/VolGroup-LogVol00 rd_NO_LUKS LANG=en_US.UTF-8 rd_NO_MD SYSFONT=latarcyrheb-sun16 crashkernel=auto  KEYBOARDTYPE=pc KEYTABLE=us rd_LVM_LV=VolGroup/LogVol00 rd_NO_DM rhgb quiet numa=off elevator=deadline</span><br><span class="line">        initrd /initramfs-3.10.107-1.el6.elrepo.x86_64.img</span><br><span class="line">title CentOS (2.6.32-358.el6.x86_64)</span><br><span class="line">        root (hd0,0)</span><br><span class="line">        kernel /vmlinuz-2.6.32-358.el6.x86_64 ro root=/dev/mapper/VolGroup-LogVol00 rd_NO_LUKS LANG=en_US.UTF-8 rd_NO_MD SYSFONT=latarcyrheb-sun16 crashkernel=auto  KEYBOARDTYPE=pc KEYTABLE=us rd_LVM_LV=VolGroup/LogVol00 rd_NO_DM rhgb quiet numa=off elevator=deadline</span><br><span class="line">        initrd /initramfs-2.6.32-358.el6.x86_64.img</span><br><span class="line">        </span><br><span class="line">现在title CentOS (3.10.107-1.el6.elrepo.x86_64)在 0 号位置,所以将</span><br><span class="line">default=1改为default=0</span><br><span class="line">重启os</span><br></pre></td></tr></table></figure>
+<p>重启后</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@test2 ~]# cat /etc/redhat-release </span><br><span class="line">CentOS release 6.9 (Final)</span><br><span class="line">[root@test2 ~]# uname -r</span><br><span class="line">3.10.107-1.el6.elrepo.x86_64</span><br></pre></td></tr></table></figure>
+<p>再次创建container成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[root@test2 ~]# docker load &lt; pmm-server.tar </span><br><span class="line">[root@test2 ~]# docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              abdf7c1b7a63        2 weeks ago         1.266 GB</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              3690474eb5b4        11 months ago       0 B</span><br><span class="line">[root@test2 ~]# docker tag abdf7c1b7a63 docker.io/percona/pmm-server:1.2.0</span><br><span class="line">[root@test2 ~]# docker create \</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -v /opt/prometheus/data \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -v /opt/consul-data \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -v /var/lib/mysql \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -v /var/lib/grafana \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    --name pmm-data \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    percona/pmm-server:1.2.0 /bin/<span class="literal">true</span></span></span><br><span class="line">094c63bd911b5139a267abe7939e5c4442cdc857970dedaccb9ae0cb5f165fc9</span><br><span class="line">[root@test2 ~]# docker run -d \</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -p 80:80 \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    --volumes-from pmm-data \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    --name pmm-server \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    --restart always \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    percona/pmm-server:1.2.0</span></span><br><span class="line">69195dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03</span><br><span class="line">[root@test2 ~]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED             STATUS              PORTS                         NAMES</span><br><span class="line">69195dca404b        percona/pmm-server:1.2.0   &quot;/opt/entrypoint.sh&quot;   11 seconds ago      Up 9 seconds        0.0.0.0:80-&gt;80/tcp, 443/tcp   pmm-server          </span><br><span class="line">094c63bd911b        percona/pmm-server:1.2.0   &quot;/bin/true&quot;            21 seconds ago                                                        pmm-data            </span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note</p>
+<p>PMM-server选择一个内核版本搞的服务器就行</p>
+<p>PMM-client无所谓</p>
+</blockquote>
+<p>3.pmm-data 状态为Exited<br>内核版本低</p>
+<p>4.MySQL dashboard没数据<br>防火墙没关<br><figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pmm-admin check-network</span><br><span class="line"></span><br><span class="line">centos 7</span><br><span class="line">停止：<span class="keyword"> system</span>ctl disable firewalld</span><br><span class="line">禁用：<span class="keyword"> system</span>ctl stop firewalld</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<p>5.容器时区为UTC与我们系统CST差八个小时<br>进入容器<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp <span class="regexp">/usr/</span>share<span class="regexp">/zoneinfo/</span>Asia<span class="regexp">/Shanghai /</span>etc/localtime</span><br></pre></td></tr></table></figure><br><a target="_blank" rel="noopener" href="http://www.cnblogs.com/w2206/p/6904446.html">http://www.cnblogs.com/w2206/p/6904446.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-部署PMM"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -632,55 +724,6 @@
 
 
   
-    <article id="post-MHA Overview"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/07/19/MHA%20Overview/">MHA Overview</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/07/19/MHA%20Overview/" class="article-date">
-	  <time datetime="2017-07-19T14:00:00.000Z" itemprop="datePublished">2017-07-19</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="MHA概览"><a href="#MHA概览" class="headerlink" title="MHA概览"></a>MHA概览</h2><p>MHA能够实现自动化的master failover和从库升级为new master,通常这一过程只需要10-30秒的停机时间.MHA最大程度保证了数据一致性,对性能零影响,易于安装,并且不需要改变现有部署情况.</p>
-<p>MHA支持计划性在线主库切换,在短时间内(0.5-2秒)的停机时间(仅限阻塞写入)，将当前运行的主机安全地更改为新主机.</p>
-<p>MHA提供以下功能,并且可用于需要高可用性,数据完整性和近乎不间断主库维护的许多部署中.</p>
-<ul>
-<li><p>Automated master monitoring and failover</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -701,7 +744,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -861,7 +904,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

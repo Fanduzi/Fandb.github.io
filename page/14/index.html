@@ -305,6 +305,51 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-主从传输表空间的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/22/%E4%B8%BB%E4%BB%8E%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/">主从传输表空间的坑</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/22/%E4%B8%BB%E4%BB%8E%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/" class="article-date">
+	  <time datetime="2017-08-22T04:25:00.000Z" itemprop="datePublished">2017-08-22</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>主库import tablespace只会在binlog中记录<code>alter table xxx import tablespace</code>语句,而不会记录表中的数据的插入语句<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">mysql@</span>master2 ~]$ mysqlbinlog -vv --base64-output=decode-rows /data/mysqldata/<span class="number">3306</span>/binlog/mysql-bin<span class="number">.000013</span> --start-position=<span class="number">694</span></span><br><span class="line"><span class="comment">/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=1*/</span>;</span><br><span class="line"><span class="comment">/*!50003 SET @OLD_COMPLETION_TYPE=@@COMPLETION_TYPE,COMPLETION_TYPE=0*/</span>;</span><br><span class="line">DELIMITER <span class="comment">/*!*/</span>;</span><br><span class="line"># at <span class="number">694</span></span><br><span class="line">#<span class="number">170713</span>  <span class="number">7</span>:<span class="number">46</span>:<span class="number">11</span> server id <span class="number">23306</span>  end_log_pos <span class="number">759</span> CRC32 <span class="number">0xfa604449</span>    GTID    last_committed=<span class="number">2</span>    sequence_number=<span class="number">3</span></span><br><span class="line">SET @@SESSION.GTID_NEXT= <span class="string">&#x27;5691c701-382a-11e5-bbc4-000c293d13e1:19&#x27;</span><span class="comment">/*!*/</span>;</span><br><span class="line"># at <span class="number">759</span></span><br><span class="line">#<span class="number">170713</span>  <span class="number">7</span>:<span class="number">46</span>:<span class="number">11</span> server id <span class="number">23306</span>  end_log_pos <span class="number">869</span> CRC32 <span class="number">0x35860c26</span>    Query    thread_id=<span class="number">8</span>    exec_time=<span class="number">0</span>    error_code=<span class="number">0</span></span><br><span class="line">use `fandb`<span class="comment">/*!*/</span>;</span><br><span class="line">SET TIMESTAMP=<span class="number">1499903171</span><span class="comment">/*!*/</span>;</span><br><span class="line">SET @@session.pseudo_thread_id=<span class="number">8</span><span class="comment">/*!*/</span>;</span><br><span class="line">SET @@session.foreign_key_checks=<span class="number">1</span>, @@session.sql_auto_is_null=<span class="number">0</span>, @@session.unique_checks=<span class="number">1</span>, @@session.<span class="built_in">auto</span>commit=<span class="number">1</span><span class="comment">/*!*/</span>;</span><br><span class="line">SET @@session.sql_mode=<span class="number">1075838976</span><span class="comment">/*!*/</span>;</span><br><span class="line">SET @@session.<span class="built_in">auto</span>_increment_increment=<span class="number">1</span>, @@session.<span class="built_in">auto</span>_increment_offset=<span class="number">1</span><span class="comment">/*!*/</span>;</span><br><span class="line"><span class="comment">/*!\C utf8mb4 */</span><span class="comment">/*!*/</span>;</span><br><span class="line">SET @@session.character_set_client=<span class="number">45</span>,@@session.collation_connection=<span class="number">45</span>,@@session.collation_server=<span class="number">45</span><span class="comment">/*!*/</span>;</span><br><span class="line">SET @@session.lc_time_names=<span class="number">0</span><span class="comment">/*!*/</span>;</span><br><span class="line">SET @@session.collation_database=DEFAULT<span class="comment">/*!*/</span>;</span><br><span class="line">alter table dept <span class="keyword">import</span> tablespace</span><br><span class="line"><span class="comment">/*!*/</span>;</span><br><span class="line">SET @@SESSION.GTID_NEXT= <span class="string">&#x27;AUTOMATIC&#x27;</span> <span class="comment">/* added by mysqlbinlog */</span> <span class="comment">/*!*/</span>;</span><br><span class="line">DELIMITER ;</span><br><span class="line"># End of log file</span><br><span class="line"><span class="comment">/*!50003 SET COMPLETION_TYPE=@OLD_COMPLETION_TYPE*/</span>;</span><br><span class="line"><span class="comment">/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=0*/</span>;</span><br></pre></td></tr></table></figure><br>假如在源端<code>flush table xxx for export</code>后,只将xxx.{ibd,cfg}拷贝到主库,那么当主库<code>alter table xxx discard tablespace</code>时,从库也会执行<code>discard tablespace</code><br>而当主库执行<code>alter table xxx import tablespace</code>时,由于主库有拷贝过来的xxx.{ibd,cfg},所以可以执行成功,而从库没有,会失败<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">2017-07-10T21:48:13.649264Z 25 [Warning] Slave: InnoDB: <span class="keyword">ALTER</span> <span class="keyword">TABLE</span> <span class="string">`fandb`</span>.<span class="string">`dept4`</span> <span class="keyword">IMPORT</span> <span class="keyword">TABLESPACE</span> <span class="keyword">failed</span> <span class="keyword">with</span> <span class="keyword">error</span> <span class="number">44</span> : <span class="string">&#x27;Tablespace not found&#x27;</span> Error_code: <span class="number">1816</span></span><br><span class="line"><span class="number">2017</span><span class="number">-07</span><span class="number">-10</span>T21:<span class="number">48</span>:<span class="number">13.649293</span>Z <span class="number">25</span> [<span class="keyword">Warning</span>] <span class="keyword">Slave</span>: <span class="keyword">Tablespace</span> <span class="keyword">is</span> <span class="keyword">missing</span> <span class="keyword">for</span> <span class="keyword">table</span> <span class="string">`fandb`</span>.<span class="string">`dept4`</span>. Error_code: <span class="number">1812</span></span><br><span class="line"><span class="number">2017</span><span class="number">-07</span><span class="number">-10</span>T21:<span class="number">48</span>:<span class="number">13.649321</span>Z <span class="number">25</span> [<span class="keyword">ERROR</span>] <span class="keyword">Error</span> running <span class="keyword">query</span>, <span class="keyword">slave</span> <span class="keyword">SQL</span> <span class="keyword">thread</span> aborted. Fix the problem, <span class="keyword">and</span> restart the <span class="keyword">slave</span> <span class="keyword">SQL</span> <span class="keyword">thread</span> <span class="keyword">with</span> <span class="string">&quot;SLAVE START&quot;</span>. We stopped <span class="keyword">at</span> <span class="keyword">log</span> <span class="string">&#x27;mysql-bin.000001&#x27;</span> <span class="keyword">position</span> <span class="number">1015</span></span><br></pre></td></tr></table></figure><br>slave会停止</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-Transportable-Tablespace-Internals"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -620,53 +665,6 @@
 
 
   
-    <article id="post-数据分布不均匀走HASH-JOIN导致的性能问题"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/08/09/%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E4%B8%8D%E5%9D%87%E5%8C%80%E8%B5%B0HASH-JOIN%E5%AF%BC%E8%87%B4%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98/">数据分布不均匀走HASH JOIN导致的性能问题</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/08/09/%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E4%B8%8D%E5%9D%87%E5%8C%80%E8%B5%B0HASH-JOIN%E5%AF%BC%E8%87%B4%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98/" class="article-date">
-	  <time datetime="2017-08-09T14:00:00.000Z" itemprop="datePublished">2017-08-09</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="这个案例是JAVA开发说一个存储过程跑的很慢，之后我跑这个过程，然后通过脚本抓出了慢的SQL"><a href="#这个案例是JAVA开发说一个存储过程跑的很慢，之后我跑这个过程，然后通过脚本抓出了慢的SQL" class="headerlink" title="这个案例是JAVA开发说一个存储过程跑的很慢，之后我跑这个过程，然后通过脚本抓出了慢的SQL"></a>这个案例是JAVA开发说一个存储过程跑的很慢，之后我跑这个过程，然后通过脚本抓出了慢的SQL</h2><h3 id="表大小"><a href="#表大小" class="headerlink" title="表大小"></a>表大小</h3><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tb_user_channel  -<span class="number">-1</span>W</span><br><span class="line">tb_channel_info  -<span class="number">-1</span>W</span><br><span class="line">base_data_login_info <span class="number">19</span>W</span><br></pre></td></tr></table></figure>
-<p>就是这条SQL，跑完要7分钟。base_data_login_info本来是@db_link，但是我在本地建了一个同样的表发现还是7分钟左右，所以排除了可能是由于db_link造成问题的可能性<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">select </span><br><span class="line"><span class="function"><span class="title">count</span><span class="params">(distinct a.user_name)</span></span>,count(distinct <span class="selector-tag">a</span>.invest_id)</span><br><span class="line">         from base_data_login_info a</span><br><span class="line">         where <span class="selector-tag">a</span><span class="selector-class">.str_day</span> &lt;= <span class="string">&#x27;20160304&#x27;</span> and <span class="selector-tag">a</span><span class="selector-class">.str_day</span> &gt;= <span class="string">&#x27;20160301&#x27;</span></span><br><span class="line"> and <span class="selector-tag">a</span><span class="selector-class">.channel_id</span> <span class="keyword">in</span> (select channel_rlat from tb_user_channel <span class="selector-tag">a</span>, tb_channel_info <span class="selector-tag">b</span> where <span class="selector-tag">a</span><span class="selector-class">.channel_id</span> = <span class="selector-tag">b</span><span class="selector-class">.channel_id</span> and <span class="selector-tag">a</span><span class="selector-class">.user_id</span> = <span class="number">5002</span>)</span><br><span class="line"> and <span class="selector-tag">a</span><span class="selector-class">.platform</span> = <span class="selector-tag">a</span>.platform</span><br></pre></td></tr></table></figure></p>
-<p>看一下这个sql返回多少行，结果秒杀，瞬间就出结果了<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">select </span><br><span class="line"> count(*)</span><br><span class="line">         from base_data_login_info@agent a</span><br><span class="line">         where <span class="selector-tag">a</span><span class="selector-class">.str_day</span> &lt;= <span class="string">&#x27;20160304&#x27;</span> and <span class="selector-tag">a</span><span class="selector-class">.str_day</span> &gt;= <span class="string">&#x27;20160301&#x27;</span></span><br><span class="line"> and <span class="selector-tag">a</span><span class="selector-class">.channel_id</span> <span class="keyword">in</span> (select channel_rlat from tb_user_channel <span class="selector-tag">a</span>, tb_channel_info <span class="selector-tag">b</span> where <span class="selector-tag">a</span><span class="selector-class">.channel_id</span> = <span class="selector-tag">b</span><span class="selector-class">.channel_id</span> and <span class="selector-tag">a</span><span class="selector-class">.user_id</span> = <span class="number">5002</span>)</span><br><span class="line"> and <span class="selector-tag">a</span><span class="selector-class">.platform</span> = <span class="selector-tag">a</span>.platform</span><br></pre></td></tr></table></figure><br>45122行<br>之后单独跑<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">select </span><br><span class="line"><span class="function"><span class="title">count</span><span class="params">(distinct a.user_name)</span></span>,count( <span class="selector-tag">a</span>.invest_id)</span><br><span class="line">         from base_data_login_info a</span><br><span class="line">         where <span class="selector-tag">a</span><span class="selector-class">.str_day</span> &lt;= <span class="string">&#x27;20160304&#x27;</span> and <span class="selector-tag">a</span><span class="selector-class">.str_day</span> &gt;= <span class="string">&#x27;20160301&#x27;</span></span><br><span class="line"> and <span class="selector-tag">a</span><span class="selector-class">.channel_id</span> <span class="keyword">in</span> (select channel_rlat from tb_user_channel <span class="selector-tag">a</span>, tb_channel_info <span class="selector-tag">b</span> where <span class="selector-tag">a</span><span class="selector-class">.channel_id</span> = <span class="selector-tag">b</span><span class="selector-class">.channel_id</span> and <span class="selector-tag">a</span><span class="selector-class">.user_id</span> = <span class="number">5002</span>)</span><br><span class="line"> and <span class="selector-tag">a</span><span class="selector-class">.platform</span> = <span class="selector-tag">a</span>.platform</span><br></pre></td></tr></table></figure><br>或<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">select </span><br><span class="line"><span class="function"><span class="title">count</span><span class="params">( a.user_name)</span></span>,count(distinct <span class="selector-tag">a</span>.invest_id)</span><br><span class="line">         from base_data_login_info a</span><br><span class="line">         where <span class="selector-tag">a</span><span class="selector-class">.str_day</span> &lt;= <span class="string">&#x27;20160304&#x27;</span> and <span class="selector-tag">a</span><span class="selector-class">.str_day</span> &gt;= <span class="string">&#x27;20160301&#x27;</span></span><br><span class="line"> and <span class="selector-tag">a</span><span class="selector-class">.channel_id</span> <span class="keyword">in</span> (select channel_rlat from tb_user_channel <span class="selector-tag">a</span>, tb_channel_info <span class="selector-tag">b</span> where <span class="selector-tag">a</span><span class="selector-class">.channel_id</span> = <span class="selector-tag">b</span><span class="selector-class">.channel_id</span> and <span class="selector-tag">a</span><span class="selector-class">.user_id</span> = <span class="number">5002</span>)</span><br><span class="line"> and <span class="selector-tag">a</span><span class="selector-class">.platform</span> = <span class="selector-tag">a</span>.platform</span><br></pre></td></tr></table></figure><br>都是秒杀<br><em>单独count distinct user_name 或 invest_id 都很快 ，一起count distinct就很慢了</em><br>那么这时候其实已经可以通过改写SQL提示性能了，改写如下<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -687,7 +685,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -847,7 +845,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

@@ -305,6 +305,62 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-5.5.x升级5.7.21步骤"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/02/11/5.5.x%E5%8D%87%E7%BA%A75.7.21%E6%AD%A5%E9%AA%A4/">5.5.x升级5.7.21步骤</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/02/11/5.5.x%E5%8D%87%E7%BA%A75.7.21%E6%AD%A5%E9%AA%A4/" class="article-date">
+	  <time datetime="2018-02-11T03:22:00.000Z" itemprop="datePublished">2018-02-11</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="5-5-x升级5-7-21步骤"><a href="#5-5-x升级5-7-21步骤" class="headerlink" title="5.5.x升级5.7.21步骤"></a>5.5.x升级5.7.21步骤</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><h3 id="上传软件包"><a href="#上传软件包" class="headerlink" title="上传软件包"></a>上传软件包</h3><p>根据官方文档说明</p>
+<blockquote>
+<p>Upgrading to the latest release is recommended before upgrading to the next version</p>
+</blockquote>
+<p>当前版本5.5.46,需要上传三个包</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">mysql</span>-<span class="number">5</span>.<span class="number">5</span>.<span class="number">59</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz</span><br><span class="line"><span class="attribute">mysql</span>-<span class="number">5</span>.<span class="number">6</span>.<span class="number">39</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz</span><br><span class="line"><span class="attribute">mysql</span>-<span class="number">5</span>.<span class="number">7</span>.<span class="number">21</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz</span><br></pre></td></tr></table></figure>
+<p>创建目录</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">mkdir</span> /usr/local/&#123;mysql-<span class="number">5</span>.<span class="number">5</span>.<span class="number">59</span>,mysql-<span class="number">5</span>.<span class="number">6</span>.<span class="number">39</span>,mysql-<span class="number">5</span>.<span class="number">7</span>.<span class="number">21</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>解压</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">tar</span> -zxvf mysql-<span class="number">5</span>.<span class="number">5</span>.<span class="number">59</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz -C /usr/local/mysql-<span class="number">5</span>.<span class="number">5</span>.<span class="number">59</span>/</span><br><span class="line"><span class="attribute">tar</span> -zxvf mysql-<span class="number">5</span>.<span class="number">6</span>.<span class="number">39</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz -C /usr/local/mysql-<span class="number">5</span>.<span class="number">6</span>.<span class="number">39</span>/</span><br><span class="line"><span class="attribute">tar</span> -zxvf mysql-<span class="number">5</span>.<span class="number">7</span>.<span class="number">21</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz -C /usr/local/mysql-<span class="number">5</span>.<span class="number">7</span>.<span class="number">21</span>/</span><br></pre></td></tr></table></figure>
+<p>设置环境变量</p>
+<figure class="highlight taggerscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">zst_ps1()</span><br><span class="line">&#123;</span><br><span class="line">  Date=$(date +<span class="variable">%F)</span></span><br><span class="line"><span class="variable">  Time=$(date +%</span>H:<span class="variable">%M:%</span>S)</span><br><span class="line"></span><br><span class="line">  PS1=&quot;<span class="symbol">\\</span>n<span class="symbol">\[</span><span class="symbol">\e</span>[1;37m[<span class="symbol">\e</span>[m<span class="symbol">\]</span><span class="symbol">\[</span><span class="symbol">\e</span>[1;33m<span class="symbol">\u</span><span class="symbol">\e</span>[m<span class="symbol">\]</span><span class="symbol">\[</span><span class="symbol">\e</span>[1;33m@<span class="symbol">\h</span><span class="symbol">\e</span>[m<span class="symbol">\]</span><span class="symbol">\[</span><span class="symbol">\e</span>[1;35m <span class="keyword">$Time \e[m\]\e[1;36m\w\e[m\e[1;37m]\e[m\n\\$&quot;</span></span><br><span class="line"><span class="keyword">&#125;</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">PROMPT_COMMAND=zst_ps1</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">export PATH=/usr/local/mysql/bin:$PATH</span></span><br><span class="line"><span class="keyword">export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/mysql/lib</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-MySQL-5.5.X升级至5.7.21遇到的坑(一)"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -555,57 +611,6 @@
 
 
   
-    <article id="post-PMM使用Grafana告警"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/">PMM使用Grafana告警</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/" class="article-date">
-	  <time datetime="2017-12-15T05:26:00.000Z" itemprop="datePublished">2017-12-15</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="PMM如何告警"><a href="#PMM如何告警" class="headerlink" title="PMM如何告警?"></a>PMM如何告警?</h1><p>从Grafana v4.0开始增加了<a target="_blank" rel="noopener" href="http://docs.grafana.org/alerting/rules/">Alterting</a>功能 (  PMM 1.0.7 版本时Grafana版本为4.0). 这篇文章将手把手教你如何配置你的告警</p>
-<h2 id="开始创建Alert"><a href="#开始创建Alert" class="headerlink" title="开始创建Alert"></a>开始创建Alert</h2><p>在<a href="http://fuxkdb.com/2017/08/01/%E9%83%A8%E7%BD%B2PMM/">PMM部署</a>完成后,你可以看到如下界面<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_1.png" alt="image"></p>
-<p>此时你可能需要对<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_connected">Threads_connected</a> / <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_running">Threads_running</a> 指标进行监控</p>
-<p>点击对应的Graph标题,点击Edit<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_2.png" alt="image"></p>
-<p>按下图方式依次点击ALert -&gt; Create Alert 创建告警<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_3.png" alt="image"></p>
-<p>不幸的是,当你尝试对A指标创建如下告警时,Grafana提示一个错误“Template variables are not supported in alert queries.”<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_4.png" alt="image"></p>
-<p>首先A代表什么可以从Metrics菜单中看到,从图中可以看到对于<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_connected">Threads_connected</a>值的获取表达式中包含了变量<code>$host</code>, 而<code>$host</code>是箭头所指的Host下拉菜单传递的<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_5.png" alt="image"><br>对于<a target="_blank" rel="noopener" href="https://github.com/grafana/grafana/issues/6557">使用变量的Mertrics,无法创建Alert</a></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -626,7 +631,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -786,7 +791,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

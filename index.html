@@ -305,6 +305,64 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2022-04-26-Orchestrator-Discover源码分析"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Orchestrator Discover源码分析</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="article-date">
+	  <time datetime="2022-04-26T15:04:00.000Z" itemprop="datePublished">2022-04-26</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Orchestrator-Discover源码分析"><a href="#Orchestrator-Discover源码分析" class="headerlink" title="Orchestrator Discover源码分析"></a>Orchestrator Discover源码分析</h1><p>在梳理<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#hostnameresolvemethod">HostnameResolveMethod</a>和 <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#mysqlhostnameresolvemethod">MySQLHostnameResolveMethod</a> 两个参数时我产生了一些迷惑. 所以深入看了下orchestrator源码, 再此记录下.</p>
+<h2 id="orchestrator-client"><a href="#orchestrator-client" class="headerlink" title="orchestrator-client"></a>orchestrator-client</h2><p>阅读<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Use/orchestrator-client.md">orchestrator-client</a>可以发现, 我们可以通过运行以下命令做”服务发现”</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">orchestrator-client -c discover -i 172.16.120.10:3306</span><br><span class="line"></span><br><span class="line">假设 172.16.120.10 主机名为 centos-1</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://github.com/openark/orchestrator/blob/master/resources/bin/orchestrator-client">orchestrator-client</a>是一个脚本, 用方便的命令行界面包装API调用.</p>
+<p>它可以自动确定<code>orchestrator</code>集群的leader, 并在这种情况下将所有请求转发给leader.</p>
+<p>它非常接近于<code>orchestrator</code> command line interface.</p>
+<blockquote>
+<p>orchestrator-client -help 有bug, 已提交<a target="_blank" rel="noopener" href="https://github.com/openark/orchestrator/pull/1439">PR</a>. </p>
+<p>orchestrator-client help信息也没有介绍-i参数</p>
+</blockquote>
+<p>查看orchestrator-client源码</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">while getopts &quot;c:i:d:s:a:D:U:o:r:u:R:t:l:H:P:q:b:e:n:S:h&quot; OPTION</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  <span class="keyword">case</span> $<span class="keyword">OPTION</span> <span class="keyword">in</span></span><br><span class="line">    h) command=<span class="string">&quot;help&quot;</span> ;;</span><br><span class="line">    c) command=&quot;$OPTARG&quot; ;;</span><br><span class="line">    i) instance=&quot;$OPTARG&quot; ;;</span><br></pre></td></tr></table></figure>
+<p>可以看出<code>-i</code> 的值给了instance变量. 在main行数中会先处理instance</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function main &#123;</span><br><span class="line">  check_requirements</span><br><span class="line">  detect_leader_api</span><br><span class="line"></span><br><span class="line">  instance_hostport=$(to_hostport $instance)</span><br><span class="line">  destination_hostport=$(to_hostport $destination)</span><br><span class="line"></span><br><span class="line">  run_command</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2021-10-15-MySQL page cleaner占用CPU较高问题"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -838,64 +896,6 @@
 
 
   
-    <article id="post-2020-12-31-使用Canal-+-ClickHouse实时分析MySQL事务信息"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/12/31/2020-12-31-%E4%BD%BF%E7%94%A8Canal-+-ClickHouse%E5%AE%9E%E6%97%B6%E5%88%86%E6%9E%90MySQL%E4%BA%8B%E5%8A%A1%E4%BF%A1%E6%81%AF/">使用Canal + ClickHouse实时分析MySQL事务信息</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/12/31/2020-12-31-%E4%BD%BF%E7%94%A8Canal-+-ClickHouse%E5%AE%9E%E6%97%B6%E5%88%86%E6%9E%90MySQL%E4%BA%8B%E5%8A%A1%E4%BF%A1%E6%81%AF/" class="article-date">
-	  <time datetime="2020-12-31T05:54:00.000Z" itemprop="datePublished">2020-12-31</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="使用Canal-ClickHouse实时分析MySQL事务信息"><a href="#使用Canal-ClickHouse实时分析MySQL事务信息" class="headerlink" title="使用Canal + ClickHouse实时分析MySQL事务信息"></a>使用Canal + ClickHouse实时分析MySQL事务信息</h1><p>作为DBA, 有时候我们会希望能够了解线上核心库更具体的”样貌”, 如:</p>
-<ul>
-<li>这个库主要的DML类型是什么?</li>
-<li>这个库的事务大小, 执行时间, 影响行数大概是什么样的?</li>
-</ul>
-<p>以上信息也许没什么价值, 但大事务对复制的影响不用多说, 并且当我们希望升级当前主从架构到MGR/PXC等高可用方案的场景时以上信息就比较重要了(毕竟用数据说话更有力度).</p>
-<blockquote>
-<p>大事务对MGR和PXC都是不友好的, 尤其是MGR(起码在5.7版本)严重时会导致整个集群hang死</p>
-<p>在Galera 4.0中新特性<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>对大事务有了更好的支持</p>
-</blockquote>
-<p>当然, 有人可能会说, 通过分析binlog就可以完成这样的工作, 最简单的方法写个shell脚本就可以, 比如这篇文章中介绍的方法<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2015/01/20/identifying-useful-information-mysql-row-based-binary-logs/">Identifying Useful Info from MySQL Row-Based Binary Logs</a>(这篇文章介绍的方法比较简单, 分析速度也较慢, 可以试试<a target="_blank" rel="noopener" href="https://gitee.com/mo-shan/analysis_binlog.git">analysis_binlog</a>). 当然还有很多其他工具, 比如infobin. </p>
-<p>但个人认为上面的方法从某种角度来看还是比较麻烦, 而且现在ClickHouse越来越流行, 使用ClickHouse去完成这个工作也能帮助我们更好的学习ClickHouse</p>
-<p>先看一下最终的成果</p>
-<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/overview.png" alt="overview"></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -916,7 +916,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -1076,7 +1076,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

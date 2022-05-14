@@ -305,6 +305,55 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-MHA Overview"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/07/19/MHA%20Overview/">MHA Overview</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/19/MHA%20Overview/" class="article-date">
+	  <time datetime="2017-07-19T14:00:00.000Z" itemprop="datePublished">2017-07-19</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="MHA概览"><a href="#MHA概览" class="headerlink" title="MHA概览"></a>MHA概览</h2><p>MHA能够实现自动化的master failover和从库升级为new master,通常这一过程只需要10-30秒的停机时间.MHA最大程度保证了数据一致性,对性能零影响,易于安装,并且不需要改变现有部署情况.</p>
+<p>MHA支持计划性在线主库切换,在短时间内(0.5-2秒)的停机时间(仅限阻塞写入)，将当前运行的主机安全地更改为新主机.</p>
+<p>MHA提供以下功能,并且可用于需要高可用性,数据完整性和近乎不间断主库维护的许多部署中.</p>
+<ul>
+<li><p>Automated master monitoring and failover</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-Sysbench出图"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -567,81 +616,6 @@
 
 
   
-    <article id="post-MySQL升级"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/03/03/MySQL%E5%8D%87%E7%BA%A7/">MySQL升级</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/03/03/MySQL%E5%8D%87%E7%BA%A7/" class="article-date">
-	  <time datetime="2017-03-03T14:00:00.000Z" itemprop="datePublished">2017-03-03</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Upgrading-Mysql"><a href="#Upgrading-Mysql" class="headerlink" title="Upgrading Mysql"></a>Upgrading Mysql</h2><ul>
-<li>支持的升级方法</li>
-<li>支持的升级路径</li>
-<li>Before You Begin</li>
-<li>Performing an In-Place Upgrade</li>
-</ul>
-<h3 id="Supported-Upgrade-Method"><a href="#Supported-Upgrade-Method" class="headerlink" title="Supported Upgrade Method"></a>Supported Upgrade Method</h3><p>支持的升级方法包括:</p>
-<ul>
-<li>In-Place Upgrade:涉及关闭旧版本的MySQL,将旧的MySQL二进制文件或软件包替换成新版本的MySQL,重新启动MySQL使用原来的data directory,并执行mysql_upgrade.</li>
-<li>Logical Upgrade:涉及使用mysqldump导出旧版本MySQL的所有数据,安装新版本的MySQL,导入dump文件,并执行mysql_upgrade.</li>
-</ul>
-<h3 id="支持的升级路径"><a href="#支持的升级路径" class="headerlink" title="支持的升级路径"></a>支持的升级路径</h3><p>除非另有说明，否则支持以下升级路径：</p>
-<ul>
-<li>Upgrading from a release series version to a newer release series version is supported.可以从5.7.9升级到5.7.10,或者直接从5.7.9升级到5.7.11</li>
-<li>Upgrading one release level is supported. For example, upgrading from 5.6 to 5.7 is supported.可以从5.6升级到5.7</li>
-<li>Upgrading more than one release level is supported, but only if you upgrade one release level at a time.升级多个版本是支持的但只能一次升级一个版本,比如5.5 先升级 5.6 再升级到5.7</li>
-<li>直接从5.5升级到5.7是不建议且不支持的<br>以下条件适用于所有升级路径：</li>
-<li>支持通用可用性（GA）状态版本之间的升级。</li>
-<li>不支持在里程碑版本之间（或从里程碑版本到GA版本）的升级。 <del>例如，不支持从5.7.7升级到5.7.8，因为GA状态释放也不受支持(这段可能写错了)</del>。</li>
-<li>对于已达到GA状态的MySQL版本系列的版本之间的升级，可以在具有相同架构的系统上在不同版本之间移动MySQL格式文件和数据文件。 这对于在里程碑版本之间的升级不一定是真的。 使用里程碑版本是您自己的风险。</li>
-</ul>
-<h3 id="Before-You-Begin"><a href="#Before-You-Begin" class="headerlink" title="Before You Begin"></a>Before You Begin</h3><p>升级之前,建议查看如下信息,并执行建议的步骤:</p>
-<ul>
-<li>升级前,备份数据,尤其是system库.</li>
-<li>请查看版本说明，提供有关MySQL 5.7中新增功能的信息或与早期MySQL版本中发现的功能不同的信息。 其中一些更改可能导致不兼容。对于已在MySQL 5.7中添加，弃用或删除的MySQL服务器变量和选项的列表，请参见第1.5节“在MySQL 5.7中添加，弃用或删除的服务器和状态变量及选项”。如果使用以上任何项目，升级需要更改配置。</li>
-<li>查看第2.11.1.1节“影响升级到MySQL 5.7的更改”。本节介绍可能需要在升级之前或之后执行操作的更改。</li>
-<li>检查第2.11.3节“检查表或索引是否必须重新构建”，以了解您当前版本的MySQL与要升级的版本之间是否对表格式或字符集或归类进行了更改。如果这些更改导致MySQL版本之间不兼容，则需要使用第2.11.4节“重建或修复表或索引”中的说明升级受影响的表。</li>
-<li>如果使用复制，请查看第18.4.3节“升级复制设置”。</li>
-<li>如果您使用XA事务与InnoDB，请在升级之前运行XA RECOVER以检查未提交的XA事务。如果返回结果，则通过发出XA COMMIT或XA ROLLBACK语句来提交或回滚XA事务。</li>
-<li>如果您的MySQL安装包含大量数据，在就地升级后可能需要很长时间进行转换，您可能会发现创建一个“虚拟”数据库实例，用于评估可能需要的转换和涉及的工作执行它们。制作一份包含mysql数据库完整副本的MySQL实例的副本，以及没有数据的所有其他数据库。在此虚拟实例上运行升级过程，以查看可能需要执行哪些操作，以便在原始数据库实例上执行实际数据转换时，可以更好地评估所涉及的工作。</li>
-<li>当您安装或升级到新版本的MySQL时，建议重建和重新安装MySQL语言接口。这适用于MySQL接口，如PHP mysql扩展，Perl DBD :: mysql模块和Python MySQLdb模块。
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -662,7 +636,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -822,7 +796,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

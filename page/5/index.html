@@ -305,6 +305,57 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-05-03-[译文]ClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---最大QPS估算"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---%E6%9C%80%E5%A4%A7QPS%E4%BC%B0%E7%AE%97/">译文-ClickHouse In the Storm. Part 1 - Maximum QPS estimation - 最大QPS估算</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---%E6%9C%80%E5%A4%A7QPS%E4%BC%B0%E7%AE%97/" class="article-date">
+	  <time datetime="2020-05-03T03:33:00.000Z" itemprop="datePublished">2020-05-03</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="ClickHouse-In-the-Storm-Part-1-Maximum-QPS-estimation-最大QPS估算"><a href="#ClickHouse-In-the-Storm-Part-1-Maximum-QPS-estimation-最大QPS估算" class="headerlink" title="ClickHouse In the Storm. Part 1: Maximum QPS estimation - 最大QPS估算"></a>ClickHouse In the Storm. Part 1: Maximum QPS estimation - 最大QPS估算</h1><p>ClickHouse是一个用于分析的OLAP数据库, 因此典型的使用场景是处理相对少量的请求:</p>
+<ul>
+<li>每小时几个查询到每秒几十甚至几百个查询</li>
+<li>影响大量数据(gigabytes/millions of rows)</li>
+</ul>
+<p>但是它在其他情况下表现如何? Let’s try to use a steam-hammer to crack nuts, 并检查ClickHouse每秒将如何处理数千个小请求。 这将帮助我们更好地理解可能的用例范围和限制。</p>
+<p>这篇文章分为两个部分。 第一部分介绍连接性基准测试和测试设置。 下一部分将介绍涉及实际数据的方案中的最大QPS。<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-05-02-ClickHouse多实例部署"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -536,53 +587,6 @@
 
 
   
-    <article id="post-2020-03-07-Canal-dynamicTopic问题续"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/03/07/2020-03-07-Canal-dynamicTopic%E9%97%AE%E9%A2%98%E7%BB%AD/">Canal dynamicTopic问题续</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/03/07/2020-03-07-Canal-dynamicTopic%E9%97%AE%E9%A2%98%E7%BB%AD/" class="article-date">
-	  <time datetime="2020-03-07T13:23:00.000Z" itemprop="datePublished">2020-03-07</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>最近在新公司搭了一套canal. 按照&lt;<dynamicTopic问题>&gt;设置了<code>canal.mq.topic</code>和<code>canal.mq.dynamicTopic</code></p>
-<p>意图将一些不符合dynamicTopic匹配的语句的消息发送到一个默认的topic而避免报错<code>INVALID_TOPIC_EXCEPTION</code></p>
-<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># table regex</span></span><br><span class="line">canal.instance.filter.regex=fanboshi\\..*,sysbench\\..*</span><br><span class="line"><span class="meta"># table black regex</span></span><br><span class="line">canal.instance.filter.black.regex=.*\\.\\_.*\\_ghc,.*\\.\\_.*\\_gho,.*\\.\\_.*\\_del</span><br><span class="line"><span class="meta"># table field filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.field=test1.t_product:id/subject/keywords,test2.t_company:id/name/contact/ch</span></span><br><span class="line"><span class="meta"># table field black filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.black.field=test1.t_product:subject/product_image,test2.t_company:id/name/contact/ch</span></span><br><span class="line"></span><br><span class="line"><span class="meta"># mq config</span></span><br><span class="line">canal.mq.topic=default_topic</span><br><span class="line"><span class="meta"># dynamic topic route by schema or table regex</span></span><br><span class="line"><span class="meta">#canal.mq.dynamicTopic=mytest1.user,mytest2\\..*,.*\\..*</span></span><br><span class="line">canal.mq.dynamicTopic=.*\\..*</span><br><span class="line"><span class="meta">#canal.mq.partition=0</span></span><br><span class="line"><span class="meta"># hash partition config</span></span><br><span class="line"><span class="meta">#canal.mq.partitionsNum=3</span></span><br><span class="line"><span class="meta">#canal.mq.partitionHash=test.table:id^name,.*\\..*</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -603,7 +607,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -763,7 +767,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

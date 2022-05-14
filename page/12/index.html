@@ -305,6 +305,57 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-PMM使用Grafana告警"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/">PMM使用Grafana告警</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/" class="article-date">
+	  <time datetime="2017-12-15T05:26:00.000Z" itemprop="datePublished">2017-12-15</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="PMM如何告警"><a href="#PMM如何告警" class="headerlink" title="PMM如何告警?"></a>PMM如何告警?</h1><p>从Grafana v4.0开始增加了<a target="_blank" rel="noopener" href="http://docs.grafana.org/alerting/rules/">Alterting</a>功能 (  PMM 1.0.7 版本时Grafana版本为4.0). 这篇文章将手把手教你如何配置你的告警</p>
+<h2 id="开始创建Alert"><a href="#开始创建Alert" class="headerlink" title="开始创建Alert"></a>开始创建Alert</h2><p>在<a href="http://fuxkdb.com/2017/08/01/%E9%83%A8%E7%BD%B2PMM/">PMM部署</a>完成后,你可以看到如下界面<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_1.png" alt="image"></p>
+<p>此时你可能需要对<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_connected">Threads_connected</a> / <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_running">Threads_running</a> 指标进行监控</p>
+<p>点击对应的Graph标题,点击Edit<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_2.png" alt="image"></p>
+<p>按下图方式依次点击ALert -&gt; Create Alert 创建告警<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_3.png" alt="image"></p>
+<p>不幸的是,当你尝试对A指标创建如下告警时,Grafana提示一个错误“Template variables are not supported in alert queries.”<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_4.png" alt="image"></p>
+<p>首先A代表什么可以从Metrics菜单中看到,从图中可以看到对于<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_connected">Threads_connected</a>值的获取表达式中包含了变量<code>$host</code>, 而<code>$host</code>是箭头所指的Host下拉菜单传递的<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_5.png" alt="image"><br>对于<a target="_blank" rel="noopener" href="https://github.com/grafana/grafana/issues/6557">使用变量的Mertrics,无法创建Alert</a></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-Pt-table-checksum原理浅析"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -547,54 +598,6 @@
 
 
   
-    <article id="post-PMM设置grafana登录用户"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/09/29/PMM%E8%AE%BE%E7%BD%AEgrafana%E7%99%BB%E5%BD%95%E7%94%A8%E6%88%B7/">PMM设置grafana登录用户</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/09/29/PMM%E8%AE%BE%E7%BD%AEgrafana%E7%99%BB%E5%BD%95%E7%94%A8%E6%88%B7/" class="article-date">
-	  <time datetime="2017-09-29T01:52:00.000Z" itemprop="datePublished">2017-09-29</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>PMM使用grafana进行展示,默认是允许匿名登陆的,也就是说无需填写用户名密码就可以查看,修改仪表盘<br>但是领导说了,没用户密码就能连上来咋行呢.</p>
-<h3 id="进入容器"><a href="#进入容器" class="headerlink" title="进入容器"></a>进入容器</h3><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>localhost ~]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED            STATUS              PORTS                        NAMES</span><br><span class="line">c74f5be8ed88        percona/pmm-server:latest  <span class="string">&quot;/opt/entrypoint.sh&quot;</span>  <span class="number">5</span> hours ago        Up <span class="number">32</span> minutes      <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:<span class="number">80</span>-&gt;<span class="number">80</span>/tcp, <span class="number">443</span>/tcp  pmm-server</span><br><span class="line"><span class="number">28</span>c991142e6d        percona/pmm-server:latest  <span class="string">&quot;/bin/true&quot;</span>            <span class="number">5</span> hours ago        Created                                          pmm-data</span><br><span class="line">[<span class="symbol">root@</span>localhost ~]# docker exec -it c74f5be8ed88 /bin/bash</span><br><span class="line">[<span class="symbol">root@</span>c74f5be8ed88 opt]# </span><br></pre></td></tr></table></figure>
-<p>查看grafana.ini<br><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@c74f5be8ed88 opt]# vi /etc/grafana/grafana.ini </span><br><span class="line">找到这里</span><br><span class="line">#################################### Anonymous Auth ##########################</span><br><span class="line">[auth.anonymous]</span><br><span class="line"># enable anonymous access</span><br><span class="line">#enabled = <span class="literal">True</span></span><br><span class="line"></span><br><span class="line">把enabled = Ture注释掉,这样既禁止匿名用户登陆了</span><br></pre></td></tr></table></figure><br>现在如果重启容器,再打开页面,你会发现自己进不去了..咋办呢</p>
-<h3 id="修改数据库"><a href="#修改数据库" class="headerlink" title="修改数据库"></a>修改数据库</h3><p>进入容器<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">登录数据库</span><br><span class="line">sqlite3 /var/lib/grafana/grafana.db </span><br><span class="line">修改user表,把admin密码改成admin</span><br><span class="line">update<span class="built_in"> user </span><span class="builtin-name">set</span> password = <span class="string">&#x27;59acf18b94d7eb0694c61e60ce44c110c7a683ac6a8f09580d626f90f4a242000746579358d77dd9e570e83fa24faa88a8a6&#x27;</span>, salt = <span class="string">&#x27;F3FAxVm33R&#x27;</span> where login = <span class="string">&#x27;admin&#x27;</span></span><br><span class="line">安全起见,也可以把admin密码改成TdPXP4sg</span><br><span class="line">update<span class="built_in"> user </span><span class="builtin-name">set</span> <span class="attribute">password</span>=<span class="string">&#x27;11cf3a1ee21b046b939b5f0cdc9d92ab70ba66e4e53f301fb2456ee7b6a665d8abf0d5b387ae0ec53f5f5fc8e477bfbe073e&#x27;</span>,salt=&#x27;AHxOW2Fn34&#x27;,name=&#x27;admin&#x27;,is_admin=1 where <span class="attribute">login</span>=<span class="string">&#x27;admin&#x27;</span>;</span><br><span class="line"></span><br><span class="line">创建monitor用户密码mj8toYLB</span><br><span class="line">INSERT INTO <span class="string">&quot;user&quot;</span> VALUES(3,0,<span class="string">&#x27;monitor&#x27;</span>,<span class="string">&#x27;monitor@papapa.com&#x27;</span>,<span class="string">&#x27;monitor&#x27;</span>,<span class="string">&#x27;98c8e341360759e957ac43e2543fab4eef420a3521450d03ad79d5a1dd76dee233a9ec11870264c2e4dd7266d1a1f68681c2&#x27;</span>,<span class="string">&#x27;erShkEJCWn&#x27;</span>,<span class="string">&#x27;Y9TF6hFe</span></span><br><span class="line"><span class="string">bE&#x27;</span>,<span class="string">&#x27;&#x27;</span>,1,0,</span><br><span class="line">0,<span class="string">&#x27;&#x27;</span>,<span class="string">&#x27;2017-09-28 10:21:10&#x27;</span>,<span class="string">&#x27;2017-09-28 10:21:10&#x27;</span>,0);</span><br></pre></td></tr></table></figure><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -615,7 +618,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -775,7 +778,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

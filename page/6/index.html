@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-03-07-Canal-dynamicTopic问题续"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/03/07/2020-03-07-Canal-dynamicTopic%E9%97%AE%E9%A2%98%E7%BB%AD/">Canal dynamicTopic问题续</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/03/07/2020-03-07-Canal-dynamicTopic%E9%97%AE%E9%A2%98%E7%BB%AD/" class="article-date">
+	  <time datetime="2020-03-07T13:23:00.000Z" itemprop="datePublished">2020-03-07</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近在新公司搭了一套canal. 按照&lt;<dynamicTopic问题>&gt;设置了<code>canal.mq.topic</code>和<code>canal.mq.dynamicTopic</code></p>
+<p>意图将一些不符合dynamicTopic匹配的语句的消息发送到一个默认的topic而避免报错<code>INVALID_TOPIC_EXCEPTION</code></p>
+<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># table regex</span></span><br><span class="line">canal.instance.filter.regex=fanboshi\\..*,sysbench\\..*</span><br><span class="line"><span class="meta"># table black regex</span></span><br><span class="line">canal.instance.filter.black.regex=.*\\.\\_.*\\_ghc,.*\\.\\_.*\\_gho,.*\\.\\_.*\\_del</span><br><span class="line"><span class="meta"># table field filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.field=test1.t_product:id/subject/keywords,test2.t_company:id/name/contact/ch</span></span><br><span class="line"><span class="meta"># table field black filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.black.field=test1.t_product:subject/product_image,test2.t_company:id/name/contact/ch</span></span><br><span class="line"></span><br><span class="line"><span class="meta"># mq config</span></span><br><span class="line">canal.mq.topic=default_topic</span><br><span class="line"><span class="meta"># dynamic topic route by schema or table regex</span></span><br><span class="line"><span class="meta">#canal.mq.dynamicTopic=mytest1.user,mytest2\\..*,.*\\..*</span></span><br><span class="line">canal.mq.dynamicTopic=.*\\..*</span><br><span class="line"><span class="meta">#canal.mq.partition=0</span></span><br><span class="line"><span class="meta"># hash partition config</span></span><br><span class="line"><span class="meta">#canal.mq.partitionsNum=3</span></span><br><span class="line"><span class="meta">#canal.mq.partitionHash=test.table:id^name,.*\\..*</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-03-06-canal.mq.flatMessage参数"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -549,52 +596,6 @@
 
 
   
-    <article id="post-2019-12-10-Drainer不支持的DDL-1"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/">Drainer不支持的DDL-1</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/" class="article-date">
-	  <time datetime="2019-12-10T13:23:00.000Z" itemprop="datePublished">2019-12-10</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="Drainer不支持的DDL-1"><a href="#Drainer不支持的DDL-1" class="headerlink" title="Drainer不支持的DDL-1"></a>Drainer不支持的DDL-1</h1><p>版本3.0.5</p>
-<h2 id="1-rename-table-t1-to-b-db-b-t1"><a href="#1-rename-table-t1-to-b-db-b-t1" class="headerlink" title="1.rename table t1 to b_db.b_t1"></a>1.rename table t1 to b_db.b_t1</h2><p>已经做好TiDB-&gt;MySQL的同步, 开启了pump, drainer</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -615,7 +616,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -775,7 +776,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

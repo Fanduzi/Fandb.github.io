@@ -305,6 +305,64 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-使confluent_kafka支持SASL_PLAINTEXT"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/03/08/%E4%BD%BFconfluent_kafka%E6%94%AF%E6%8C%81SASL_PLAINTEXT/">使confluent_kafka支持SASL_PLAINTEXT</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/03/08/%E4%BD%BFconfluent_kafka%E6%94%AF%E6%8C%81SASL_PLAINTEXT/" class="article-date">
+	  <time datetime="2019-03-08T10:53:00.000Z" itemprop="datePublished">2019-03-08</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>同事之前一直使用kafka-python开发. 上了ACL以后发现kafka-python居然不支持SASL_PLAINTEXT</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaProducer.html">https://kafka-python.readthedocs.io/en/master/apidoc/KafkaProducer.html</a><br>sasl_mechanism (str) – string picking sasl mechanism when security_protocol is SASL_PLAINTEXT or SASL_SSL. Currently only PLAIN is supported. Default: None</p>
+</blockquote>
+<p>看了一下<a target="_blank" rel="noopener" href="https://github.com/confluentinc/confluent-kafka-python">confluent-kafka</a>是支持的但需要重新编译<a target="_blank" rel="noopener" href="https://github.com/edenhill/librdkafka">librdkafka</a><br>否则会报错:<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KafkaException: KafkaError&#123;<span class="attribute">code</span>=_INVALID_ARG,val=-186,str=&quot;Failed <span class="keyword">to</span> create producer: <span class="literal">No</span> provider <span class="keyword">for</span> SASL mechanism GSSAPI: recompile librdkafka with libsasl2 <span class="keyword">or</span> openssl support. Current build options: PLAIN SASL_SCRAM<span class="string">&quot;&#125;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="安装confluent-kafka"><a href="#安装confluent-kafka" class="headerlink" title="安装confluent-kafka"></a>安装confluent-kafka</h2><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">pip</span> install confluent-kafka</span><br><span class="line"><span class="attribute">Collecting</span> confluent-kafka</span><br><span class="line">  <span class="attribute">Downloading</span> https://files.pythonhosted.org/packages/<span class="number">2</span>a/ba/dccb<span class="number">27376453</span>f<span class="number">91</span>ad<span class="number">8</span>fa<span class="number">57</span>f<span class="number">75</span>a<span class="number">7</span>ba<span class="number">5</span>dc<span class="number">188023700</span>c<span class="number">1789273</span>dec<span class="number">976477</span>b<span class="number">2</span>/confluent_kafka-<span class="number">0</span>.<span class="number">11</span>.<span class="number">6</span>-cp<span class="number">37</span>-cp<span class="number">37</span>m-manylinux<span class="number">1</span>_x<span class="number">86</span>_<span class="number">64</span>.whl (<span class="number">3</span>.<span class="number">9</span>MB)</span><br><span class="line">    <span class="attribute">100</span>% |████████████████████████████████| <span class="number">3</span>.<span class="number">9</span>MB <span class="number">984</span>kB/s </span><br></pre></td></tr></table></figure>
+<h2 id="安装librdkafka"><a href="#安装librdkafka" class="headerlink" title="安装librdkafka"></a>安装librdkafka</h2><p>克隆下来<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">21</span>:<span class="number">05</span> /tmp]</span><br><span class="line">git clone https:<span class="comment">//github.com/edenhill/librdkafka.git</span></span><br><span class="line">Cloning <span class="built_in">int</span>o <span class="string">&#x27;librdkafka&#x27;</span>...</span><br><span class="line">remote: Enumerating objects: <span class="number">213</span>, done.</span><br><span class="line">remote: Counting objects: <span class="number">100</span>% (<span class="number">213</span>/<span class="number">213</span>), done.</span><br><span class="line">remote: Compressing objects: <span class="number">100</span>% (<span class="number">111</span>/<span class="number">111</span>), done.</span><br><span class="line">remote: Total <span class="number">18133</span> (delta <span class="number">133</span>), reused <span class="number">149</span> (delta <span class="number">98</span>), pack-reused <span class="number">17920</span></span><br><span class="line">Receiving objects: <span class="number">100</span>% (<span class="number">18133</span>/<span class="number">18133</span>), <span class="number">11.15</span> MiB | <span class="number">946.00</span> KiB/s, done.</span><br><span class="line">Resolving deltas: <span class="number">100</span>% (<span class="number">13758</span>/<span class="number">13758</span>), done.</span><br></pre></td></tr></table></figure><br>检查依赖<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">rpm</span> -qa| grep openssl</span><br><span class="line"><span class="attribute">openssl</span>-<span class="number">1</span>.<span class="number">0</span>.<span class="number">2</span>k-<span class="number">16</span>.el<span class="number">7</span>.x<span class="number">86</span>_<span class="number">64</span></span><br><span class="line"><span class="attribute">openssl</span>-libs-<span class="number">1</span>.<span class="number">0</span>.<span class="number">2</span>k-<span class="number">16</span>.el<span class="number">7</span>.x<span class="number">86</span>_<span class="number">64</span></span><br><span class="line"><span class="attribute">openssl</span>-devel-<span class="number">1</span>.<span class="number">0</span>.<span class="number">2</span>k-<span class="number">16</span>.el<span class="number">7</span>.x<span class="number">86</span>_<span class="number">64</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>The GNU toolchain<br>GNU make<br>pthreads<br>zlib-dev (optional, for gzip compression support)<br>libssl-dev (optional, for SSL and SASL SCRAM support) –这个对于centos openssl-devel<br>libsasl2-dev (optional, for SASL GSSAPI support)<br>libzstd-dev (optional, for ZStd compression support)<br>安装<br><figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./configure</span><br><span class="line"><span class="built_in">make</span> &amp;&amp; <span class="built_in">make</span> install</span><br></pre></td></tr></table></figure><br>注意下make的时候这里是ok就行<br><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">checking</span></span> <span class="keyword">for</span> libssl (by pkg-config)... ok</span><br><span class="line"><span class="function"><span class="title">checking</span></span> <span class="keyword">for</span> libssl (by compile)... ok (cached)</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<h2 id="替换库文件"><a href="#替换库文件" class="headerlink" title="替换库文件"></a>替换库文件</h2><p>查找<br><figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">find / -name <span class="string">&quot;librdkafka*&quot;</span> </span><br><span class="line">/root/.pyenv/versions/<span class="number">3.7</span>.<span class="number">2</span>/<span class="class"><span class="keyword">lib</span>/<span class="title">python3</span>.7/<span class="title">site</span>-<span class="title">packages</span>/<span class="title">confluent_kafka</span>/.<span class="title">libs</span>/<span class="title">librdkafka</span>.<span class="title">so</span>.1</span></span><br></pre></td></tr></table></figure><br>替换<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">#cd /root/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs/</span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">03</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#ll</span><br><span class="line">total <span class="number">10316</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">2903144</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libcrypto<span class="number">-4</span>c524931.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">6944424</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> librdkafka.so<span class="number">.1</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">584072</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libssl<span class="number">-01</span>b7eff1.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">87848</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libz-a147dcb0.so<span class="number">.1</span><span class="number">.2</span><span class="number">.3</span></span><br><span class="line">-rw-r--r-- <span class="number">1</span> root root <span class="number">35336</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> monitoring-<span class="built_in">int</span>erceptor.so</span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">04</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#mv librdkafka.so<span class="number">.1</span> librdkafka.so<span class="number">.1</span>.bak</span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">11</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#ln -s /usr/local/lib/librdkafka.so<span class="number">.1</span> librdkafka.so<span class="number">.1</span></span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">23</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#ll</span><br><span class="line">total <span class="number">10316</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">2903144</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libcrypto<span class="number">-4</span>c524931.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">lrwxrwxrwx <span class="number">1</span> root root <span class="number">30</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">24</span> librdkafka.so<span class="number">.1</span> -&gt; /usr/local/lib/librdkafka.so<span class="number">.1</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">6944424</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> librdkafka.so<span class="number">.1</span>.bak</span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">584072</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libssl<span class="number">-01</span>b7eff1.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">87848</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libz-a147dcb0.so<span class="number">.1</span><span class="number">.2</span><span class="number">.3</span></span><br><span class="line">-rw-r--r-- <span class="number">1</span> root root <span class="number">35336</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> monitoring-<span class="built_in">int</span>erceptor.so</span><br></pre></td></tr></table></figure></p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><figure class="highlight python-repl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#python</span><br><span class="line">Python 3.7.2 (default, Mar 4 2019, 16:55:21) </span><br><span class="line">[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)] on linux</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="keyword">from</span> confluent_kafka <span class="keyword">import</span> Producer     </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">p = Producer(&#123;<span class="string">&#x27;bootstrap.servers&#x27;</span>: <span class="string">&#x27;192.168.4.114:9092&#x27;</span>, <span class="string">&#x27;security.protocol&#x27;</span>: <span class="string">&#x27;SASL_PLAINTEXT&#x27;</span>, <span class="string">&#x27;sasl.mechanism&#x27;</span>:<span class="string">&#x27;SCRAM-SHA-256&#x27;</span>,<span class="string">&#x27;sasl.username&#x27;</span>:<span class="string">&#x27;admin&#x27;</span>,<span class="string">&#x27;sasl.password&#x27;</span>:<span class="string">&#x27;your-admin-pass&#x27;</span>&#125;)        </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="function"><span class="keyword">def</span> <span class="title">delivery_report</span>(<span class="params">err, msg</span>):</span></span></span><br><span class="line"><span class="meta">...</span> <span class="python"><span class="keyword">if</span> err <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span></span><br><span class="line"><span class="meta">...</span> <span class="python">print(<span class="string">&#x27;Message delivery failed: &#123;&#125;&#x27;</span>.format(err))</span></span><br><span class="line"><span class="meta">...</span> <span class="python"><span class="keyword">else</span>:</span></span><br><span class="line"><span class="meta">...</span> <span class="python">print(<span class="string">&#x27;Message delivered to &#123;&#125; [&#123;&#125;]&#x27;</span>.format(msg.topic(), msg.partition()))</span></span><br><span class="line"><span class="meta">...</span> </span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="keyword">for</span> data <span class="keyword">in</span> [<span class="string">&#x27;hello&#x27;</span>,<span class="string">&#x27;word&#x27;</span>]:  </span></span><br><span class="line"><span class="meta">...</span> <span class="python">p.produce(<span class="string">&#x27;test_acl&#x27;</span>, data.encode(<span class="string">&#x27;utf-8&#x27;</span>), callback=delivery_report)</span></span><br><span class="line"><span class="meta">...</span> </span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">p.poll(<span class="number">10</span>) </span></span><br><span class="line">Message delivered to test_acl [0]</span><br><span class="line">Message delivered to test_acl [0]</span><br><span class="line">1</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">p.flush()</span></span><br><span class="line">0</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">quit()</span></span><br></pre></td></tr></table></figure>
+<p>成功收到消息<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node004114 kafka]# bin/kafka-console-consumer.sh --bootstrap-server <span class="number">192.168</span><span class="number">.4</span><span class="number">.114</span>:<span class="number">9092</span> --topic test_acl --consumer.config config/client-sasl.properties --<span class="keyword">from</span>-beginning</span><br><span class="line">hello</span><br><span class="line">word</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2019-02-22-假如Kafka集群中一个broker宕机无法恢复,-应该如何处理"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -590,55 +648,6 @@
 
 
   
-    <article id="post-执行sql文件限制频率避免流控"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/08/20/%E6%89%A7%E8%A1%8Csql%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6%E9%A2%91%E7%8E%87%E9%81%BF%E5%85%8D%E6%B5%81%E6%8E%A7/">执行sql文件限制频率避免流控</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/08/20/%E6%89%A7%E8%A1%8Csql%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6%E9%A2%91%E7%8E%87%E9%81%BF%E5%85%8D%E6%B5%81%E6%8E%A7/" class="article-date">
-	  <time datetime="2018-08-20T15:04:00.000Z" itemprop="datePublished">2018-08-20</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="避免流控"><a href="#避免流控" class="headerlink" title="避免流控"></a>避免流控</h2><p>对于pxc, 为了避免流控, 可以在导入.sql文件时, 先对文件做处理<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">awk</span> &#x27;<span class="number">1</span>;NR%<span class="number">1000</span>==<span class="number">0</span>&#123;print <span class="string">&quot;select sleep(1);&quot;</span>&#125;&#x27; xxx.sql &gt; xxx_dba.sql</span><br></pre></td></tr></table></figure><br>上面的命令每1000行增加一行<code>select sleep(1);</code>, 这样执行频率是1k/s</p>
-<p>对于mysqldump产生的sql文件, 则需要在导出是指定<br><figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump --<span class="meta">skip</span>-extended-<span class="meta">insert</span></span><br></pre></td></tr></table></figure><br>每行一个insert语句, 之后再使用awk处理</p>
-<p>使用pt-fifo-split</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">FLAT_FILE</span>=<span class="string">&quot;/tmp/big_file.txt&quot;</span></span><br><span class="line"><span class="attribute">FIFO_PATH</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.fifo&quot;</span></span><br><span class="line"><span class="attribute">LOAD_FILE</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.load&quot;</span></span><br><span class="line"><span class="attribute">CHUNK_SIZE</span>=1000</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Split the file</span></span><br><span class="line">pt-fifo-split --force --lines <span class="variable">$&#123;CHUNK_SIZE&#125;</span> <span class="variable">$&#123;FLAT_FILE&#125;</span> --fifo <span class="variable">$&#123;FIFO_PATH&#125;</span> &amp;</span><br><span class="line"><span class="comment"># Sleep 10 seconds to assure $&#123;FIFO_PATH&#125; exists before entering loop</span></span><br><span class="line">sleep 10</span><br><span class="line"><span class="keyword">while</span> [ -e <span class="variable">$&#123;FIFO_PATH&#125;</span> ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  # Write chunk <span class="keyword">to</span> disk</span><br><span class="line">  cat <span class="variable">$&#123;FIFO_PATH&#125;</span> &gt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  # Load chunk into table</span><br><span class="line">  mysql <span class="attribute">--database</span>=test \</span><br><span class="line">   --show-warnings \</span><br><span class="line">   -vv &lt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  sleep 1</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -659,7 +668,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -819,7 +828,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

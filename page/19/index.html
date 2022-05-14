@@ -305,6 +305,79 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-Innodb事务隔离级别"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2016/12/13/Innodb%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/">Innodb事务隔离级别</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/12/13/Innodb%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" class="article-date">
+	  <time datetime="2016-12-13T14:00:00.000Z" itemprop="datePublished">2016-12-13</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Innodb事务隔离级别"><a href="#Innodb事务隔离级别" class="headerlink" title="Innodb事务隔离级别"></a>Innodb事务隔离级别</h2><h3 id="REPEATABLE-READ"><a href="#REPEATABLE-READ" class="headerlink" title="REPEATABLE READ"></a>REPEATABLE READ</h3><blockquote>
+<p>This is the default isolation level for InnoDB. Consistent reads within the same transaction read the snapshot established by the first read. This means that if you issue several plain (nonlocking) SELECT statements within the same transaction, these SELECT statements are consistent also with respect to each other.</p>
+</blockquote>
+<p>这是 InnoDB 默认的事务隔离级别,同一事物通过第一次创建的快照来构造一致性读.这意味着如果你在同一会话执行多次查询(非锁定读),那么每次获取的结果都是彼此相等的</p>
+<blockquote>
+<p>For locking reads (SELECT with FOR UPDATE or LOCK IN SHARE MODE), UPDATE, and DELETE statements, locking depends on whether the statement uses a unique index with a unique search condition, or a range-type search condition.</p>
+</blockquote>
+<p>对于锁定读,(SELECT with FOR UPDATE or LOCK IN SHARE MODE), UPDATE, 和 DELETE语句,是否锁定取决于此次查询(UPDATE DELETE 也是一种查询)是否通过唯一条件或范围条件查询使用唯一索引</p>
+<blockquote>
+<p>For a unique index with a unique search condition, InnoDB locks only the index record found, not the gap before it.</p>
+</blockquote>
+<ul>
+<li>For a unique index with a unique search condition,InnoDB只锁索引记录,不锁 gap<ul>
+<li>For other search conditions, InnoDB locks the index range scanned, using gap locks or next-key locks to block insertions by other sessions into the gaps covered by the range</li>
+</ul>
+</li>
+</ul>
+<h3 id="READ-COMMITTED"><a href="#READ-COMMITTED" class="headerlink" title="READ COMMITTED"></a>READ COMMITTED</h3><blockquote>
+<p>Each consistent read, even within the same transaction, sets and reads its own fresh snapshot. For information about consistent reads</p>
+</blockquote>
+<p>read view在 innodb 如何避免幻读中已经介绍过</p>
+<blockquote>
+<p>For locking reads (SELECT with FOR UPDATE or LOCK IN SHARE MODE), UPDATE statements, and DELETE statements, InnoDB locks only index records, not the gaps before them, and thus permits the free insertion of new records next to locked records. Gap locking is only used for foreign-key constraint checking and duplicate-key checking.</p>
+</blockquote>
+<p>locking reads(SELECT with FOR UPDATE or LOCK IN SHARE MODE),UPDATE 语句,DELETE语句,InnoDB 都只会锁index records(也就是 record lock),不会产生 gap lock,因此允许在 gap 中插入新的 records.Gap locking只在外键约束检查和重复值检查时产生</p>
+<blockquote>
+<p>Because gap locking is disabled, phantom problems may occur, as other sessions can insert new rows into the gaps</p>
+</blockquote>
+<p>因为gap locking被 disabled,幻读问题可能会产生,其他会话可以在 gap 中插入新的记录</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-MySQL(InnoDB)如何避免幻读"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -481,7 +554,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -641,7 +714,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

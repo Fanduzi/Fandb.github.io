@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>orchestrator discover源码分析 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLOrchestrator" />
+  
+  
+  
+  
+  <meta name="description" content="Orchestrator Discover源码分析在梳理HostnameResolveMethod和 MySQLHostnameResolveMethod 两个参数时我产生了一些迷惑. 所以深入看了下orchestrator源码, 再此记录下. orchestrator-client阅读orchestrator-client可以发现, 我们可以通过运行以下命令做”服务发现” 123orchestr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Orchestrator Discover源码分析">
+<meta property="og:url" content="http://fuxkdb.com/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Orchestrator Discover源码分析在梳理HostnameResolveMethod和 MySQLHostnameResolveMethod 两个参数时我产生了一些迷惑. 所以深入看了下orchestrator源码, 再此记录下. orchestrator-client阅读orchestrator-client可以发现, 我们可以通过运行以下命令做”服务发现” 123orchestr">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-26T15:04:00.000Z">
+<meta property="article:modified_time" content="2022-05-14T13:05:42.985Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Orchestrator">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2022-04-26-Orchestrator-Discover源码分析" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Orchestrator Discover源码分析
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="article-date">
+	  <time datetime="2022-04-26T15:04:00.000Z" itemprop="datePublished">2022-04-26</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Orchestrator-Discover源码分析"><a href="#Orchestrator-Discover源码分析" class="headerlink" title="Orchestrator Discover源码分析"></a>Orchestrator Discover源码分析</h1><p>在梳理<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#hostnameresolvemethod">HostnameResolveMethod</a>和 <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#mysqlhostnameresolvemethod">MySQLHostnameResolveMethod</a> 两个参数时我产生了一些迷惑. 所以深入看了下orchestrator源码, 再此记录下.</p>
+<h2 id="orchestrator-client"><a href="#orchestrator-client" class="headerlink" title="orchestrator-client"></a>orchestrator-client</h2><p>阅读<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Use/orchestrator-client.md">orchestrator-client</a>可以发现, 我们可以通过运行以下命令做”服务发现”</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">orchestrator-client -c discover -i 172.16.120.10:3306</span><br><span class="line"></span><br><span class="line">假设 172.16.120.10 主机名为 centos-1</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://github.com/openark/orchestrator/blob/master/resources/bin/orchestrator-client">orchestrator-client</a>是一个脚本, 用方便的命令行界面包装API调用.</p>
+<p>它可以自动确定<code>orchestrator</code>集群的leader, 并在这种情况下将所有请求转发给leader.</p>
+<p>它非常接近于<code>orchestrator</code> command line interface.</p>
+<blockquote>
+<p>orchestrator-client -help 有bug, 已提交<a target="_blank" rel="noopener" href="https://github.com/openark/orchestrator/pull/1439">PR</a>. </p>
+<p>orchestrator-client help信息也没有介绍-i参数</p>
+</blockquote>
+<p>查看orchestrator-client源码</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">while getopts &quot;c:i:d:s:a:D:U:o:r:u:R:t:l:H:P:q:b:e:n:S:h&quot; OPTION</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  <span class="keyword">case</span> $<span class="keyword">OPTION</span> <span class="keyword">in</span></span><br><span class="line">    h) command=<span class="string">&quot;help&quot;</span> ;;</span><br><span class="line">    c) command=&quot;$OPTARG&quot; ;;</span><br><span class="line">    i) instance=&quot;$OPTARG&quot; ;;</span><br></pre></td></tr></table></figure>
+<p>可以看出<code>-i</code> 的值给了instance变量. 在main行数中会先处理instance</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function main &#123;</span><br><span class="line">  check_requirements</span><br><span class="line">  detect_leader_api</span><br><span class="line"></span><br><span class="line">  instance_hostport=$(to_hostport $instance)</span><br><span class="line">  destination_hostport=$(to_hostport $destination)</span><br><span class="line"></span><br><span class="line">  run_command</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>to_hostport是一个函数. 可以看出 <code>-i</code> 可接受<code>hostname:port</code> / <code>ip:port</code> / <code>hostname</code> / <code>ip</code></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># to_hostport transforms:</span></span><br><span class="line"><span class="comment"># - fqdn:port =&gt; fqdn/port</span></span><br><span class="line"><span class="comment"># - fqdn =&gt; fqdn/default_port</span></span><br><span class="line">function to_hostport &#123;</span><br><span class="line">  instance_key=&quot;$1&quot;</span><br><span class="line"></span><br><span class="line">  if [ -z &quot;$instance_key&quot; ] ; then <span class="comment"># 如果 instance_key 为空</span></span><br><span class="line">    echo &quot;&quot;</span><br><span class="line">    return</span><br><span class="line">  fi</span><br><span class="line"></span><br><span class="line">  if [[ $instance_key == *&quot;:&quot;* ]]; then # 如果-i中包含 &#x27;:&#x27; </span><br><span class="line">    echo $instance_key | tr &#x27;:&#x27; &#x27;/&#x27; <span class="comment"># 将引号替换为 &#x27;/&#x27;</span></span><br><span class="line">  else                                  <span class="comment"># 否则, 认为只指定了 hostname/ip, 那么端口用default_port. default_port在脚本开头定义了, 就是3306</span></span><br><span class="line">    echo &quot;$instance_key/$default_port&quot; </span><br><span class="line">  fi</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>run_command会实际根据命令行传参, 调用对应的函数</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function run_command &#123;</span><br><span class="line">  if [ -z &quot;$command&quot; ] ; then</span><br><span class="line">    fail &quot;No command given. <span class="keyword">Use</span> $myname -c &lt;command&gt; [...] <span class="keyword">or</span> $myname <span class="comment">--command &lt;command&gt; [...] to do something useful&quot;</span></span><br><span class="line">  fi</span><br><span class="line">  command=$(echo $command | universal_sed -e <span class="string">&#x27;s/slave/replica/&#x27;</span>)</span><br><span class="line">  <span class="keyword">case</span> $command <span class="keyword">in</span></span><br><span class="line">    <span class="string">&quot;help&quot;</span>) prompt_help ;; <span class="comment"># Show available commands</span></span><br><span class="line">...</span><br><span class="line">    &quot;discover&quot;) discover ;;                                     <span class="comment"># Lookup an instance, investigate it</span></span><br></pre></td></tr></table></figure>
+<p>discover函数</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">function discover &#123;</span><br><span class="line">  assert_nonempty &quot;instance&quot; &quot;$instance_hostport&quot;</span><br><span class="line">  api &quot;discover/$instance_hostport&quot;</span><br><span class="line">  print_details | filter_key | print_key</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里api其实也是个函数, 就不展开看了. 其本质最终是执行curl命令</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl $&#123;curl_auth_params&#125; -s &quot;/api/discover/$instance_hostport&quot; | jq &#x27;.&#x27; </span><br></pre></td></tr></table></figure>
+<p>其实就是调用http接口</p>
+<h2 id="orchestrator-discover接口"><a href="#orchestrator-discover接口" class="headerlink" title="orchestrator discover接口"></a>orchestrator discover接口</h2><p>^99dde2</p>
+<p>在 go/http/api.go 中定义了orchestrator提供的接口. 其中, 可以找到discover对应的路由信息</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">this.registerAPIRequest(m, &quot;discover/:host/:port&quot;, this.Discover)</span><br></pre></td></tr></table></figure>
+<p>那接下来重点, 就是看Discover方法了</p>
+<h3 id="Discover"><a href="#Discover" class="headerlink" title="Discover"></a>Discover</h3><blockquote>
+<p>以下内中<code>↓↓↓</code> 表示下钻进对应函数中</p>
+</blockquote>
+<p>这里一点一点看</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Discover issues a synchronous read on an instance</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this *HttpAPI)</span> <span class="title">Discover</span><span class="params">(params martini.Params, r render.Render, req *http.Request, user auth.User)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> !isAuthorizedForAction(req, user) &#123;</span><br><span class="line">        Respond(r, &amp;APIResponse&#123;Code: ERROR, Message: <span class="string">&quot;Unauthorized&quot;</span>&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    instanceKey, err := this.getInstanceKey(params[<span class="string">&quot;host&quot;</span>], params[<span class="string">&quot;port&quot;</span>])</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        Respond(r, &amp;APIResponse&#123;Code: ERROR, Message: err.Error()&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    instance, err := inst.ReadTopologyInstance(&amp;instanceKey)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        Respond(r, &amp;APIResponse&#123;Code: ERROR, Message: err.Error()&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> orcraft.IsRaftEnabled() &#123;</span><br><span class="line">        orcraft.PublishCommand(<span class="string">&quot;discover&quot;</span>, instanceKey)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        logic.DiscoverInstance(instanceKey)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Respond(r, &amp;APIResponse&#123;Code: OK, Message: fmt.Sprintf(<span class="string">&quot;Instance discovered: %+v&quot;</span>, instance.Key), Details: instance&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看第7行</p>
+<h4 id="gt-getInstanceKey"><a href="#gt-getInstanceKey" class="headerlink" title="-&gt;getInstanceKey"></a>-&gt;getInstanceKey</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">instanceKey, err := this.getInstanceKey(params[<span class="string">&quot;host&quot;</span>], params[<span class="string">&quot;port&quot;</span>])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> ↓↓↓ getInstanceKey</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this *HttpAPI)</span> <span class="title">getInstanceKey</span><span class="params">(host <span class="keyword">string</span>, port <span class="keyword">string</span>)</span> <span class="params">(inst.InstanceKey, error)</span></span> &#123;</span><br><span class="line">        <span class="comment">// host, port就是 orchestrator-client -c discover -i 172.16.120.10:3306 中的 -i</span></span><br><span class="line">    <span class="keyword">return</span> this.getInstanceKeyInternal(host, port, <span class="literal">true</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="getInstanceKeyInternal"><a href="#getInstanceKeyInternal" class="headerlink" title="getInstanceKeyInternal"></a>getInstanceKeyInternal</h5><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this *HttpAPI)</span> <span class="title">getInstanceKeyInternal</span><span class="params">(host <span class="keyword">string</span>, port <span class="keyword">string</span>, resolve <span class="keyword">bool</span>)</span> <span class="params">(inst.InstanceKey, error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> instanceKey *inst.InstanceKey</span><br><span class="line">    <span class="keyword">var</span> err error</span><br><span class="line">    <span class="keyword">if</span> resolve &#123; <span class="comment">// getInstanceKey传的resolve是true</span></span><br><span class="line">                <span class="comment">// 所以走这里</span></span><br><span class="line">        instanceKey, err = inst.NewResolveInstanceKeyStrings(host, port)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        instanceKey, err = inst.NewRawInstanceKeyStrings(host, port)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> emptyInstanceKey, err</span><br><span class="line">    &#125;</span><br><span class="line">    instanceKey, err = inst.FigureInstanceKey(instanceKey, <span class="literal">nil</span>)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> emptyInstanceKey, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> instanceKey == <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> emptyInstanceKey, fmt.Errorf(<span class="string">&quot;Unexpected nil instanceKey in getInstanceKeyInternal(%+v, %+v, %+v)&quot;</span>, host, port, resolve)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> *instanceKey, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="gt-NewResolveInstanceKeyStrings"><a href="#gt-NewResolveInstanceKeyStrings" class="headerlink" title="-&gt;NewResolveInstanceKeyStrings"></a>-&gt;NewResolveInstanceKeyStrings</h6><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NewResolveInstanceKeyStrings creates and resolves a new instance key based on string params</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewResolveInstanceKeyStrings</span><span class="params">(hostname <span class="keyword">string</span>, port <span class="keyword">string</span>)</span> <span class="params">(*InstanceKey, error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> newInstanceKeyStrings(hostname, port, <span class="literal">true</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> ↓↓↓ newInstanceKeyStrings</span><br><span class="line"></span><br><span class="line"><span class="comment">// newInstanceKeyStrings</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newInstanceKeyStrings</span><span class="params">(hostname <span class="keyword">string</span>, port <span class="keyword">string</span>, resolve <span class="keyword">bool</span>)</span> <span class="params">(*InstanceKey, error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> portInt, err := strconv.Atoi(port); err != <span class="literal">nil</span> &#123; <span class="comment">// 将port字符串转int</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;Invalid port: %s&quot;</span>, port)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123; <span class="comment">// 转换成功, 走这里</span></span><br><span class="line">        <span class="keyword">return</span> newInstanceKey(hostname, portInt, resolve)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> ↓↓↓ newInstanceKey</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newInstanceKey</span><span class="params">(hostname <span class="keyword">string</span>, port <span class="keyword">int</span>, resolve <span class="keyword">bool</span>)</span> <span class="params">(instanceKey *InstanceKey, err error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> hostname == <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> instanceKey, fmt.Errorf(<span class="string">&quot;NewResolveInstanceKey: Empty hostname&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    instanceKey = &amp;InstanceKey&#123;Hostname: hostname, Port: port&#125; <span class="comment">// 构造一个instanceKey</span></span><br><span class="line">    <span class="keyword">if</span> resolve &#123; <span class="comment">// 传的是true, 所以走这里</span></span><br><span class="line">        instanceKey, err = instanceKey.ResolveHostname() </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> instanceKey, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> ↓↓↓ instanceKey.ResolveHostname</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this *InstanceKey)</span> <span class="title">ResolveHostname</span><span class="params">()</span> <span class="params">(*InstanceKey, error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> !this.IsValid() &#123; <span class="comment">// 进行一些校验, 需满足: Hostname!=&quot;_&quot; Hostname不以&quot;//&quot;开头, Hostname长度&gt;0, port&gt;0</span></span><br><span class="line">        <span class="keyword">return</span> this, <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    hostname, err := ResolveHostname(this.Hostname) <span class="comment">// 解析主机名, 解析后重新赋值给instanceKey.Hostname</span></span><br><span class="line">    <span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">        this.Hostname = hostname</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> this, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>####### ResolveHostname<br>这个函数代码较多, 主要是这段</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">resolvedHostname, err := resolveHostname(hostname)</span><br><span class="line"></span><br><span class="line"> ↓↓↓ resolveHostname</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">resolveHostname</span><span class="params">(hostname <span class="keyword">string</span>)</span> <span class="params">(<span class="keyword">string</span>, error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">switch</span> strings.ToLower(config.Config.HostnameResolveMethod) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;none&quot;</span>:</span><br><span class="line">        <span class="keyword">return</span> hostname, <span class="literal">nil</span></span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;default&quot;</span>:</span><br><span class="line">        <span class="keyword">return</span> hostname, <span class="literal">nil</span></span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;cname&quot;</span>:</span><br><span class="line">        <span class="keyword">return</span> GetCNAME(hostname)</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;ip&quot;</span>:</span><br><span class="line">        <span class="keyword">return</span> getHostnameIP(hostname)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> hostname, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里就是根据 <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#hostnameresolvemethod">HostnameResolveMethod</a>参数进行解析了</p>
+<ul>
+<li>none, default: 什么也不处理, 直接原样返回</li>
+<li>cname: 取CNAME</li>
+<li>ip: 根据hostname取ip</li>
+</ul>
+<p>getHostnameIP 实际会调用 net.LookupIP</p>
+<blockquote>
+<p>LookupIP looks up host using the local resolver. It returns a slice of that host’s IPv4 and IPv6 addresses.</p>
+</blockquote>
+<p>简单看一下net.LookupIP</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">    <span class="comment">// /etc/host</span></span><br><span class="line">    <span class="comment">// 172.16.201.206  namenode-1</span></span><br><span class="line">    <span class="comment">// 172.16.201.220  namenode-2</span></span><br><span class="line"></span><br><span class="line">    fmt.Println(net.LookupIP(<span class="string">&quot;namenode-1&quot;</span>))</span><br><span class="line">    fmt.Println(net.LookupIP(<span class="string">&quot;namenode-8&quot;</span>))</span><br><span class="line">        <span class="comment">// ping 172.16.120.18</span></span><br><span class="line">        <span class="comment">// PING 172.16.120.18 (172.16.120.18): 56 data bytes</span></span><br><span class="line">        <span class="comment">// Request timeout for icmp_seq 0</span></span><br><span class="line">    fmt.Println(net.LookupIP(<span class="string">&quot;172.16.120.18&quot;</span>)) <span class="comment">// 不存在的一个ip, 也ping不通</span></span><br><span class="line">    fmt.Println(net.LookupIP(<span class="string">&quot;192.168.124.130&quot;</span>))</span><br><span class="line"></span><br><span class="line">output=&gt;</span><br><span class="line">[<span class="number">172.16</span><span class="number">.201</span><span class="number">.206</span>] &lt;<span class="literal">nil</span>&gt;</span><br><span class="line">[] lookup namenode<span class="number">-8</span>: no such host</span><br><span class="line">[<span class="number">172.16</span><span class="number">.120</span><span class="number">.18</span>] &lt;<span class="literal">nil</span>&gt;</span><br><span class="line">[<span class="number">192.168</span><span class="number">.124</span><span class="number">.130</span>] &lt;<span class="literal">nil</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>所以说, getHostnameIP, 你给他传ip, 返回的还是ip. 给他传主机名, 就要看你有没有配置解析了</p>
+<h6 id="lt-NewResolveInstanceKeyStrings"><a href="#lt-NewResolveInstanceKeyStrings" class="headerlink" title="&lt;-NewResolveInstanceKeyStrings"></a>&lt;-NewResolveInstanceKeyStrings</h6><p>所以NewResolveInstanceKeyStrings就是根据<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#hostnameresolvemethod">HostnameResolveMethod</a>将传进来的host 解析了一下. 以<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A0.md#hostnameresolvemethod">HostnameResolveMethod</a>默认值default为例, 就是原样返回. instanceKey.Hostname就是<code>-i host:port</code> 中的host. 这个host可以是ip也可以是主机名</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this *HttpAPI)</span> <span class="title">getInstanceKeyInternal</span><span class="params">(host <span class="keyword">string</span>, port <span class="keyword">string</span>, resolve <span class="keyword">bool</span>)</span> <span class="params">(inst.InstanceKey, error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> instanceKey *inst.InstanceKey</span><br><span class="line">    <span class="keyword">var</span> err error</span><br><span class="line">    <span class="keyword">if</span> resolve &#123; <span class="comment">// getInstanceKey传的resolve是true</span></span><br><span class="line">                <span class="comment">// 所以走这里</span></span><br><span class="line">        instanceKey, err = inst.NewResolveInstanceKeyStrings(host, port)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        instanceKey, err = inst.NewRawInstanceKeyStrings(host, port)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> emptyInstanceKey, err</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 从这里继续</span></span><br><span class="line">        <span class="comment">// FigureInstanceKey是尝试去backend db模糊匹配 &#x27;%host%&#x27;, port, 如果取到了, 就从backend db把这个instanceKey取出来(还包含ServerID, ServerUUID, Binlog等信息)</span></span><br><span class="line">        <span class="comment">// 如果instanceKey.Hostname是 ip, 就不模糊匹配了, 直接原样返回</span></span><br><span class="line">        <span class="comment">// 如果模糊匹配到多行, 也是原因返回, 只有模糊匹配到1行才从数据库取instanceKey信息返回 instanceKey</span></span><br><span class="line">    instanceKey, err = inst.FigureInstanceKey(instanceKey, <span class="literal">nil</span>)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> emptyInstanceKey, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> instanceKey == <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> emptyInstanceKey, fmt.Errorf(<span class="string">&quot;Unexpected nil instanceKey in getInstanceKeyInternal(%+v, %+v, %+v)&quot;</span>, host, port, resolve)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> *instanceKey, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h4 id="lt-getInstanceKey"><a href="#lt-getInstanceKey" class="headerlink" title="&lt;-getInstanceKey"></a>&lt;-getInstanceKey</h4><p>继续往下读Discover</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Discover issues a synchronous read on an instance</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this *HttpAPI)</span> <span class="title">Discover</span><span class="params">(params martini.Params, r render.Render, req *http.Request, user auth.User)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> !isAuthorizedForAction(req, user) &#123;</span><br><span class="line">        Respond(r, &amp;APIResponse&#123;Code: ERROR, Message: <span class="string">&quot;Unauthorized&quot;</span>&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    instanceKey, err := this.getInstanceKey(params[<span class="string">&quot;host&quot;</span>], params[<span class="string">&quot;port&quot;</span>])</span><br><span class="line">        <span class="comment">// 从这继续, 上面简单来说就是解析了下 host</span></span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        Respond(r, &amp;APIResponse&#123;Code: ERROR, Message: err.Error()&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    instance, err := inst.ReadTopologyInstance(&amp;instanceKey)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        Respond(r, &amp;APIResponse&#123;Code: ERROR, Message: err.Error()&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> orcraft.IsRaftEnabled() &#123;</span><br><span class="line">        orcraft.PublishCommand(<span class="string">&quot;discover&quot;</span>, instanceKey)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        logic.DiscoverInstance(instanceKey)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Respond(r, &amp;APIResponse&#123;Code: OK, Message: fmt.Sprintf(<span class="string">&quot;Instance discovered: %+v&quot;</span>, instance.Key), Details: instance&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="gt-ReadTopologyInstance"><a href="#gt-ReadTopologyInstance" class="headerlink" title="-&gt;ReadTopologyInstance"></a>-&gt;ReadTopologyInstance</h3><p>这是重点, 开始”发现” 拓扑结构</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">instance, err := inst.ReadTopologyInstance(&amp;instanceKey)</span><br><span class="line"></span><br><span class="line"> ↓↓↓ inst.ReadTopologyInstance</span><br><span class="line"></span><br><span class="line"><span class="comment">// ReadTopologyInstance collects information on the state of a MySQL</span></span><br><span class="line"><span class="comment">// server and writes the result synchronously to the orchestrator</span></span><br><span class="line"><span class="comment">// backend.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ReadTopologyInstance</span><span class="params">(instanceKey *InstanceKey)</span> <span class="params">(*Instance, error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> ReadTopologyInstanceBufferable(instanceKey, <span class="literal">false</span>, <span class="literal">nil</span>) <span class="comment">// 这里bufferWrites=false</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">↓↓↓ ReadTopologyInstanceBufferable</span><br></pre></td></tr></table></figure>
+<h4 id="gt-ReadTopologyInstanceBufferable"><a href="#gt-ReadTopologyInstanceBufferable" class="headerlink" title="-&gt; ReadTopologyInstanceBufferable"></a>-&gt; ReadTopologyInstanceBufferable</h4><p>就是读拓扑节点, 读出这个节点的信息, 和他有哪些从库以及他的主库. 然后将一些信息写入backend db, 还会缓存一些信息到”buffer”, 下次读可以直接从”buffer”读</p>
+<p>这个函数很长, 这里只摘部分代码</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ReadTopologyInstanceBufferable connects to a topology MySQL instance</span></span><br><span class="line"><span class="comment">// and collects information on the server and its replication state.</span></span><br><span class="line"><span class="comment">// It writes the information retrieved into orchestrator&#x27;s backend.</span></span><br><span class="line"><span class="comment">// - writes are optionally buffered.</span></span><br><span class="line"><span class="comment">// - timing information can be collected for the stages performed.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ReadTopologyInstanceBufferable</span><span class="params">(instanceKey *InstanceKey, bufferWrites <span class="keyword">bool</span>, latency *stopwatch.NamedStopwatch)</span> <span class="params">(inst *Instance, err error)</span></span> &#123;</span><br><span class="line">        <span class="comment">// bufferWrites传进来的是false</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// time.AfterFunc函数作用</span></span><br><span class="line">    <span class="comment">// AfterFunc waits for the duration to elapse and then calls f</span></span><br><span class="line">    <span class="comment">// in its own goroutine. It returns a Timer that can</span></span><br><span class="line">    <span class="comment">// be used to cancel the call using its Stop method.</span></span><br><span class="line">    <span class="comment">// 所以这里就是1秒后调用UpdateInstanceLastAttemptedCheck, 这个函数更新指定instanceKey database_instance表中的last_attempted_check字段为当前时间</span></span><br><span class="line">    lastAttemptedCheckTimer := time.AfterFunc(time.Second, <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">go</span> UpdateInstanceLastAttemptedCheck(instanceKey)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">... 省略部分不重要代码</span><br><span class="line">    db, err := db.OpenDiscovery(instanceKey.Hostname, instanceKey.Port)</span><br><span class="line">    <span class="comment">// 连到指定的实例</span></span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">goto</span> Cleanup <span class="comment">// 注意这里很重要, 如果连接数据库报错, 会走goto</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    instance.Key = *instanceKey</span><br><span class="line">... 省略部分不重要代码</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> mysqlHostname, mysqlReportHost <span class="keyword">string</span></span><br><span class="line">        err = db.QueryRow(<span class="string">&quot;select @@global.hostname, ifnull(@@global.report_host, &#x27;&#x27;), @@global.server_id, @@global.version, @@global.version_comment, @@global.read_only, @@global.binlog_format, @@global.log_bin, @@global.log_slave_updates&quot;</span>).Scan(</span><br><span class="line">            &amp;mysqlHostname, &amp;mysqlReportHost, &amp;instance.ServerID, &amp;instance.Version, &amp;instance.VersionComment, &amp;instance.ReadOnly, &amp;instance.Binlog_format, &amp;instance.LogBinEnabled, &amp;instance.LogReplicationUpdatesEnabled)</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="keyword">goto</span> Cleanup</span><br><span class="line">        &#125;</span><br><span class="line">        partialSuccess = <span class="literal">true</span> <span class="comment">// We at least managed to read something from the server.</span></span><br><span class="line">                <span class="comment">// 上面通过 select @@global.hostname 取到了主机名</span></span><br><span class="line">                <span class="comment">// 根据MySQLHostnameResolveMethod 来取resolvedHostname</span></span><br><span class="line">        <span class="keyword">switch</span> strings.ToLower(config.Config.MySQLHostnameResolveMethod) &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;none&quot;</span>:</span><br><span class="line">            resolvedHostname = instance.Key.Hostname</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;default&quot;</span>, <span class="string">&quot;hostname&quot;</span>, <span class="string">&quot;@@hostname&quot;</span>:  <span class="comment">// MySQLHostnameResolveMethod 默认值 就是 @@hostname. 以此为例 resolvedHostname就是select @@global.hostname取到的主机名</span></span><br><span class="line">            resolvedHostname = mysqlHostname</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&quot;report_host&quot;</span>, <span class="string">&quot;@@report_host&quot;</span>:</span><br><span class="line">            <span class="keyword">if</span> mysqlReportHost == <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">                err = fmt.Errorf(<span class="string">&quot;MySQLHostnameResolveMethod configured to use @@report_host but %+v has NULL/empty @@report_host&quot;</span>, instanceKey)</span><br><span class="line">                <span class="keyword">goto</span> Cleanup</span><br><span class="line">            &#125;</span><br><span class="line">            resolvedHostname = mysqlReportHost</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            resolvedHostname = instance.Key.Hostname</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">... 省略部分不重要代码</span><br><span class="line">        <span class="comment">// 以我们的例子 resolvedHostname是主机名: centos-1</span></span><br><span class="line">        <span class="comment">// instance.Key.Hostname 是 172.16.120.10</span></span><br><span class="line">    <span class="keyword">if</span> resolvedHostname != instance.Key.Hostname &#123;</span><br><span class="line">        latency.Start(<span class="string">&quot;backend&quot;</span>)</span><br><span class="line">        UpdateResolvedHostname(instance.Key.Hostname, resolvedHostname)</span><br><span class="line">                <span class="comment">// UpdateResolvedHostname 将 hostname, resolved_hostname 记录到backend db</span></span><br><span class="line">                        <span class="comment">// _, err := db.ExecOrchestrator(`</span></span><br><span class="line">                        <span class="comment">//     insert into</span></span><br><span class="line">                        <span class="comment">//             hostname_resolve (hostname, resolved_hostname, resolved_timestamp)</span></span><br><span class="line">                        <span class="comment">//         values</span></span><br><span class="line">                        <span class="comment">//             (?, ?, NOW())</span></span><br><span class="line">                        <span class="comment">//         on duplicate key update</span></span><br><span class="line">                        <span class="comment">//             resolved_hostname = VALUES(resolved_hostname),</span></span><br><span class="line">                        <span class="comment">//             resolved_timestamp = VALUES(resolved_timestamp)</span></span><br><span class="line">                        <span class="comment">//     `,</span></span><br><span class="line">                        <span class="comment">//     hostname,</span></span><br><span class="line">                        <span class="comment">//     resolvedHostname)</span></span><br><span class="line">        latency.Stop(<span class="string">&quot;backend&quot;</span>)</span><br><span class="line">        instance.Key.Hostname = resolvedHostname <span class="comment">// 并将instance.Key.Hostname 从172.16.120.10 改成了 centos-1</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> instance.Key.Hostname == <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">        err = fmt.Errorf(<span class="string">&quot;ReadTopologyInstance: empty hostname (%+v). Bailing out&quot;</span>, *instanceKey)</span><br><span class="line">        <span class="keyword">goto</span> Cleanup</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">go</span> ResolveHostnameIPs(instance.Key.Hostname) <span class="comment">// 这里有尝试取ip, 这里以我们的例子instance.Key.Hostname已经是centos-1了. 如果orchestrator所在服务器没配置主机名解析(如/etc/hosts), 那么是取不到的</span></span><br><span class="line">        <span class="comment">// 如果能取到, 会往 insert into hostname_ips (hostname, ipv4, ipv6, last_updated) ... ODKU ...</span></span><br><span class="line"></span><br><span class="line">... 省略部分不重要代码</span><br><span class="line"></span><br><span class="line"><span class="comment">// 下面这段就是取了 172.16.120.10:3306 的master主库</span></span><br><span class="line"><span class="comment">// 注意这里通过show slave status 查主库. show slave status多源复制是可能返回多行的. orchestrator官方文档说了, 不支持多源复制, 所以这里instance.MasterKey只是一个结构体, 不是切片</span></span><br><span class="line">    err = sqlutils.QueryRowsMap(db, <span class="string">&quot;show slave status&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(m sqlutils.RowMap)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">                ...</span><br><span class="line">        masterHostname := m.GetString(<span class="string">&quot;Master_Host&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> isMaxScale110 &#123;</span><br><span class="line">            <span class="comment">// Buggy buggy maxscale 1.1.0. Reported Master_Host can be corrupted.</span></span><br><span class="line">            <span class="comment">// Therefore we (currently) take @@hostname (which is masquarading as master host anyhow)</span></span><br><span class="line">            masterHostname = maxScaleMasterHostname</span><br><span class="line">        &#125;</span><br><span class="line">        masterKey, err := NewResolveInstanceKey(masterHostname, m.GetInt(<span class="string">&quot;Master_Port&quot;</span>))</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            logReadTopologyInstanceError(instanceKey, <span class="string">&quot;NewResolveInstanceKey&quot;</span>, err)</span><br><span class="line">        &#125;</span><br><span class="line">        masterKey.Hostname, resolveErr = ResolveHostname(masterKey.Hostname)</span><br><span class="line">        <span class="keyword">if</span> resolveErr != <span class="literal">nil</span> &#123;</span><br><span class="line">            logReadTopologyInstanceError(instanceKey, fmt.Sprintf(<span class="string">&quot;ResolveHostname(%q)&quot;</span>, masterKey.Hostname), resolveErr)</span><br><span class="line">        &#125;</span><br><span class="line">        instance.MasterKey = *masterKey</span><br><span class="line"></span><br><span class="line">... 省略部分不重要代码</span><br><span class="line">    instanceFound = <span class="literal">true</span> </span><br><span class="line"></span><br><span class="line">    <span class="comment">// -------------------------------------------------------------------------</span></span><br><span class="line">    <span class="comment">// Anything after this point does not affect the fact the instance is found.</span></span><br><span class="line">    <span class="comment">// No `goto Cleanup` after this point.</span></span><br><span class="line">    <span class="comment">// -------------------------------------------------------------------------</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get replicas, either by SHOW SLAVE HOSTS or via PROCESSLIST</span></span><br><span class="line">    <span class="comment">// MaxScale does not support PROCESSLIST, so SHOW SLAVE HOSTS is the only option </span></span><br><span class="line">    </span><br><span class="line"><span class="comment">// 下面这一大段代码, 就是取 172.16.120.10:3306的从库, 如果有从库, 就放到 instance.Replicas里</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Get replicas, either by SHOW SLAVE HOSTS or via PROCESSLIST</span></span><br><span class="line">    <span class="comment">// MaxScale does not support PROCESSLIST, so SHOW SLAVE HOSTS is the only option</span></span><br><span class="line">    <span class="keyword">if</span> config.Config.DiscoverByShowSlaveHosts || isMaxScale &#123;</span><br><span class="line">        err := sqlutils.QueryRowsMap(db, <span class="string">`show slave hosts`</span>,</span><br><span class="line">            <span class="function"><span class="keyword">func</span><span class="params">(m sqlutils.RowMap)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">                <span class="comment">// MaxScale 1.1 may trigger an error with this command, but</span></span><br><span class="line">                <span class="comment">// also we may see issues if anything on the MySQL server locks up.</span></span><br><span class="line">                <span class="comment">// Consequently it&#x27;s important to validate the values received look</span></span><br><span class="line">                <span class="comment">// good prior to calling ResolveHostname()</span></span><br><span class="line">                host := m.GetString(<span class="string">&quot;Host&quot;</span>)</span><br><span class="line">                port := m.GetIntD(<span class="string">&quot;Port&quot;</span>, <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">if</span> host == <span class="string">&quot;&quot;</span> || port == <span class="number">0</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> isMaxScale &amp;&amp; host == <span class="string">&quot;&quot;</span> &amp;&amp; port == <span class="number">0</span> &#123;</span><br><span class="line">                        <span class="comment">// MaxScale reports a bad response sometimes so ignore it.</span></span><br><span class="line">                        <span class="comment">// - seen in 1.1.0 and 1.4.3.4</span></span><br><span class="line">                        <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="comment">// otherwise report the error to the caller</span></span><br><span class="line">                    <span class="keyword">return</span> fmt.Errorf(<span class="string">&quot;ReadTopologyInstance(%+v) &#x27;show slave hosts&#x27; returned row with &lt;host,port&gt;: &lt;%v,%v&gt;&quot;</span>, instanceKey, host, port)</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                replicaKey, err := NewResolveInstanceKey(host, port)</span><br><span class="line">                <span class="keyword">if</span> err == <span class="literal">nil</span> &amp;&amp; replicaKey.IsValid() &#123;</span><br><span class="line">                    <span class="keyword">if</span> !FiltersMatchInstanceKey(replicaKey, config.Config.DiscoveryIgnoreReplicaHostnameFilters) &#123;</span><br><span class="line">                        instance.AddReplicaKey(replicaKey)</span><br><span class="line">                    &#125;</span><br><span class="line">                    foundByShowSlaveHosts = <span class="literal">true</span></span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> err</span><br><span class="line">            &#125;)</span><br><span class="line"></span><br><span class="line">        logReadTopologyInstanceError(instanceKey, <span class="string">&quot;show slave hosts&quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> !foundByShowSlaveHosts &amp;&amp; !isMaxScale &#123;</span><br><span class="line">        <span class="comment">// Either not configured to read SHOW SLAVE HOSTS or nothing was there.</span></span><br><span class="line">        <span class="comment">// Discover by information_schema.processlist</span></span><br><span class="line">        waitGroup.Add(<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">            <span class="keyword">defer</span> waitGroup.Done()</span><br><span class="line">            err := sqlutils.QueryRowsMap(db, <span class="string">`</span></span><br><span class="line"><span class="string">        select</span></span><br><span class="line"><span class="string">            substring_index(host, &#x27;:&#x27;, 1) as slave_hostname</span></span><br><span class="line"><span class="string">        from</span></span><br><span class="line"><span class="string">            information_schema.processlist</span></span><br><span class="line"><span class="string">        where</span></span><br><span class="line"><span class="string">          command IN (&#x27;Binlog Dump&#x27;, &#x27;Binlog Dump GTID&#x27;)</span></span><br><span class="line"><span class="string">        `</span>,</span><br><span class="line">                <span class="function"><span class="keyword">func</span><span class="params">(m sqlutils.RowMap)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">                    cname, resolveErr := ResolveHostname(m.GetString(<span class="string">&quot;slave_hostname&quot;</span>))</span><br><span class="line">                    <span class="keyword">if</span> resolveErr != <span class="literal">nil</span> &#123;</span><br><span class="line">                        logReadTopologyInstanceError(instanceKey, <span class="string">&quot;ResolveHostname: processlist&quot;</span>, resolveErr)</span><br><span class="line">                    &#125;</span><br><span class="line">                    replicaKey := InstanceKey&#123;Hostname: cname, Port: instance.Key.Port&#125;</span><br><span class="line">                    <span class="keyword">if</span> !FiltersMatchInstanceKey(&amp;replicaKey, config.Config.DiscoveryIgnoreReplicaHostnameFilters) &#123;</span><br><span class="line">                        instance.AddReplicaKey(&amp;replicaKey)</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">return</span> err</span><br><span class="line">                &#125;)</span><br><span class="line"></span><br><span class="line">            logReadTopologyInstanceError(instanceKey, <span class="string">&quot;processlist&quot;</span>, err)</span><br><span class="line">        &#125;()</span><br><span class="line">    &#125;</span><br><span class="line">... 省略部分不重要代码 </span><br><span class="line"></span><br><span class="line">Cleanup: <span class="comment">// 注意Cleanup的位置 是在 设置 instanceFound = true  之后, 所以一但 db, err := db.OpenDiscovery(instanceKey.Hostname, instanceKey.Port)报错, 就跳转到这里, 于是instanceFound还是false</span></span><br><span class="line">    xxxx</span><br><span class="line">    </span><br><span class="line">... 省略部分不重要代码</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> instanceFound &#123;</span><br><span class="line">       instance.LastDiscoveryLatency = time.Since(readingStartTime)  </span><br><span class="line">       instance.IsLastCheckValid = <span class="literal">true</span>  </span><br><span class="line">       instance.IsRecentlyChecked = <span class="literal">true</span>  </span><br><span class="line">       instance.IsUpToDate = <span class="literal">true</span>  </span><br><span class="line">       latency.Start(<span class="string">&quot;backend&quot;</span>)  </span><br><span class="line">       <span class="keyword">if</span> bufferWrites &#123;   <span class="comment">// bufferWrites传进来的是false</span></span><br><span class="line">          enqueueInstanceWrite(instance, instanceFound, err)  </span><br><span class="line">       &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">          WriteInstance(instance, instanceFound, err)  <span class="comment">// 这里最终是把获取的instance各种信息写入 database_instance表, 以及很重要的, 更新 last_check=Now() last_seen=Now() last_attempted_check=Now() last_check_parital_success=1</span></span><br><span class="line">       &#125;   lastAttemptedCheckTimer.Stop()  </span><br><span class="line">       latency.Stop(<span class="string">&quot;backend&quot;</span>)  </span><br><span class="line">       <span class="keyword">return</span> instance, <span class="literal">nil</span>  </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Something is wrong, could be network-wise. Record that we</span></span><br><span class="line">    <span class="comment">// tried to check the instance. last_attempted_check is also</span></span><br><span class="line">    <span class="comment">// updated on success by writeInstance.</span></span><br><span class="line">    latency.Start(<span class="string">&quot;backend&quot;</span>)</span><br><span class="line">    _ = UpdateInstanceLastChecked(&amp;instance.Key, partialSuccess) <span class="comment">// 连接数据库失败, 或执行一些查询如show slave status失败, 会Goto到Cleanup, 此时instanceFound仍然是false </span></span><br><span class="line">    <span class="comment">// 于是就会执行UpdateInstanceLastChecked. 这函数是更新指定instance.Key的 last_checked = NOW(), last_check_partial_success = 0/1(如过在err = db.QueryRow(&quot;select @@global.hostname...执行前Goto Cleanup, 则partialSuccess=False , last_check_partial_success=0, 否则partialSuccess是True, last_check_partial_success=1)</span></span><br><span class="line">    <span class="comment">// last_check_partial_success 表示, 至少我们连接到数据库, 而且能执行select @@global.hostname... 查询</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 由此可以看出</span></span><br><span class="line">    latency.Stop(<span class="string">&quot;backend&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br></pre></td></tr></table></figure>
+<h3 id="lt-ReadTopologyInstance"><a href="#lt-ReadTopologyInstance" class="headerlink" title="&lt;- ReadTopologyInstance"></a>&lt;- ReadTopologyInstance</h3><p>继续往下读Discover</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Discover issues a synchronous read on an instance</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this *HttpAPI)</span> <span class="title">Discover</span><span class="params">(params martini.Params, r render.Render, req *http.Request, user auth.User)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> !isAuthorizedForAction(req, user) &#123;</span><br><span class="line">        Respond(r, &amp;APIResponse&#123;Code: ERROR, Message: <span class="string">&quot;Unauthorized&quot;</span>&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    instanceKey, err := this.getInstanceKey(params[<span class="string">&quot;host&quot;</span>], params[<span class="string">&quot;port&quot;</span>])</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        Respond(r, &amp;APIResponse&#123;Code: ERROR, Message: err.Error()&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    instance, err := inst.ReadTopologyInstance(&amp;instanceKey)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 从这继续, 上面简单来说就是解析了下 host</span></span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        Respond(r, &amp;APIResponse&#123;Code: ERROR, Message: err.Error()&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> orcraft.IsRaftEnabled() &#123; <span class="comment">// 如果orch是raft模式部署</span></span><br><span class="line">                <span class="comment">// 这段代码我没看, 我猜测是让其他节点也去discover一遍</span></span><br><span class="line">        orcraft.PublishCommand(<span class="string">&quot;discover&quot;</span>, instanceKey)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// 继续顺藤摸瓜, &quot;发现&quot;</span></span><br><span class="line">        logic.DiscoverInstance(instanceKey)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Respond(r, &amp;APIResponse&#123;Code: OK, Message: fmt.Sprintf(<span class="string">&quot;Instance discovered: %+v&quot;</span>, instance.Key), Details: instance&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="树藤摸瓜DiscoverInstance"><a href="#树藤摸瓜DiscoverInstance" class="headerlink" title="树藤摸瓜DiscoverInstance"></a>树藤摸瓜<code>DiscoverInstance</code></h2><p>从上面可以看到, 只发现了 172.16.120.10:3306 自身, 也发现了他的从库和主库, 但只是把他的从库ip,port存入了instance.Replicas, 主库存入了instance.MasterKey, 没有再进一步探测这些从库和主库.</p>
+<p>其实继续的”发现”工作是在<code>DiscoverInstance</code> 中做的</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DiscoverInstance will attempt to discover (poll) an instance (unless</span></span><br><span class="line"><span class="comment">// it is already up to date) and will also ensure that its master and</span></span><br><span class="line"><span class="comment">// replicas (if any) are also checked.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DiscoverInstance</span><span class="params">(instanceKey inst.InstanceKey)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">... 省略部分不重要代码</span><br><span class="line">    <span class="comment">// Calculate the expiry period each time as InstancePollSeconds</span></span><br><span class="line">    <span class="comment">// _may_ change during the run of the process (via SIGHUP) and</span></span><br><span class="line">    <span class="comment">// it is not possible to change the cache&#x27;s default expiry..</span></span><br><span class="line">    <span class="comment">// 这个if很重要, 这里尝试向recentDiscoveryOperationKeys这个cache里add key, key就是instanceKey.DisplayString()</span></span><br><span class="line">    <span class="comment">// add前会先查这个cache里有没有这个key, 如果有, 会返回err</span></span><br><span class="line">    <span class="comment">// 如果没查到这个key, 就会添加到cache, 并且设置过期时间为Config.InstancePollSeconds默认5秒, 所以从这里控制每个instance的发现间隔为5秒</span></span><br><span class="line">    <span class="keyword">if</span> existsInCacheError := recentDiscoveryOperationKeys.Add(instanceKey.DisplayString(), <span class="literal">true</span>, instancePollSecondsDuration()); existsInCacheError != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="comment">// Just recently attempted</span></span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">... 省略部分不重要代码</span><br><span class="line">    <span class="comment">// 从库里再把`172.16.120.10:3306` 信息取出来</span></span><br><span class="line">    instance, found, err := inst.ReadInstance(&amp;instanceKey)</span><br><span class="line"></span><br><span class="line">... 省略部分不重要代码</span><br><span class="line"></span><br><span class="line">    <span class="comment">// First we&#x27;ve ever heard of this instance. Continue investigation:  </span></span><br><span class="line">    instance, err = inst.ReadTopologyInstanceBufferable(&amp;instanceKey, config.Config.BufferInstanceWrites, latency)</span><br><span class="line"></span><br><span class="line">... 省略部分不重要代码 </span><br><span class="line"></span><br><span class="line">    <span class="comment">// Investigate replicas and members of the same replication group:</span></span><br><span class="line">        <span class="comment">// 把从库取出来了</span></span><br><span class="line">    <span class="keyword">for</span> _, replicaKey := <span class="keyword">range</span> <span class="built_in">append</span>(instance.ReplicationGroupMembers.GetInstanceKeys(), instance.Replicas.GetInstanceKeys()...) &#123;</span><br><span class="line">        replicaKey := replicaKey <span class="comment">// not needed? no concurrency here?</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// Avoid noticing some hosts we would otherwise discover</span></span><br><span class="line">        <span class="keyword">if</span> inst.FiltersMatchInstanceKey(&amp;replicaKey, config.Config.DiscoveryIgnoreReplicaHostnameFilters) &#123;</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> replicaKey.IsValid() &#123;</span><br><span class="line">                        <span class="comment">// 放到一个discoveryQueue发现队列里了</span></span><br><span class="line">            discoveryQueue.Push(replicaKey) <span class="comment">// Push时, 会记录这个key是什么时间push进去的</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Investigate master:</span></span><br><span class="line">        <span class="comment">// 把主库也取出来了</span></span><br><span class="line">    <span class="keyword">if</span> instance.MasterKey.IsValid() &#123;</span><br><span class="line">        <span class="keyword">if</span> !inst.FiltersMatchInstanceKey(&amp;instance.MasterKey, config.Config.DiscoveryIgnoreMasterHostnameFilters) &#123;</span><br><span class="line">                       <span class="comment">// 主库也放到一个discoveryQueue发现队列里了</span></span><br><span class="line">            discoveryQueue.Push(instance.MasterKey)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="discoveryQueue"><a href="#discoveryQueue" class="headerlink" title="discoveryQueue"></a>discoveryQueue</h2><p>全局搜discoveryQueue, 肯定有人消费这个队列</p>
+<p>果然搜到 <code>instanceKey := discoveryQueue.Consume()</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// handleDiscoveryRequests iterates the discoveryQueue channel and calls upon</span></span><br><span class="line"><span class="comment">// instance discovery per entry.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">handleDiscoveryRequests</span><span class="params">()</span></span> &#123;</span><br><span class="line">    discoveryQueue = discovery.CreateOrReturnQueue(<span class="string">&quot;DEFAULT&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// create a pool of discovery workers</span></span><br><span class="line">    <span class="keyword">for</span> i := <span class="keyword">uint</span>(<span class="number">0</span>); i &lt; config.Config.DiscoveryMaxConcurrency; i++ &#123;</span><br><span class="line">        <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">            <span class="keyword">for</span> &#123;</span><br><span class="line">                instanceKey := discoveryQueue.Consume()</span><br><span class="line">                <span class="comment">// Possibly this used to be the elected node, but has</span></span><br><span class="line">                <span class="comment">// been demoted, while still the queue is full.</span></span><br><span class="line">                <span class="keyword">if</span> !IsLeaderOrActive() &#123;</span><br><span class="line">                    log.Debugf(<span class="string">&quot;Node apparently demoted. Skipping discovery of %+v. &quot;</span>+</span><br><span class="line">                        <span class="string">&quot;Remaining queue size: %+v&quot;</span>, instanceKey, discoveryQueue.QueueLen())</span><br><span class="line">                    discoveryQueue.Release(instanceKey)</span><br><span class="line">                    <span class="keyword">continue</span></span><br><span class="line">                &#125;</span><br><span class="line">                               <span class="comment">// 看这里, 继续通过DiscoverInstance发现</span></span><br><span class="line">                DiscoverInstance(instanceKey)</span><br><span class="line">                discoveryQueue.Release(instanceKey)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2022/04/26/2022-04-26-Orchestrator-Discover源码分析/" target="_blank" title="Orchestrator Discover源码分析">http://fuxkdb.com/2022/04/26/2022-04-26-Orchestrator-Discover源码分析/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Orchestrator/" rel="tag">Orchestrator</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/10/15/2021-10-15-MySQL%20page%20cleaner%E5%8D%A0%E7%94%A8CPU%E8%BE%83%E9%AB%98%E9%97%AE%E9%A2%98/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">MySQL page cleaner占用CPU较高问题</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">Orchestrator Discover源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#orchestrator-client"><span class="nav-number">1.1.</span> <span class="nav-text">orchestrator-client</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#orchestrator-discover%E6%8E%A5%E5%8F%A3"><span class="nav-number">1.2.</span> <span class="nav-text">orchestrator discover接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Discover"><span class="nav-number">1.2.1.</span> <span class="nav-text">Discover</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#gt-getInstanceKey"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">-&gt;getInstanceKey</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#getInstanceKeyInternal"><span class="nav-number">1.2.1.1.1.</span> <span class="nav-text">getInstanceKeyInternal</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#gt-NewResolveInstanceKeyStrings"><span class="nav-number">1.2.1.1.1.1.</span> <span class="nav-text">-&gt;NewResolveInstanceKeyStrings</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#lt-NewResolveInstanceKeyStrings"><span class="nav-number">1.2.1.1.1.2.</span> <span class="nav-text">&lt;-NewResolveInstanceKeyStrings</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#lt-getInstanceKey"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">&lt;-getInstanceKey</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gt-ReadTopologyInstance"><span class="nav-number">1.2.2.</span> <span class="nav-text">-&gt;ReadTopologyInstance</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#gt-ReadTopologyInstanceBufferable"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">-&gt; ReadTopologyInstanceBufferable</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-ReadTopologyInstance"><span class="nav-number">1.2.3.</span> <span class="nav-text">&lt;- ReadTopologyInstance</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%91%E8%97%A4%E6%91%B8%E7%93%9CDiscoverInstance"><span class="nav-number">1.3.</span> <span class="nav-text">树藤摸瓜DiscoverInstance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#discoveryQueue"><span class="nav-number">1.4.</span> <span class="nav-text">discoveryQueue</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2022 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

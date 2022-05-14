@@ -305,6 +305,52 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2019-12-10-Drainer不支持的DDL-1"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/">Drainer不支持的DDL-1</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/" class="article-date">
+	  <time datetime="2019-12-10T13:23:00.000Z" itemprop="datePublished">2019-12-10</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Drainer不支持的DDL-1"><a href="#Drainer不支持的DDL-1" class="headerlink" title="Drainer不支持的DDL-1"></a>Drainer不支持的DDL-1</h1><p>版本3.0.5</p>
+<h2 id="1-rename-table-t1-to-b-db-b-t1"><a href="#1-rename-table-t1-to-b-db-b-t1" class="headerlink" title="1.rename table t1 to b_db.b_t1"></a>1.rename table t1 to b_db.b_t1</h2><p>已经做好TiDB-&gt;MySQL的同步, 开启了pump, drainer</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2019-12-10-MGR参数之group_replication_ip_whitelist"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -591,51 +637,6 @@
 
 
   
-    <article id="post-2019-07-20-记一次PMM容器被误删除的恢复"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/07/20/2019-07-20-%E8%AE%B0%E4%B8%80%E6%AC%A1PMM%E5%AE%B9%E5%99%A8%E8%A2%AB%E8%AF%AF%E5%88%A0%E9%99%A4%E7%9A%84%E6%81%A2%E5%A4%8D/">记一次PMM容器被误删除的恢复</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/07/20/2019-07-20-%E8%AE%B0%E4%B8%80%E6%AC%A1PMM%E5%AE%B9%E5%99%A8%E8%A2%AB%E8%AF%AF%E5%88%A0%E9%99%A4%E7%9A%84%E6%81%A2%E5%A4%8D/" class="article-date">
-	  <time datetime="2019-07-20T06:01:00.000Z" itemprop="datePublished">2019-07-20</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="记一次PMM容器被误删除的恢复"><a href="#记一次PMM容器被误删除的恢复" class="headerlink" title="记一次PMM容器被误删除的恢复"></a>记一次PMM容器被误删除的恢复</h1><p>昨天PMM Data Container和PMM Server Container 都不小心被误删了, 还好是使用的<code>docker rm container_id</code>删的, 没有加<code>-v</code>. 本人docker渣渣, 后来找运维同时帮忙终于恢复了<br>首先找到宿主机volumes路径<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node1 volumes]# pwd</span><br><span class="line">/var/lib/docker/volumes</span><br><span class="line">[<span class="symbol">root@</span>node1 volumes]# ll</span><br><span class="line">total <span class="number">32</span></span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Aug <span class="number">3</span> <span class="number">2018</span> <span class="number">4430</span>beeb61fbc26802dc1b31d9fe3a02772482d8ae31bd50110957f16256f02e</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">29</span> <span class="number">47</span>ce712fd5e32abcf60e9650f349ac1304e0c20d062bd54724123f6cb700a79e</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Aug <span class="number">3</span> <span class="number">2018</span> <span class="number">6</span>ecf1c674f9f8e6f3dda7f7da352b70860125147b4489c6a8fe00fa59892436f</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Aug <span class="number">3</span> <span class="number">2018</span> <span class="number">83</span>db182943136c354bf95c0b4d07a8272017fd1698557d27b97dae49c82a8e76</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">29</span> c9e3a964fd76dcad88ac992933ca97ac920c41239f9807f1ca91f939bd71ea03</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">29</span> e92a37881c9b378bc4b00094b3f7e38ace3ae3655c33677a79da1be5652a318a</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Aug <span class="number">3</span> <span class="number">2018</span> fcddf90d2cb64035c8c69165f69c5d7a780ac580c991f02af801bc65fa2ca609</span><br><span class="line">-rw------- <span class="number">1</span> root root <span class="number">65536</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">29</span> metadata.db</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">26</span> sentry-data</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">26</span> sentry-postgres</span><br></pre></td></tr></table></figure></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -656,7 +657,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -816,7 +817,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

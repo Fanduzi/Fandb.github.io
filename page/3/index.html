@@ -305,6 +305,52 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-2"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-2/">译文 ClickHouse Materialized Views Illuminated, Part 2</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-2/" class="article-date">
+	  <time datetime="2020-08-23T11:05:00.000Z" itemprop="datePublished">2020-08-23</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-2"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-2" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 2"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-2">ClickHouse Materialized Views Illuminated, Part 2</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/d1a1c-stockvault-abstract-glowing-multicolor-wireframe-background268674_small.png" alt="header"></p>
+<p><strong><a target="_blank" rel="noopener" href="https://www.altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">Read part 1</a></strong></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-1"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -538,54 +584,6 @@
 
 
   
-    <article id="post-2020-06-18-MGR单主到底做不做冲突检测"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/06/18/2020-06-18-MGR%E5%8D%95%E4%B8%BB%E5%88%B0%E5%BA%95%E5%81%9A%E4%B8%8D%E5%81%9A%E5%86%B2%E7%AA%81%E6%A3%80%E6%B5%8B/">MGR单主到底做不做冲突检测?</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/06/18/2020-06-18-MGR%E5%8D%95%E4%B8%BB%E5%88%B0%E5%BA%95%E5%81%9A%E4%B8%8D%E5%81%9A%E5%86%B2%E7%AA%81%E6%A3%80%E6%B5%8B/" class="article-date">
-	  <time datetime="2020-06-18T14:23:00.000Z" itemprop="datePublished">2020-06-18</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>和同事探讨一个问题, MGR单主做不做冲突检测.</p>
-<p>我理解是不需要做的, 因为已经明确只有主节点才能写入数据了, 那么必然不会有数据冲突的可能, 没必要再做冲突检测浪费性能了.</p>
-<p>看了下<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/group-replication-single-primary-mode.html">官方文档</a></p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">In</span> single-primary mode,<span class="built_in"> Group </span>Replication enforces that only a single<span class="built_in"> server </span>writes <span class="keyword">to</span> the group, so compared <span class="keyword">to</span> multi-primary mode, consistency checking can be less strict <span class="keyword">and</span> DDL statements <span class="keyword">do</span> <span class="keyword">not</span> need <span class="keyword">to</span> be handled with any extra care</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -606,7 +604,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -766,7 +764,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>

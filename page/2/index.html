@@ -305,6 +305,64 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-12-31-使用Canal-+-ClickHouse实时分析MySQL事务信息"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/12/31/2020-12-31-%E4%BD%BF%E7%94%A8Canal-+-ClickHouse%E5%AE%9E%E6%97%B6%E5%88%86%E6%9E%90MySQL%E4%BA%8B%E5%8A%A1%E4%BF%A1%E6%81%AF/">使用Canal + ClickHouse实时分析MySQL事务信息</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/12/31/2020-12-31-%E4%BD%BF%E7%94%A8Canal-+-ClickHouse%E5%AE%9E%E6%97%B6%E5%88%86%E6%9E%90MySQL%E4%BA%8B%E5%8A%A1%E4%BF%A1%E6%81%AF/" class="article-date">
+	  <time datetime="2020-12-31T05:54:00.000Z" itemprop="datePublished">2020-12-31</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="使用Canal-ClickHouse实时分析MySQL事务信息"><a href="#使用Canal-ClickHouse实时分析MySQL事务信息" class="headerlink" title="使用Canal + ClickHouse实时分析MySQL事务信息"></a>使用Canal + ClickHouse实时分析MySQL事务信息</h1><p>作为DBA, 有时候我们会希望能够了解线上核心库更具体的”样貌”, 如:</p>
+<ul>
+<li>这个库主要的DML类型是什么?</li>
+<li>这个库的事务大小, 执行时间, 影响行数大概是什么样的?</li>
+</ul>
+<p>以上信息也许没什么价值, 但大事务对复制的影响不用多说, 并且当我们希望升级当前主从架构到MGR/PXC等高可用方案的场景时以上信息就比较重要了(毕竟用数据说话更有力度).</p>
+<blockquote>
+<p>大事务对MGR和PXC都是不友好的, 尤其是MGR(起码在5.7版本)严重时会导致整个集群hang死</p>
+<p>在Galera 4.0中新特性<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>对大事务有了更好的支持</p>
+</blockquote>
+<p>当然, 有人可能会说, 通过分析binlog就可以完成这样的工作, 最简单的方法写个shell脚本就可以, 比如这篇文章中介绍的方法<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2015/01/20/identifying-useful-information-mysql-row-based-binary-logs/">Identifying Useful Info from MySQL Row-Based Binary Logs</a>(这篇文章介绍的方法比较简单, 分析速度也较慢, 可以试试<a target="_blank" rel="noopener" href="https://gitee.com/mo-shan/analysis_binlog.git">analysis_binlog</a>). 当然还有很多其他工具, 比如infobin. </p>
+<p>但个人认为上面的方法从某种角度来看还是比较麻烦, 而且现在ClickHouse越来越流行, 使用ClickHouse去完成这个工作也能帮助我们更好的学习ClickHouse</p>
+<p>先看一下最终的成果</p>
+<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/DB%E7%94%BB%E5%83%8F/overview.png" alt="overview"></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-09-24-类MHA高可用方案存在的问题"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -588,52 +646,6 @@
 
 
   
-    <article id="post-2020-08-23-译文-ClickHouse-Materialized-Views-Illuminated,-Part-2"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-2/">译文 ClickHouse Materialized Views Illuminated, Part 2</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/23/2020-08-23-%E8%AF%91%E6%96%87-ClickHouse-Materialized-Views-Illuminated,-Part-2/" class="article-date">
-	  <time datetime="2020-08-23T11:05:00.000Z" itemprop="datePublished">2020-08-23</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-2"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-2" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 2"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-2">ClickHouse Materialized Views Illuminated, Part 2</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/d1a1c-stockvault-abstract-glowing-multicolor-wireframe-background268674_small.png" alt="header"></p>
-<p><strong><a target="_blank" rel="noopener" href="https://www.altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">Read part 1</a></strong></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
@@ -654,7 +666,7 @@
   <div class="container">
       	<div class="row">
 	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
-	      <p id="copyRightEn">Copyright &copy; 2013 - 2021 Fan() All Rights Reserved.</p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
 	      
 	      
     		<p class="busuanzi_uv">
@@ -814,7 +826,7 @@
             Fan()
           </div>
           <div class="panel-body">
-            Copyright © 2021 大范 All Rights Reserved.
+            Copyright © 2022 大范 All Rights Reserved.
           </div>
         </div>
       </div>
