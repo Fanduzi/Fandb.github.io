@@ -305,6 +305,78 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-传统复制在线切换到GTID模式"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/06/17/%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F/">传统复制在线切换到GTID模式</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/06/17/%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F/" class="article-date">
+	  <time datetime="2017-06-17T14:00:00.000Z" itemprop="datePublished">2017-06-17</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="传统复制切换到GTID模式"><a href="#传统复制切换到GTID模式" class="headerlink" title="传统复制切换到GTID模式"></a>传统复制切换到GTID模式</h2><p>5.7.6以后参数<code>gtid_mode</code>可以动态修改<br>GTID_MODE:</p>
+<ul>
+<li><p>OFF </p>
+<blockquote>
+<p>彻底关闭GTID,如果关闭状态的备库接受到带GTID的事务,则复制中断</p>
+</blockquote>
+</li>
+<li><p>OFF_PERMISSIVE </p>
+<blockquote>
+<p>可以认为是关闭GTID前的过渡阶段,主库在设置成该值后不再生成GTID,备库在接受到带GTID 和不带GTID的事务都可以容忍<br>主库在关闭GTID时,执行事务会产生一个Anonymous_Gtid事件,会在备库执行:<br>SET @@SESSION.GTID_NEXT= ‘ANONYMOUS’<br>备库在执行匿名事务时,就不会去尝试生成本地GTID了</p>
+</blockquote>
+</li>
+<li><p>ON_PERMISSIVE</p>
+<blockquote>
+<p>可以认为是打开GTID前的过渡阶段,主库在设置成该值后会产生GTID,同时备库依然容忍带GTID和不带GTID的事务</p>
+</blockquote>
+</li>
+<li><p>ON</p>
+<blockquote>
+<p>完全打开GTID,如果打开状态的备库接受到不带GTID的事务,则复制中断</p>
+</blockquote>
+</li>
+</ul>
+<p>准备工作<br>1.拓扑中的所有服务器都必须使用MySQL 5.7.6或更高版本. 除非拓扑中的所有服务器都使用此版本,否则无法在任何单个服务器上启用GTID事务.<br>2.所有服务器都将gtid_mode设置为默认值OFF.</p>
+<p>The following procedure can be paused at any time and later resumed where it was, or reversed by jumping to the corresponding step of Section 16.1.5.3, “Disabling GTID Transactions Online”, the online procedure to disable GTIDs. This makes the procedure fault-tolerant because any unrelated issues that may appear in the middle of the procedure can be handled as usual, and then the procedure continued where it was left off.<br>切换过程可以再任意时刻停止,并稍后继续执行</p>
+<blockquote>
+<p>注意<br>在每一步执行完全完成后再执行下一步</p>
+</blockquote>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-主从切换实例(传统复制)"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -569,63 +641,12 @@
 
 
   
-    <article id="post-MySQL误DROP表恢复,innodb_file_per_table=ON"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2016/12/26/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=ON/">MySQL误DROP表恢复,innodb_file_per_table=ON</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2016/12/26/MySQL%E8%AF%AFDROP%E8%A1%A8%E6%81%A2%E5%A4%8D,innodb_file_per_table=ON/" class="article-date">
-	  <time datetime="2016-12-26T14:00:00.000Z" itemprop="datePublished">2016-12-26</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="MySQL误DROP表恢复-innodb-file-per-table-ON"><a href="#MySQL误DROP表恢复-innodb-file-per-table-ON" class="headerlink" title="MySQL误DROP表恢复,innodb_file_per_table=ON"></a>MySQL误DROP表恢复,innodb_file_per_table=ON</h1><blockquote>
-<p>参考<br><a target="_blank" rel="noopener" href="https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-on/">https://twindb.com/recover-after-drop-table-innodb_file_per_table-is-on/</a></p>
-</blockquote>
-<h2 id="Undrop-for-innodb安装"><a href="#Undrop-for-innodb安装" class="headerlink" title="Undrop-for-innodb安装"></a>Undrop-for-innodb安装</h2><p>详见<a target="_blank" rel="noopener" href="https://github.com/chhabhaiya/undrop-for-innodb">https://github.com/chhabhaiya/undrop-for-innodb</a></p>
-<h2 id="删除Country表并恢复"><a href="#删除Country表并恢复" class="headerlink" title="删除Country表并恢复"></a>删除Country表并恢复</h2><p>使用sakila示例数据库作为例子,sakila相当于Oracle的SCOTT<br>innodb每个表包含两个文件.frm文件包含建表语句.ibd文件包含数据<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">mysql@</span>master sakila]$ ll country.*</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql  <span class="number">8652</span> Aug <span class="number">26</span> <span class="number">14</span>:<span class="number">25</span> country.frm</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql <span class="number">98304</span> Aug <span class="number">26</span> <span class="number">14</span>:<span class="number">25</span> country.ibd</span><br></pre></td></tr></table></figure></p>
-<p>接下来删除country表,删之前看一下checksum<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt; use sakila</span></span><br><span class="line"><span class="emphasis">Database changed</span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt; select count(<span class="strong">*) from country;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|      109 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;checksum table country;</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| Table               | Checksum   |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| sakila.country      | 2039770088 |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>接下来删除country表<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">SESSION_A</span>&gt;drop table country;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">01</span> sec)</span><br></pre></td></tr></table></figure></p>
-<p>drop table后,.frm和.ibd文件也被删除了<br><figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysql@<span class="keyword">master</span> <span class="title">sakila</span>]$ ll country*</span><br><span class="line">ls: cannot access country*: No such file <span class="keyword">or</span> directory</span><br></pre></td></tr></table></figure><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/17/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/19/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/17/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/19/">下一页 »</a>
   </nav>
 
 </section>

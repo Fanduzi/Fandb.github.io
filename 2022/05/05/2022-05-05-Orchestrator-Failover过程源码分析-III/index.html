@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>orchestrator failover过程源码分析-iii | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLOrchestrator" />
+  
+  
+  
+  
+  <meta name="description" content="Orchestrator Failover过程源码分析-III书接上文Orchestrator Failover过程源码分析-II GetCandidateReplica123456789&#x2F;&#x2F; RegroupReplicasGTID will choose a candidate replica of a given instance, and take its siblings using GT">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Orchestrator Failover过程源码分析-III">
+<meta property="og:url" content="http://fuxkdb.com/2022/05/05/2022-05-05-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-III/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Orchestrator Failover过程源码分析-III书接上文Orchestrator Failover过程源码分析-II GetCandidateReplica123456789&#x2F;&#x2F; RegroupReplicasGTID will choose a candidate replica of a given instance, and take its siblings using GT">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/15/16-57-55-Orchestrator%20Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-III-Excalidraw-4bd4af.png">
+<meta property="article:published_time" content="2022-05-05T13:30:00.000Z">
+<meta property="article:modified_time" content="2022-05-15T09:04:48.628Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Orchestrator">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/15/16-57-55-Orchestrator%20Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-III-Excalidraw-4bd4af.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2022-05-05-Orchestrator-Failover过程源码分析-III" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Orchestrator Failover过程源码分析-III
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2022/05/05/2022-05-05-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-III/" class="article-date">
+	  <time datetime="2022-05-05T13:30:00.000Z" itemprop="datePublished">2022-05-05</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Orchestrator-Failover过程源码分析-III"><a href="#Orchestrator-Failover过程源码分析-III" class="headerlink" title="Orchestrator Failover过程源码分析-III"></a>Orchestrator Failover过程源码分析-III</h1><p>书接上文<a href="http://fuxkdb.com/2022/04/30/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/">Orchestrator Failover过程源码分析-II</a></p>
+<h2 id="GetCandidateReplica"><a href="#GetCandidateReplica" class="headerlink" title="GetCandidateReplica"></a>GetCandidateReplica</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RegroupReplicasGTID will choose a candidate replica of a given instance, and take its siblings using GTID</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RegroupReplicasGTID</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    masterKey *InstanceKey, // 实参传进来的是 挂掉的旧主库</span></span></span><br><span class="line"><span class="function"><span class="params">    returnReplicaEvenOnFailureToRegroup <span class="keyword">bool</span>, // 实参传进来的是 <span class="literal">true</span></span></span></span><br><span class="line"><span class="function"><span class="params">    startReplicationOnCandidate <span class="keyword">bool</span>, // 实参传进来的是 <span class="literal">false</span></span></span></span><br><span class="line"><span class="function"><span class="params">    onCandidateReplicaChosen <span class="keyword">func</span>(*Instance)</span>, // 实参传进来的是 <span class="title">nil</span></span></span><br><span class="line">    postponedFunctionsContainer *PostponedFunctionsContainer,</span><br><span class="line">    postponeAllMatchOperations <span class="function"><span class="keyword">func</span><span class="params">(*Instance, <span class="keyword">bool</span>)</span> <span class="title">bool</span>, // 实参传进来的是 <span class="title">promotedReplicaIsIdeal</span> 函数</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>RegroupReplicasGTID will choose a candidate replica of a given instance, and take its siblings using GTID<br>英文简简单单一句话, 中文不知道咋翻译.. 我理解就是RegroupReplicasGTID会从目标实例(即DeadMaster)的从库中选出一个candidate出来, 然后提升他为新主库, 并接管所有的从库</p>
+</blockquote>
+<p>要理解RegroupReplicasGTID, 还是要先看它调用的GetCandidateReplica</p>
+<a id="more"></a>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GetCandidateReplica chooses the best replica to promote given a (possibly dead) master</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GetCandidateReplica</span><span class="params">(masterKey *InstanceKey, forRematchPurposes <span class="keyword">bool</span>)</span> <span class="params">(*Instance, [](*Instance)</span>, []<span class="params">(*Instance)</span>, []<span class="params">(*Instance)</span>, []<span class="params">(*Instance)</span>, <span class="title">error</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// masterKey 实参传进来的是 挂掉的旧主库. InstanceKey结构体里只有Hostname和Port</span></span><br><span class="line">    <span class="comment">// forRematchPurposes 实参传进来是 true</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 声明变量, 这是一个指针</span></span><br><span class="line">    <span class="keyword">var</span> candidateReplica *Instance</span><br><span class="line">    aheadReplicas := [](*Instance)&#123;&#125; <span class="comment">// 字面量声明, 所以 aheadReplicas != nil</span></span><br><span class="line">    equalReplicas := [](*Instance)&#123;&#125;</span><br><span class="line">    laterReplicas := [](*Instance)&#123;&#125;</span><br><span class="line">    cannotReplicateReplicas := [](*Instance)&#123;&#125;</span><br><span class="line"></span><br><span class="line">    dataCenterHint := <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="comment">// 这里实际是根据Hostname和Port读取backend db database_instance表,  实例化了一个instance, 使用readInstanceRow填充了各种属性, 如is_candidate, promotion_rule等等</span></span><br><span class="line">    <span class="keyword">if</span> master, _, _ := ReadInstance(masterKey); master != <span class="literal">nil</span> &#123;</span><br><span class="line">        dataCenterHint = master.DataCenter</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 返回给定主站的副本列表，用于候选选择。</span></span><br><span class="line">    <span class="comment">// 就是把masterKey的所有从库读出来了, 返回一个[](*Instance)</span></span><br><span class="line">    replicas, err := getReplicasForSorting(masterKey, <span class="literal">false</span>)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="comment">// 如果有err, 这里直接return. 注意此时candidateReplica是等于nil的</span></span><br><span class="line">        <span class="keyword">return</span> candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, err</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// type StopReplicationMethod string</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// const (</span></span><br><span class="line">    <span class="comment">//  NoStopReplication     StopReplicationMethod = &quot;NoStopReplication&quot;</span></span><br><span class="line">    <span class="comment">//  StopReplicationNormal                       = &quot;StopReplicationNormal&quot;</span></span><br><span class="line">    <span class="comment">//  StopReplicationNice                         = &quot;StopReplicationNice&quot;</span></span><br><span class="line">    <span class="comment">// )</span></span><br><span class="line">    stopReplicationMethod := NoStopReplication</span><br><span class="line">    <span class="comment">// forRematchPurposes 实参传进来是 true</span></span><br><span class="line">    <span class="keyword">if</span> forRematchPurposes &#123;</span><br><span class="line">        stopReplicationMethod = StopReplicationNice <span class="comment">// 所以 stopReplicationMethod 是 StopReplicationNice</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 传入了所有的从库, StopReplicationNice, 和 主库的数据中心</span></span><br><span class="line">    <span class="comment">// 返回根据 exec coordinates 排序的从库列表</span></span><br><span class="line">    replicas = sortedReplicasDataCenterHint(replicas, stopReplicationMethod, dataCenterHint)</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(replicas) == <span class="number">0</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, fmt.Errorf(<span class="string">&quot;No replicas found for %+v&quot;</span>, *masterKey)</span><br><span class="line">    &#125;</span><br><span class="line">    candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, err = chooseCandidateReplica(replicas)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> candidateReplica != <span class="literal">nil</span> &#123;</span><br><span class="line">        mostUpToDateReplica := replicas[<span class="number">0</span>]</span><br><span class="line">        <span class="keyword">if</span> candidateReplica.ExecBinlogCoordinates.SmallerThan(&amp;mostUpToDateReplica.ExecBinlogCoordinates) &#123;</span><br><span class="line">            log.Warningf(<span class="string">&quot;GetCandidateReplica: chosen replica: %+v is behind most-up-to-date replica: %+v&quot;</span>, candidateReplica.Key, mostUpToDateReplica.Key)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    log.Debugf(<span class="string">&quot;GetCandidateReplica: candidate: %+v, ahead: %d, equal: %d, late: %d, break: %d&quot;</span>, candidateReplica.Key, <span class="built_in">len</span>(aheadReplicas), <span class="built_in">len</span>(equalReplicas), <span class="built_in">len</span>(laterReplicas), <span class="built_in">len</span>(cannotReplicateReplicas))</span><br><span class="line">    <span class="keyword">return</span> candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>GetCandidateReplica首先根据masterKey(只包含Hostname和Port)查询Backend DB的database_instance表生成了一个master”对象”<br>然后从Backend DB中查询出master的所有的从库, 返回一个包含所有从库<code>*Instance</code> 的切片replicas</p>
+<blockquote>
+<p>注意<br>如果在”获取”从库的过程中出现error, 则GetCandidateReplica会终止直接return. 而此时candidateReplica是等于nil的</p>
+</blockquote>
+<p>接着调用sortedReplicasDataCenterHint对replicas进行排序. 接下来先展开说一下这个函数</p>
+<h3 id="sortedReplicasDataCenterHint"><a href="#sortedReplicasDataCenterHint" class="headerlink" title="sortedReplicasDataCenterHint"></a>sortedReplicasDataCenterHint</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// sortedReplicas returns the list of replicas of some master, sorted by exec coordinates</span></span><br><span class="line"><span class="comment">// (most up-to-date replica first).</span></span><br><span class="line"><span class="comment">// This function assumes given `replicas` argument is indeed a list of instances all replicating</span></span><br><span class="line"><span class="comment">// from the same master (the result of `getReplicasForSorting()` is appropriate)</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sortedReplicasDataCenterHint</span><span class="params">(replicas [](*Instance)</span>, <span class="title">stopReplicationMethod</span> <span class="title">StopReplicationMethod</span>, <span class="title">dataCenterHint</span> <span class="title">string</span>) []<span class="params">(*Instance)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(replicas) &lt;= <span class="number">1</span> &#123;  <span class="comment">// 如果只有一个从库, 直接返回</span></span><br><span class="line">        <span class="keyword">return</span> replicas</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// InstanceBulkOperationsWaitTimeoutSeconds 默认10s</span></span><br><span class="line">    <span class="comment">// 先 StopReplicationNicely 超时10s, 如果超时了也只是记了日志. 然后StopReplication</span></span><br><span class="line">    <span class="comment">// 然后 sortInstancesDataCenterHint. 这要看NewInstancesSorterByExec的Less方法如何实现. 简单说就是ExecBinlogCoordinates大的放前面, 如果ExecBinlogCoordinates一样, Datacenter和DeadMaster一样的放前面</span></span><br><span class="line">    replicas = StopReplicas(replicas, stopReplicationMethod, time.Duration(config.Config.InstanceBulkOperationsWaitTimeoutSeconds)*time.Second)</span><br><span class="line">    replicas = RemoveNilInstances(replicas)</span><br><span class="line"></span><br><span class="line">    sortInstancesDataCenterHint(replicas, dataCenterHint)</span><br><span class="line">    <span class="keyword">for</span> _, replica := <span class="keyword">range</span> replicas &#123;</span><br><span class="line">        log.Debugf(<span class="string">&quot;- sorted replica: %+v %+v&quot;</span>, replica.Key, replica.ExecBinlogCoordinates)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> replicas</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从注释可以看出sortedReplicas会返回一个按exec coordinates排序的从库列表(most up-to-date first)<br>sortedReplicasDataCenterHint先调用StopReplicas, StopReplicas做了几件事:</p>
+<blockquote>
+<p>对于本例, stopReplicationMethod是StopReplicationNice</p>
+<ol>
+<li>并行的在所有从库执行StopReplicationNicely.<br> StopReplicationNicely会先<code>stop slave io_thread</code>, <code>start slave sql_thread</code>, 然后对所有非延迟从库WaitForSQLThreadUpToDate, 最多等待InstanceBulkOperationsWaitTimeoutSeconds秒(也就是默认10s)<br>如果超过InstanceBulkOperationsWaitTimeoutSeconds秒, SQL_THREAD还是没有应用完所有日志, 也不等了. <blockquote>
+<p>等待超时不会引发异常</p>
+</blockquote>
+</li>
+<li>StopReplicationNicely执行完成后, 执行StopReplication. 实际就是执行stop slave</li>
+</ol>
+</blockquote>
+<p><strong>对比MHA</strong><br>MHA其实会在<code>Dead Master Shutdown Phase</code> 停所有从库io_thread<br><figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">MasterFailover.pm</span><br><span class="line"><span class="function"><span class="keyword">sub</span> <span class="title">do_master_failover</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    $log-&gt;info(<span class="string">&quot;* Phase 2: Dead Master Shutdown Phase..\n&quot;</span>);</span><br><span class="line">    $log-&gt;info();</span><br><span class="line">    force_shutdown($dead_master);</span><br><span class="line">    $log-&gt;info(<span class="string">&quot;* Phase 2: Dead Master Shutdown Phase completed.\n&quot;</span>);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">sub</span> <span class="title">force_shutdown</span>($) </span>&#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="keyword">my</span> $slave_io_stopper = new Parallel::ForkManager( $#alive_slaves + <span class="number">1</span> );</span><br><span class="line">  <span class="keyword">my</span> $stop_io_failed   = <span class="number">0</span>;</span><br><span class="line">  $slave_io_stopper-&gt;run_on_start(</span><br><span class="line">    <span class="function"><span class="keyword">sub</span> </span>&#123;</span><br><span class="line">      <span class="keyword">my</span> ( $pid, $target ) = @_;</span><br><span class="line">    &#125;</span><br><span class="line">  );</span><br><span class="line">  $slave_io_stopper-&gt;run_on_finish(</span><br><span class="line">    <span class="function"><span class="keyword">sub</span> </span>&#123;</span><br><span class="line">      <span class="keyword">my</span> ( $pid, $exit_code, $target ) = @_;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">if</span> ( $target-&gt;&#123;ignore_fail&#125; );</span><br><span class="line">      $stop_io_failed = <span class="number">1</span> <span class="keyword">if</span> ($exit_code);</span><br><span class="line">    &#125;</span><br><span class="line">  );</span><br><span class="line"></span><br><span class="line">  <span class="keyword">foreach</span> <span class="keyword">my</span> $target (@alive_slaves) &#123;</span><br><span class="line">    $slave_io_stopper-&gt;start($target) <span class="keyword">and</span> <span class="keyword">next</span>;</span><br><span class="line">    <span class="keyword">eval</span> &#123;</span><br><span class="line">      $SIG<span class="string">&#123;INT&#125;</span> = $SIG<span class="string">&#123;HUP&#125;</span> = $SIG<span class="string">&#123;QUIT&#125;</span> = $SIG<span class="string">&#123;TERM&#125;</span> = <span class="string">&quot;DEFAULT&quot;</span>;</span><br><span class="line">      <span class="keyword">my</span> $rc = $target-&gt;stop_io_thread();</span><br><span class="line">      $slave_io_stopper-&gt;finish($rc);</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">if</span> ($@) &#123;</span><br><span class="line">      $log-&gt;error($@);</span><br><span class="line">      <span class="keyword">undef</span> $@;</span><br><span class="line">      $slave_io_stopper-&gt;finish(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    $slave_io_stopper-&gt;finish(<span class="number">0</span>);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure><br>这是很合理的, 只要开始Failover了, 就说明MHA认为主库已经挂了, 那么停io_thread再根据Master_Log_File和Read_Master_Log_Pos是没问题的<br><figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">ServerManager.pm</span><br><span class="line"><span class="function"><span class="keyword">sub</span> <span class="title">identify_latest_slaves</span>($$) </span>&#123;</span><br><span class="line">  <span class="keyword">my</span> $self        = <span class="keyword">shift</span>;</span><br><span class="line">  <span class="keyword">my</span> $find_oldest = <span class="keyword">shift</span>;</span><br><span class="line">  $find_oldest = <span class="number">0</span> <span class="keyword">unless</span> ($find_oldest);</span><br><span class="line">  <span class="keyword">my</span> $log    = $self-&gt;&#123;logger&#125;;</span><br><span class="line">  <span class="keyword">my</span> @slaves = $self-&gt;get_alive_slaves();</span><br><span class="line">  <span class="keyword">my</span> @latest = ();</span><br><span class="line">  <span class="keyword">foreach</span> (@slaves) &#123;</span><br><span class="line">    <span class="keyword">my</span> $a = $latest[<span class="number">0</span>]<span class="string">&#123;Master_Log_File&#125;</span>;</span><br><span class="line">    <span class="keyword">my</span> $b = $latest[<span class="number">0</span>]<span class="string">&#123;Read_Master_Log_Pos&#125;</span>;</span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">      !$find_oldest</span><br><span class="line">      &amp;&amp; (</span><br><span class="line">           ( !$a &amp;&amp; !<span class="keyword">defined</span>($b) )</span><br><span class="line">        || ( $_-&gt;&#123;Master_Log_File&#125; <span class="keyword">gt</span> $latest[<span class="number">0</span>]<span class="string">&#123;Master_Log_File&#125;</span> )</span><br><span class="line">        || ( ( $_-&gt;&#123;Master_Log_File&#125; ge $latest[<span class="number">0</span>]<span class="string">&#123;Master_Log_File&#125;</span> )</span><br><span class="line">          &amp;&amp; $_-&gt;&#123;Read_Master_Log_Pos&#125; &gt; $latest[<span class="number">0</span>]<span class="string">&#123;Read_Master_Log_Pos&#125;</span> )</span><br><span class="line">      )</span><br><span class="line">      )</span><br><span class="line">    &#123;</span><br><span class="line">      @latest = ();</span><br><span class="line">      <span class="keyword">push</span>( @latest, $_ );</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">elsif</span> (</span><br><span class="line">      $find_oldest</span><br><span class="line">      &amp;&amp; (</span><br><span class="line">           ( !$a &amp;&amp; !<span class="keyword">defined</span>($b) )</span><br><span class="line">        || ( $_-&gt;&#123;Master_Log_File&#125; <span class="keyword">lt</span> $latest[<span class="number">0</span>]<span class="string">&#123;Master_Log_File&#125;</span> )</span><br><span class="line">        || ( ( $_-&gt;&#123;Master_Log_File&#125; le $latest[<span class="number">0</span>]<span class="string">&#123;Master_Log_File&#125;</span> )</span><br><span class="line">          &amp;&amp; $_-&gt;&#123;Read_Master_Log_Pos&#125; &lt; $latest[<span class="number">0</span>]<span class="string">&#123;Read_Master_Log_Pos&#125;</span> )</span><br><span class="line">      )</span><br><span class="line">      )</span><br><span class="line">    &#123;</span><br><span class="line">      @latest = ();</span><br><span class="line">      <span class="keyword">push</span>( @latest, $_ );</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">elsif</span> ( ( $_-&gt;&#123;Master_Log_File&#125; eq $latest[<span class="number">0</span>]<span class="string">&#123;Master_Log_File&#125;</span> )</span><br><span class="line">      &amp;&amp; ( $_-&gt;&#123;Read_Master_Log_Pos&#125; == $latest[<span class="number">0</span>]<span class="string">&#123;Read_Master_Log_Pos&#125;</span> ) )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">push</span>( @latest, $_ );</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">foreach</span> (@latest) &#123;</span><br><span class="line">    $_-&gt;&#123;latest&#125; = <span class="number">1</span> <span class="keyword">if</span> ( !$find_oldest );</span><br><span class="line">    $_-&gt;&#123;oldest&#125; = <span class="number">1</span> <span class="keyword">if</span> ($find_oldest);</span><br><span class="line">  &#125;</span><br><span class="line">  $log-&gt;info(</span><br><span class="line">    <span class="keyword">sprintf</span>(</span><br><span class="line">      <span class="string">&quot;The %s binary log file/position on all slaves is&quot;</span> . <span class="string">&quot; %s:%d\n&quot;</span>,</span><br><span class="line">      $find_oldest ? <span class="string">&quot;oldest&quot;</span> : <span class="string">&quot;latest&quot;</span>, $latest[<span class="number">0</span>]<span class="string">&#123;Master_Log_File&#125;</span>,</span><br><span class="line">      $latest[<span class="number">0</span>]<span class="string">&#123;Read_Master_Log_Pos&#125;</span></span><br><span class="line">    )</span><br><span class="line">  );</span><br><span class="line">  <span class="keyword">if</span> ( $latest[<span class="number">0</span>]<span class="string">&#123;Retrieved_Gtid_Set&#125;</span> ) &#123;</span><br><span class="line">    $log-&gt;info(</span><br><span class="line">      <span class="keyword">sprintf</span>( <span class="string">&quot;Retrieved Gtid Set: %s&quot;</span>, $latest[<span class="number">0</span>]<span class="string">&#123;Retrieved_Gtid_Set&#125;</span> ) );</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> ($find_oldest) &#123;</span><br><span class="line">    $self-&gt;set_oldest_slaves( \@latest );</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">else</span> &#123;</span><br><span class="line">    $self-&gt;set_latest_slaves( \@latest );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure><br>orchestrator是根据ExecBinlogCoordinates比较出latest slave, 那么最准确的方式是要等所有slave sql_thread跑完. orchestrator虽然调用了WaitForSQLThreadUpToDate, 但只等待了10s(超时). </p>
+<p>随后运行sortInstancesDataCenterHint函数<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// sortInstances shuffles given list of instances according to some logic</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sortInstancesDataCenterHint</span><span class="params">(instances [](*Instance)</span>, <span class="title">dataCenterHint</span> <span class="title">string</span>)</span> &#123;  </span><br><span class="line">   sort.Sort(sort.Reverse(NewInstancesSorterByExec(instances, dataCenterHint)))  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>这里做了个Reverse排序, 具体如何排序的, 要看NewInstancesSorterByExec的Less方法</p>
+<blockquote>
+<p>关于sort.Reverse<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> reverse <span class="keyword">struct</span> &#123;</span><br><span class="line"> <span class="comment">// This embedded Interface permits Reverse to use the methods of</span></span><br><span class="line"> <span class="comment">// another Interface implementation.</span></span><br><span class="line"> Interface</span><br><span class="line">&#125;&gt; </span><br><span class="line"><span class="comment">// Less returns the opposite of the embedded implementation&#x27;s Less method.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r reverse)</span> <span class="title">Less</span><span class="params">(i, j <span class="keyword">int</span>)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line"> <span class="keyword">return</span> r.Interface.Less(j, i)</span><br><span class="line">&#125;&gt; </span><br><span class="line"><span class="comment">// Reverse returns the reverse order for data.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Reverse</span><span class="params">(data Interface)</span> <span class="title">Interface</span></span> &#123;</span><br><span class="line"> <span class="keyword">return</span> &amp;reverse&#123;data&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>sort.Reverse返回的是一个*reverse. reverse结构体就一个匿名字段Interface<br>reverse上线了Less方法, 他本质就是使用Interface.Less, 只不过调换了参数顺序<br>所以Reverse()虽然返回的是初始数据，但是改变了数据的Less()方法, 在排序时调用这个就会产生逆排序的效果.</p>
+</blockquote>
+<p>NewInstancesSorterByExec的Less方法<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(this *InstancesSorterByExec)</span> <span class="title">Less</span><span class="params">(i, j <span class="keyword">int</span>)</span> <span class="title">bool</span></span> &#123;  </span><br><span class="line">   <span class="comment">// Returning &quot;true&quot; in this function means [i] is &quot;smaller&quot; than [j],  </span></span><br><span class="line">   <span class="comment">// which will lead to [j] be a better candidate for promotion  </span></span><br><span class="line">   <span class="comment">// Sh*t happens. We just might get nil while attempting to discover/recover   if this.instances[i] == nil &#123;  </span></span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span>  </span><br><span class="line">   &#125;  </span><br><span class="line">   <span class="keyword">if</span> this.instances[j] == <span class="literal">nil</span> &#123;  </span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span>  </span><br><span class="line">   &#125;  </span><br><span class="line">   <span class="keyword">if</span> this.instances[i].ExecBinlogCoordinates.Equals(&amp;this.instances[j].ExecBinlogCoordinates) &#123;  </span><br><span class="line">      <span class="comment">// Secondary sorting: &quot;smaller&quot; if not logging replica updates  </span></span><br><span class="line">      <span class="keyword">if</span> this.instances[j].LogReplicationUpdatesEnabled &amp;&amp; !this.instances[i].LogReplicationUpdatesEnabled &#123;  </span><br><span class="line">         <span class="keyword">return</span> <span class="literal">true</span>  </span><br><span class="line">      &#125;  </span><br><span class="line">      <span class="comment">// Next sorting: &quot;smaller&quot; if of higher version (this will be reversed eventually)  </span></span><br><span class="line">      <span class="comment">// Idea is that given 5.6 a&amp; 5.7 both of the exact position, we will want to promote      </span></span><br><span class="line">      <span class="comment">// the 5.6 on top of 5.7, as the other way around is invalid      </span></span><br><span class="line">      <span class="keyword">if</span> this.instances[j].IsSmallerMajorVersion(this.instances[i]) &#123;  </span><br><span class="line">         <span class="keyword">return</span> <span class="literal">true</span>  </span><br><span class="line">      &#125;  </span><br><span class="line">      <span class="comment">// Next sorting: &quot;smaller&quot; if of larger binlog-format (this will be reversed eventually)  </span></span><br><span class="line">      <span class="comment">// Idea is that given ROW &amp; STATEMENT both of the exact position, we will want to promote      </span></span><br><span class="line">      <span class="comment">// the STATEMENT on top of ROW, as the other way around is invalid      </span></span><br><span class="line">      <span class="keyword">if</span> this.instances[j].IsSmallerBinlogFormat(this.instances[i]) &#123;  </span><br><span class="line">         <span class="keyword">return</span> <span class="literal">true</span>  </span><br><span class="line">      &#125;  </span><br><span class="line">      <span class="comment">// Prefer local datacenter:  </span></span><br><span class="line">      <span class="keyword">if</span> this.instances[j].DataCenter == this.dataCenter &amp;&amp; this.instances[i].DataCenter != this.dataCenter &#123;  </span><br><span class="line">         <span class="keyword">return</span> <span class="literal">true</span>  </span><br><span class="line">      &#125;  </span><br><span class="line">      <span class="comment">// Prefer if not having errant GTID  </span></span><br><span class="line">      <span class="keyword">if</span> this.instances[j].GtidErrant == <span class="string">&quot;&quot;</span> &amp;&amp; this.instances[i].GtidErrant != <span class="string">&quot;&quot;</span> &#123;  </span><br><span class="line">         <span class="keyword">return</span> <span class="literal">true</span>  </span><br><span class="line">      &#125;  </span><br><span class="line">      <span class="comment">// Prefer candidates:  </span></span><br><span class="line">      <span class="keyword">if</span> this.instances[j].PromotionRule.BetterThan(this.instances[i].PromotionRule) &#123;  </span><br><span class="line">         <span class="keyword">return</span> <span class="literal">true</span>  </span><br><span class="line">      &#125;  </span><br><span class="line">   &#125;   <span class="keyword">return</span> this.instances[i].ExecBinlogCoordinates.SmallerThan(&amp;this.instances[j].ExecBinlogCoordinates)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>简单来说, 就是根据ExecBinlogCoordinates比较, 如果ExecBinlogCoordinates相同在比DataCenter, DataCenter与DeadMaster一样的为”大”</p>
+<blockquote>
+<p>instance.ExecBinlogCoordinates.LogFile = m.GetString(“Relay_Master_Log_File”)<br>instance.ExecBinlogCoordinates.LogPos = m.GetInt64(“Exec_Master_Log_Pos”)</p>
+</blockquote>
+<p>那么至此<code>sortInstancesDataCenterHint</code>干了啥也就清楚了, 就是排了个序, 把most up-to-date从库放在最前面, 如果两个从库ExecBinlogCoordinates一样, 则从库所在数据中心和主库一样的放前面</p>
+<blockquote>
+<p>首要条件是ExecBinlogCoordinates. PromotionRule的”好坏”只是最次要的排序条件(因为他在最后一个if里). ExecBinlogCoordinates相同时, 排序优先级是:</p>
+<ol>
+<li>LogReplicationUpdatesEnabled</li>
+<li>SmallerMajorVersion</li>
+<li>SmallerBinlogFormat</li>
+<li>same DataCenter with dead master</li>
+<li>GtidErrant == “”</li>
+<li>PromotionRule</li>
+</ol>
+</blockquote>
+<p>接下来<code>GetCandidateReplica</code>会调用chooseCandidateReplica, 初步选一个candidate, chooseCandidateReplica接收的参数就是刚刚sortedReplicasDataCenterHint返回的排序后的replicas切片</p>
+<h3 id="chooseCandidateReplica"><a href="#chooseCandidateReplica" class="headerlink" title="chooseCandidateReplica"></a>chooseCandidateReplica</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// chooseCandidateReplica</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">chooseCandidateReplica</span><span class="params">(replicas [](*Instance)</span>) <span class="params">(candidateReplica *Instance, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas [](*Instance)</span>, <span class="title">err</span> <span class="title">error</span>)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(replicas) == <span class="number">0</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, fmt.Errorf(<span class="string">&quot;No replicas found given in chooseCandidateReplica&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 返回在给定实例中发现的主要（最常见）的Major版本</span></span><br><span class="line">    <span class="comment">// 比如replicas里有三个实例, 5.6.30, 5.7.32, 5.7.26. 那priorityMajorVersion就是5.7</span></span><br><span class="line">    priorityMajorVersion, _ := getPriorityMajorVersionForCandidate(replicas) </span><br><span class="line">    <span class="comment">// 返回在给定实例中发现的主要（最常见）binlog格式</span></span><br><span class="line">    <span class="comment">// 比如replicas里有三个实例, mixed, row, row. 那么priorityBinlogFormat是row</span></span><br><span class="line">    priorityBinlogFormat, _ := getPriorityBinlogFormatForCandidate(replicas)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> _, replica := <span class="keyword">range</span> replicas &#123;</span><br><span class="line">        replica := replica</span><br><span class="line">        <span class="keyword">if</span> isGenerallyValidAsCandidateReplica(replica) &amp;&amp; <span class="comment">// 做一些简单的检测, 比如IsLastCheckValid, LogBinEnabled, LogReplicationUpdatesEnabled(前三个都应该为true), IsBinlogServer(应为false)</span></span><br><span class="line">            !IsBannedFromBeingCandidateReplica(replica) &amp;&amp; <span class="comment">// 是否被参数 PromotionIgnoreHostnameFilters 匹配, 希望不匹配</span></span><br><span class="line">            !IsSmallerMajorVersion(priorityMajorVersion, replica.MajorVersionString()) &amp;&amp; <span class="comment">// 希望 replica 版本 &lt;= priorityMajorVersion. 更希望高版本做低版本从库. 那比如最常见版本是5.6, 然后有一个replica是5.7, 他是那个most up-to-date的从库, 到这里一比较, 他就不符合条件, 就被pass了</span></span><br><span class="line">            !IsSmallerBinlogFormat(priorityBinlogFormat, replica.Binlog_format) &#123; <span class="comment">// 希望比如priorityBinlogFormat row, 那replica是mixed或statement</span></span><br><span class="line">            <span class="comment">// this is the one</span></span><br><span class="line">            candidateReplica = replica</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 不用想那么多, 以我们的场景, 不存在Major版本不同的, Binlog_format也都是row </span></span><br><span class="line">    <span class="comment">// 那只要这个从库没什么&quot;毛病&quot;, 也没在PromotionIgnoreHostnameFilters中, 那基本上replicas[0]就是candidateReplica</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果上面的所有replica都不符合条件, candidateReplica就=nil, 就会进入这个if</span></span><br><span class="line">    <span class="keyword">if</span> candidateReplica == <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="comment">// Unable to find a candidate that will master others.</span></span><br><span class="line">        <span class="comment">// Instead, pick a (single) replica which is not banned.</span></span><br><span class="line">        <span class="keyword">for</span> _, replica := <span class="keyword">range</span> replicas &#123;</span><br><span class="line">            replica := replica</span><br><span class="line">            <span class="keyword">if</span> !IsBannedFromBeingCandidateReplica(replica) &#123; <span class="comment">// 选出第一个not banned的</span></span><br><span class="line">                <span class="comment">// this is the one</span></span><br><span class="line">                candidateReplica = replica</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 如果选出了一个 not banned</span></span><br><span class="line">        <span class="keyword">if</span> candidateReplica != <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="comment">// 把candidateReplica从 replicas里移除</span></span><br><span class="line">            replicas = RemoveInstance(replicas, &amp;candidateReplica.Key)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> candidateReplica, replicas, equalReplicas, laterReplicas, cannotReplicateReplicas, fmt.Errorf(<span class="string">&quot;chooseCandidateReplica: no candidate replica found&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 能走到这里, 说明第一次循环就找到candidateReplica了</span></span><br><span class="line">    <span class="comment">// 把candidateReplica从 replicas里移除</span></span><br><span class="line">    replicas = RemoveInstance(replicas, &amp;candidateReplica.Key)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 迭代replicas</span></span><br><span class="line">    <span class="keyword">for</span> _, replica := <span class="keyword">range</span> replicas &#123;</span><br><span class="line">        replica := replica</span><br><span class="line">        <span class="comment">// 如果这个实例不能做 candidateReplica 的从库, 就把它放到 cannotReplicateReplicas切片里</span></span><br><span class="line">        <span class="keyword">if</span> canReplicate, err := replica.CanReplicateFrom(candidateReplica); !canReplicate &#123;</span><br><span class="line">            <span class="comment">// lost due to inability to replicate</span></span><br><span class="line">            cannotReplicateReplicas = <span class="built_in">append</span>(cannotReplicateReplicas, replica)</span><br><span class="line">            <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">                log.Errorf(<span class="string">&quot;chooseCandidateReplica(): error checking CanReplicateFrom(). replica: %v; error: %v&quot;</span>, replica.Key, err)</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="comment">// 如果这个实例 ExecBinlogCoordinates SmallerThan candidateReplica.ExecBinlogCoordinates, 放到laterReplicas</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> replica.ExecBinlogCoordinates.SmallerThan(&amp;candidateReplica.ExecBinlogCoordinates) &#123;</span><br><span class="line">            laterReplicas = <span class="built_in">append</span>(laterReplicas, replica)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果这个实例 ExecBinlogCoordinates == candidateReplica.ExecBinlogCoordinates, 放到 equalReplicas</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> replica.ExecBinlogCoordinates.Equals(&amp;candidateReplica.ExecBinlogCoordinates) &#123;</span><br><span class="line">            equalReplicas = <span class="built_in">append</span>(equalReplicas, replica)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 佛足额, 说明这个实例 ExecBinlogCoordinates &gt; candidateReplica.ExecBinlogCoordinates, 放到 aheadReplicas</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// lost due to being more advanced/ahead of chosen replica.</span></span><br><span class="line">            aheadReplicas = <span class="built_in">append</span>(aheadReplicas, replica)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><code>chooseCandidateReplica</code>选了一个candidateReplica出来<br>并且对其他replica做了归类(laterReplicas, equalReplicas, aheadReplicas)</p>
+<blockquote>
+<p>CanReplicateFrom的具体逻辑请看<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A1.md#canreplicatefrom">CanReplicateFrom</a></p>
+</blockquote>
+<p>从代码可以看出orchestrator并不会以0数据丢失为最优先级选择candidate<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 返回在给定实例中发现的主要（最常见）的Major版本</span></span><br><span class="line"><span class="comment">// 比如replicas里有三个实例, 5.6.30, 5.7.32, 5.7.26. 那priorityMajorVersion就是5.7</span></span><br><span class="line">priorityMajorVersion, _ := getPriorityMajorVersionForCandidate(replicas) </span><br><span class="line"><span class="comment">// 返回在给定实例中发现的主要（最常见）binlog格式</span></span><br><span class="line"><span class="comment">// 比如replicas里有三个实例, mixed, row, row. 那么priorityBinlogFormat是row</span></span><br><span class="line">priorityBinlogFormat, _ := getPriorityBinlogFormatForCandidate(replicas)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> _, replica := <span class="keyword">range</span> replicas &#123;</span><br><span class="line">    replica := replica</span><br><span class="line">    <span class="keyword">if</span> isGenerallyValidAsCandidateReplica(replica) &amp;&amp; <span class="comment">// 做一些简单的检测, 比如IsLastCheckValid, LogBinEnabled, LogReplicationUpdatesEnabled(前三个都应该为true), IsBinlogServer(应为false)</span></span><br><span class="line">        !IsBannedFromBeingCandidateReplica(replica) &amp;&amp; <span class="comment">// 是否被参数 PromotionIgnoreHostnameFilters 匹配, 希望不匹配</span></span><br><span class="line">        !IsSmallerMajorVersion(priorityMajorVersion, replica.MajorVersionString()) &amp;&amp; <span class="comment">// 希望 replica 版本 &lt;= priorityMajorVersion. 更希望高版本做低版本从库. 那比如最常见版本是5.6, 然后有一个replica是5.7, 他是那个most up-to-date的从库, 到这里一比较, 他就不符合条件, 就被pass了</span></span><br><span class="line">        !IsSmallerBinlogFormat(priorityBinlogFormat, replica.Binlog_format) &#123; <span class="comment">// 希望比如priorityBinlogFormat row, 那replica是mixed或statement</span></span><br><span class="line">        <span class="comment">// this is the one</span></span><br><span class="line">        candidateReplica = replica</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>上述代码中的replicas是<code>sortInstancesDataCenterHint</code>返回的, 按ExecBinlogCoordinates从大到小排序的切片(即ExecBinlogCoordinates最大的index是0)<br>但是最终candidateReplica是否是replicas[0], 取决于其MajorVersion和BinlogFormat(当然还有isGenerallyValidAsCandidateReplica和IsBannedFromBeingCandidateReplica)</p>
+<p>在<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Topology%20recovery.md#discussion-recovering-a-dead-master">Discussion: recovering a dead master</a>中也有如下描述:<br>Find the best replica to promote.</p>
+<ul>
+<li>一种天真的方法是选择最新的副本, 但这可能并不总是正确的选择<blockquote>
+<p>A naive approach would be to pick the most up-to-date replica, but that may not always be the right choice.</p>
+<ul>
+<li>最新的副本可能没有必要的配置来充当其他副本的主节点(例如, binlog 格式、MySQL 版本控制、复制过滤器等). 一味地推广最新的副本可能会丢失副本容量<br>It may so happen that the most up-to-date replica will not have the necessary configuration to act as master to other replicas (e.g. binlog format, MySQL versioning, replication filters and more). By blindly promoting the most up-to-date replica one may lose replica capacity.</li>
+<li><code>orchestrator</code> 尝试提升将保留最多服务容量的副本.<br><code>orchestrator</code> attempts to promote a replica that will retain the most serving capacity.<ul>
+<li>提升所述副本, 接管其同级<br>Promote said replica, taking over its siblings.</li>
+<li>Bring siblings up to date</li>
+<li>可能的话, 做第二阶段选举提升; 如果可能的话, 用户可能已经标记了要提升的特定服务器(见 <code>register-candidate</code> 命令)<br>Possibly, do a 2nd phase promotion; the user may have tagged specific servers to be promoted if possible (see <code>register-candidate</code> command).</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<p>但针对我们的场景, 同一个集群不存在Major版本不同实例, Binlog_format也都是row<br>那只要这个从库没什么”毛病”, 也没在PromotionIgnoreHostnameFilters中, 那基本上replicas[0]就是candidateReplica</p>
+<p>那么继续看GetCandidateReplica剩下的代码<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">    candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, err = chooseCandidateReplica(replicas)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123; <span class="comment">// 如果chooseCandidateReplica走到 if candidateReplica == nil &#123; ,就会进入这个if</span></span><br><span class="line">        <span class="keyword">return</span> candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> candidateReplica != <span class="literal">nil</span> &#123;</span><br><span class="line">        mostUpToDateReplica := replicas[<span class="number">0</span>]</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 这是有可能的</span></span><br><span class="line">        <span class="comment">// 比如最常见版本是5.6, 然后有一个replica是5.7, 他是那个most up-to-date的从库, 但它比priorityMajorVersion大. 他就不适合做candidate</span></span><br><span class="line">        <span class="keyword">if</span> candidateReplica.ExecBinlogCoordinates.SmallerThan(&amp;mostUpToDateReplica.ExecBinlogCoordinates) &#123;</span><br><span class="line">            log.Warningf(<span class="string">&quot;GetCandidateReplica: chosen replica: %+v is behind most-up-to-date replica: %+v&quot;</span>, candidateReplica.Key, mostUpToDateReplica.Key)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    log.Debugf(<span class="string">&quot;GetCandidateReplica: candidate: %+v, ahead: %d, equal: %d, late: %d, break: %d&quot;</span>, candidateReplica.Key, <span class="built_in">len</span>(aheadReplicas), <span class="built_in">len</span>(equalReplicas), <span class="built_in">len</span>(laterReplicas), <span class="built_in">len</span>(cannotReplicateReplicas))</span><br><span class="line">    <span class="keyword">return</span> candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="现在再看RegroupReplicasGTID"><a href="#现在再看RegroupReplicasGTID" class="headerlink" title="现在再看RegroupReplicasGTID"></a>现在再看RegroupReplicasGTID</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RegroupReplicasGTID will choose a candidate replica of a given instance, and take its siblings using GTID</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RegroupReplicasGTID</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    masterKey *InstanceKey, // 实参传进来的是 挂掉的旧主库</span></span></span><br><span class="line"><span class="function"><span class="params">    returnReplicaEvenOnFailureToRegroup <span class="keyword">bool</span>, // 实参传进来的是 <span class="literal">true</span></span></span></span><br><span class="line"><span class="function"><span class="params">    startReplicationOnCandidate <span class="keyword">bool</span>, // 实参传进来的是 <span class="literal">false</span></span></span></span><br><span class="line"><span class="function"><span class="params">    onCandidateReplicaChosen <span class="keyword">func</span>(*Instance)</span>, // 实参传进来的是 <span class="title">nil</span></span></span><br><span class="line">    postponedFunctionsContainer *PostponedFunctionsContainer,</span><br><span class="line">    postponeAllMatchOperations <span class="function"><span class="keyword">func</span><span class="params">(*Instance, <span class="keyword">bool</span>)</span> <span class="title">bool</span>, // 实参传进来的是 <span class="title">promotedReplicaIsIdeal</span> 函数</span></span><br><span class="line">) (</span><br><span class="line">    lostReplicas [](*Instance),</span><br><span class="line">    movedReplicas [](*Instance),</span><br><span class="line">    cannotReplicateReplicas [](*Instance),</span><br><span class="line">    candidateReplica *Instance,</span><br><span class="line">    err error,</span><br><span class="line">) &#123;</span><br><span class="line">    <span class="keyword">var</span> emptyReplicas [](*Instance)</span><br><span class="line">    <span class="keyword">var</span> unmovedReplicas [](*Instance)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// candidateReplica有可能==nil</span></span><br><span class="line">    candidateReplica, aheadReplicas, equalReplicas, laterReplicas, cannotReplicateReplicas, err := GetCandidateReplica(masterKey, <span class="literal">true</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果chooseCandidateReplica走到 if candidateReplica == nil &#123; ,就会进入这个if</span></span><br><span class="line">        <span class="comment">// Unable to find a candidate that will master others.</span></span><br><span class="line">        <span class="comment">// Instead, pick a (single) replica which is not banned.</span></span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="comment">// returnReplicaEvenOnFailureToRegroup实参传进来的是 true</span></span><br><span class="line">        <span class="keyword">if</span> !returnReplicaEvenOnFailureToRegroup &#123;</span><br><span class="line">            candidateReplica = <span class="literal">nil</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> emptyReplicas, emptyReplicas, emptyReplicas, candidateReplica, err</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// onCandidateReplicaChosen实参传进来的是 nil</span></span><br><span class="line">    <span class="keyword">if</span> onCandidateReplicaChosen != <span class="literal">nil</span> &#123;</span><br><span class="line">        onCandidateReplicaChosen(candidateReplica) <span class="comment">// 所以走不到这里</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// equalReplicas 和 laterReplicas 都可以做candidateReplica的从库, 所以放到replicasToMove里</span></span><br><span class="line">    replicasToMove := <span class="built_in">append</span>(equalReplicas, laterReplicas...)</span><br><span class="line">    hasBestPromotionRule := <span class="literal">true</span></span><br><span class="line">    <span class="keyword">if</span> candidateReplica != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="comment">// 迭代replicasToMove</span></span><br><span class="line">        <span class="keyword">for</span> _, replica := <span class="keyword">range</span> replicasToMove &#123;</span><br><span class="line">            <span class="comment">// 比较PromotionRule. 判断candidateReplica是不是用户prefer的</span></span><br><span class="line">            <span class="keyword">if</span> replica.PromotionRule.BetterThan(candidateReplica.PromotionRule) &#123;</span><br><span class="line">                hasBestPromotionRule = <span class="literal">false</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    moveGTIDFunc := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">        log.Debugf(<span class="string">&quot;RegroupReplicasGTID: working on %d replicas&quot;</span>, <span class="built_in">len</span>(replicasToMove))</span><br><span class="line"></span><br><span class="line">        <span class="comment">// moves a list of replicas under another instance via GTID, returning those replicas</span></span><br><span class="line">        <span class="comment">// that could not be moved (do not use GTID or had GTID errors)</span></span><br><span class="line">        movedReplicas, unmovedReplicas, err, _ = moveReplicasViaGTID(replicasToMove, candidateReplica, postponedFunctionsContainer)</span><br><span class="line">        unmovedReplicas = <span class="built_in">append</span>(unmovedReplicas, aheadReplicas...)</span><br><span class="line">        <span class="keyword">return</span> log.Errore(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这个 postponeAllMatchOperations 就是 recoverDeadMaster中定义的 promotedReplicaIsIdeal</span></span><br><span class="line">    <span class="comment">// 做一些判断, 但基本上就是看 hasBestPromotionRule 和 candidateReplica的promotion rule是不是MustNotPromoteRule. 如果candidateReplica就是理想的, 那moveGTIDFunc就放到异步推迟执行</span></span><br><span class="line">    <span class="keyword">if</span> postponedFunctionsContainer != <span class="literal">nil</span> &amp;&amp; postponeAllMatchOperations != <span class="literal">nil</span> &amp;&amp; postponeAllMatchOperations(candidateReplica, hasBestPromotionRule) &#123;</span><br><span class="line">        postponedFunctionsContainer.AddPostponedFunction(moveGTIDFunc, fmt.Sprintf(<span class="string">&quot;regroup-replicas-gtid %+v&quot;</span>, candidateReplica.Key))</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 否则同步执行</span></span><br><span class="line">        err = moveGTIDFunc()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 我没太看懂上面那个if else, 除了canidateReplica恰好是prefer的那个时多输出一个日志义务外, 和else时有啥区别吗?</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> startReplicationOnCandidate &#123; <span class="comment">// 实参传进来的是 false. 在DeadMaster场景, 这里不能传true, 因为StartReplication会调用MaybeEnableSemiSyncReplica, 而后者需要连接 old master</span></span><br><span class="line">    <span class="comment">// 但是old master已经挂了所以肯定连不上, 于是这里出现error直接return了, 后面真正的start slave是没机会执行的</span></span><br><span class="line">        StartReplication(&amp;candidateReplica.Key)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    log.Debugf(<span class="string">&quot;RegroupReplicasGTID: done&quot;</span>)</span><br><span class="line">    AuditOperation(<span class="string">&quot;regroup-replicas-gtid&quot;</span>, masterKey, fmt.Sprintf(<span class="string">&quot;regrouped replicas of %+v via GTID; promoted %+v&quot;</span>, *masterKey, candidateReplica.Key))</span><br><span class="line">    <span class="keyword">return</span> unmovedReplicas, movedReplicas, cannotReplicateReplicas, candidateReplica, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以 RegroupReplicasGTID</p>
+<ol>
+<li>选了个candidateReplica出来, 并给其他replica归了类<br> 这个candidateReplica不一定是最终的主库, 只是它的ExecBinlogCoordinates大</li>
+<li>通过moveReplicasViaGTID, 将其他的replica(除了aheadReplicas和cannotReplicateReplicas)都change master到了candidateReplica</li>
+</ol>
+<p>至此RegroupReplicasGTID工作完成了, 剩下的工作可以交换给<a href="http://fuxkdb.com/2022/04/30/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/#recoverDeadMaster">recoverDeadMaster</a>了, 就是<code>recoverDeadMaster 主要做了几件事</code>中的最后两步操作</p>
+<blockquote>
+<p>recoverDeadMaster 主要做了几件事</p>
+<ol>
+<li>GetMasterRecoveryType, 确定到底用什么方式恢复, 是基于GTID? PseudoGTID? 还是BinlogServer?</li>
+<li>重组拓扑, 我们的案例是使用RegroupReplicasGTID.<br> 但这里有一个问题, 可能现在我们的新主库并不是我们”期望”的实例, 就是说之所以选他做主库可能是因为他有最全的日志. 但不是我们设置的prefer的<br> 所以通过一个闭包promotedReplicaIsIdeal去做了判断和标记</li>
+<li>如果存在lostReplicas, 并且开启了<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A1.md#detachlostreplicasaftermasterfailover">DetachLostReplicasAfterMasterFailover</a>, 那么会并行的对所有lostReplicas执行DetachReplicaMasterHost. 其实就是执行change master to master_host=’// {host}’</li>
+<li>如果当前选举的new master不是我们prefer的实例, 重组拓扑, 用prefer做新主库</li>
+</ol>
+</blockquote>
+<h2 id="DelayMasterPromotionIfSQLThreadNotUpToDate有bug"><a href="#DelayMasterPromotionIfSQLThreadNotUpToDate有bug" class="headerlink" title="DelayMasterPromotionIfSQLThreadNotUpToDate有bug?"></a>DelayMasterPromotionIfSQLThreadNotUpToDate有bug?</h2><p>根据<a href="http://fuxkdb.com/2022/04/30/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/">Orchestrator Failover过程源码分析-II</a><br>没有在<a href="http://fuxkdb.com/2022/04/30/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/#recoverDeadMaster">recoverDeadMaster</a>和<a href="http://fuxkdb.com/2022/04/30/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/#checkAndRecoverDeadMaster">checkAndRecoverDeadMaster</a>中看到任何代码执行了start slave sql_thread</p>
+<p>那在checkAndRecoverDeadMaster执行到这里时, 不是肯定会超时吗<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> config.Config.DelayMasterPromotionIfSQLThreadNotUpToDate &amp;&amp; !promotedReplica.SQLThreadUpToDate() &#123;</span><br><span class="line">    AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;DelayMasterPromotionIfSQLThreadNotUpToDate: waiting for SQL thread on %+v&quot;</span>, promotedReplica.Key))</span><br><span class="line">    <span class="keyword">if</span> _, err := inst.WaitForSQLThreadUpToDate(&amp;promotedReplica.Key, <span class="number">0</span>, <span class="number">0</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;DelayMasterPromotionIfSQLThreadNotUpToDate error: %+v&quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;DelayMasterPromotionIfSQLThreadNotUpToDate: SQL thread caught up on %+v&quot;</span>, promotedReplica.Key))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/15/16-57-55-Orchestrator%20Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-III-Excalidraw-4bd4af.png" alt=""></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2022/05/05/2022-05-05-Orchestrator-Failover过程源码分析-III/" target="_blank" title="Orchestrator Failover过程源码分析-III">http://fuxkdb.com/2022/05/05/2022-05-05-Orchestrator-Failover过程源码分析-III/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Orchestrator/" rel="tag">Orchestrator</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2022/04/30/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Orchestrator Failover过程源码分析-II</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-III"><span class="nav-number">1.</span> <span class="nav-text">Orchestrator Failover过程源码分析-III</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#GetCandidateReplica"><span class="nav-number">1.1.</span> <span class="nav-text">GetCandidateReplica</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sortedReplicasDataCenterHint"><span class="nav-number">1.1.1.</span> <span class="nav-text">sortedReplicasDataCenterHint</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#chooseCandidateReplica"><span class="nav-number">1.1.2.</span> <span class="nav-text">chooseCandidateReplica</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%B0%E5%9C%A8%E5%86%8D%E7%9C%8BRegroupReplicasGTID"><span class="nav-number">1.2.</span> <span class="nav-text">现在再看RegroupReplicasGTID</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DelayMasterPromotionIfSQLThreadNotUpToDate%E6%9C%89bug"><span class="nav-number">1.3.</span> <span class="nav-text">DelayMasterPromotionIfSQLThreadNotUpToDate有bug?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2022 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

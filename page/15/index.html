@@ -305,6 +305,82 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-Transportable-Tablespaces"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/22/Transportable-Tablespaces/">Transportable Tablespaces</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/22/Transportable-Tablespaces/" class="article-date">
+	  <time datetime="2017-08-22T04:23:00.000Z" itemprop="datePublished">2017-08-22</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="迁移File-Per-Table-Tablespaces"><a href="#迁移File-Per-Table-Tablespaces" class="headerlink" title="迁移File-Per-Table Tablespaces"></a>迁移File-Per-Table Tablespaces</h2><p><a href="http://fuxkdb.com/2017/08/22/Transportable-Tablespace%E7%A4%BA%E4%BE%8B/">Transportable Tablespace示例</a><br><a href="http://fuxkdb.com/2017/08/22/Transportable-Tablespace-Internals/">Transportable Tablespace Internals</a><br>本节介绍如何将file-per-table tablespace从一个server迁移到另一个server,也称为可Transportable Tablespaces功能。 在MySQL 5.7.4之前,只支持非分区的InnoDB表。 从MySQL 5.7.4开始,还支持分区的InnoDB表和各个InnoDB表分区和子分区。</p>
+<p>There are many reasons why you might copy an InnoDB file-per-table tablespace to a different database server:</p>
+<ul>
+<li>生成报告而不影响生产库</li>
+<li>为备库初始化数据</li>
+<li>用于数据恢复</li>
+<li>相对于mysqldump,传输表空间有个更快的速度</li>
+<li>将每个文件的表空间移动到具有更适合系统要求的存储介质的服务器.例如,您可能希望在SSD设备上拥有繁忙的表,或在大容量HDD设备上使用大型表.</li>
+</ul>
+<h3 id="限制和使用注意事项"><a href="#限制和使用注意事项" class="headerlink" title="限制和使用注意事项"></a>限制和使用注意事项</h3><ul>
+<li>仅当innodb_file_per_table设置为ON（这是MySQL 5.6.6的默认设置）时，传输表空间功能才可以使用。 驻留在共享系统表空间中的表不能使用此功能。</li>
+<li>在传输过程中,只有只读操作可以执行</li>
+<li>page size要相同.When importing a tablespace, the page size must match the page size of the importing instance.</li>
+<li>Prior to MySQL 5.7.4, DISCARD TABLESPACE is not supported for partitioned tables meaning that transportable tablespaces is also unsupported. If you run ALTER TABLE … DISCARD TABLESPACE on a partitioned table, the following error is returned: ERROR 1031 (HY000): Table storage engine for ‘part’ doesn’t have this option. As of MySQL 5.7.4, ALTER TABLE … DISCARD TABLESPACE is supported for partitioned InnoDB tables, and ALTER TABLE … DISCARD PARTITION … TABLESPACE is supported for InnoDB table partitions.</li>
+<li>当foreign_key_checks设置为1时，对于父 - 子（主键 - 外键）关系的表空间不支持DISCARD TABLESPACE。在放弃父子表的表空间之前，请设置foreign_key_checks = 0。 分区的InnoDB表不支持外键。</li>
+<li>ALTER TABLE … IMPORT TABLESPACE不会对导入的数据实施外键约束。 如果表之间存在外键约束，则应在相同（逻辑）时间点导出所有表。 分区的InnoDB表不支持外键。</li>
+<li><p>ALTER TABLE … IMPORT TABLESPACE和ALTER TABLE … IMPORT PARTITION … TABLESPACE不需要.cfg元数据文件来导入表空间。 但是，在不使用.cfg文件导入时，不会执行元数据检查，并且将发出类似于以下内容的警告：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Message: InnoDB: IO <span class="keyword">Read</span> error: (<span class="number">2</span>, <span class="keyword">No</span> such file <span class="keyword">or</span> directory) Error opening <span class="string">&#x27;.\</span></span><br><span class="line"><span class="string">test\t.cfg&#x27;</span>, will attempt <span class="keyword">to</span> <span class="keyword">import</span> <span class="keyword">without</span> <span class="keyword">schema</span> verification</span><br><span class="line"><span class="number">1</span> <span class="keyword">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>没有.cfg文件导入的能力可能更方便，当不需要模式不匹配。 此外，无法使用.cfg文件导入的能力在无法从.ibd文件收集元数据的崩溃恢复方案中很有用。</p>
+<blockquote>
+<p>The ability to import without a .cfg file may be more convenient when no schema mismatches are expected. Additionally, the ability to import without a .cfg file could be useful in crash recovery scenarios in which metadata cannot be collected from an .ibd file.</p>
+</blockquote>
+</li>
+<li><p>由于.cfg元数据文件限制，在为分区表导入表空间文件时，不会报告分区类型或分区定义差异的模式不匹配。但会报告列差异。</p>
+</li>
+<li><p>在子分区表上运行ALTER TABLE … DISCARD PARTITION … TABLESPACE和ALTER TABLE … IMPORT PARTITION … TABLESPACE时，允许使用分区表和子分区表名。指定分区名称时，该分区的子分区将包括在操作中。</p>
+</li>
+<li><p>在MySQL 5.6或更高版本中，如果两个服务器都具有GA（通用可用性）状态并且它们的版本在同一系列中，则从另一个服务器导入表空间文件是有效的。否则，该文件必须在导入它的服务器上创建。</p>
+</li>
+<li><p>在复制方案中，在主节点和从节点上必须将innodb_file_per_table设置为ON。</p>
+</li>
+<li><p>在Windows上，InnoDB以小写形式内部存储数据库，表空间和表名。要避免区分大小写操作系统（如Linux和UNIX）上的导入问题，请使用小写名称创建所有数据库，表空间和表。一种方便的方法是在创建数据库，表空间或表之前，在my.cnf或my.ini文件的[mysqld]节中添加以下行：</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-调整InnoDB系统表空间大小"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -561,63 +637,12 @@
 
 
   
-    <article id="post-Hexo博客配置"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/08/05/Hexo%E5%8D%9A%E5%AE%A2%E9%85%8D%E7%BD%AE/">Hexo博客配置</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/08/05/Hexo%E5%8D%9A%E5%AE%A2%E9%85%8D%E7%BD%AE/" class="article-date">
-	  <time datetime="2017-08-05T08:40:53.000Z" itemprop="datePublished">2017-08-05</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Hexo博客配置"><a href="#Hexo博客配置" class="headerlink" title="Hexo博客配置"></a>Hexo博客配置</h2><p>基于<a target="_blank" rel="noopener" href="https://github.com/iTimeTraveler/hexo-theme-hiker"><strong>hexo-theme-hiker</strong></a>主题</p>
-<p>先看myblog下的_config.yml完整配置</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Hexo Configuration</span></span><br><span class="line"><span class="comment">## Docs: https://hexo.io/docs/configuration.html</span></span><br><span class="line"><span class="comment">## Source: https://github.com/hexojs/hexo/</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Site</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">Fan()</span></span><br><span class="line"><span class="attr">subtitle:</span></span><br><span class="line"><span class="attr">description:</span></span><br><span class="line"><span class="attr">author:</span> <span class="string">a</span> <span class="string">dba&#x27;s</span> <span class="string">blog</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">zh-CN</span></span><br><span class="line"><span class="attr">timezone:</span> <span class="string">Asia/Shanghai</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># URL</span></span><br><span class="line"><span class="comment">## If your site is put in a subdirectory, set url as &#x27;http://yoursite.com/child&#x27; and root as &#x27;/child/&#x27;</span></span><br><span class="line"><span class="attr">url:</span> <span class="string">http://yoursite.com</span></span><br><span class="line"><span class="attr">root:</span> <span class="string">/Fandb.github.io</span></span><br><span class="line"><span class="attr">permalink:</span> <span class="string">:year/:month/:day/:title/</span></span><br><span class="line"><span class="attr">permalink_defaults:</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Directory</span></span><br><span class="line"><span class="attr">source_dir:</span> <span class="string">source</span></span><br><span class="line"><span class="attr">public_dir:</span> <span class="string">public</span></span><br><span class="line"><span class="attr">tag_dir:</span> <span class="string">tags</span></span><br><span class="line"><span class="attr">archive_dir:</span> <span class="string">archives</span></span><br><span class="line"><span class="attr">category_dir:</span> <span class="string">categories</span></span><br><span class="line"><span class="attr">code_dir:</span> <span class="string">downloads/code</span></span><br><span class="line"><span class="attr">i18n_dir:</span> <span class="string">:lang</span></span><br><span class="line"><span class="attr">skip_render:</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Writing</span></span><br><span class="line"><span class="attr">new_post_name:</span> <span class="string">:title.md</span> <span class="comment"># File name of new posts</span></span><br><span class="line"><span class="attr">default_layout:</span> <span class="string">post</span></span><br><span class="line"><span class="attr">titlecase:</span> <span class="literal">false</span> <span class="comment"># Transform title into titlecase</span></span><br><span class="line"><span class="attr">external_link:</span> <span class="literal">true</span> <span class="comment"># Open external links in new tab</span></span><br><span class="line"><span class="attr">filename_case:</span> <span class="number">0</span></span><br><span class="line"><span class="attr">render_drafts:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">post_asset_folder:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">relative_link:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">future:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">highlight:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">line_number:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">auto_detect:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">tab_replace:</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Home page setting</span></span><br><span class="line"><span class="comment"># path: Root path for your blogs index page. (default = &#x27;&#x27;)</span></span><br><span class="line"><span class="comment"># per_page: Posts displayed per page. (0 = disable pagination)</span></span><br><span class="line"><span class="comment"># order_by: Posts order. (Order by date descending by default)</span></span><br><span class="line"><span class="attr">index_generator:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">  <span class="attr">per_page:</span> <span class="number">6</span></span><br><span class="line">  <span class="attr">order_by:</span> <span class="string">-date</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Category &amp; Tag</span></span><br><span class="line"><span class="attr">default_category:</span> <span class="string">uncategorized</span></span><br><span class="line"><span class="attr">category_map:</span></span><br><span class="line"><span class="attr">tag_map:</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Date / Time format</span></span><br><span class="line"><span class="comment">## Hexo uses Moment.js to parse and display date</span></span><br><span class="line"><span class="comment">## You can customize the date format as defined in</span></span><br><span class="line"><span class="comment">## http://momentjs.com/docs/#/displaying/format/</span></span><br><span class="line"><span class="attr">date_format:</span> <span class="string">YYYY-MM-DD</span></span><br><span class="line"><span class="attr">time_format:</span> <span class="string">HH:mm:ss</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Pagination</span></span><br><span class="line"><span class="comment">## Set per_page to 0 to disable pagination</span></span><br><span class="line"><span class="attr">per_page:</span> <span class="number">10</span></span><br><span class="line"><span class="attr">pagination_dir:</span> <span class="string">page</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Extensions</span></span><br><span class="line"><span class="comment">## Plugins: https://hexo.io/plugins/</span></span><br><span class="line"><span class="comment">## Themes: https://hexo.io/themes/</span></span><br><span class="line"><span class="attr">theme:</span> <span class="string">hiker</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Deployment</span></span><br><span class="line"><span class="comment">## Docs: https://hexo.io/docs/deployment.html</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repository:</span></span><br><span class="line">        <span class="attr">github:</span> <span class="string">https://github.com/Fanduzi/Fandb.github.io.git</span></span><br><span class="line">        <span class="attr">coding:</span> <span class="string">https://git.coding.net/Fandb/Fandb.blog.git</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">master</span></span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Note</p>
-<p>冒号后面要空一格</p>
-</blockquote>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/14/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/16/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/14/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/16/">下一页 »</a>
   </nav>
 
 </section>

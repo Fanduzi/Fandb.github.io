@@ -305,6 +305,55 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-PXC7种故障场景及恢复方法"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/05/29/PXC7%E7%A7%8D%E6%95%85%E9%9A%9C%E5%9C%BA%E6%99%AF%E5%8F%8A%E6%81%A2%E5%A4%8D%E6%96%B9%E6%B3%95/">[译]PXC7中故障场景及恢复方法</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/05/29/PXC7%E7%A7%8D%E6%95%85%E9%9A%9C%E5%9C%BA%E6%99%AF%E5%8F%8A%E6%81%A2%E5%A4%8D%E6%96%B9%E6%B3%95/" class="article-date">
+	  <time datetime="2018-05-29T04:23:00.000Z" itemprop="datePublished">2018-05-29</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>与标准的MySQL复制不同，PXC群集就像一个逻辑实体，它负责关注每个节点的状态和一致性以及群集状态。这样可以保持更好的数据完整性，然后您可以从传统的异步复制中获益，同时允许在同一时间在多个节点上进行安全写入. </p>
+<p>假设我们有一个PXC集群包含3个节点</p>
+<h2 id="情景1"><a href="#情景1" class="headerlink" title="情景1"></a>情景1</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g1.png" alt="情景1"></p>
+<p>节点A正常停止, 例如需要停库做一些维护, 配置变更等操作.</p>
+<p>在这种情况下，其他节点从该节点接收”good bye”消息, 因此集群大小将会缩小(在这个例子中缩小为2), 并且某些属性如quorum caculation和auto increment(我理解为auto_increment_increment和auto_increment_offset会由于集群扩缩动态调整).  一旦我们重新开始的一个节点，它会根据它的my.cnf中wsrep_cluster_address设置加入群集. 这个过程与普通的复制有很大的不同 - 在A节点再次与集群完全同步之前，A节点不会接受供任何请求，因此仅仅是与集群建立连接是不够的，而是必须要先完成state transfer. 如果B或C节点的writeset cache (<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/wsrep-provider-index.html#gcache.size">gcache.size</a>), 仍然有恢复A节点所需的所有事务, 那么将使用<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/statetransfer.html#incremental-state-transfer-ist">IST</a> 否则使用 <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/manual/state_snapshot_transfer.html">SST</a> . 因此，如<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2014/01/08/finding-good-ist-donor-percona-xtradb-cluster-5-6/">本文</a>所示，确定最佳donor很重要. 如果由于donor的gcache中缺少交易而导致IST不可用，则由donor作出回退决定，而SST自动启动。</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-如何做好MySQL的备份"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -551,72 +600,12 @@
 
 
   
-    <article id="post-CONFIG REWRITE命令"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-    <div class="article-meta">
-      
-	<a href="/2018/01/19/CONFIG%20REWRITE%E5%91%BD%E4%BB%A4/" class="article-date">
-	  <time datetime="2018-01-19T03:09:11.000Z" itemprop="datePublished">2018-01-19</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="CONFIG-REWRITE"><a href="#CONFIG-REWRITE" class="headerlink" title="CONFIG REWRITE"></a>CONFIG REWRITE</h1><blockquote>
-<p>Available since 2.8.0.</p>
-</blockquote>
-<p>CONFIG REWRITE命令用于重写redis server启动时使用的配置文件,以最小的变动反映当前server的实际配置,当前的实际配置可能会由于CONFIG SET的使用而与启动时的配置文件不同.</p>
-<blockquote>
-<p>类似 scope=spfile</p>
-</blockquote>
-<p>重写以非常保守的方式执行:</p>
-<ul>
-<li>尽可能保留原始redis.conf的注释和整体结构.</li>
-<li>如果一个选项已经存在于旧的redis.conf文件中,它将被原地更新.</li>
-<li>如果某个选项尚不存在,但设置为其默认值,则不会由重写过程添加.</li>
-<li>如果某个选项尚不存在,但它被设置为非默认值,则会将其附加到文件末尾.</li>
-<li>Non used lines are blanked. For instance if you used to have multiple save directives, but the current configuration has fewer or none as you disabled RDB persistence, all the lines will be blanked.<blockquote>
-<p>未使用的行将被删除.例如,如果您曾经设置多个save,但是后来却通过config set只设置了更少的或者config set save ‘’,那么所有的未使用save将被删除</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@cn_mu_binlog_backup ~]# redis-cli -p 6379<span class="built_in"> config </span><span class="builtin-name">get</span> save</span><br><span class="line">1) <span class="string">&quot;save&quot;</span></span><br><span class="line">2) <span class="string">&quot;&quot;</span></span><br><span class="line">[root@cn_mu_binlog_backup ~]# cat /usr/local/redis/etc/6379_redis.conf|grep save</span><br><span class="line"><span class="comment">#   save &lt;seconds&gt; &lt;changes&gt;</span></span><br><span class="line"><span class="comment">#   Will save the DB if both the given number of seconds and the given</span></span><br><span class="line"><span class="comment">#   In the example below the behaviour will be to save:</span></span><br><span class="line"><span class="comment">#   <span class="doctag">Note:</span> you can disable saving completely by commenting out all &quot;save&quot; lines.</span></span><br><span class="line"><span class="comment">#   It is also possible to remove all the previously configured save</span></span><br><span class="line"><span class="comment">#   points by adding a save directive with a single empty string argument</span></span><br><span class="line"><span class="comment">#   save &quot;&quot;</span></span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line"></span><br><span class="line">重写</span><br><span class="line">[root@cn_mu_binlog_backup ~]# redis-cli -p 6379<span class="built_in"> config </span>rewrite</span><br><span class="line">OK</span><br><span class="line"></span><br><span class="line">[root@cn_mu_binlog_backup ~]# cat /usr/local/redis/etc/6379_redis.conf|grep save</span><br><span class="line"><span class="comment">#   save &lt;seconds&gt; &lt;changes&gt;</span></span><br><span class="line"><span class="comment">#   Will save the DB if both the given number of seconds and the given</span></span><br><span class="line"><span class="comment">#   In the example below the behaviour will be to save:</span></span><br><span class="line"><span class="comment">#   <span class="doctag">Note:</span> you can disable saving completely by commenting out all &quot;save&quot; lines.</span></span><br><span class="line"><span class="comment">#   It is also possible to remove all the previously configured save</span></span><br><span class="line"><span class="comment">#   points by adding a save directive with a single empty string argument</span></span><br><span class="line"><span class="comment">#   save &quot;&quot;</span></span><br><span class="line"><span class="comment"># (at least one save point) and the latest background save failed.</span></span><br><span class="line">stop-writes-on-bgsave-<span class="builtin-name">error</span> <span class="literal">yes</span></span><br><span class="line"><span class="comment"># If you want to save some CPU in the saving child set it to &#x27;no&#x27; but</span></span><br><span class="line"><span class="comment"># algorithms (in order to save memory), so you can tune it for speed or</span></span><br><span class="line"><span class="comment"># the configured save points).</span></span><br><span class="line"><span class="comment"># saving process (a background save or AOF log background rewriting) is</span></span><br><span class="line"><span class="comment"># Lists are also encoded in a special way to save a lot of space.</span></span><br><span class="line"><span class="comment"># order to save a lot of space. This encoding is only used when the length and</span></span><br></pre></td></tr></table></figure>
-</blockquote>
-</li>
-</ul>
-<p>如果由于某种原因原来的配置文件不再存在,CONFIG REWRITE也可以重写配置文件. 但是,如果服务器启动时没有配置文件,CONFIG REWRITE将只返回一个错误.</p>
-<h2 id="原子重写过程"><a href="#原子重写过程" class="headerlink" title="原子重写过程"></a>原子重写过程</h2><p>In order to make sure the redis.conf file is always consistent, that is, on errors or crashes you always end with the old file, or the new one, the rewrite is performed with a single write(2) call that has enough content to be at least as big as the old file. Sometimes additional padding in the form of comments is added in order to make sure the resulting file is big enough, and later the file gets truncated to remove the padding at the end.</p>
-<blockquote>
-<p>为了确保redis.conf文件始终保持一致,即在出现错误或崩溃时总是以旧文件或新文件结束,重写将使用具有足够内容的单次写入(2)调用来执行 至少与旧文件一样大. 有时会添加注释形式的其他填充以确保生成的文件足够大,然后文件被截断以删除最后的填充.</p>
-</blockquote>
-<h2 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h2><p><a target="_blank" rel="noopener" href="https://redis.io/topics/protocol#simple-string-reply">Simple string reply</a>: OK 当配置被正确重写. 否则,返回错误</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/10/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/12/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/10/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/12/">下一页 »</a>
   </nav>
 
 </section>

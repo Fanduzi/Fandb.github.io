@@ -305,6 +305,57 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-MHA 配置文件"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/07/20/MHA%20%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/">MHA配置文件</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/20/MHA%20%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/" class="article-date">
+	  <time datetime="2017-07-20T14:00:00.000Z" itemprop="datePublished">2017-07-20</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="MHA-配置文件"><a href="#MHA-配置文件" class="headerlink" title="MHA 配置文件"></a>MHA 配置文件</h2><ul>
+<li><a href="#1">创建application配置文件</a></li>
+<li><a href="#2">创建global配置文件</a></li>
+<li><a href="#3">Binlog server</a></li>
+</ul>
+<p><span style="color:#ffffff;" id="1"></span></p>
+<h3 id="创建application配置文件"><a href="#创建application配置文件" class="headerlink" title="创建application配置文件"></a>创建application配置文件</h3><p>示例<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-masterha_manager参数说明"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -543,84 +594,12 @@
 
 
   
-    <article id="post-传统复制在线切换到GTID模式"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/06/17/%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F/">传统复制在线切换到GTID模式</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/06/17/%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2%E5%88%B0GTID%E6%A8%A1%E5%BC%8F/" class="article-date">
-	  <time datetime="2017-06-17T14:00:00.000Z" itemprop="datePublished">2017-06-17</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="传统复制切换到GTID模式"><a href="#传统复制切换到GTID模式" class="headerlink" title="传统复制切换到GTID模式"></a>传统复制切换到GTID模式</h2><p>5.7.6以后参数<code>gtid_mode</code>可以动态修改<br>GTID_MODE:</p>
-<ul>
-<li><p>OFF </p>
-<blockquote>
-<p>彻底关闭GTID,如果关闭状态的备库接受到带GTID的事务,则复制中断</p>
-</blockquote>
-</li>
-<li><p>OFF_PERMISSIVE </p>
-<blockquote>
-<p>可以认为是关闭GTID前的过渡阶段,主库在设置成该值后不再生成GTID,备库在接受到带GTID 和不带GTID的事务都可以容忍<br>主库在关闭GTID时,执行事务会产生一个Anonymous_Gtid事件,会在备库执行:<br>SET @@SESSION.GTID_NEXT= ‘ANONYMOUS’<br>备库在执行匿名事务时,就不会去尝试生成本地GTID了</p>
-</blockquote>
-</li>
-<li><p>ON_PERMISSIVE</p>
-<blockquote>
-<p>可以认为是打开GTID前的过渡阶段,主库在设置成该值后会产生GTID,同时备库依然容忍带GTID和不带GTID的事务</p>
-</blockquote>
-</li>
-<li><p>ON</p>
-<blockquote>
-<p>完全打开GTID,如果打开状态的备库接受到不带GTID的事务,则复制中断</p>
-</blockquote>
-</li>
-</ul>
-<p>准备工作<br>1.拓扑中的所有服务器都必须使用MySQL 5.7.6或更高版本. 除非拓扑中的所有服务器都使用此版本,否则无法在任何单个服务器上启用GTID事务.<br>2.所有服务器都将gtid_mode设置为默认值OFF.</p>
-<p>The following procedure can be paused at any time and later resumed where it was, or reversed by jumping to the corresponding step of Section 16.1.5.3, “Disabling GTID Transactions Online”, the online procedure to disable GTIDs. This makes the procedure fault-tolerant because any unrelated issues that may appear in the middle of the procedure can be handled as usual, and then the procedure continued where it was left off.<br>切换过程可以再任意时刻停止,并稍后继续执行</p>
-<blockquote>
-<p>注意<br>在每一步执行完全完成后再执行下一步</p>
-</blockquote>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/16/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><a class="page-number" href="/page/16/">16</a><span class="page-number current">17</span><a class="page-number" href="/page/18/">18</a><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/18/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/16/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><a class="page-number" href="/page/16/">16</a><span class="page-number current">17</span><a class="page-number" href="/page/18/">18</a><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/18/">下一页 »</a>
   </nav>
 
 </section>

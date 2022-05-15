@@ -305,6 +305,58 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2020-01-12-Canal-dynamicTopic问题"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/">Canal dynamicTopic问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/" class="article-date">
+	  <time datetime="2020-01-12T04:23:00.000Z" itemprop="datePublished">2020-01-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>未来同事跑了几个月的canal突然报下面的错, 使用了dynamicTopic. 其实我没有用过dynamicTopic, 只能搜一搜issue</p>
+<blockquote>
+<p>关于dynamicTopic和partitionHash的说明</p>
+<h3 id="canal-mq-dynamicTopic-表达式说明"><a href="#canal-mq-dynamicTopic-表达式说明" class="headerlink" title="canal.mq.dynamicTopic 表达式说明"></a>canal.mq.dynamicTopic 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema 或 schema.table，多个配置之间使用逗号或分号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以test_test为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..* 匹配所有表，则每个表都会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到库名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：<span class="built_in">test</span>,test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到<span class="built_in">test</span>的topic上，test1\\.test1的表发送到对应的test1_test1 topic上，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">为满足更大的灵活性，允许对匹配条件的规则指定发送的topic名字，配置格式：topicName:schema 或 topicName:schema.table</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1: <span class="built_in">test</span>:<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以<span class="built_in">test</span>为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2: <span class="built_in">test</span>:.*\\..* 匹配所有表，因为有指定topic，则每个表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3: <span class="built_in">test</span>:<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：testA:<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到testA的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：test0:<span class="built_in">test</span>,test1:test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到test0的topic下，test1\\.test1的表发送到对应的test1的topic下，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">大家可以结合自己的业务需求，设置匹配规则，建议MQ开启自动创建topic的能力</span></span><br></pre></td></tr></table></figure>
+<h3 id="canal-mq-partitionHash-表达式说明"><a href="#canal-mq-partitionHash-表达式说明" class="headerlink" title="canal.mq.partitionHash 表达式说明"></a>canal.mq.partitionHash 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema.table:pk1^pk2，多个配置之间使用逗号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span>:pk1^pk2 指定匹配的单表，对应的<span class="built_in">hash</span>字段为pk1 + pk2</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..*:id 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为id</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：.*\\..*:<span class="variable">$pk</span>$ 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为表主键(自动查找)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4: 匹配规则啥都不写，则默认发到0这个partition上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：.*\\..* ，不指定pk信息的正则匹配，将所有正则匹配的表,对应的<span class="built_in">hash</span>字段为表名</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">按表<span class="built_in">hash</span>: 一张表的所有数据可以发到同一个分区，不同表之间会做散列 (会有热点表分区过大问题)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子6: <span class="built_in">test</span>\\.<span class="built_in">test</span>:id,.\\..* , 针对<span class="built_in">test</span>的表按照id散列,其余的表按照table散列</span></span><br></pre></td></tr></table></figure>
+<p>注意：大家可以结合自己的业务需求，设置匹配规则，多条匹配规则之间是按照顺序进行匹配(命中一条规则就返回)</p>
+<p>其他详细参数可参考<a target="_blank" rel="noopener" href="https://github.com/alibaba/canal/wiki/AdminGuide">Canal AdminGuide</a></p>
+</blockquote>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-01-09-译文-Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -546,104 +598,12 @@
 
 
   
-    <article id="post-2019-11-12-ProxySQL平滑下线节点"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/11/12/2019-11-12-ProxySQL%E5%B9%B3%E6%BB%91%E4%B8%8B%E7%BA%BF%E8%8A%82%E7%82%B9/">ProxySQL平滑下线节点</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/11/12/2019-11-12-ProxySQL%E5%B9%B3%E6%BB%91%E4%B8%8B%E7%BA%BF%E8%8A%82%E7%82%B9/" class="article-date">
-	  <time datetime="2019-11-12T13:57:00.000Z" itemprop="datePublished">2019-11-12</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="ProxySQL平滑下线节点"><a href="#ProxySQL平滑下线节点" class="headerlink" title="ProxySQL平滑下线节点"></a>ProxySQL平滑下线节点</h1><p>因为MGR多主DDL和DML不能并发在不同节点执行, 而我们又存在即通过KO又通过ProxySQL访问的数据库的情况, 为了避免在发生故障, 我们决定将ProxySQL中配置的集群真实ip删除, 改为使用KO的vip.<br>本文介绍如何平滑下线ProxySQL节点, 从而做到对业务无感知.</p>
-<blockquote>
-<p>KO我司自研php中间件</p>
-</blockquote>
-<h2 id="环境介绍"><a href="#环境介绍" class="headerlink" title="环境介绍"></a>环境介绍</h2><table>
-<thead>
-<tr>
-<th>10.133.x.59</th>
-<th>跑sysbench</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>10.133.x.52:3307</td>
-<td>测试集群节点</td>
-</tr>
-<tr>
-<td>10.133.x.53:3307</td>
-<td>测试集群节点</td>
-</tr>
-<tr>
-<td>10.133.x.54:3307</td>
-<td>测试集群节点</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr>
-<th>VIP</th>
-<th>访问类型</th>
-<th>所在服务器</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>10.133.x.202</td>
-<td>KO</td>
-<td>10.133.x.202</td>
-</tr>
-<tr>
-<td>10.133.x.203</td>
-<td>ProxySQL</td>
-<td>10.133.x.203</td>
-</tr>
-</tbody>
-</table>
-<p>ProxySQL版本<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">admin@127.0.0.1 23:12:02 [(none)]&gt; select version();</span><br><span class="line"><span class="code">+-------------------+</span></span><br><span class="line">| version() |</span><br><span class="line"><span class="code">+-------------------+</span></span><br><span class="line">| 2.0.8-67-g877cab1 |</span><br><span class="line"><span class="code">+-------------------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>MySQL版本<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 23:17:56 [(none)]&gt; select version();</span><br><span class="line"><span class="code">+------------+</span></span><br><span class="line">| version() |</span><br><span class="line"><span class="code">+------------+</span></span><br><span class="line">| 5.7.26-log |</span><br><span class="line"><span class="code">+------------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
 
 
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/6/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/8/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/6/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/8/">下一页 »</a>
   </nav>
 
 </section>
