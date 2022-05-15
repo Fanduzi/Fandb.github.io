@@ -305,6 +305,54 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-主从切换实例(传统复制)"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/06/13/%E4%B8%BB%E4%BB%8E%E5%88%87%E6%8D%A2%E5%AE%9E%E4%BE%8B(%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6)/">主从切换实例(传统复制)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/06/13/%E4%B8%BB%E4%BB%8E%E5%88%87%E6%8D%A2%E5%AE%9E%E4%BE%8B(%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6)/" class="article-date">
+	  <time datetime="2017-06-13T14:00:00.000Z" itemprop="datePublished">2017-06-13</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="主从切换案例"><a href="#主从切换案例" class="headerlink" title="主从切换案例"></a>主从切换案例</h3><p>M为主库,read write<br>S* 为从库,read only<br>现在要对M进行硬件维护,提升S1为主库,接管业务读写. M维护完成后作为从库,如下图<br><img src="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_32.png" alt="img"><br>首先可以进行如下切换 (A)<br><img src="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_33.png" alt="img"><br>再进行如下切换(B)<br><img src="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_34.png" alt="img"></p>
+<h4 id="A切换步骤"><a href="#A切换步骤" class="headerlink" title="A切换步骤"></a>A切换步骤</h4><p>首先在S1制造”错误”<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_log_bin=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> t_error_maker(<span class="keyword">id</span> <span class="built_in">int</span>);</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_log_bin=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> t_error_maker;</span><br></pre></td></tr></table></figure><br>通过在session级别关闭写入binlog,建表,开启写入binlog,删表 制造异常, 当S11 S12 S13都执行到drop语句时,会报错停止sql_thread.<br>通过这种方式,可以让它们停止在同一个位置.<br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">master</span> <span class="keyword">status</span> 获取<span class="keyword">File</span> <span class="keyword">Position</span></span><br></pre></td></tr></table></figure><br>S11 S13<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">stop</span> <span class="keyword">slave</span>;</span><br><span class="line"><span class="keyword">change</span> <span class="keyword">master</span>到S12上</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span>;</span><br></pre></td></tr></table></figure><br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> sql_slave_skip_counter=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span> sql_thread;</span><br></pre></td></tr></table></figure></p>
+<h4 id="B切换步骤"><a href="#B切换步骤" class="headerlink" title="B切换步骤"></a>B切换步骤</h4><p>M 停止业务写操作<br><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> read_only=<span class="keyword">on</span>; 此时只有super权限用户能写入</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> super_read_only=<span class="keyword">on</span>;禁止super权限用户写</span><br><span class="line"><span class="comment">#这里没有通过修改用户密码的方式是因为修改用户密码对已经连接上来的用户无效</span></span><br></pre></td></tr></table></figure><br>等M S1 S12 跑一致后(File Position相同) 停S12 sql_thread, 将业务写入操作接入S1<br>最后M<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> read_only=<span class="keyword">off</span>;</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> super_read_only=<span class="keyword">off</span>;</span><br><span class="line"><span class="keyword">change</span> <span class="keyword">master</span> 到S12</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span></span><br></pre></td></tr></table></figure><br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span> sql_thread;</span><br></pre></td></tr></table></figure></p>
+<p>以上步骤通过脚本完成的话,可以做到对业务造成很小的影响<br>脚本实例如下,注释掉了B步骤,因为需要配合切换业务写入操作<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-Tpcc-MySQL"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -555,52 +603,6 @@
 <h2 id="删除Country表并恢复"><a href="#删除Country表并恢复" class="headerlink" title="删除Country表并恢复"></a>删除Country表并恢复</h2><p>使用sakila示例数据库作为例子,sakila相当于Oracle的SCOTT<br>innodb每个表包含两个文件.frm文件包含建表语句.ibd文件包含数据<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">mysql@</span>master sakila]$ ll country.*</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql  <span class="number">8652</span> Aug <span class="number">26</span> <span class="number">14</span>:<span class="number">25</span> country.frm</span><br><span class="line">-rw-r----- <span class="number">1</span> mysql mysql <span class="number">98304</span> Aug <span class="number">26</span> <span class="number">14</span>:<span class="number">25</span> country.ibd</span><br></pre></td></tr></table></figure></p>
 <p>接下来删除country表,删之前看一下checksum<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt; use sakila</span></span><br><span class="line"><span class="emphasis">Database changed</span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt; select count(<span class="strong">*) from country;</span></span><br><span class="line"><span class="strong">+----------+</span></span><br><span class="line"><span class="strong">| count(*</span>) |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">|      109 |</span><br><span class="line"><span class="code">+----------+</span></span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;checksum table country;</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| Table               | Checksum   |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">| sakila.country      | 2039770088 |</span></span><br><span class="line"><span class="emphasis">+---------------------+------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>接下来删除country表<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">SESSION_A</span>&gt;drop table country;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">01</span> sec)</span><br></pre></td></tr></table></figure></p>
 <p>drop table后,.frm和.ibd文件也被删除了<br><figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[mysql@<span class="keyword">master</span> <span class="title">sakila</span>]$ ll country*</span><br><span class="line">ls: cannot access country*: No such file <span class="keyword">or</span> directory</span><br></pre></td></tr></table></figure><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-Auto_increment-产生-GAP的原因"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2016/12/20/Auto_increment-%E4%BA%A7%E7%94%9F-GAP%E7%9A%84%E5%8E%9F%E5%9B%A0/">Auto_increment 产生 GAP的原因</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2016/12/20/Auto_increment-%E4%BA%A7%E7%94%9F-GAP%E7%9A%84%E5%8E%9F%E5%9B%A0/" class="article-date">
-	  <time datetime="2016-12-20T14:00:00.000Z" itemprop="datePublished">2016-12-20</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>原文<br><a target="_blank" rel="noopener" href="http://thenoyes.com/littlenoise/?p=187">http://thenoyes.com/littlenoise/?p=187</a></p>
-<h2 id="Auto-increment-产生-GAP的原因"><a href="#Auto-increment-产生-GAP的原因" class="headerlink" title="Auto_increment 产生 GAP的原因"></a>Auto_increment 产生 GAP的原因</h2><p>Why are there gaps in my auto_increment sequence, even if there are no deletes or rolled back transactions?<br>Is it a bug?<br>The manual says, “For lock modes 1 or 2, gaps may occur between successive statements because for bulk inserts the exact number of auto-increment values required by each statement may not be known and overestimation is possible.”<br>Where does that overestimation come from?<br>An example to illustrate:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> <span class="keyword">IF</span> <span class="keyword">EXISTS</span> t;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> t (a <span class="built_in">bigint</span> <span class="keyword">unsigned</span> auto_increment primary <span class="keyword">key</span>) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">AS</span> a;</span><br><span class="line"><span class="comment">/* #1 */</span> <span class="keyword">INSERT</span> <span class="keyword">INTO</span> t <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">FROM</span> t;</span><br><span class="line"><span class="comment">/* #2 */</span> <span class="keyword">INSERT</span> <span class="keyword">INTO</span> t <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">FROM</span> t;</span><br><span class="line"><span class="comment">/* #3 */</span> <span class="keyword">INSERT</span> <span class="keyword">INTO</span> t <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">FROM</span> t;</span><br><span class="line"><span class="comment">/* #4 */</span> <span class="keyword">INSERT</span> <span class="keyword">INTO</span> t <span class="keyword">SELECT</span> <span class="literal">NULL</span> <span class="keyword">FROM</span> t;</span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t;</span><br><span class="line"></span><br><span class="line">+<span class="comment">----+</span></span><br><span class="line">| a |</span><br><span class="line">+<span class="comment">----+</span></span><br><span class="line">| 1 |</span><br><span class="line">| 2 |</span><br><span class="line">| 3 |</span><br><span class="line">| 4 |</span><br><span class="line">| 6 |</span><br><span class="line">| 7 |</span><br><span class="line">| 8 |</span><br><span class="line">| 9 |</span><br><span class="line">| 13 |</span><br><span class="line">| 14 |</span><br><span class="line">| 15 |</span><br><span class="line">| 16 |</span><br><span class="line">| 17 |</span><br><span class="line">| 18 |</span><br><span class="line">| 19 |</span><br><span class="line">| 20 |</span><br><span class="line">+<span class="comment">----+</span></span><br><span class="line">16 rows in <span class="keyword">set</span> (<span class="number">0.02</span> sec)</span><br><span class="line"></span><br></pre></td></tr></table></figure><br>
       
     </div>
     <footer class="article-footer">

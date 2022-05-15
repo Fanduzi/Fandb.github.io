@@ -305,6 +305,67 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-MySQL Group Replication- understanding Flow Control[译文]"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/08/26/MySQL%20Group%20Replication-%20understanding%20Flow%20Control%5B%E8%AF%91%E6%96%87%5D/">MySQL Group Replication- understanding Flow Control[译文]</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/08/26/MySQL%20Group%20Replication-%20understanding%20Flow%20Control%5B%E8%AF%91%E6%96%87%5D/" class="article-date">
+	  <time datetime="2018-08-26T15:05:00.000Z" itemprop="datePublished">2018-08-26</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL-Group-Replication-understanding-Flow-Control"><a href="#MySQL-Group-Replication-understanding-Flow-Control" class="headerlink" title="MySQL Group Replication: understanding Flow Control"></a><a target="_blank" rel="noopener" href="https://lefred.be/content/mysql-group-replication-understanding-flow-control/">MySQL Group Replication: understanding Flow Control</a></h1><p>使用MySQL Group Replication时，某些成员可能落后于该组。 由于负载，硬件限制等原因…这种滞后可能会导致不能保持良好的性能认证行为和不能尽可能降低认证失败次数.应用队列(applying queue)越大, 与尚未应用的事务发生冲突的风险就越大（这在Multi-Primary Groups上是有问题的）。</p>
+<p>Galera用户已经熟悉这个概念(译注: 指流控的概念). MySQL Group Replication的实现与Galera有两个主要不同点:</p>
+<ul>
+<li><p>the Group is never totally stalled(译注: Group不会彻底停止接收写请求)</p>
+</li>
+<li><p>the node having issues doesn’t send flow control messages to the rest of the group asking for slowing down(译注: 短板节点不会向Group的其他节点发送flow control消息来要求集群减速)</p>
+</li>
+</ul>
+<p>实际上，该组的每个成员都会向其他成员发送有关其队列（applier queue and certification queue）的一些统计信息。 然后，如果每个节点意识到一个节点达到了其中一个队列的阈值，则决定是否减速：</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">group_replication_flow_control_applier_threshold (<span class="keyword">default</span> <span class="keyword">is</span> <span class="number">25000</span>)</span><br><span class="line"></span><br><span class="line">group_replication_flow_control_certifier_threshold (<span class="keyword">default</span> <span class="keyword">is</span> <span class="number">25000</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>因此，如果在节点上将<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_flow_control_mode">group_replication_flow_control_mode</a>设置为<code>QUOTA</code>，并且看到该集群的其他成员之一落后（达到阈值），则会将写入操作限制为最小配额。 此配额是根据最后一秒中应用的transactions数计算的，然后通过减去上一个周期的“over the quota”消息来减少。 </p>
+<blockquote>
+<p>and then it is reduced below that by subtracting the “over the quota” messages from the last period.</p>
+</blockquote>
+<p>这意味着与Galera相反，Galera的(flow control)阈值是有短板节点决定的，对于我们在MySQL组复制中，编写事务的节点(译注: 写节点)检查其阈值流量控制值并将它们与来自其他节点的统计数据进行比较以决定是否进行flow control。</p>
+<p>您可以在Vitor的文章<a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/zooming-in-on-group-replication-performance/">Zooming-in on Group Replication Performance</a>一文中找到有关组复制流控制的更多信息</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-如何确定Single-Primary模式下的MGR主节点"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -580,61 +641,6 @@
 <h2 id="情景1"><a href="#情景1" class="headerlink" title="情景1"></a>情景1</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g1.png" alt="情景1"></p>
 <p>节点A正常停止, 例如需要停库做一些维护, 配置变更等操作.</p>
 <p>在这种情况下，其他节点从该节点接收”good bye”消息, 因此集群大小将会缩小(在这个例子中缩小为2), 并且某些属性如quorum caculation和auto increment(我理解为auto_increment_increment和auto_increment_offset会由于集群扩缩动态调整).  一旦我们重新开始的一个节点，它会根据它的my.cnf中wsrep_cluster_address设置加入群集. 这个过程与普通的复制有很大的不同 - 在A节点再次与集群完全同步之前，A节点不会接受供任何请求，因此仅仅是与集群建立连接是不够的，而是必须要先完成state transfer. 如果B或C节点的writeset cache (<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/wsrep-provider-index.html#gcache.size">gcache.size</a>), 仍然有恢复A节点所需的所有事务, 那么将使用<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/statetransfer.html#incremental-state-transfer-ist">IST</a> 否则使用 <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/manual/state_snapshot_transfer.html">SST</a> . 因此，如<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2014/01/08/finding-good-ist-donor-percona-xtradb-cluster-5-6/">本文</a>所示，确定最佳donor很重要. 如果由于donor的gcache中缺少交易而导致IST不可用，则由donor作出回退决定，而SST自动启动。</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-如何做好MySQL的备份"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/04/28/%E5%A6%82%E4%BD%95%E5%81%9A%E5%A5%BDMySQL%E7%9A%84%E5%A4%87%E4%BB%BD/">如何做好MySQL的备份</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/04/28/%E5%A6%82%E4%BD%95%E5%81%9A%E5%A5%BDMySQL%E7%9A%84%E5%A4%87%E4%BB%BD/" class="article-date">
-	  <time datetime="2018-04-27T16:23:00.000Z" itemprop="datePublished">2018-04-28</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="如何做好MySQL的备份"><a href="#如何做好MySQL的备份" class="headerlink" title="如何做好MySQL的备份"></a>如何做好MySQL的备份</h1><h2 id="物理备份还是逻辑备份"><a href="#物理备份还是逻辑备份" class="headerlink" title="物理备份还是逻辑备份?"></a>物理备份还是逻辑备份?</h2><p>其实物理备份和逻辑备份并没有好坏之分, 关键是要适合你的场景. </p>
-<h3 id="两种备份方式的备份工具有"><a href="#两种备份方式的备份工具有" class="headerlink" title="两种备份方式的备份工具有:"></a>两种备份方式的备份工具有:</h3><ul>
-<li>逻辑备份工具: [mysqldump, mysqlpump, mydumper, select into out file]</li>
-<li>物理备份工具: [xtrabackup, TokuBackup, Tokudb-xtrabackup]</li>
-</ul>
-<h3 id="两种备份方式的对比如下"><a href="#两种备份方式的对比如下" class="headerlink" title="两种备份方式的对比如下"></a>两种备份方式的对比如下</h3><ul>
-<li>备份速度<br>  物理备份比逻辑备份快吗? 不要想当然, 至少我的测试结果并不是这样</li>
-<li>恢复速度<br>  物理备份恢复实际就是mv操作(使用xtrabackup,在备份机做prepare), 而逻辑备份则是漫长的导入.<br>  同机器 1.5T库, 逻辑备份大小151G, 做恢复需要27小时左右, 而物理备份恢复则完全取决于磁盘iops, 不用测也知道要比逻辑备份快很多</li>
-<li>备份集大小<br>  实际测试1T的库(大部分为InnoDB表), 逻辑备份集大小为<code>46G</code>, 而物理备份为<code>255G</code></li>
-</ul>
-<p>根据以上三点, 就可以选择备份方式了吗? 我认为不能. 还有一点是数据库服务器和备份服务器之间的网络情况, 和你期望的恢复时间是多久</p>
       
     </div>
     <footer class="article-footer">

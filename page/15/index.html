@@ -305,6 +305,69 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-调整InnoDB系统表空间大小"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/11/%E8%B0%83%E6%95%B4InnoDB%E7%B3%BB%E7%BB%9F%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F/">调整InnoDB系统表空间大小</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/11/%E8%B0%83%E6%95%B4InnoDB%E7%B3%BB%E7%BB%9F%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F/" class="article-date">
+	  <time datetime="2017-08-11T02:57:00.000Z" itemprop="datePublished">2017-08-11</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="调整InnoDB系统表空间大小"><a href="#调整InnoDB系统表空间大小" class="headerlink" title="调整InnoDB系统表空间大小"></a>调整InnoDB系统表空间大小</h2><p>本文介绍如何增大或缩小InnoDB system tablespace</p>
+<h3 id="增大InnoDB-system-tablespace"><a href="#增大InnoDB-system-tablespace" class="headerlink" title="增大InnoDB system tablespace"></a>增大InnoDB system tablespace</h3><p>最简单的增大InnoDB system tablespace大小的方法是在一开始配置的时候就指定为自动扩展. 为innodb_data_file_path参数中的最后一个数据文件指定autoextend选项. InnoDB在空间不足时以64MB为单位自动增加该文件的大小.  可以通过设置<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_autoextend_increment">innodb_autoextend_increment</a>系统变量的值（以兆字节为单位）来更改增量大小.</p>
+<p>您可以通过添加另一个数据文件来扩展系统表空间：</p>
+<p>1.关闭MySQL<br>2.如果上一个数据文件是使用关键字autoextend定义的,则根据实际增长的大小将其定义更改为使用固定大小. 检查数据文件的大小,将其舍入到1024×1024字节（= 1MB）的最接近的倍数,并在innodb_data_file_path中显式指定舍入后的大小.<br>3.将新的数据文件添加到innodb_data_file_path的末尾,可以指定该文件为自动扩展. 注意,只能将innodb_data_file_path中的最后一个数据文件指定为自动扩展.<br>4.启动MySQL</p>
+<p><strong>实际例子:</strong></p>
+<p>初始只有一个ibdata1,现在我们想增加一个数据文件</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">innodb_data_home_dir =</span><br><span class="line"><span class="attr">innodb_data_file_path</span> = /ibdata/ibdata1:<span class="number">10</span>M:autoextend</span><br></pre></td></tr></table></figure>
+<p>假设ibdata1此时已经增长到988M,那么修改配置为</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">innodb_data_home_dir</span> =</span><br><span class="line"><span class="attribute">innodb_data_file_path</span> = /ibdata/ibdata<span class="number">1</span>:<span class="number">988</span>M;/disk<span class="number">2</span>/ibdata<span class="number">2</span>:<span class="number">50</span>M:autoextend</span><br></pre></td></tr></table></figure>
+<p>启动MySQL后,ibdata2会被初始化</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2017</span><span class="number">-08</span><span class="number">-11</span>T10:<span class="number">27</span>:<span class="number">06.014446</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">0</span> [Note] InnoDB: Need to create a new innodb_system data file <span class="string">&#x27;ibdata2&#x27;</span>.</span><br><span class="line"><span class="number">2017</span><span class="number">-08</span><span class="number">-11</span>T10:<span class="number">27</span>:<span class="number">06.014567</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">0</span> [Note] InnoDB: Setting file <span class="string">&#x27;./ibdata2&#x27;</span> size to <span class="number">50</span> MB. Physically writing the file full; Please wait ...</span><br><span class="line"><span class="number">2017</span><span class="number">-08</span><span class="number">-11</span>T10:<span class="number">27</span>:<span class="number">06.182464</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">0</span> [Note] InnoDB: File <span class="string">&#x27;./ibdata2&#x27;</span> size <span class="keyword">is</span> now <span class="number">50</span> MB.</span><br></pre></td></tr></table></figure>
+<h3 id="缩小InnoDB-system-tablespace"><a href="#缩小InnoDB-system-tablespace" class="headerlink" title="缩小InnoDB system tablespace"></a>缩小InnoDB system tablespace</h3><p>您不能从系统表空间中删除数据文件. 要减少系统表空间大小,请使用以下过程：</p>
+<p>1.使用mysqldump来转储所有的InnoDB表,包括位于MySQL数据库中的InnoDB表. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT TABLE_NAME from INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=&#x27;mysql&#x27; and ENGINE=&#x27;InnoDB&#x27;;</span><br><span class="line">+<span class="comment">---------------------------+</span></span><br><span class="line">| TABLE_NAME                |</span><br><span class="line">+<span class="comment">---------------------------+</span></span><br><span class="line">| engine_cost               |</span><br><span class="line">| gtid_executed             |</span><br><span class="line">| help_category             |</span><br><span class="line">| help_keyword              |</span><br><span class="line">| help_relation             |</span><br><span class="line">| help_topic                |</span><br><span class="line">| innodb_index_stats        |</span><br><span class="line">| innodb_table_stats        |</span><br><span class="line">| plugin                    |</span><br><span class="line">| server_cost               |</span><br><span class="line">| servers                   |</span><br><span class="line">| slave_master_info         |</span><br><span class="line">| slave_relay_log_info      |</span><br><span class="line">| slave_worker_info         |</span><br><span class="line">| time_zone                 |</span><br><span class="line">| time_zone_leap_second     |</span><br><span class="line">| time_zone_name            |</span><br><span class="line">| time_zone_transition      |</span><br><span class="line">| time_zone_transition_type |</span><br><span class="line">+<span class="comment">---------------------------+</span></span><br></pre></td></tr></table></figure>
+<p>2.关闭MySQL<br>3.删除所有现有的表空间文件（<em> .ibd）,包括ibdata和ib_log文件. 不要忘记删除位于MySQL数据库中的表的</em> .ibd文件.<br>4.删除InnoDB表的任何.frm文件.<br>5.配置新的表空间.<br>6.重启MySQL<br>7.导入dump文件</p>
+<blockquote>
+<p>Note<br>如果您的数据库仅使用InnoDB引擎,可能会更容易地转储所有数据库,停止服务器,删除所有数据库和InnoDB日志文件,重新启动服务器以及导入转储文件.</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-MySQL数据库设计规范"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -532,54 +595,6 @@
 <p>Note</p>
 <p>冒号后面要空一格</p>
 </blockquote>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-使用Hexo-+-github快速搭建个人博客"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/08/05/%E4%BD%BF%E7%94%A8Hexo-+-github%E5%BF%AB%E9%80%9F%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/">使用Hexo + github快速搭建个人博客</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/08/05/%E4%BD%BF%E7%94%A8Hexo-+-github%E5%BF%AB%E9%80%9F%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/" class="article-date">
-	  <time datetime="2017-08-05T07:55:12.000Z" itemprop="datePublished">2017-08-05</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="使用Hexo-github快速搭建个人博客"><a href="#使用Hexo-github快速搭建个人博客" class="headerlink" title="使用Hexo + github快速搭建个人博客"></a>使用Hexo + github快速搭建个人博客</h2><h3 id="安装依赖软件"><a href="#安装依赖软件" class="headerlink" title="安装依赖软件"></a>安装依赖软件</h3><h4 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h4><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="keyword">brew </span><span class="keyword">install </span>git</span><br></pre></td></tr></table></figure>
-<h4 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h4><p>Mac下最简单的做法便是直接下载pkg文件进行安装，最新版本的下载地址如下，选择后缀为pkg的文件下载安装即可：<br><a target="_blank" rel="noopener" href="https://nodejs.org/download/release/latest/">https://nodejs.org/download/release/latest/</a><br>安装完成后修改环境变量<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.bash_profile</span><br><span class="line">添加</span><br><span class="line"><span class="builtin-name">export</span> <span class="attribute">PATH</span>=/usr/local/bin:$PATH</span><br></pre></td></tr></table></figure></p>
-<h4 id="将npm源替换成淘宝源"><a href="#将npm源替换成淘宝源" class="headerlink" title="将npm源替换成淘宝源"></a>将npm源替换成淘宝源</h4><figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm config <span class="keyword">set</span> <span class="keyword">registry</span> <span class="keyword">http</span>://<span class="keyword">registry</span>.npm.taobao.org/</span><br></pre></td></tr></table></figure>
-<h4 id="安装Hexo"><a href="#安装Hexo" class="headerlink" title="安装Hexo"></a>安装Hexo</h4><p>安装前先介绍几个hexo常用的命令<br><figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>hexo g <span class="comment">#完整命令为hexo generate，用于生成静态文件</span></span><br><span class="line"><span class="variable">$ </span>hexo s <span class="comment">#完整命令为hexo server，用于启动服务器，主要用来本地预览</span></span><br><span class="line"><span class="variable">$ </span>hexo d <span class="comment">#完整命令为hexo deploy，用于将本地文件发布到github上</span></span><br><span class="line"><span class="variable">$ </span>hexo n <span class="comment">#完整命令为hexo new，用于新建一篇文章</span></span><br></pre></td></tr></table></figure><br>利用 npm 命令安装：<br><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo npm <span class="keyword">install</span> -g hexo</span><br></pre></td></tr></table></figure><br>报错可尝试<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm <span class="keyword">install</span> <span class="comment">--unsafe-perm -g hexo</span></span><br></pre></td></tr></table></figure><br>
       
     </div>
     <footer class="article-footer">

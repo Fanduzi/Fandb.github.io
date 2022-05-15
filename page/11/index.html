@@ -305,6 +305,61 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-如何做好MySQL的备份"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/04/28/%E5%A6%82%E4%BD%95%E5%81%9A%E5%A5%BDMySQL%E7%9A%84%E5%A4%87%E4%BB%BD/">如何做好MySQL的备份</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/04/28/%E5%A6%82%E4%BD%95%E5%81%9A%E5%A5%BDMySQL%E7%9A%84%E5%A4%87%E4%BB%BD/" class="article-date">
+	  <time datetime="2018-04-27T16:23:00.000Z" itemprop="datePublished">2018-04-28</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="如何做好MySQL的备份"><a href="#如何做好MySQL的备份" class="headerlink" title="如何做好MySQL的备份"></a>如何做好MySQL的备份</h1><h2 id="物理备份还是逻辑备份"><a href="#物理备份还是逻辑备份" class="headerlink" title="物理备份还是逻辑备份?"></a>物理备份还是逻辑备份?</h2><p>其实物理备份和逻辑备份并没有好坏之分, 关键是要适合你的场景. </p>
+<h3 id="两种备份方式的备份工具有"><a href="#两种备份方式的备份工具有" class="headerlink" title="两种备份方式的备份工具有:"></a>两种备份方式的备份工具有:</h3><ul>
+<li>逻辑备份工具: [mysqldump, mysqlpump, mydumper, select into out file]</li>
+<li>物理备份工具: [xtrabackup, TokuBackup, Tokudb-xtrabackup]</li>
+</ul>
+<h3 id="两种备份方式的对比如下"><a href="#两种备份方式的对比如下" class="headerlink" title="两种备份方式的对比如下"></a>两种备份方式的对比如下</h3><ul>
+<li>备份速度<br>  物理备份比逻辑备份快吗? 不要想当然, 至少我的测试结果并不是这样</li>
+<li>恢复速度<br>  物理备份恢复实际就是mv操作(使用xtrabackup,在备份机做prepare), 而逻辑备份则是漫长的导入.<br>  同机器 1.5T库, 逻辑备份大小151G, 做恢复需要27小时左右, 而物理备份恢复则完全取决于磁盘iops, 不用测也知道要比逻辑备份快很多</li>
+<li>备份集大小<br>  实际测试1T的库(大部分为InnoDB表), 逻辑备份集大小为<code>46G</code>, 而物理备份为<code>255G</code></li>
+</ul>
+<p>根据以上三点, 就可以选择备份方式了吗? 我认为不能. 还有一点是数据库服务器和备份服务器之间的网络情况, 和你期望的恢复时间是多久</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-Load-data奇怪的问题"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -539,59 +594,6 @@
 </blockquote>
 <h2 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h2><p><a target="_blank" rel="noopener" href="https://redis.io/topics/protocol#simple-string-reply">Simple string reply</a>: OK 当配置被正确重写. 否则,返回错误</p>
 
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-redis-cli"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/01/18/redis-cli/">redis-cli,Redis命令行界面</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/01/18/redis-cli/" class="article-date">
-	  <time datetime="2018-01-17T16:00:00.000Z" itemprop="datePublished">2018-01-18</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="redis-cli-Redis命令行界面"><a href="#redis-cli-Redis命令行界面" class="headerlink" title="redis-cli,Redis命令行界面"></a>redis-cli,Redis命令行界面</h1><p>redis-cli是Redis命令行界面，一个简单的程序，允许向Redis发送命令，并直接从终端读取服务器发送的回复。</p>
-<p>它有两种主要的模式：一种是交互模式，在这种模式下，用户输入命令并获得回复的REPL（Read Eval Print Loop）另一种模式是将命令作为redis-cli的参数发送，执行并打印在标准输出上。</p>
-<p>在交互模式下，redis-cli具有基本的行编辑功能，可以提供良好的打字体验。</p>
-<p>但是，redis-cli不只是这一点。有些选项可以用来启动程序，以便将其放入特殊模式，以便redis-cli可以完成更复杂的任务，例如模拟slave并打印从master接收到的复制流，查看复制延迟，并显示统计数据，甚至一个ASCII艺术频谱图的延迟样本和频率，以及许多其他事情。</p>
-<p>本指南将涵盖redis-cli的不同方面，由简入繁。</p>
-<p>如果您要广泛使用Redis，或者您已经这么做了，那么很可能会碰巧使用redis-cli。花一些时间来熟悉它可能是一个非常好的主意，一旦你知道了命令行界面的所有技巧，你就会看到你将更有效地使用Redis。</p>
-<h1 id="命令行用法"><a href="#命令行用法" class="headerlink" title="命令行用法"></a>命令行用法</h1><p>如下可以直接非交互模式执行命令并在标准输出获取返回结果<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">redis-cli incr mycounter</span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">7</span></span><br></pre></td></tr></table></figure></p>
-<p>‘()’内为返回结果的类型.当我们需要获取返回结果作为下一个命令的输入,或者希望将结果重定向到文件中时,我们可能不需要显示类型信息.<br>实际上,redis-cli会自动检测,当它检测到标准输出是一个tty(a terminal basically)时,它会显示类型信息来提升可读性,否则它会启用原始输出模式,如下所示:<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli incr mycounter &gt; <span class="regexp">/tmp/</span>output.txt</span><br><span class="line">$ cat <span class="regexp">/tmp/</span>output.txt</span><br><span class="line"><span class="number">8</span></span><br></pre></td></tr></table></figure><br>这一次当CLI检测到输出不在写入terminal后,(integer)被删除了不再显示. 你可以使用<code>--raw</code>选项来强制输出到终端的内容也不显示类型信息<br><figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli <span class="comment">--raw incr mycounter</span></span><br><span class="line"><span class="number">9</span></span><br></pre></td></tr></table></figure></p>
-<p>同样的,你也可以使用<code>--no-raw</code>强制非tty输出也显示类型信息<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> incr no</span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">1</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> --raw incr no</span><br><span class="line"><span class="number">2</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> incr no &gt; res.txt</span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# cat res.txt </span><br><span class="line"><span class="number">3</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> --no-raw incr no &gt; res.txt</span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# cat res.txt </span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">4</span></span><br></pre></td></tr></table></figure><br>
       
     </div>
     <footer class="article-footer">

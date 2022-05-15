@@ -305,6 +305,54 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-masterha_manager参数说明"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/07/20/masterha_manager%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E/">masterha_manager参数说明</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/20/masterha_manager%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E/" class="article-date">
+	  <time datetime="2017-07-20T14:00:00.000Z" itemprop="datePublished">2017-07-20</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="masterha-manager-Command-to-run-MHA-Manager"><a href="#masterha-manager-Command-to-run-MHA-Manager" class="headerlink" title="masterha_manager: Command to run MHA Manager"></a>masterha_manager: Command to run MHA Manager</h2><p>MHA Manager can be started by executing masterha_manager command.</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># masterha_manager --conf=<span class="regexp">/etc/</span>conf<span class="regexp">/masterha/</span>app1.cnf</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>masterha_manager takes below arguments.</p>
+<h2 id="Common-arguments"><a href="#Common-arguments" class="headerlink" title="Common arguments"></a>Common arguments</h2>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-MHA Tutorial"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -550,54 +598,6 @@
 <blockquote>
 <p>注意<br>在每一步执行完全完成后再执行下一步</p>
 </blockquote>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-主从切换实例(传统复制)"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/06/13/%E4%B8%BB%E4%BB%8E%E5%88%87%E6%8D%A2%E5%AE%9E%E4%BE%8B(%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6)/">主从切换实例(传统复制)</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/06/13/%E4%B8%BB%E4%BB%8E%E5%88%87%E6%8D%A2%E5%AE%9E%E4%BE%8B(%E4%BC%A0%E7%BB%9F%E5%A4%8D%E5%88%B6)/" class="article-date">
-	  <time datetime="2017-06-13T14:00:00.000Z" itemprop="datePublished">2017-06-13</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="主从切换案例"><a href="#主从切换案例" class="headerlink" title="主从切换案例"></a>主从切换案例</h3><p>M为主库,read write<br>S* 为从库,read only<br>现在要对M进行硬件维护,提升S1为主库,接管业务读写. M维护完成后作为从库,如下图<br><img src="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_32.png" alt="img"><br>首先可以进行如下切换 (A)<br><img src="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_33.png" alt="img"><br>再进行如下切换(B)<br><img src="https://raw.githubusercontent.com/Fanduzi/auto_failover/master/image/Snip20170626_34.png" alt="img"></p>
-<h4 id="A切换步骤"><a href="#A切换步骤" class="headerlink" title="A切换步骤"></a>A切换步骤</h4><p>首先在S1制造”错误”<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_log_bin=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> t_error_maker(<span class="keyword">id</span> <span class="built_in">int</span>);</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> sql_log_bin=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> t_error_maker;</span><br></pre></td></tr></table></figure><br>通过在session级别关闭写入binlog,建表,开启写入binlog,删表 制造异常, 当S11 S12 S13都执行到drop语句时,会报错停止sql_thread.<br>通过这种方式,可以让它们停止在同一个位置.<br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">master</span> <span class="keyword">status</span> 获取<span class="keyword">File</span> <span class="keyword">Position</span></span><br></pre></td></tr></table></figure><br>S11 S13<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">stop</span> <span class="keyword">slave</span>;</span><br><span class="line"><span class="keyword">change</span> <span class="keyword">master</span>到S12上</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span>;</span><br></pre></td></tr></table></figure><br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> sql_slave_skip_counter=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span> sql_thread;</span><br></pre></td></tr></table></figure></p>
-<h4 id="B切换步骤"><a href="#B切换步骤" class="headerlink" title="B切换步骤"></a>B切换步骤</h4><p>M 停止业务写操作<br><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> read_only=<span class="keyword">on</span>; 此时只有super权限用户能写入</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> super_read_only=<span class="keyword">on</span>;禁止super权限用户写</span><br><span class="line"><span class="comment">#这里没有通过修改用户密码的方式是因为修改用户密码对已经连接上来的用户无效</span></span><br></pre></td></tr></table></figure><br>等M S1 S12 跑一致后(File Position相同) 停S12 sql_thread, 将业务写入操作接入S1<br>最后M<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> read_only=<span class="keyword">off</span>;</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> super_read_only=<span class="keyword">off</span>;</span><br><span class="line"><span class="keyword">change</span> <span class="keyword">master</span> 到S12</span><br><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span></span><br></pre></td></tr></table></figure><br>S12<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">start</span> <span class="keyword">slave</span> sql_thread;</span><br></pre></td></tr></table></figure></p>
-<p>以上步骤通过脚本完成的话,可以做到对业务造成很小的影响<br>脚本实例如下,注释掉了B步骤,因为需要配合切换业务写入操作<br>
       
     </div>
     <footer class="article-footer">

@@ -381,6 +381,52 @@
 
 
   
+    <article id="post-2022-05-06-Orchestrator-Failover过程源码分析-II"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2022/05/06/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/">Orchestrator Failover过程源码分析-II</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2022/05/06/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/" class="article-date">
+	  <time datetime="2022-05-06T10:06:00.000Z" itemprop="datePublished">2022-05-06</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Orchestrator-Failover过程源码分析-II"><a href="#Orchestrator-Failover过程源码分析-II" class="headerlink" title="Orchestrator Failover过程源码分析-II"></a>Orchestrator Failover过程源码分析-II</h1><p>书接上文<a href="http://fuxkdb.com/2022/05/11/2022-05-11-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-I/">Orchestrator Failover过程源码分析-I</a></p>
+<h2 id="DeadMaster恢复流程"><a href="#DeadMaster恢复流程" class="headerlink" title="DeadMaster恢复流程"></a>DeadMaster恢复流程</h2><p>首先通过<code>getCheckAndRecoverFunction</code>获取”checkAndRecoverFunction”<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getCheckAndRecoverFunction</span><span class="params">(analysisCode inst.AnalysisCode, analyzedInstanceKey *inst.InstanceKey)</span> <span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    checkAndRecoverFunction <span class="keyword">func</span>(analysisEntry inst.ReplicationAnalysis, candidateInstanceKey *inst.InstanceKey, forceInstanceRecovery <span class="keyword">bool</span>, skipProcesses <span class="keyword">bool</span>)</span> <span class="params">(recoveryAttempted <span class="keyword">bool</span>, topologyRecovery *TopologyRecovery, err error)</span>,</span></span><br><span class="line">    isActionableRecovery <span class="keyword">bool</span>,</span><br><span class="line">) &#123;</span><br><span class="line">    <span class="keyword">switch</span> analysisCode &#123;</span><br><span class="line">    <span class="comment">// master</span></span><br><span class="line">    <span class="keyword">case</span> inst.DeadMaster, inst.DeadMasterAndSomeReplicas: <span class="comment">// 如果analysisCode是DeadMaster 或 DeadMasterAndSomeReplicas</span></span><br><span class="line">        <span class="keyword">if</span> isInEmergencyOperationGracefulPeriod(analyzedInstanceKey) &#123; <span class="comment">// 首先判断是否处于 EmergencyOperationGracefulPeriod</span></span><br><span class="line">            <span class="keyword">return</span> checkAndRecoverGenericProblem, <span class="literal">false</span> <span class="comment">// 如果处于EmergencyOperationGracefulPeriod, 则又相当于啥也没干, 等下一轮recoverTick</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> checkAndRecoverDeadMaster, <span class="literal">true</span></span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure><br>这里先判断isInEmergencyOperationGracefulPeriod<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">isInEmergencyOperationGracefulPeriod</span><span class="params">(instanceKey *inst.InstanceKey)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">    _, found := emergencyOperationGracefulPeriodMap.Get(instanceKey.StringCode()) <span class="comment">// emergencyOperationGracefulPeriodMap 是一个cache, 有过期时间的&quot;缓存&quot;</span></span><br><span class="line">    <span class="keyword">return</span> found</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>实际是尝试去emergencyOperationGracefulPeriodMap这个cache找有没有这个instance. 那么问题来了, 是谁在什么时候向这个cache放这个instance呢?<br>其实是在主库处于<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#unreachablemaster">UnreachableMaster</a>状态下, <code>executeCheckAndRecoverFunction</code>中调用runEmergentOperations时</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2022-04-26-Orchestrator-Discover源码分析"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -573,273 +619,6 @@
 <p>我这的需求是同步生产环境表结构到演练环境, 以下是针对我这个场景的具体使用方法</p>
 <h2 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h2><p>skeema需要的用户权限具体见<a target="_blank" rel="noopener" href="https://www.skeema.io/docs/requirements/">https://www.skeema.io/docs/requirements/</a></p>
 <p>这里说一下重点, <code>skeema diff</code>时会在目标环境创建一个<code>_skeema_tmp</code>临时数据库, 然后会删除这个库</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2021-02-12-DorisDB-vs-ClickHouse-SSB对比测试"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2021/02/12/2021-02-12-DorisDB-vs-ClickHouse-SSB%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%95/">DorisDB vs ClickHouse SSB对比测试</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2021/02/12/2021-02-12-DorisDB-vs-ClickHouse-SSB%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%95/" class="article-date">
-	  <time datetime="2021-02-12T09:24:00.000Z" itemprop="datePublished">2021-02-12</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="DorisDB-vs-ClickHouse-SSB对比测试"><a href="#DorisDB-vs-ClickHouse-SSB对比测试" class="headerlink" title="DorisDB vs ClickHouse SSB对比测试"></a>DorisDB vs ClickHouse SSB对比测试</h1><h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><ol>
-<li>进行本次测试时对DorisDB了解甚微</li>
-<li>本次测试由于服务器资源有限, 没有严格遵循单一变量原则进行测试</li>
-<li>本次测试有一定参考意义</li>
-</ol>
-<h3 id="数据导入速度"><a href="#数据导入速度" class="headerlink" title="数据导入速度"></a>数据导入速度</h3><ul>
-<li>ClickHouse: 3500s</li>
-<li>DorisDB: 5160s</li>
-</ul>
-<h3 id="数据压缩情况-通过磁盘占用空间比较"><a href="#数据压缩情况-通过磁盘占用空间比较" class="headerlink" title="数据压缩情况(通过磁盘占用空间比较)"></a>数据压缩情况(通过磁盘占用空间比较)</h3><ul>
-<li>ClickHouse: 85.2G</li>
-<li>DorisDB: 132G</li>
-</ul>
-<h3 id="查询速度"><a href="#查询速度" class="headerlink" title="查询速度"></a>查询速度</h3><h4 id="单表查询"><a href="#单表查询" class="headerlink" title="单表查询"></a>单表查询</h4><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/ClickHouse%20vs%20DorisDB/%E5%8D%95%E8%A1%A8.png" alt="单表"></p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th><strong>DorisDB1</strong></th>
-<th><strong>DorisDB2</strong></th>
-<th><strong>ClickHouse1</strong></th>
-<th><strong>ClickHouse2</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Q1.1</strong></td>
-<td>350</td>
-<td>290</td>
-<td>226</td>
-<td>195</td>
-</tr>
-<tr>
-<td><strong>Q1.2</strong></td>
-<td>270</td>
-<td>190</td>
-<td>34</td>
-<td>63</td>
-</tr>
-<tr>
-<td><strong>Q1.3</strong></td>
-<td>310</td>
-<td>240</td>
-<td>43</td>
-<td>22</td>
-</tr>
-<tr>
-<td><strong>Q2.1</strong></td>
-<td>410</td>
-<td>370</td>
-<td>1,723</td>
-<td>1,791</td>
-</tr>
-<tr>
-<td><strong>Q2.2</strong></td>
-<td>780</td>
-<td>720</td>
-<td>1,463</td>
-<td>1,470</td>
-</tr>
-<tr>
-<td><strong>Q2.3</strong></td>
-<td>340</td>
-<td>280</td>
-<td>659</td>
-<td>1,337</td>
-</tr>
-<tr>
-<td><strong>Q3.1</strong></td>
-<td>1,560</td>
-<td>860</td>
-<td>3,488</td>
-<td>1,254</td>
-</tr>
-<tr>
-<td><strong>Q3.2</strong></td>
-<td>1,080</td>
-<td>790</td>
-<td>1,272</td>
-<td>966</td>
-</tr>
-<tr>
-<td><strong>Q3.3</strong></td>
-<td>250</td>
-<td>290</td>
-<td>979</td>
-<td>889</td>
-</tr>
-<tr>
-<td><strong>Q3.4</strong></td>
-<td>230</td>
-<td>260</td>
-<td>36</td>
-<td>20</td>
-</tr>
-<tr>
-<td><strong>Q4.1</strong></td>
-<td>870</td>
-<td>720</td>
-<td>5,067</td>
-<td>2,791</td>
-</tr>
-<tr>
-<td><strong>Q4.2</strong></td>
-<td>720</td>
-<td>490</td>
-<td>804</td>
-<td>752</td>
-</tr>
-<tr>
-<td><strong>Q4.3</strong></td>
-<td>510</td>
-<td>380</td>
-<td>561</td>
-<td>482</td>
-</tr>
-</tbody>
-</table>
-<h4 id="多表查询"><a href="#多表查询" class="headerlink" title="多表查询"></a>多表查询</h4><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/ClickHouse%20vs%20DorisDB/%E5%A4%9A%E8%A1%A8.png" alt="多表"></p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th><strong>DorisDB1</strong></th>
-<th><strong>DorisDB2</strong></th>
-<th><strong>ClickHouse1</strong></th>
-<th><strong>ClickHouse2</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Q1.1</strong></td>
-<td>450</td>
-<td>490</td>
-<td>1,496</td>
-<td>1,424</td>
-</tr>
-<tr>
-<td><strong>Q1.2</strong></td>
-<td>410</td>
-<td>450</td>
-<td>1,366</td>
-<td>659</td>
-</tr>
-<tr>
-<td><strong>Q1.3</strong></td>
-<td>510</td>
-<td>340</td>
-<td>678</td>
-<td>1,377</td>
-</tr>
-<tr>
-<td><strong>Q2.1</strong></td>
-<td>1,560</td>
-<td>1,600</td>
-<td>4,360</td>
-<td>2,667</td>
-</tr>
-<tr>
-<td><strong>Q2.2</strong></td>
-<td>1,690</td>
-<td>1,060</td>
-<td>4,498</td>
-<td>1,554</td>
-</tr>
-<tr>
-<td><strong>Q2.3</strong></td>
-<td>780</td>
-<td>1,150</td>
-<td>2,569</td>
-<td>2,577</td>
-</tr>
-<tr>
-<td><strong>Q3.1</strong></td>
-<td>3,480</td>
-<td>3,700</td>
-<td>10,190</td>
-<td>12,960</td>
-</tr>
-<tr>
-<td><strong>Q3.2</strong></td>
-<td>1,320</td>
-<td>1,850</td>
-<td>5,926</td>
-<td>5,743</td>
-</tr>
-<tr>
-<td><strong>Q3.3</strong></td>
-<td>1,030</td>
-<td>1,040</td>
-<td>3,445</td>
-<td>3,300</td>
-</tr>
-<tr>
-<td><strong>Q3.4</strong></td>
-<td>1,330</td>
-<td>1,170</td>
-<td>3,455</td>
-<td>3,330</td>
-</tr>
-<tr>
-<td><strong>Q4.1</strong></td>
-<td>3,480</td>
-<td>3,750</td>
-<td>15,560</td>
-<td>9,494</td>
-</tr>
-<tr>
-<td><strong>Q4.2</strong></td>
-<td>2,830</td>
-<td>3,170</td>
-<td>16,109</td>
-<td>18,048</td>
-</tr>
-<tr>
-<td><strong>Q4.3</strong></td>
-<td>1,560</td>
-<td>2,140</td>
-<td>15,685</td>
-<td>14,838</td>
-</tr>
-</tbody>
-</table>
       
     </div>
     <footer class="article-footer">

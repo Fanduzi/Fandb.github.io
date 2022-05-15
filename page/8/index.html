@@ -305,6 +305,58 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2019-10-21-如何自己制作机械键盘"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/10/21/2019-10-21-%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/">如何自己制作机械键盘</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/10/21/2019-10-21-%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/" class="article-date">
+	  <time datetime="2019-10-21T13:57:00.000Z" itemprop="datePublished">2019-10-21</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="如何自己制作机械键盘"><a href="#如何自己制作机械键盘" class="headerlink" title="如何自己制作机械键盘"></a>如何自己制作机械键盘</h1><p>本文记录自己的初次”客制化”经历, 键圈大佬请略过, 错误之处请指正, 装逼犯自动忽视~</p>
+<h2 id="材料准备"><a href="#材料准备" class="headerlink" title="材料准备"></a>材料准备</h2><h3 id="轴体"><a href="#轴体" class="headerlink" title="轴体"></a>轴体</h3><p>轴体这里就不做介绍了, 如果你也是萌新的话, 就先了解这四种轴吧:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E9%9D%92%E8%BD%B4/6499406?fr=aladdin">青轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E8%8C%B6%E8%BD%B4/6486400?fr=aladdin">茶轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E7%BA%A2%E8%BD%B4">红轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E9%BB%91%E8%BD%B4">黑轴</a></li>
+</ul>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2019-07-21-MySQL-Error-log监控"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -528,67 +580,6 @@
 <p>源库和归档库均为MGR集群 Multi-Primary Mode.</p>
 </blockquote>
 <h2 id="恢复备份"><a href="#恢复备份" class="headerlink" title="恢复备份"></a>恢复备份</h2><p>过程简单写, 并非本文重点<br><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xbstream -vx <span class="params">--parallel=10</span> &lt; mysql_backup_20190618.xbstream -C <span class="string">/rundata/backup/</span> &gt; <span class="string">/tmp/xb.log</span> 2&gt;&amp;1 &amp;</span><br><span class="line"><span class="keyword">cd</span> <span class="string">/rundata/backup/datadir</span></span><br><span class="line">rm 除这张700g表A的所有其他表的qp文件</span><br><span class="line">xtrabackup <span class="params">--decompress</span> <span class="params">--parallel=10</span> <span class="params">--remove-original</span> <span class="params">--target-dir=/rundata/backup/</span></span><br><span class="line">innobackupex <span class="params">--apply-log</span> <span class="params">--export</span> <span class="string">/rundata/backup/</span></span><br></pre></td></tr></table></figure></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-限制备份速度防止网卡打满"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/06/12/%E9%99%90%E5%88%B6%E5%A4%87%E4%BB%BD%E9%80%9F%E5%BA%A6%E9%98%B2%E6%AD%A2%E7%BD%91%E5%8D%A1%E6%89%93%E6%BB%A1/">限制备份速度防止网卡打满</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/06/12/%E9%99%90%E5%88%B6%E5%A4%87%E4%BB%BD%E9%80%9F%E5%BA%A6%E9%98%B2%E6%AD%A2%E7%BD%91%E5%8D%A1%E6%89%93%E6%BB%A1/" class="article-date">
-	  <time datetime="2019-06-11T20:00:00.000Z" itemprop="datePublished">2019-06-12</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="限制备份速度防止网卡打满"><a href="#限制备份速度防止网卡打满" class="headerlink" title="限制备份速度防止网卡打满"></a>限制备份速度防止网卡打满</h1><p>最近在做拆库, 于是就做了很多表迁移工作, 需要使用<code>mysqldump</code>远程备份数据, 然后发现备份时很容易就把源库网卡打满了. 想过用<code>tc</code>命令限速, 发现有点复杂. 今天无意间看<code>xtrabackup</code>文档发现一个方法</p>
-<p>Throttling the throughput to 10MB/sec. This requires the ‘pv’ tools; you can find them at the official site or install it from the distribution package (“apt-get install pv”)<br><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ innobackupex --stream=tar ./ <span class="params">| pv -q -L10m \</span></span><br><span class="line"><span class="params">|</span> ssh user@desthost <span class="string">&quot;cat - &gt; /data/backups/backup.tar&quot;</span></span><br></pre></td></tr></table></figure></p>
-<blockquote>
-<p>Make a Streaming Backup<br><a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtrabackup/2.4/howtos/recipes_ibkx_stream.html">https://www.percona.com/doc/percona-xtrabackup/2.4/howtos/recipes_ibkx_stream.html</a></p>
-</blockquote>
-<p>查看pv的介绍, 主要是辅助查看一些进度 progressbar ETA什么的:</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://linux.cn/article-6734-1.html">如何使用 pv 命令监控 linux 命令的执行进度</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.howtoing.com/monitor-copy-backup-tar-progress-in-linux-using-pv-command">如何使用“pv”命令监视（复制/备份/压缩）数据的进度 - Howtoing运维教程</a></li>
-<li><a target="_blank" rel="noopener" href="https://wangchujiang.com/linux-command/c/pv.html">pv命令介绍</a></li>
-</ul>
-<p>在google搜索<code>mysqldump pv</code> 基本也是些查看<code>进度</code>的文章</p>
-<blockquote>
-<p><a target="_blank" rel="noopener" href="http://landcareweb.com/questions/6489/you-mei-you-ban-fa-rang-mysqldumpjin-du-tiao-xian-shi-yong-hu-de-bei-fen-zhuang-tai">http://landcareweb.com/questions/6489/you-mei-you-ban-fa-rang-mysqldumpjin-du-tiao-xian-shi-yong-hu-de-bei-fen-zhuang-tai</a><br><a target="_blank" rel="noopener" href="https://www.2cto.com/database/201310/248423.html">https://www.2cto.com/database/201310/248423.html</a><br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/4852933/does-mysqldump-support-a-progress-bar">https://stackoverflow.com/questions/4852933/does-mysqldump-support-a-progress-bar</a></p>
-</blockquote>
-<h2 id="我们这里主要目的是限速-照猫画虎-可以这样实现"><a href="#我们这里主要目的是限速-照猫画虎-可以这样实现" class="headerlink" title="我们这里主要目的是限速, 照猫画虎, 可以这样实现"></a>我们这里主要目的是限速, 照猫画虎, 可以这样实现</h2><p>导出限速<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump <span class="string">| pv -q -L10m &gt; xx.sql</span></span><br></pre></td></tr></table></figure><br>限速导入<br><figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat xx.sql | <span class="type">pv</span> -q -L10m | <span class="type">mysql</span></span><br></pre></td></tr></table></figure><br>导入查看进度<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pv xx.sql <span class="string">| mysql</span></span><br></pre></td></tr></table></figure></p>
-
       
     </div>
     <footer class="article-footer">

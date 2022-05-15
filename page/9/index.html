@@ -305,6 +305,67 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-限制备份速度防止网卡打满"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/06/12/%E9%99%90%E5%88%B6%E5%A4%87%E4%BB%BD%E9%80%9F%E5%BA%A6%E9%98%B2%E6%AD%A2%E7%BD%91%E5%8D%A1%E6%89%93%E6%BB%A1/">限制备份速度防止网卡打满</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/06/12/%E9%99%90%E5%88%B6%E5%A4%87%E4%BB%BD%E9%80%9F%E5%BA%A6%E9%98%B2%E6%AD%A2%E7%BD%91%E5%8D%A1%E6%89%93%E6%BB%A1/" class="article-date">
+	  <time datetime="2019-06-11T20:00:00.000Z" itemprop="datePublished">2019-06-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="限制备份速度防止网卡打满"><a href="#限制备份速度防止网卡打满" class="headerlink" title="限制备份速度防止网卡打满"></a>限制备份速度防止网卡打满</h1><p>最近在做拆库, 于是就做了很多表迁移工作, 需要使用<code>mysqldump</code>远程备份数据, 然后发现备份时很容易就把源库网卡打满了. 想过用<code>tc</code>命令限速, 发现有点复杂. 今天无意间看<code>xtrabackup</code>文档发现一个方法</p>
+<p>Throttling the throughput to 10MB/sec. This requires the ‘pv’ tools; you can find them at the official site or install it from the distribution package (“apt-get install pv”)<br><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ innobackupex --stream=tar ./ <span class="params">| pv -q -L10m \</span></span><br><span class="line"><span class="params">|</span> ssh user@desthost <span class="string">&quot;cat - &gt; /data/backups/backup.tar&quot;</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>Make a Streaming Backup<br><a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtrabackup/2.4/howtos/recipes_ibkx_stream.html">https://www.percona.com/doc/percona-xtrabackup/2.4/howtos/recipes_ibkx_stream.html</a></p>
+</blockquote>
+<p>查看pv的介绍, 主要是辅助查看一些进度 progressbar ETA什么的:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://linux.cn/article-6734-1.html">如何使用 pv 命令监控 linux 命令的执行进度</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.howtoing.com/monitor-copy-backup-tar-progress-in-linux-using-pv-command">如何使用“pv”命令监视（复制/备份/压缩）数据的进度 - Howtoing运维教程</a></li>
+<li><a target="_blank" rel="noopener" href="https://wangchujiang.com/linux-command/c/pv.html">pv命令介绍</a></li>
+</ul>
+<p>在google搜索<code>mysqldump pv</code> 基本也是些查看<code>进度</code>的文章</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://landcareweb.com/questions/6489/you-mei-you-ban-fa-rang-mysqldumpjin-du-tiao-xian-shi-yong-hu-de-bei-fen-zhuang-tai">http://landcareweb.com/questions/6489/you-mei-you-ban-fa-rang-mysqldumpjin-du-tiao-xian-shi-yong-hu-de-bei-fen-zhuang-tai</a><br><a target="_blank" rel="noopener" href="https://www.2cto.com/database/201310/248423.html">https://www.2cto.com/database/201310/248423.html</a><br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/4852933/does-mysqldump-support-a-progress-bar">https://stackoverflow.com/questions/4852933/does-mysqldump-support-a-progress-bar</a></p>
+</blockquote>
+<h2 id="我们这里主要目的是限速-照猫画虎-可以这样实现"><a href="#我们这里主要目的是限速-照猫画虎-可以这样实现" class="headerlink" title="我们这里主要目的是限速, 照猫画虎, 可以这样实现"></a>我们这里主要目的是限速, 照猫画虎, 可以这样实现</h2><p>导出限速<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump <span class="string">| pv -q -L10m &gt; xx.sql</span></span><br></pre></td></tr></table></figure><br>限速导入<br><figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat xx.sql | <span class="type">pv</span> -q -L10m | <span class="type">mysql</span></span><br></pre></td></tr></table></figure><br>导入查看进度<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pv xx.sql <span class="string">| mysql</span></span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-修改sysbench输出格式为csv或json 添加自定义指标"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -563,67 +624,6 @@
 </tr>
 </tbody>
 </table>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-MySQL Group Replication- understanding Flow Control[译文]"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/08/26/MySQL%20Group%20Replication-%20understanding%20Flow%20Control%5B%E8%AF%91%E6%96%87%5D/">MySQL Group Replication- understanding Flow Control[译文]</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/08/26/MySQL%20Group%20Replication-%20understanding%20Flow%20Control%5B%E8%AF%91%E6%96%87%5D/" class="article-date">
-	  <time datetime="2018-08-26T15:05:00.000Z" itemprop="datePublished">2018-08-26</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="MySQL-Group-Replication-understanding-Flow-Control"><a href="#MySQL-Group-Replication-understanding-Flow-Control" class="headerlink" title="MySQL Group Replication: understanding Flow Control"></a><a target="_blank" rel="noopener" href="https://lefred.be/content/mysql-group-replication-understanding-flow-control/">MySQL Group Replication: understanding Flow Control</a></h1><p>使用MySQL Group Replication时，某些成员可能落后于该组。 由于负载，硬件限制等原因…这种滞后可能会导致不能保持良好的性能认证行为和不能尽可能降低认证失败次数.应用队列(applying queue)越大, 与尚未应用的事务发生冲突的风险就越大（这在Multi-Primary Groups上是有问题的）。</p>
-<p>Galera用户已经熟悉这个概念(译注: 指流控的概念). MySQL Group Replication的实现与Galera有两个主要不同点:</p>
-<ul>
-<li><p>the Group is never totally stalled(译注: Group不会彻底停止接收写请求)</p>
-</li>
-<li><p>the node having issues doesn’t send flow control messages to the rest of the group asking for slowing down(译注: 短板节点不会向Group的其他节点发送flow control消息来要求集群减速)</p>
-</li>
-</ul>
-<p>实际上，该组的每个成员都会向其他成员发送有关其队列（applier queue and certification queue）的一些统计信息。 然后，如果每个节点意识到一个节点达到了其中一个队列的阈值，则决定是否减速：</p>
-<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">group_replication_flow_control_applier_threshold (<span class="keyword">default</span> <span class="keyword">is</span> <span class="number">25000</span>)</span><br><span class="line"></span><br><span class="line">group_replication_flow_control_certifier_threshold (<span class="keyword">default</span> <span class="keyword">is</span> <span class="number">25000</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>因此，如果在节点上将<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_flow_control_mode">group_replication_flow_control_mode</a>设置为<code>QUOTA</code>，并且看到该集群的其他成员之一落后（达到阈值），则会将写入操作限制为最小配额。 此配额是根据最后一秒中应用的transactions数计算的，然后通过减去上一个周期的“over the quota”消息来减少。 </p>
-<blockquote>
-<p>and then it is reduced below that by subtracting the “over the quota” messages from the last period.</p>
-</blockquote>
-<p>这意味着与Galera相反，Galera的(flow control)阈值是有短板节点决定的，对于我们在MySQL组复制中，编写事务的节点(译注: 写节点)检查其阈值流量控制值并将它们与来自其他节点的统计数据进行比较以决定是否进行flow control。</p>
-<p>您可以在Vitor的文章<a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/zooming-in-on-group-replication-performance/">Zooming-in on Group Replication Performance</a>一文中找到有关组复制流控制的更多信息</p>
-
       
     </div>
     <footer class="article-footer">

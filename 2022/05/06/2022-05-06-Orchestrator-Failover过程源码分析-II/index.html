@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>orchestrator failover过程源码分析-ii | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLOrchestrator" />
+  
+  
+  
+  
+  <meta name="description" content="Orchestrator Failover过程源码分析-II书接上文Orchestrator Failover过程源码分析-I DeadMaster恢复流程首先通过getCheckAndRecoverFunction获取”checkAndRecoverFunction”123456789101112func getCheckAndRecoverFunction(analysisCode inst.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Orchestrator Failover过程源码分析-II">
+<meta property="og:url" content="http://fuxkdb.com/2022/05/06/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Orchestrator Failover过程源码分析-II书接上文Orchestrator Failover过程源码分析-I DeadMaster恢复流程首先通过getCheckAndRecoverFunction获取”checkAndRecoverFunction”123456789101112func getCheckAndRecoverFunction(analysisCode inst.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/15/16-34-30-Orchestrator%20Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II-Excalidraw-26a12b.png">
+<meta property="article:published_time" content="2022-05-06T10:06:00.000Z">
+<meta property="article:modified_time" content="2022-05-15T08:41:55.005Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Orchestrator">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/15/16-34-30-Orchestrator%20Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II-Excalidraw-26a12b.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2022-05-06-Orchestrator-Failover过程源码分析-II" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Orchestrator Failover过程源码分析-II
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2022/05/06/2022-05-06-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II/" class="article-date">
+	  <time datetime="2022-05-06T10:06:00.000Z" itemprop="datePublished">2022-05-06</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Orchestrator-Failover过程源码分析-II"><a href="#Orchestrator-Failover过程源码分析-II" class="headerlink" title="Orchestrator Failover过程源码分析-II"></a>Orchestrator Failover过程源码分析-II</h1><p>书接上文<a href="http://fuxkdb.com/2022/05/11/2022-05-11-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-I/">Orchestrator Failover过程源码分析-I</a></p>
+<h2 id="DeadMaster恢复流程"><a href="#DeadMaster恢复流程" class="headerlink" title="DeadMaster恢复流程"></a>DeadMaster恢复流程</h2><p>首先通过<code>getCheckAndRecoverFunction</code>获取”checkAndRecoverFunction”<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getCheckAndRecoverFunction</span><span class="params">(analysisCode inst.AnalysisCode, analyzedInstanceKey *inst.InstanceKey)</span> <span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    checkAndRecoverFunction <span class="keyword">func</span>(analysisEntry inst.ReplicationAnalysis, candidateInstanceKey *inst.InstanceKey, forceInstanceRecovery <span class="keyword">bool</span>, skipProcesses <span class="keyword">bool</span>)</span> <span class="params">(recoveryAttempted <span class="keyword">bool</span>, topologyRecovery *TopologyRecovery, err error)</span>,</span></span><br><span class="line">    isActionableRecovery <span class="keyword">bool</span>,</span><br><span class="line">) &#123;</span><br><span class="line">    <span class="keyword">switch</span> analysisCode &#123;</span><br><span class="line">    <span class="comment">// master</span></span><br><span class="line">    <span class="keyword">case</span> inst.DeadMaster, inst.DeadMasterAndSomeReplicas: <span class="comment">// 如果analysisCode是DeadMaster 或 DeadMasterAndSomeReplicas</span></span><br><span class="line">        <span class="keyword">if</span> isInEmergencyOperationGracefulPeriod(analyzedInstanceKey) &#123; <span class="comment">// 首先判断是否处于 EmergencyOperationGracefulPeriod</span></span><br><span class="line">            <span class="keyword">return</span> checkAndRecoverGenericProblem, <span class="literal">false</span> <span class="comment">// 如果处于EmergencyOperationGracefulPeriod, 则又相当于啥也没干, 等下一轮recoverTick</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> checkAndRecoverDeadMaster, <span class="literal">true</span></span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure><br>这里先判断isInEmergencyOperationGracefulPeriod<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">isInEmergencyOperationGracefulPeriod</span><span class="params">(instanceKey *inst.InstanceKey)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">    _, found := emergencyOperationGracefulPeriodMap.Get(instanceKey.StringCode()) <span class="comment">// emergencyOperationGracefulPeriodMap 是一个cache, 有过期时间的&quot;缓存&quot;</span></span><br><span class="line">    <span class="keyword">return</span> found</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>实际是尝试去emergencyOperationGracefulPeriodMap这个cache找有没有这个instance. 那么问题来了, 是谁在什么时候向这个cache放这个instance呢?<br>其实是在主库处于<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#unreachablemaster">UnreachableMaster</a>状态下, <code>executeCheckAndRecoverFunction</code>中调用runEmergentOperations时</p>
+<a id="more"></a>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// executeCheckAndRecoverFunction will choose the correct check &amp; recovery function based on analysis.</span></span><br><span class="line"><span class="comment">// It executes the function synchronuously</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">executeCheckAndRecoverFunction</span><span class="params">(analysisEntry inst.ReplicationAnalysis, candidateInstanceKey *inst.InstanceKey, forceInstanceRecovery <span class="keyword">bool</span>, skipProcesses <span class="keyword">bool</span>)</span> <span class="params">(recoveryAttempted <span class="keyword">bool</span>, topologyRecovery *TopologyRecovery, err error)</span></span> &#123;</span><br><span class="line">    atomic.AddInt64(&amp;countPendingRecoveries, <span class="number">1</span>)</span><br><span class="line">    <span class="keyword">defer</span> atomic.AddInt64(&amp;countPendingRecoveries, <span class="number">-1</span>)</span><br><span class="line"></span><br><span class="line">    checkAndRecoverFunction, isActionableRecovery := getCheckAndRecoverFunction(analysisEntry.Analysis, &amp;analysisEntry.AnalyzedInstanceKey) <span class="comment">// 最初处于UnreachableMaster时, 这里拿到的是checkAndRecoverGenericProblem</span></span><br><span class="line">    analysisEntry.IsActionableRecovery = isActionableRecovery</span><br><span class="line">    runEmergentOperations(&amp;analysisEntry) </span><br></pre></td></tr></table></figure>
+<p>可以看到, <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#unreachablemaster">UnreachableMaster</a>时, 会运行emergentlyReadTopologyInstance<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">runEmergentOperations</span><span class="params">(analysisEntry *inst.ReplicationAnalysis)</span></span> &#123;</span><br><span class="line">    <span class="keyword">switch</span> analysisEntry.Analysis &#123;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="keyword">case</span> inst.UnreachableMaster: <span class="comment">// 实际目的是强制重新读一下该实例和其所有从库的&quot;信息&quot;</span></span><br><span class="line">        <span class="keyword">go</span> emergentlyReadTopologyInstance(&amp;analysisEntry.AnalyzedInstanceKey, analysisEntry.Analysis)</span><br><span class="line">        <span class="keyword">go</span> emergentlyReadTopologyInstanceReplicas(&amp;analysisEntry.AnalyzedInstanceKey, analysisEntry.Analysis)</span><br></pre></td></tr></table></figure><br>而在emergentlyReadTopologyInstance中会先尝试向emergencyReadTopologyInstanceMap中Add<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Force a re-read of a topology instance; this is done because we need to substantiate a suspicion</span></span><br><span class="line"><span class="comment">// that we may have a failover scenario. we want to speed up reading the complete picture.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">emergentlyReadTopologyInstance</span><span class="params">(instanceKey *inst.InstanceKey, analysisCode inst.AnalysisCode)</span> <span class="params">(instance *inst.Instance, err error)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> existsInCacheError := emergencyReadTopologyInstanceMap.Add(instanceKey.StringCode(), <span class="literal">true</span>, cache.DefaultExpiration); existsInCacheError != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="comment">// Just recently attempted</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line">    instance, err = inst.ReadTopologyInstance(instanceKey) <span class="comment">// 会调用 ReadTopologyInstanceBufferable</span></span><br><span class="line">    inst.AuditOperation(<span class="string">&quot;emergently-read-topology-instance&quot;</span>, instanceKey, <span class="keyword">string</span>(analysisCode))</span><br><span class="line">    <span class="keyword">return</span> instance, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>ReadTopologyInstance 实际调用 <a href="http://fuxkdb.com/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/#gt-ReadTopologyInstanceBufferable">ReadTopologyInstanceBufferable</a></p>
+</blockquote>
+<p>这个cache是在logic包init时创建的<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">emergencyOperationGracefulPeriodMap = cache.New(time.Second*<span class="number">5</span>, time.Millisecond*<span class="number">500</span>) <span class="comment">// 过期时间5s</span></span><br></pre></td></tr></table></figure></p>
+<p>isInEmergencyOperationGracefulPeriod 如果返回true, 表示尚处于EmergentOperations运行窗口期内, 所以需要等<br>若返回false, 表示已经可以开始”恢复”了, 就会返回checkAndRecoverDeadMaster,  并且isActionableRecovery也为true</p>
+<h3 id="executeCheckAndRecoverFunction"><a href="#executeCheckAndRecoverFunction" class="headerlink" title="executeCheckAndRecoverFunction"></a>executeCheckAndRecoverFunction</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// It executes the function synchronuously</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">executeCheckAndRecoverFunction</span><span class="params">(analysisEntry inst.ReplicationAnalysis, candidateInstanceKey *inst.InstanceKey, forceInstanceRecovery <span class="keyword">bool</span>, skipProcesses <span class="keyword">bool</span>)</span> <span class="params">(recoveryAttempted <span class="keyword">bool</span>, topologyRecovery *TopologyRecovery, err error)</span></span> &#123;</span><br><span class="line">    atomic.AddInt64(&amp;countPendingRecoveries, <span class="number">1</span>)</span><br><span class="line">    <span class="keyword">defer</span> atomic.AddInt64(&amp;countPendingRecoveries, <span class="number">-1</span>)</span><br><span class="line"></span><br><span class="line">    checkAndRecoverFunction, isActionableRecovery := getCheckAndRecoverFunction(analysisEntry.Analysis, &amp;analysisEntry.AnalyzedInstanceKey)</span><br><span class="line">    analysisEntry.IsActionableRecovery = isActionableRecovery</span><br><span class="line">    runEmergentOperations(&amp;analysisEntry)</span><br><span class="line"></span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="comment">// Initiate detection:</span></span><br><span class="line">    <span class="comment">// 向backend db topology_failure_detection表insert ignore into一条数据</span></span><br><span class="line">    <span class="comment">// 这里 skipProcesses = false, 所以会调用 OnFailureDetectionProcesses 钩子</span></span><br><span class="line">    <span class="comment">// 到这里我才明白, 原来 skipProcesses 意思是 是否跳过 钩子的执行</span></span><br><span class="line">    registrationSuccess, _, err := checkAndExecuteFailureDetectionProcesses(analysisEntry, skipProcesses)</span><br><span class="line">    <span class="keyword">if</span> registrationSuccess &#123;</span><br><span class="line">        <span class="keyword">if</span> orcraft.IsRaftEnabled() &#123;</span><br><span class="line">            _, err := orcraft.PublishCommand(<span class="string">&quot;register-failure-detection&quot;</span>, analysisEntry)</span><br><span class="line">            log.Errore(err)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="comment">// We don&#x27;t mind whether detection really executed the processes or not</span></span><br><span class="line">    <span class="comment">// (it may have been silenced due to previous detection). We only care there&#x27;s no error.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// We&#x27;re about to embark on recovery shortly...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Check for recovery being disabled globally</span></span><br><span class="line">    <span class="comment">// 看是否全局禁用了恢复, 如通过API disable-global-recoveries 去禁用全局恢复</span></span><br><span class="line">    <span class="keyword">if</span> recoveryDisabledGlobally, err := IsRecoveryDisabled(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="comment">// Unexpected. Shouldn&#x27;t get this</span></span><br><span class="line">        log.Errorf(<span class="string">&quot;Unable to determine if recovery is disabled globally: %v&quot;</span>, err)</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> recoveryDisabledGlobally &#123;</span><br><span class="line">        <span class="comment">// 这里checkAndRecover传的是false</span></span><br><span class="line">        <span class="keyword">if</span> !forceInstanceRecovery &#123; <span class="comment">// 所以如果全局禁用了recover, recoverTick是不会进行恢复的, 因为forceInstanceRecovery也是false. 至此退出</span></span><br><span class="line">            log.Infof(<span class="string">&quot;CheckAndRecover: Analysis: %+v, InstanceKey: %+v, candidateInstanceKey: %+v, &quot;</span>+</span><br><span class="line">                <span class="string">&quot;skipProcesses: %v: NOT Recovering host (disabled globally)&quot;</span>,</span><br><span class="line">                analysisEntry.Analysis, analysisEntry.AnalyzedInstanceKey, candidateInstanceKey, skipProcesses)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>, <span class="literal">nil</span>, err</span><br><span class="line">        &#125;</span><br><span class="line">        log.Infof(<span class="string">&quot;CheckAndRecover: Analysis: %+v, InstanceKey: %+v, candidateInstanceKey: %+v, &quot;</span>+</span><br><span class="line">            <span class="string">&quot;skipProcesses: %v: recoveries disabled globally but forcing this recovery&quot;</span>,</span><br><span class="line">            analysisEntry.Analysis, analysisEntry.AnalyzedInstanceKey, candidateInstanceKey, skipProcesses)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 开始运行checkAndRecoverFunction. 本例中是运行checkAndRecoverDeadMaster</span></span><br><span class="line">    <span class="comment">// 我们先不看checkAndRecoverDeadMaster具体干了啥, 先往下看</span></span><br><span class="line">    recoveryAttempted, topologyRecovery, err = checkAndRecoverFunction(analysisEntry, candidateInstanceKey, forceInstanceRecovery, skipProcesses) <span class="comment">// 实参为analysisEntry, nil, false, false</span></span><br><span class="line">    <span class="keyword">if</span> !recoveryAttempted &#123;</span><br><span class="line">        <span class="keyword">return</span> recoveryAttempted, topologyRecovery, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> topologyRecovery == <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> recoveryAttempted, topologyRecovery, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> b, err := json.Marshal(topologyRecovery); err == <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Infof(<span class="string">&quot;Topology recovery: %+v&quot;</span>, <span class="keyword">string</span>(b))</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        log.Infof(<span class="string">&quot;Topology recovery: %+v&quot;</span>, *topologyRecovery)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// skipProcesses=false</span></span><br><span class="line">    <span class="keyword">if</span> !skipProcesses &#123;</span><br><span class="line">        <span class="comment">// 没恢复成功, 调用 PostUnsuccessfulFailoverProcesses</span></span><br><span class="line">        <span class="keyword">if</span> topologyRecovery.SuccessorKey == <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="comment">// Execute general unsuccessful post failover processes</span></span><br><span class="line">            executeProcesses(config.Config.PostUnsuccessfulFailoverProcesses, <span class="string">&quot;PostUnsuccessfulFailoverProcesses&quot;</span>, topologyRecovery, <span class="literal">false</span>)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 否则调用 PostFailoverProcesses</span></span><br><span class="line">            <span class="comment">// Execute general post failover processes</span></span><br><span class="line">            inst.EndDowntime(topologyRecovery.SuccessorKey)</span><br><span class="line">            executeProcesses(config.Config.PostFailoverProcesses, <span class="string">&quot;PostFailoverProcesses&quot;</span>, topologyRecovery, <span class="literal">false</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="comment">// 代码只要能走到这里, 就带表恢复成功了? recoveryAttempted肯定是true</span></span><br><span class="line">    <span class="comment">// 具体的恢复操作, 都在checkAndRecoverFunction里</span></span><br><span class="line">    <span class="keyword">return</span> recoveryAttempted, topologyRecovery, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于本文场景, 当主库被认定处于<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Failure%20detection.md#deadmaster">DeadMaster</a>状态后:<br>executeCheckAndRecoverFunction会先调用getCheckAndRecoverFunction获取:</p>
+<ul>
+<li>checkAndRecoverFunction: checkAndRecoverDeadMaster</li>
+<li>isActionableRecovery: true</li>
+</ul>
+<p>然后检查是否”禁用”了全局故障恢复功能(如通过API <a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Failure%20detection%20%26%20recovery/Topology%20recovery.md#web-api-command-line">disable-global-recoveries</a>), 如果是, 则直接return</p>
+<p>接下来, 开始执行checkAndRecoverFunction, 即checkAndRecoverDeadMaster</p>
+<p>我们先不看checkAndRecoverDeadMaster具体逻辑, 继续往下看. 下面的代码就是根据checkAndRecoverFunction的执行情况(是否成功恢复), 调用对应的钩子, 最后将恢复结果return回去, 其实到这里, 本轮恢复就算做完了. 具体恢复是否成功, recoverTick也不关心. 具体如何恢复的, 还是要看checkAndRecoverFunction(本例中是checkAndRecoverDeadMaster)</p>
+<blockquote>
+<p>关于钩子, 见:<br><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A1.md#onfailuredetectionprocesses">OnFailureDetectionProcesses</a><br><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A1.md#postunsuccessfulfailoverprocesses">PostUnsuccessfulFailoverProcesses</a><br><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A1.md#postfailoverprocesses">PostFailoverProcesses</a></p>
+</blockquote>
+<h3 id="checkAndRecoverDeadMaster"><a href="#checkAndRecoverDeadMaster" class="headerlink" title="checkAndRecoverDeadMaster"></a>checkAndRecoverDeadMaster</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// checkAndRecoverDeadMaster checks a given analysis, decides whether to take action, and possibly takes action</span></span><br><span class="line"><span class="comment">// Returns true when action was taken.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">checkAndRecoverDeadMaster</span><span class="params">(analysisEntry inst.ReplicationAnalysis, candidateInstanceKey *inst.InstanceKey, forceInstanceRecovery <span class="keyword">bool</span>, skipProcesses <span class="keyword">bool</span>)</span> <span class="params">(recoveryAttempted <span class="keyword">bool</span>, topologyRecovery *TopologyRecovery, err error)</span></span> &#123;</span><br><span class="line">    <span class="comment">// forceInstanceRecovery=false</span></span><br><span class="line">    <span class="comment">// HasAutomatedMasterRecovery 是在GetReplicationAnalysis中会运行 a.ClusterDetails.ReadRecoveryInfo()</span></span><br><span class="line">    <span class="comment">// ReadRecoveryInfo中会执行 this.HasAutomatedMasterRecovery = this.filtersMatchCluster(config.Config.RecoverMasterClusterFilters)</span></span><br><span class="line">    <span class="comment">// RecoverMasterClusterFilters 我们配置的是 .* 所以这里为true</span></span><br><span class="line">    <span class="comment">// false || true = true</span></span><br><span class="line">    <span class="comment">// 所以这对于recoverTick来说, 目的是检查一下RecoverMasterClusterFilters配置, 看这个集群到底配没配自动故障恢复</span></span><br><span class="line">    <span class="keyword">if</span> !(forceInstanceRecovery || analysisEntry.ClusterDetails.HasAutomatedMasterRecovery) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>, <span class="literal">nil</span>, <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 实参 &amp;analysisEntry, true, true</span></span><br><span class="line">    <span class="comment">// 尝试注册一个恢复条目, 如果失败, 意味着 recovery is already in place.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 让我们检查一下这个实例是否最近刚刚被提升或集群刚刚经历failover，并且仍然处于活动期。如果是这样，我们就拒绝恢复注册，to avoid flapping. </span></span><br><span class="line">    <span class="comment">// 就是说刚Failover没多久又Failover不行, 类似MHA 8小时限制</span></span><br><span class="line">    <span class="comment">// 时间由RecoveryPeriodBlockMinutes控制, 默认1小时. 也是在recoveryTick启动协程是会去清理in_active_period标记(update为0)</span></span><br><span class="line">    <span class="comment">// 如果一切没问题, 会向数据库topology_recovery插入一条记录, 并new一个topologyRecovery结构体返回.</span></span><br><span class="line">    <span class="comment">// 否则 topologyRecovery 是 nil</span></span><br><span class="line">    topologyRecovery, err = AttemptRecoveryRegistration(&amp;analysisEntry, !forceInstanceRecovery, !forceInstanceRecovery)</span><br><span class="line">    <span class="keyword">if</span> topologyRecovery == <span class="literal">nil</span> &#123; <span class="comment">// 如果 topologyRecovery = nil, 说明最近刚恢复完, 或者正在恢复, 直接return</span></span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;found an active or recent recovery on %+v. Will not issue another RecoverDeadMaster.&quot;</span>, analysisEntry.AnalyzedInstanceKey))</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>, <span class="literal">nil</span>, err</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// That&#x27;s it! We must do recovery!</span></span><br><span class="line">    AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;will handle DeadMaster event on %+v&quot;</span>, analysisEntry.ClusterDetails.ClusterName))</span><br><span class="line">    recoverDeadMasterCounter.Inc(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 正式开始恢复</span></span><br><span class="line">    <span class="comment">// 实参为 topologyRecovery, nil, false</span></span><br><span class="line">    recoveryAttempted, promotedReplica, lostReplicas, err := recoverDeadMaster(topologyRecovery, candidateInstanceKey, skipProcesses)</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    topologyRecovery.LostReplicas.AddInstances(lostReplicas) <span class="comment">// lostReplicas 由于种种原因, 没有成功change到new master的从库</span></span><br><span class="line">    <span class="keyword">if</span> !recoveryAttempted &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>, topologyRecovery, err</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 代码运行到这里时, 可能已经选举出了new master, 即promotedReplica</span></span><br><span class="line">    <span class="comment">// 这个函数补充了一些判断条件, 判断这个promotedReplica是不是可以做new master</span></span><br><span class="line">    <span class="comment">// 主要就是这几个参数:</span></span><br><span class="line">    <span class="comment">// - PreventCrossDataCenterMasterFailover</span></span><br><span class="line">    <span class="comment">// - PreventCrossRegionMasterFailover</span></span><br><span class="line">    <span class="comment">// - FailMasterPromotionOnLagMinutes</span></span><br><span class="line">    <span class="comment">// - FailMasterPromotionIfSQLThreadNotUpToDate</span></span><br><span class="line">    <span class="comment">// - DelayMasterPromotionIfSQLThreadNotUpToDate</span></span><br><span class="line">    overrideMasterPromotion := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="params">(*inst.Instance, error)</span></span> &#123;</span><br><span class="line">        <span class="keyword">if</span> promotedReplica == <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="comment">// No promotion; nothing to override.</span></span><br><span class="line">            <span class="keyword">return</span> promotedReplica, err</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Scenarios where we might cancel the promotion.</span></span><br><span class="line">        <span class="comment">// 这个函数就是通过以下参数:</span></span><br><span class="line">        <span class="comment">// - PreventCrossDataCenterMasterFailover</span></span><br><span class="line">        <span class="comment">// - PreventCrossRegionMasterFailover</span></span><br><span class="line">        <span class="comment">// 判断 promotedReplica 是否可以做 new master</span></span><br><span class="line">        <span class="comment">// PreventCrossDataCenterMasterFailover:</span></span><br><span class="line">        <span class="comment">// 默认false . 当为true 时, orchestrator将只用与故障集群主库位于同一DC的从库替换故障的主库. 它将尽最大努力从同一DC中找到一个替代者, 如果找不到, 将中止（失败）故障转移.</span></span><br><span class="line">        <span class="comment">// PreventCrossRegionMasterFailover:</span></span><br><span class="line">        <span class="comment">// 默认false . 当为true 时, orchestrator将只用与故障集群主库位于同一region的从库替换故障的主库. 它将尽最大努力找到同一region的替代者, 如果找不到, 将中止（失败）故障转移.</span></span><br><span class="line">        <span class="keyword">if</span> satisfied, reason := MasterFailoverGeographicConstraintSatisfied(&amp;analysisEntry, promotedReplica); !satisfied &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;RecoverDeadMaster: failed %+v promotion; %s&quot;</span>, promotedReplica.Key, reason)</span><br><span class="line">        &#125;</span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster: promoted replica lag seconds: %+v&quot;</span>, promotedReplica.ReplicationLagSeconds.Int64))</span><br><span class="line">        <span class="keyword">if</span> config.Config.FailMasterPromotionOnLagMinutes &gt; <span class="number">0</span> &amp;&amp;</span><br><span class="line">            time.Duration(promotedReplica.ReplicationLagSeconds.Int64)*time.Second &gt;= time.Duration(config.Config.FailMasterPromotionOnLagMinutes)*time.Minute &#123;</span><br><span class="line">            <span class="comment">// candidate replica lags too much</span></span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;RecoverDeadMaster: failed promotion. FailMasterPromotionOnLagMinutes is set to %d (minutes) and promoted replica %+v &#x27;s lag is %d (seconds)&quot;</span>, config.Config.FailMasterPromotionOnLagMinutes, promotedReplica.Key, promotedReplica.ReplicationLagSeconds.Int64)</span><br><span class="line">        &#125;</span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster: promoted replica sql thread up-to-date: %+v&quot;</span>, promotedReplica.SQLThreadUpToDate()))</span><br><span class="line">        <span class="keyword">if</span> config.Config.FailMasterPromotionIfSQLThreadNotUpToDate &amp;&amp; !promotedReplica.SQLThreadUpToDate() &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;RecoverDeadMaster: failed promotion. FailMasterPromotionIfSQLThreadNotUpToDate is set and promoted replica %+v &#x27;s sql thread is not up to date (relay logs still unapplied). Aborting promotion&quot;</span>, promotedReplica.Key)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> config.Config.DelayMasterPromotionIfSQLThreadNotUpToDate &amp;&amp; !promotedReplica.SQLThreadUpToDate() &#123;</span><br><span class="line">            AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;DelayMasterPromotionIfSQLThreadNotUpToDate: waiting for SQL thread on %+v&quot;</span>, promotedReplica.Key))</span><br><span class="line">            <span class="keyword">if</span> _, err := inst.WaitForSQLThreadUpToDate(&amp;promotedReplica.Key, <span class="number">0</span>, <span class="number">0</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;DelayMasterPromotionIfSQLThreadNotUpToDate error: %+v&quot;</span>, err)</span><br><span class="line">            &#125;</span><br><span class="line">            AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;DelayMasterPromotionIfSQLThreadNotUpToDate: SQL thread caught up on %+v&quot;</span>, promotedReplica.Key))</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// All seems well. No override done.</span></span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster: found no reason to override promotion of %+v&quot;</span>, promotedReplica.Key))</span><br><span class="line">        <span class="keyword">return</span> promotedReplica, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 运行 overrideMasterPromotion</span></span><br><span class="line">    <span class="keyword">if</span> promotedReplica, err = overrideMasterPromotion(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, err.Error())</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// And this is the end; whether successful or not, we&#x27;re done.</span></span><br><span class="line">    resolveRecovery(topologyRecovery, promotedReplica)</span><br><span class="line">    <span class="comment">// Now, see whether we are successful or not. From this point there&#x27;s no going back.</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> promotedReplica != <span class="literal">nil</span> &#123; <span class="comment">// 成功选举除了新主库</span></span><br><span class="line">        <span class="comment">// Success!</span></span><br><span class="line">        recoverDeadMasterSuccessCounter.Inc(<span class="number">1</span>)</span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster: successfully promoted %+v&quot;</span>, promotedReplica.Key))</span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;- RecoverDeadMaster: promoted server coordinates: %+v&quot;</span>, promotedReplica.SelfBinlogCoordinates))</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 当为true 时, orchestrator 将在选举出的新主库上执行reset slave all 和set read_only=0 . 默认: true . 当该参数为true 时, 将覆盖MasterFailoverDetachSlaveMasterHost .</span></span><br><span class="line">        <span class="comment">// 所以这个if列操作就是执行在新主库执行 reset slave all 和set read_only=0</span></span><br><span class="line">        <span class="keyword">if</span> config.Config.ApplyMySQLPromotionAfterMasterFailover || analysisEntry.CommandHint == inst.GracefulMasterTakeoverCommandHint &#123;</span><br><span class="line">            <span class="comment">// on GracefulMasterTakeoverCommandHint it makes utter sense to RESET SLAVE ALL and read_only=0, and there is no sense in not doing so.</span></span><br><span class="line">            AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;- RecoverDeadMaster: will apply MySQL changes to promoted master&quot;</span>))</span><br><span class="line">            &#123;</span><br><span class="line">                _, err := inst.ResetReplicationOperation(&amp;promotedReplica.Key)</span><br><span class="line">                <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">                    <span class="comment">// Ugly, but this is important. Let&#x27;s give it another try</span></span><br><span class="line">                    _, err = inst.ResetReplicationOperation(&amp;promotedReplica.Key)</span><br><span class="line">                &#125;</span><br><span class="line">                AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;- RecoverDeadMaster: applying RESET SLAVE ALL on promoted master: success=%t&quot;</span>, (err == <span class="literal">nil</span>)))</span><br><span class="line">                <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">                    AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;- RecoverDeadMaster: NOTE that %+v is promoted even though SHOW SLAVE STATUS may still show it has a master&quot;</span>, promotedReplica.Key))</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            &#123;</span><br><span class="line">                _, err := inst.SetReadOnly(&amp;promotedReplica.Key, <span class="literal">false</span>)</span><br><span class="line">                AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;- RecoverDeadMaster: applying read-only=0 on promoted master: success=%t&quot;</span>, (err == <span class="literal">nil</span>)))</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// Let&#x27;s attempt, though we won&#x27;t necessarily succeed, to set old master as read-only</span></span><br><span class="line">            <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">            <span class="comment">// 并且尝试给旧主库打开只读, 成功与否无所</span></span><br><span class="line">                _, err := inst.SetReadOnly(&amp;analysisEntry.AnalyzedInstanceKey, <span class="literal">true</span>)</span><br><span class="line">                AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;- RecoverDeadMaster: applying read-only=1 on demoted master: success=%t&quot;</span>, (err == <span class="literal">nil</span>)))</span><br><span class="line">            &#125;()</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ...省略部分代码</span><br><span class="line">        <span class="comment">// 当该参数为true 时, orchestrator将对被选举为新主库的节点执行detach-replica-master-host（这确保了即使旧主库&quot;复活了&quot;, 新主库也不会试图从旧主库复制数据）. 默认值: false. 如果ApplyMySQLPromotionAfterMasterFailover为真，这个参数将失去意义.</span></span><br><span class="line">        <span class="keyword">if</span> config.Config.MasterFailoverDetachReplicaMasterHost &#123;</span><br><span class="line">            postponedFunction := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">                AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;- RecoverDeadMaster: detaching master host on promoted master&quot;</span>))</span><br><span class="line">                <span class="comment">// 所以说 如果 ApplyMySQLPromotionAfterMasterFailover=true, 就已经完成了reset slave all了. </span></span><br><span class="line">                <span class="comment">// 那么DetachReplicaMasterHost也就失去意义了</span></span><br><span class="line">                inst.DetachReplicaMasterHost(&amp;promotedReplica.Key)</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">            &#125;</span><br><span class="line">            topologyRecovery.AddPostponedFunction(postponedFunction, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster, detaching promoted master host %+v&quot;</span>, promotedReplica.Key))</span><br><span class="line">        &#125;</span><br><span class="line">        ...省略部分代码</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> !skipProcesses &#123;</span><br><span class="line">            <span class="comment">// Execute post master-failover processes</span></span><br><span class="line">            <span class="comment">// 执行钩子 PostMasterFailoverProcesses</span></span><br><span class="line">            executeProcesses(config.Config.PostMasterFailoverProcesses, <span class="string">&quot;PostMasterFailoverProcesses&quot;</span>, topologyRecovery, <span class="literal">false</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 否则, 说明恢复失败了</span></span><br><span class="line">        recoverDeadMasterFailureCounter.Inc(<span class="number">1</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>, topologyRecovery, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>checkAndRecoverDeadMaster 首先通过<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A1.md#recovermasterclusterfilters">RecoverMasterClusterFilters</a>再次判断这个实例是否可以进行自动故障恢复.<br>接着, 调用AttemptRecoveryRegistration检查这个实例是否最近刚刚被提升或该实例所处集群刚刚经历failover, 并且仍然处于活动期. </p>
+<blockquote>
+<p>就是说刚Failover没多久又Failover不行, 类似MHA 8小时限制</p>
+</blockquote>
+<p>活动期的时间由<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A1.md#recoveryperiodblockminutes">RecoveryPeriodBlockMinutes</a>控制, 默认1小时. 也是在recoveryTick启动协程时会去清理in_active_period标记(update为0)<br>如果一切没问题, 会向数据库topology_recovery插入一条记录, 并new一个topologyRecovery结构体返回. 否则 topologyRecovery 是 nil</p>
+<p>以上检查都没问题的话, 就正式开始执行恢复, 调用recoverDeadMaster. </p>
+<p>我们先不看recoverDeadMaster代码, 继续往后看.</p>
+<p>recoverDeadMaster最重要的是会返回promotedReplica, 即选举出来的新主库<br>代码运行到这里时, 可能已经选举出了new master, 即promotedReplica. 随后会运行overrideMasterPromotion函数<br>这个函数补充了一些判断条件, 判断这个promotedReplica是不是可以做new master<br>主要就是这几个参数:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-III.md#preventcrossdatacentermasterfailover">PreventCrossDataCenterMasterFailover</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-III.md#preventcrossregionmasterfailover">PreventCrossRegionMasterFailover</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-III.md#failmasterpromotiononlagminutes">FailMasterPromotionOnLagMinutes</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-III.md#failmasterpromotionifsqlthreadnotuptodate">FailMasterPromotionIfSQLThreadNotUpToDate</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-III.md#delaymasterpromotionifsqlthreadnotuptodate">DelayMasterPromotionIfSQLThreadNotUpToDate</a></li>
+</ul>
+<p>以上任意一个判断有问题, 都会终止后续恢复动作, 直接return</p>
+<p>最后, checkAndRecoverDeadMaster会对new master和old master做一些收尾工作, 如:</p>
+<ul>
+<li>如果<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-III.md#applymysqlpromotionaftermasterfailover">ApplyMySQLPromotionAfterMasterFailover</a>为true, 则会在新主库执行 reset slave all 和set read_only=0, 否则走<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-III.md#masterfailoverdetachreplicamasterhost">MasterFailoverDetachReplicaMasterHost</a>逻辑</li>
+<li>尝试连接旧主库打开只读</li>
+</ul>
+<p>至此, 恢复成功完成.<br>具体的恢复逻辑, 还要看recoverDeadMaster</p>
+<h3 id="recoverDeadMaster"><a href="#recoverDeadMaster" class="headerlink" title="recoverDeadMaster"></a>recoverDeadMaster</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// recoverDeadMaster recovers a dead master, complete logic inside</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">recoverDeadMaster</span><span class="params">(topologyRecovery *TopologyRecovery, candidateInstanceKey *inst.InstanceKey, skipProcesses <span class="keyword">bool</span>)</span> <span class="params">(recoveryAttempted <span class="keyword">bool</span>, promotedReplica *inst.Instance, lostReplicas [](*inst.Instance)</span>, <span class="title">err</span> <span class="title">error</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 传进来的实参, topologyRecovery, nil, false</span></span><br><span class="line"></span><br><span class="line">    topologyRecovery.Type = MasterRecovery</span><br><span class="line">    analysisEntry := &amp;topologyRecovery.AnalysisEntry</span><br><span class="line">    failedInstanceKey := &amp;analysisEntry.AnalyzedInstanceKey</span><br><span class="line">    <span class="keyword">var</span> cannotReplicateReplicas [](*inst.Instance)</span><br><span class="line">    postponedAll := <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">    inst.AuditOperation(<span class="string">&quot;recover-dead-master&quot;</span>, failedInstanceKey, <span class="string">&quot;problem found; will recover&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> !skipProcesses &#123; <span class="comment">// 执行钩子</span></span><br><span class="line">        <span class="keyword">if</span> err := executeProcesses(config.Config.PreFailoverProcesses, <span class="string">&quot;PreFailoverProcesses&quot;</span>, topologyRecovery, <span class="literal">true</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>, <span class="literal">nil</span>, lostReplicas, topologyRecovery.AddError(err)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...省略部分代码</span><br><span class="line">    <span class="comment">// topologyRecovery.RecoveryType = MasterRecoveryGTID</span></span><br><span class="line">    topologyRecovery.RecoveryType = GetMasterRecoveryType(analysisEntry)</span><br><span class="line">    ...省略部分代码</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这个函数判断GetCandidateReplica返回的candidate是不是&quot;理想的&quot;</span></span><br><span class="line">    <span class="comment">// 如果是&quot;理想的&quot; 一些从库的恢复操作可以异步推迟执行</span></span><br><span class="line">    <span class="comment">// 否则要同步执行</span></span><br><span class="line">    promotedReplicaIsIdeal := <span class="function"><span class="keyword">func</span><span class="params">(promoted *inst.Instance, hasBestPromotionRule <span class="keyword">bool</span>)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">        <span class="keyword">if</span> promoted == <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">        &#125;</span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster: promotedReplicaIsIdeal(%+v)&quot;</span>, promoted.Key))</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// candidateInstanceKey实参是nil, 所以走不到这个if</span></span><br><span class="line">        <span class="keyword">if</span> candidateInstanceKey != <span class="literal">nil</span> &#123; <span class="comment">//explicit request to promote a specific server</span></span><br><span class="line">            <span class="keyword">return</span> promoted.Key.Equals(candidateInstanceKey)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> promoted.DataCenter == topologyRecovery.AnalysisEntry.AnalyzedInstanceDataCenter &amp;&amp;</span><br><span class="line">            promoted.PhysicalEnvironment == topologyRecovery.AnalysisEntry.AnalyzedInstancePhysicalEnvironment &#123;</span><br><span class="line">            <span class="keyword">if</span> promoted.PromotionRule == inst.MustPromoteRule || promoted.PromotionRule == inst.PreferPromoteRule ||</span><br><span class="line">                (hasBestPromotionRule &amp;&amp; promoted.PromotionRule != inst.MustNotPromoteRule) &#123;</span><br><span class="line">                AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster: found %+v to be ideal candidate; will optimize recovery&quot;</span>, promoted.Key))</span><br><span class="line">                postponedAll = <span class="literal">true</span></span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">switch</span> topologyRecovery.RecoveryType &#123;</span><br><span class="line">    <span class="keyword">case</span> MasterRecoveryGTID:</span><br><span class="line">        &#123;</span><br><span class="line">            AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster: regrouping replicas via GTID&quot;</span>))</span><br><span class="line">            <span class="comment">// promotedReplica 有可能==nil</span></span><br><span class="line">            lostReplicas, _, cannotReplicateReplicas, promotedReplica, err = inst.RegroupReplicasGTID(failedInstanceKey, <span class="literal">true</span>, <span class="literal">false</span>, <span class="literal">nil</span>, &amp;topologyRecovery.PostponedFunctionsContainer, promotedReplicaIsIdeal)</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="comment">// case MasterRecoveryPseudoGTID:</span></span><br><span class="line">    <span class="comment">//  ...省略部分代码</span></span><br><span class="line">    <span class="comment">// case MasterRecoveryBinlogServer:</span></span><br><span class="line">    <span class="comment">//  ...省略部分代码</span></span><br><span class="line">    &#125;</span><br><span class="line">    topologyRecovery.AddError(err)</span><br><span class="line">    lostReplicas = <span class="built_in">append</span>(lostReplicas, cannotReplicateReplicas...)</span><br><span class="line">    ...省略部分代码</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> promotedReplica != <span class="literal">nil</span> &amp;&amp; <span class="built_in">len</span>(lostReplicas) &gt; <span class="number">0</span> &amp;&amp; config.Config.DetachLostReplicasAfterMasterFailover &#123;</span><br><span class="line">        postponedFunction := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">            AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster: lost %+v replicas during recovery process; detaching them&quot;</span>, <span class="built_in">len</span>(lostReplicas)))</span><br><span class="line">            <span class="keyword">for</span> _, replica := <span class="keyword">range</span> lostReplicas &#123;</span><br><span class="line">                replica := replica</span><br><span class="line">                inst.DetachReplicaMasterHost(&amp;replica.Key)</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 对lostReplicas并发执行 DetachReplicaMasterHost</span></span><br><span class="line">        topologyRecovery.AddPostponedFunction(postponedFunction, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster, detach %+v lost replicas&quot;</span>, <span class="built_in">len</span>(lostReplicas)))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ...省略部分代码</span><br><span class="line"></span><br><span class="line">    AuditTopologyRecovery(topologyRecovery, fmt.Sprintf(<span class="string">&quot;RecoverDeadMaster: %d postponed functions&quot;</span>, topologyRecovery.PostponedFunctionsContainer.Len()))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> promotedReplica != <span class="literal">nil</span> &amp;&amp; !postponedAll &#123; <span class="comment">// 有候选人, 并且不是理想的候选人</span></span><br><span class="line">        <span class="comment">// 这里的意思是, 我们一开始选了一个new master, 可能因为他有最全的日志, 但是, 他不是我们设置的prefer的实例, 那么我们就重新组织一下拓扑, 把prefer的再变成new master</span></span><br><span class="line">        promotedReplica, err = replacePromotedReplicaWithCandidate(topologyRecovery, &amp;analysisEntry.AnalyzedInstanceKey, promotedReplica, candidateInstanceKey)</span><br><span class="line">        topologyRecovery.AddError(err)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> promotedReplica == <span class="literal">nil</span> &#123;</span><br><span class="line">        message := <span class="string">&quot;Failure: no replica promoted.&quot;</span></span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, message)</span><br><span class="line">        inst.AuditOperation(<span class="string">&quot;recover-dead-master&quot;</span>, failedInstanceKey, message)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        message := fmt.Sprintf(<span class="string">&quot;promoted replica: %+v&quot;</span>, promotedReplica.Key)</span><br><span class="line">        AuditTopologyRecovery(topologyRecovery, message)</span><br><span class="line">        inst.AuditOperation(<span class="string">&quot;recover-dead-master&quot;</span>, failedInstanceKey, message)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>, promotedReplica, lostReplicas, err</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>recoverDeadMaster 主要做了几件事 ^a0c808</p>
+<ol>
+<li>GetMasterRecoveryType, 确定到底用什么方式恢复, 是基于GTID? PseudoGTID? 还是BinlogServer?</li>
+<li>重组拓扑, 我们的案例是使用RegroupReplicasGTID.<br> 但这里有一个问题, 可能现在我们的新主库并不是我们”期望”的实例, 就是说之所以选他做主库可能是因为他有最全的日志. 但不是我们设置的prefer的<br> 所以通过一个闭包promotedReplicaIsIdeal去做了判断和标记(通过postponedAll)<br> 如果postponedAll=false, 则需要重组拓扑, 选择prefer的replica作为新主库<blockquote>
+<p>postponedAll=true表是candidate就是”理想型”, 所有replica恢复可以并行异步执行</p>
+</blockquote>
+</li>
+<li>如果存在lostReplicas, 并且开启了<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator-zh-doc/blob/master/Setup/%E9%85%8D%E7%BD%AE/%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3-%E2%85%A1.md#detachlostreplicasaftermasterfailover">DetachLostReplicasAfterMasterFailover</a>, 那么会并行的对所有lostReplicas执行DetachReplicaMasterHost<blockquote>
+<p>其实就是执行change master to master_host=’// {host}’</p>
+</blockquote>
+</li>
+<li>如果当前选举的new master不是我们prefer的实例, 重组拓扑, 用prefer做新主库</li>
+</ol>
+<p>recoverDeadMaster还是干了挺多事儿的, 尤其是RegroupReplicasGTID中的逻辑还是很复杂的. 本文就先不继续展开了, 要知后事如何, 请看<a href="Orchestrator%20Failover过程源码分析-III.md">Orchestrator Failover过程源码分析-III</a></p>
+<h2 id="初步流程总结"><a href="#初步流程总结" class="headerlink" title="初步流程总结"></a>初步流程总结</h2><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/Downloads/2022/05/15/16-34-30-Orchestrator%20Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II-Excalidraw-26a12b.png" alt=""></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2022/05/06/2022-05-06-Orchestrator-Failover过程源码分析-II/" target="_blank" title="Orchestrator Failover过程源码分析-II">http://fuxkdb.com/2022/05/06/2022-05-06-Orchestrator-Failover过程源码分析-II/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Orchestrator/" rel="tag">Orchestrator</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/05/11/2022-05-11-Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-I/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">上一篇</strong>
+      <div class="article-nav-title">
+        
+          Orchestrator Failover过程源码分析-I
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/04/26/2022-04-26-Orchestrator-Discover%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">Orchestrator Discover源码分析</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Orchestrator-Failover%E8%BF%87%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-II"><span class="nav-number">1.</span> <span class="nav-text">Orchestrator Failover过程源码分析-II</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#DeadMaster%E6%81%A2%E5%A4%8D%E6%B5%81%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">DeadMaster恢复流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#executeCheckAndRecoverFunction"><span class="nav-number">1.1.1.</span> <span class="nav-text">executeCheckAndRecoverFunction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#checkAndRecoverDeadMaster"><span class="nav-number">1.1.2.</span> <span class="nav-text">checkAndRecoverDeadMaster</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#recoverDeadMaster"><span class="nav-number">1.1.3.</span> <span class="nav-text">recoverDeadMaster</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E6%AD%A5%E6%B5%81%E7%A8%8B%E6%80%BB%E7%BB%93"><span class="nav-number">1.2.</span> <span class="nav-text">初步流程总结</span></a></li></ol></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2022 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>
