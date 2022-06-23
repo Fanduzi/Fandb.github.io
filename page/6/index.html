@@ -65,7 +65,7 @@
     <link rel="stylesheet" href="/css/vdonate.css" >
   
 
-<meta name="generator" content="Hexo 5.1.1"></head>
+<meta name="generator" content="Hexo 6.2.0"></head>
 
 
 
@@ -305,7 +305,7 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-2020-04-15-Kafka版本升级"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-修改sysbench输出格式为csv或json 添加自定义指标"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -313,7 +313,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/04/15/2020-04-15-Kafka%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/">Kafka版本升级</a>
+      <a class="article-title" href="/2019/03/12/%E4%BF%AE%E6%94%B9sysbench%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F%E4%B8%BAcsv%E6%88%96json%20%E6%B7%BB%E5%8A%A0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E6%A0%87/">修改sysbench输出格式为csv或json, 添加自定义指标</a>
     </h1>
   
 
@@ -321,8 +321,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/04/15/2020-04-15-Kafka%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/" class="article-date">
-	  <time datetime="2020-04-15T15:29:00.000Z" itemprop="datePublished">2020-04-15</time>
+	<a href="/2019/03/12/%E4%BF%AE%E6%94%B9sysbench%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F%E4%B8%BAcsv%E6%88%96json%20%E6%B7%BB%E5%8A%A0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E6%A0%87/" class="article-date">
+	  <time datetime="2019-03-12T09:53:00.000Z" itemprop="datePublished">2019-03-12</time>
 	</a>
 
       
@@ -332,7 +332,9 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Kafka版本升级"><a href="#Kafka版本升级" class="headerlink" title="Kafka版本升级"></a>Kafka版本升级</h1><p>本文档介绍<code>kafka_2.11_2.1.1</code>升级到<code>2.12-2.4.1</code>的具体操作方法. 其他版本大同小异, 详见<a target="_blank" rel="noopener" href="http://kafka.apache.org/documentation/#upgrade">1.5 Upgrading From Previous Versions</a></p>
+        <h1 id="修改sysbench输出格式为csv或json-添加自定义指标"><a href="#修改sysbench输出格式为csv或json-添加自定义指标" class="headerlink" title="修改sysbench输出格式为csv或json, 添加自定义指标"></a>修改sysbench输出格式为csv或json, 添加自定义指标</h1><p>在oltp_common.lua添加(二选一)</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">-- 输出csv</span><br><span class="line"></span><br><span class="line">-- <span class="keyword">function</span> sysbench.hooks.report<span class="constructor">_intermediate(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">--     sysbench.report<span class="constructor">_csv(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">-- <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">-- 输出json</span><br><span class="line"></span><br><span class="line">-- <span class="keyword">function</span> sysbench.hooks.report<span class="constructor">_intermediate(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">--     sysbench.report<span class="constructor">_json(<span class="params">stat</span>)</span></span><br><span class="line"></span><br><span class="line">-- <span class="keyword">end</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>自己去掉 <code>--</code> 注释</p>
       
     </div>
     <footer class="article-footer">
@@ -350,7 +352,7 @@
 
 
   
-    <article id="post-2017-08-22-使用Ansible自动部署MGR中生成group_replication_group_seeds值的方法"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-使confluent_kafka支持SASL_PLAINTEXT"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -358,7 +360,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/03/20/2017-08-22-%E4%BD%BF%E7%94%A8Ansible%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2MGR%E4%B8%AD%E7%94%9F%E6%88%90group_replication_group_seeds%E5%80%BC%E7%9A%84%E6%96%B9%E6%B3%95/">使用Ansible自动部署MGR中生成group_replication_group_seeds值的方法</a>
+      <a class="article-title" href="/2019/03/08/%E4%BD%BFconfluent_kafka%E6%94%AF%E6%8C%81SASL_PLAINTEXT/">使confluent_kafka支持SASL_PLAINTEXT</a>
     </h1>
   
 
@@ -366,8 +368,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/03/20/2017-08-22-%E4%BD%BF%E7%94%A8Ansible%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2MGR%E4%B8%AD%E7%94%9F%E6%88%90group_replication_group_seeds%E5%80%BC%E7%9A%84%E6%96%B9%E6%B3%95/" class="article-date">
-	  <time datetime="2020-03-20T04:23:00.000Z" itemprop="datePublished">2020-03-20</time>
+	<a href="/2019/03/08/%E4%BD%BFconfluent_kafka%E6%94%AF%E6%8C%81SASL_PLAINTEXT/" class="article-date">
+	  <time datetime="2019-03-08T10:53:00.000Z" itemprop="datePublished">2019-03-08</time>
 	</a>
 
       
@@ -377,9 +379,20 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="生成group-replication-group-seeds值的方法"><a href="#生成group-replication-group-seeds值的方法" class="headerlink" title="生成group_replication_group_seeds值的方法"></a>生成group_replication_group_seeds值的方法</h1><h2 id="网卡不统一"><a href="#网卡不统一" class="headerlink" title="网卡不统一"></a>网卡不统一</h2><p>之前我是通过<code>groups[&#39;mfw_test&#39;] | map(&#39;extract&#39;, hostvars, [&#39;ansible_all_ipv4_addresses&#39;])</code>这种形式, 去一个inventory group下每一个host的<code>ansible_all_ipv4_addresses</code></p>
-<p>ansible_all_ipv4_address是所有网卡上的ip, 包括手动添加的ip(例如vip)</p>
-<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;msg&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;centos-1&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;ansible_all_ipv4_addresses&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;192.168.124.136&quot;</span>, </span><br><span class="line">            <span class="string">&quot;172.16.120.10&quot;</span></span><br><span class="line">        ], </span><br></pre></td></tr></table></figure>
+        <p>同事之前一直使用kafka-python开发. 上了ACL以后发现kafka-python居然不支持SASL_PLAINTEXT</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaProducer.html">https://kafka-python.readthedocs.io/en/master/apidoc/KafkaProducer.html</a><br>sasl_mechanism (str) – string picking sasl mechanism when security_protocol is SASL_PLAINTEXT or SASL_SSL. Currently only PLAIN is supported. Default: None</p>
+</blockquote>
+<p>看了一下<a target="_blank" rel="noopener" href="https://github.com/confluentinc/confluent-kafka-python">confluent-kafka</a>是支持的但需要重新编译<a target="_blank" rel="noopener" href="https://github.com/edenhill/librdkafka">librdkafka</a><br>否则会报错:<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KafkaException: KafkaError&#123;<span class="attribute">code</span>=_INVALID_ARG,val=-186,str=&quot;Failed <span class="keyword">to</span> create producer: <span class="literal">No</span> provider <span class="keyword">for</span> SASL mechanism GSSAPI: recompile librdkafka with libsasl2 <span class="keyword">or</span> openssl support. Current build options: PLAIN SASL_SCRAM<span class="string">&quot;&#125;</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="安装confluent-kafka"><a href="#安装confluent-kafka" class="headerlink" title="安装confluent-kafka"></a>安装confluent-kafka</h2><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">pip</span> install confluent-kafka</span><br><span class="line"><span class="attribute">Collecting</span> confluent-kafka</span><br><span class="line">  <span class="attribute">Downloading</span> https://files.pythonhosted.org/packages/<span class="number">2</span>a/ba/dccb<span class="number">27376453</span>f<span class="number">91</span>ad<span class="number">8</span>fa<span class="number">57</span>f<span class="number">75</span>a<span class="number">7</span>ba<span class="number">5</span>dc<span class="number">188023700</span>c<span class="number">1789273</span>dec<span class="number">976477</span>b<span class="number">2</span>/confluent_kafka-<span class="number">0</span>.<span class="number">11</span>.<span class="number">6</span>-cp<span class="number">37</span>-cp<span class="number">37</span>m-manylinux<span class="number">1</span>_x<span class="number">86</span>_<span class="number">64</span>.whl (<span class="number">3</span>.<span class="number">9</span>MB)</span><br><span class="line">    <span class="attribute">100</span>% |████████████████████████████████| <span class="number">3</span>.<span class="number">9</span>MB <span class="number">984</span>kB/s </span><br></pre></td></tr></table></figure>
+<h2 id="安装librdkafka"><a href="#安装librdkafka" class="headerlink" title="安装librdkafka"></a>安装librdkafka</h2><p>克隆下来<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">21</span>:<span class="number">05</span> /tmp]</span><br><span class="line">git clone https:<span class="comment">//github.com/edenhill/librdkafka.git</span></span><br><span class="line">Cloning <span class="built_in">int</span>o <span class="string">&#x27;librdkafka&#x27;</span>...</span><br><span class="line">remote: Enumerating objects: <span class="number">213</span>, done.</span><br><span class="line">remote: Counting objects: <span class="number">100</span>% (<span class="number">213</span>/<span class="number">213</span>), done.</span><br><span class="line">remote: Compressing objects: <span class="number">100</span>% (<span class="number">111</span>/<span class="number">111</span>), done.</span><br><span class="line">remote: Total <span class="number">18133</span> (delta <span class="number">133</span>), reused <span class="number">149</span> (delta <span class="number">98</span>), pack-reused <span class="number">17920</span></span><br><span class="line">Receiving objects: <span class="number">100</span>% (<span class="number">18133</span>/<span class="number">18133</span>), <span class="number">11.15</span> MiB | <span class="number">946.00</span> KiB/s, done.</span><br><span class="line">Resolving deltas: <span class="number">100</span>% (<span class="number">13758</span>/<span class="number">13758</span>), done.</span><br></pre></td></tr></table></figure><br>检查依赖<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">rpm</span> -qa| grep openssl</span><br><span class="line"><span class="attribute">openssl</span>-<span class="number">1</span>.<span class="number">0</span>.<span class="number">2</span>k-<span class="number">16</span>.el<span class="number">7</span>.x<span class="number">86</span>_<span class="number">64</span></span><br><span class="line"><span class="attribute">openssl</span>-libs-<span class="number">1</span>.<span class="number">0</span>.<span class="number">2</span>k-<span class="number">16</span>.el<span class="number">7</span>.x<span class="number">86</span>_<span class="number">64</span></span><br><span class="line"><span class="attribute">openssl</span>-devel-<span class="number">1</span>.<span class="number">0</span>.<span class="number">2</span>k-<span class="number">16</span>.el<span class="number">7</span>.x<span class="number">86</span>_<span class="number">64</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>The GNU toolchain<br>GNU make<br>pthreads<br>zlib-dev (optional, for gzip compression support)<br>libssl-dev (optional, for SSL and SASL SCRAM support) –这个对于centos openssl-devel<br>libsasl2-dev (optional, for SASL GSSAPI support)<br>libzstd-dev (optional, for ZStd compression support)<br>安装<br><figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./configure</span><br><span class="line"><span class="built_in">make</span> &amp;&amp; <span class="built_in">make</span> install</span><br></pre></td></tr></table></figure><br>注意下make的时候这里是ok就行<br><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">checking</span></span> <span class="keyword">for</span> libssl (by pkg-config)... ok</span><br><span class="line"><span class="function"><span class="title">checking</span></span> <span class="keyword">for</span> libssl (by compile)... ok (cached)</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<h2 id="替换库文件"><a href="#替换库文件" class="headerlink" title="替换库文件"></a>替换库文件</h2><p>查找<br><figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">find / -name <span class="string">&quot;librdkafka*&quot;</span> </span><br><span class="line">/root/.pyenv/versions/<span class="number">3.7</span>.<span class="number">2</span>/<span class="class"><span class="keyword">lib</span>/<span class="title">python3</span>.7/<span class="title">site</span>-<span class="title">packages</span>/<span class="title">confluent_kafka</span>/.<span class="title">libs</span>/<span class="title">librdkafka</span>.<span class="title">so</span>.1</span></span><br></pre></td></tr></table></figure><br>替换<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">#cd /root/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs/</span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">03</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#ll</span><br><span class="line">total <span class="number">10316</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">2903144</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libcrypto<span class="number">-4</span>c524931.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">6944424</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> librdkafka.so<span class="number">.1</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">584072</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libssl<span class="number">-01</span>b7eff1.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">87848</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libz-a147dcb0.so<span class="number">.1</span><span class="number">.2</span><span class="number">.3</span></span><br><span class="line">-rw-r--r-- <span class="number">1</span> root root <span class="number">35336</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> monitoring-<span class="built_in">int</span>erceptor.so</span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">04</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#mv librdkafka.so<span class="number">.1</span> librdkafka.so<span class="number">.1</span>.bak</span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">11</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#ln -s /usr/local/lib/librdkafka.so<span class="number">.1</span> librdkafka.so<span class="number">.1</span></span><br><span class="line"></span><br><span class="line">[<span class="symbol">root@</span>node004110 <span class="number">18</span>:<span class="number">24</span>:<span class="number">23</span> ~/.pyenv/versions/<span class="number">3.7</span><span class="number">.2</span>/lib/python3<span class="number">.7</span>/site-packages/confluent_kafka/.libs]</span><br><span class="line">#ll</span><br><span class="line">total <span class="number">10316</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">2903144</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libcrypto<span class="number">-4</span>c524931.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">lrwxrwxrwx <span class="number">1</span> root root <span class="number">30</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">24</span> librdkafka.so<span class="number">.1</span> -&gt; /usr/local/lib/librdkafka.so<span class="number">.1</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">6944424</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> librdkafka.so<span class="number">.1</span>.bak</span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">584072</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libssl<span class="number">-01</span>b7eff1.so<span class="number">.1</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">-rwxr-xr-x <span class="number">1</span> root root <span class="number">87848</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> libz-a147dcb0.so<span class="number">.1</span><span class="number">.2</span><span class="number">.3</span></span><br><span class="line">-rw-r--r-- <span class="number">1</span> root root <span class="number">35336</span> Mar <span class="number">8</span> <span class="number">18</span>:<span class="number">20</span> monitoring-<span class="built_in">int</span>erceptor.so</span><br></pre></td></tr></table></figure></p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><figure class="highlight python-repl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#python</span><br><span class="line">Python 3.7.2 (default, Mar 4 2019, 16:55:21) </span><br><span class="line">[GCC 4.8.5 20150623 (Red Hat 4.8.5-36)] on linux</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="keyword">from</span> confluent_kafka <span class="keyword">import</span> Producer     </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">p = Producer(&#123;<span class="string">&#x27;bootstrap.servers&#x27;</span>: <span class="string">&#x27;192.168.4.114:9092&#x27;</span>, <span class="string">&#x27;security.protocol&#x27;</span>: <span class="string">&#x27;SASL_PLAINTEXT&#x27;</span>, <span class="string">&#x27;sasl.mechanism&#x27;</span>:<span class="string">&#x27;SCRAM-SHA-256&#x27;</span>,<span class="string">&#x27;sasl.username&#x27;</span>:<span class="string">&#x27;admin&#x27;</span>,<span class="string">&#x27;sasl.password&#x27;</span>:<span class="string">&#x27;your-admin-pass&#x27;</span>&#125;)        </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="function"><span class="keyword">def</span> <span class="title">delivery_report</span>(<span class="params">err, msg</span>):</span></span></span><br><span class="line"><span class="meta">...</span> <span class="python"><span class="keyword">if</span> err <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span></span><br><span class="line"><span class="meta">...</span> <span class="python">print(<span class="string">&#x27;Message delivery failed: &#123;&#125;&#x27;</span>.format(err))</span></span><br><span class="line"><span class="meta">...</span> <span class="python"><span class="keyword">else</span>:</span></span><br><span class="line"><span class="meta">...</span> <span class="python">print(<span class="string">&#x27;Message delivered to &#123;&#125; [&#123;&#125;]&#x27;</span>.format(msg.topic(), msg.partition()))</span></span><br><span class="line"><span class="meta">...</span> </span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="keyword">for</span> data <span class="keyword">in</span> [<span class="string">&#x27;hello&#x27;</span>,<span class="string">&#x27;word&#x27;</span>]:  </span></span><br><span class="line"><span class="meta">...</span> <span class="python">p.produce(<span class="string">&#x27;test_acl&#x27;</span>, data.encode(<span class="string">&#x27;utf-8&#x27;</span>), callback=delivery_report)</span></span><br><span class="line"><span class="meta">...</span> </span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">p.poll(<span class="number">10</span>) </span></span><br><span class="line">Message delivered to test_acl [0]</span><br><span class="line">Message delivered to test_acl [0]</span><br><span class="line">1</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">p.flush()</span></span><br><span class="line">0</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">quit()</span></span><br></pre></td></tr></table></figure>
+<p>成功收到消息<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node004114 kafka]# bin/kafka-console-consumer.sh --bootstrap-server <span class="number">192.168</span><span class="number">.4</span><span class="number">.114</span>:<span class="number">9092</span> --topic test_acl --consumer.config config/client-sasl.properties --<span class="keyword">from</span>-beginning</span><br><span class="line">hello</span><br><span class="line">word</span><br></pre></td></tr></table></figure></p>
+
       
     </div>
     <footer class="article-footer">
@@ -397,7 +410,7 @@
 
 
   
-    <article id="post-2020-03-19-使用python消费canal-protobuf格式数据"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2019-02-22-假如Kafka集群中一个broker宕机无法恢复,-应该如何处理"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -405,7 +418,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/03/19/2020-03-19-%E4%BD%BF%E7%94%A8python%E6%B6%88%E8%B4%B9canal-protobuf%E6%A0%BC%E5%BC%8F%E6%95%B0%E6%8D%AE/">使用python消费canal protobuf格式数据</a>
+      <a class="article-title" href="/2019/02/22/2019-02-22-%E5%81%87%E5%A6%82Kafka%E9%9B%86%E7%BE%A4%E4%B8%AD%E4%B8%80%E4%B8%AAbroker%E5%AE%95%E6%9C%BA%E6%97%A0%E6%B3%95%E6%81%A2%E5%A4%8D,-%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86/">假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?</a>
     </h1>
   
 
@@ -413,8 +426,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/03/19/2020-03-19-%E4%BD%BF%E7%94%A8python%E6%B6%88%E8%B4%B9canal-protobuf%E6%A0%BC%E5%BC%8F%E6%95%B0%E6%8D%AE/" class="article-date">
-	  <time datetime="2020-03-19T15:23:00.000Z" itemprop="datePublished">2020-03-19</time>
+	<a href="/2019/02/22/2019-02-22-%E5%81%87%E5%A6%82Kafka%E9%9B%86%E7%BE%A4%E4%B8%AD%E4%B8%80%E4%B8%AAbroker%E5%AE%95%E6%9C%BA%E6%97%A0%E6%B3%95%E6%81%A2%E5%A4%8D,-%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86/" class="article-date">
+	  <time datetime="2019-02-22T03:58:00.000Z" itemprop="datePublished">2019-02-22</time>
 	</a>
 
       
@@ -424,10 +437,8 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>canal -&gt; kafka -&gt; consumer. flatMessage=False<br>参考 <a target="_blank" rel="noopener" href="https://github.com/haozi3156666/canal-python">canal Python客户端</a>.<br>由于<a target="_blank" rel="noopener" href="https://github.com/haozi3156666/canal-python">canal Python客户端</a>是作为canal的client直连canal 11111端口消费数据而非消费kafka数据, 所以example不能照搬, 需要做一些修改</p>
-<p>Python3.7.4</p>
-<p>requriments</p>
-<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">backcall</span>==<span class="number">0</span>.<span class="number">1</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">bleach</span>==<span class="number">3</span>.<span class="number">1</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">canal</span>-python==<span class="number">0</span>.<span class="number">4</span></span><br><span class="line"><span class="attribute">certifi</span>==<span class="number">2019</span>.<span class="number">6</span>.<span class="number">16</span></span><br><span class="line"><span class="attribute">chardet</span>==<span class="number">3</span>.<span class="number">0</span>.<span class="number">4</span></span><br><span class="line"><span class="attribute">confluent</span>-kafka==<span class="number">1</span>.<span class="number">3</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">decorator</span>==<span class="number">4</span>.<span class="number">4</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">docopt</span>==<span class="number">0</span>.<span class="number">6</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">docutils</span>==<span class="number">0</span>.<span class="number">15</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">idna</span>==<span class="number">2</span>.<span class="number">8</span></span><br><span class="line"><span class="attribute">ipython</span>==<span class="number">7</span>.<span class="number">13</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">ipython</span>-genutils==<span class="number">0</span>.<span class="number">2</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">jedi</span>==<span class="number">0</span>.<span class="number">16</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">parso</span>==<span class="number">0</span>.<span class="number">6</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">pexpect</span>==<span class="number">4</span>.<span class="number">8</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">pickleshare</span>==<span class="number">0</span>.<span class="number">7</span>.<span class="number">5</span></span><br><span class="line"><span class="attribute">pkginfo</span>==<span class="number">1.5.0.1</span></span><br><span class="line"><span class="attribute">prompt</span>-toolkit==<span class="number">3</span>.<span class="number">0</span>.<span class="number">4</span></span><br><span class="line"><span class="attribute">protobuf</span>==<span class="number">3</span>.<span class="number">9</span>.<span class="number">1</span></span><br><span class="line"><span class="attribute">ptyprocess</span>==<span class="number">0</span>.<span class="number">6</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">Pygments</span>==<span class="number">2</span>.<span class="number">4</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">readme</span>-renderer==<span class="number">24</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">requests</span>==<span class="number">2</span>.<span class="number">22</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">requests</span>-toolbelt==<span class="number">0</span>.<span class="number">9</span>.<span class="number">1</span></span><br><span class="line"><span class="attribute">six</span>==<span class="number">1</span>.<span class="number">12</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">tqdm</span>==<span class="number">4</span>.<span class="number">34</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">traitlets</span>==<span class="number">4</span>.<span class="number">3</span>.<span class="number">3</span></span><br><span class="line"><span class="attribute">twine</span>==<span class="number">1</span>.<span class="number">13</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">urllib3</span>==<span class="number">1</span>.<span class="number">25</span>.<span class="number">3</span></span><br><span class="line"><span class="attribute">wcwidth</span>==<span class="number">0</span>.<span class="number">1</span>.<span class="number">8</span></span><br><span class="line"><span class="attribute">webencodings</span>==<span class="number">0</span>.<span class="number">5</span>.<span class="number">1</span></span><br></pre></td></tr></table></figure>
+        <h1 id="假如Kafka集群中一个broker宕机无法恢复-应该如何处理"><a href="#假如Kafka集群中一个broker宕机无法恢复-应该如何处理" class="headerlink" title="假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?"></a>假如Kafka集群中一个broker宕机无法恢复, 应该如何处理?</h1><p>坐地铁时想到这个问题, 印象中书中说添加新的broker, 是不会自动同步旧数据的.</p>
+<h2 id="笨办法"><a href="#笨办法" class="headerlink" title="笨办法"></a>笨办法</h2><h3 id="环境介绍"><a href="#环境介绍" class="headerlink" title="环境介绍"></a>环境介绍</h3><p>三个broker的集群, zk,kafka装在一起<br><figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">|<span class="string"> broker </span>|<span class="string"> IP </span>|<span class="string"> broker.id </span>|</span><br><span class="line">|<span class="string">---------</span>|<span class="string">---------------</span>|<span class="string">-----------</span>|</span><br><span class="line">|<span class="string"> broker1 </span>|<span class="string"> 172.18.12.211 </span>|<span class="string"> 211 </span>|</span><br><span class="line">|<span class="string"> broker2 </span>|<span class="string"> 172.18.12.212 </span>|<span class="string"> 212 </span>|</span><br><span class="line">|<span class="string"> broker3 </span>|<span class="string"> 172.18.12.213 </span>|<span class="string"> 213 </span>|</span><br></pre></td></tr></table></figure><br>
       
     </div>
     <footer class="article-footer">
@@ -445,7 +456,7 @@
 
 
   
-    <article id="post-2020-03-07-Canal-dynamicTopic问题续"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2019-01-26-Kafka-SASL_SCRAM+ACL实现动态创建用户及权限控制"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -453,7 +464,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/03/07/2020-03-07-Canal-dynamicTopic%E9%97%AE%E9%A2%98%E7%BB%AD/">Canal dynamicTopic问题续</a>
+      <a class="article-title" href="/2019/01/26/2019-01-26-Kafka-SASL_SCRAM+ACL%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E5%8F%8A%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6/">Kafka SASL_SCRAM+ACL实现动态创建用户及权限控制</a>
     </h1>
   
 
@@ -461,8 +472,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/03/07/2020-03-07-Canal-dynamicTopic%E9%97%AE%E9%A2%98%E7%BB%AD/" class="article-date">
-	  <time datetime="2020-03-07T13:23:00.000Z" itemprop="datePublished">2020-03-07</time>
+	<a href="/2019/01/26/2019-01-26-Kafka-SASL_SCRAM+ACL%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7%E5%8F%8A%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6/" class="article-date">
+	  <time datetime="2019-01-26T14:01:00.000Z" itemprop="datePublished">2019-01-26</time>
 	</a>
 
       
@@ -472,9 +483,10 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>最近在新公司搭了一套canal. 按照&lt;<dynamicTopic问题>&gt;设置了<code>canal.mq.topic</code>和<code>canal.mq.dynamicTopic</code></p>
-<p>意图将一些不符合dynamicTopic匹配的语句的消息发送到一个默认的topic而避免报错<code>INVALID_TOPIC_EXCEPTION</code></p>
-<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># table regex</span></span><br><span class="line">canal.instance.filter.regex=fanboshi\\..*,sysbench\\..*</span><br><span class="line"><span class="meta"># table black regex</span></span><br><span class="line">canal.instance.filter.black.regex=.*\\.\\_.*\\_ghc,.*\\.\\_.*\\_gho,.*\\.\\_.*\\_del</span><br><span class="line"><span class="meta"># table field filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.field=test1.t_product:id/subject/keywords,test2.t_company:id/name/contact/ch</span></span><br><span class="line"><span class="meta"># table field black filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.black.field=test1.t_product:subject/product_image,test2.t_company:id/name/contact/ch</span></span><br><span class="line"></span><br><span class="line"><span class="meta"># mq config</span></span><br><span class="line">canal.mq.topic=default_topic</span><br><span class="line"><span class="meta"># dynamic topic route by schema or table regex</span></span><br><span class="line"><span class="meta">#canal.mq.dynamicTopic=mytest1.user,mytest2\\..*,.*\\..*</span></span><br><span class="line">canal.mq.dynamicTopic=.*\\..*</span><br><span class="line"><span class="meta">#canal.mq.partition=0</span></span><br><span class="line"><span class="meta"># hash partition config</span></span><br><span class="line"><span class="meta">#canal.mq.partitionsNum=3</span></span><br><span class="line"><span class="meta">#canal.mq.partitionHash=test.table:id^name,.*\\..*</span></span><br></pre></td></tr></table></figure>
+        <h1 id="SASL-SCRAM-ACL实现动态创建用户及权限控制"><a href="#SASL-SCRAM-ACL实现动态创建用户及权限控制" class="headerlink" title="SASL_SCRAM+ACL实现动态创建用户及权限控制"></a>SASL_SCRAM+ACL实现动态创建用户及权限控制</h1><p>&nbsp;&nbsp;研究了一段时间Kafka的权限控制. 之前一直看SASL_PLAINTEXT, 结果发现这玩意不能动态创建用户. 今天没死心又查了查,发现这个人也问了这个问题<br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/54147460/kafka-adding-sasl-users-dynamically-without-cluster-restart">https://stackoverflow.com/questions/54147460/kafka-adding-sasl-users-dynamically-without-cluster-restart</a><br>于是研究了下SCRAM. 写了这篇完整的文档</p>
+<blockquote>
+<p>本篇文档中使用的是自己部署的zookeeper, zookeeper无需做任何特殊配置</p>
+</blockquote>
       
     </div>
     <footer class="article-footer">
@@ -492,7 +504,7 @@
 
 
   
-    <article id="post-2020-03-06-canal.mq.flatMessage参数"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-MGR vs PXC Benchmark"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -500,7 +512,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/03/06/2020-03-06-canal.mq.flatMessage%E5%8F%82%E6%95%B0/">canal.mq.flatMessage参数</a>
+      <a class="article-title" href="/2018/09/11/MGR%20vs%20PXC%20Benchmark/">MGR vs PXC Benchmark</a>
     </h1>
   
 
@@ -508,8 +520,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/03/06/2020-03-06-canal.mq.flatMessage%E5%8F%82%E6%95%B0/" class="article-date">
-	  <time datetime="2020-03-06T14:23:00.000Z" itemprop="datePublished">2020-03-06</time>
+	<a href="/2018/09/11/MGR%20vs%20PXC%20Benchmark/" class="article-date">
+	  <time datetime="2018-09-11T14:23:00.000Z" itemprop="datePublished">2018-09-11</time>
 	</a>
 
       
@@ -519,9 +531,38 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>canal.mq.flatMessage</p>
-<p>是否为json格式<br>如果设置为false,对应MQ收到的消息为protobuf格式<br>需要通过CanalMessageDeserializer进行解码</p>
-<p>canal.mq.flatMessage = true 生产到kafka的消息就是json的, 否则就是protobuf二进制的<br>
+        <h1 id="MGR-vs-PXC-Benchmark"><a href="#MGR-vs-PXC-Benchmark" class="headerlink" title="MGR vs PXC Benchmark"></a>MGR vs PXC Benchmark</h1><p>本次测试将MGR与PXC进行对比, 意在比较MGR自身不同流控阈值下性能表现以及观察MGR与PXC相同负载下的性能表现. 测试工具使用<code>sysbench 1.1.0-431660d</code></p>
+<p>基础环将信息如下表所示, 在三个测试服务器部署了3306, 3307两套集群</p>
+<table>
+<thead>
+<tr>
+<th>Host</th>
+<th>IP</th>
+<th>MGR</th>
+<th>PXC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>data-191</td>
+<td>192.168.8.191</td>
+<td>3306</td>
+<td>3307</td>
+</tr>
+<tr>
+<td>data-219</td>
+<td>192.168.8.219</td>
+<td>3306</td>
+<td>3307</td>
+</tr>
+<tr>
+<td>data-220</td>
+<td>192.168.8.220</td>
+<td>3306</td>
+<td>3307</td>
+</tr>
+</tbody>
+</table>
       
     </div>
     <footer class="article-footer">
@@ -539,7 +580,7 @@
 
 
   
-    <article id="post-2020-01-21-mlanuch文档翻译"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-MySQL Group Replication- understanding Flow Control[译文]"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -547,7 +588,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/01/21/2020-01-21-mlanuch%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/">mlanuch文档翻译</a>
+      <a class="article-title" href="/2018/08/26/MySQL%20Group%20Replication-%20understanding%20Flow%20Control%5B%E8%AF%91%E6%96%87%5D/">MySQL Group Replication- understanding Flow Control[译文]</a>
     </h1>
   
 
@@ -555,8 +596,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/01/21/2020-01-21-mlanuch%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/" class="article-date">
-	  <time datetime="2020-01-21T10:09:00.000Z" itemprop="datePublished">2020-01-21</time>
+	<a href="/2018/08/26/MySQL%20Group%20Replication-%20understanding%20Flow%20Control%5B%E8%AF%91%E6%96%87%5D/" class="article-date">
+	  <time datetime="2018-08-26T15:05:00.000Z" itemprop="datePublished">2018-08-26</time>
 	</a>
 
       
@@ -566,9 +607,266 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>[TOC]</p>
-<h1 id="mlanuch"><a href="#mlanuch" class="headerlink" title="mlanuch"></a>mlanuch</h1><p>使用此工具，您可以快速启动并监视本地计算机上的MongoDB环境。 它支持独立服务器，副本集和分片群集的各种配置。 单个节点或节点组可以轻松停止并重新启动。</p>
-<p>除了下面列出的mlaunch的所有列出的参数之外，您还可以传递<code>mongos</code>或<code>mongod</code>二进制文件可以理解的任意选项，mlaunch会传递正确的参数给<code>mongos</code>或<code>mongod</code>二进制文件。 这包括<code>-f</code>或<code>--config</code>选项，以传递带有更多选项的配置文件。<br>
+        <h1 id="MySQL-Group-Replication-understanding-Flow-Control"><a href="#MySQL-Group-Replication-understanding-Flow-Control" class="headerlink" title="MySQL Group Replication: understanding Flow Control"></a><a target="_blank" rel="noopener" href="https://lefred.be/content/mysql-group-replication-understanding-flow-control/">MySQL Group Replication: understanding Flow Control</a></h1><p>使用MySQL Group Replication时，某些成员可能落后于该组。 由于负载，硬件限制等原因…这种滞后可能会导致不能保持良好的性能认证行为和不能尽可能降低认证失败次数.应用队列(applying queue)越大, 与尚未应用的事务发生冲突的风险就越大（这在Multi-Primary Groups上是有问题的）。</p>
+<p>Galera用户已经熟悉这个概念(译注: 指流控的概念). MySQL Group Replication的实现与Galera有两个主要不同点:</p>
+<ul>
+<li><p>the Group is never totally stalled(译注: Group不会彻底停止接收写请求)</p>
+</li>
+<li><p>the node having issues doesn’t send flow control messages to the rest of the group asking for slowing down(译注: 短板节点不会向Group的其他节点发送flow control消息来要求集群减速)</p>
+</li>
+</ul>
+<p>实际上，该组的每个成员都会向其他成员发送有关其队列（applier queue and certification queue）的一些统计信息。 然后，如果每个节点意识到一个节点达到了其中一个队列的阈值，则决定是否减速：</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">group_replication_flow_control_applier_threshold (<span class="keyword">default</span> <span class="keyword">is</span> <span class="number">25000</span>)</span><br><span class="line"></span><br><span class="line">group_replication_flow_control_certifier_threshold (<span class="keyword">default</span> <span class="keyword">is</span> <span class="number">25000</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>因此，如果在节点上将<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_flow_control_mode">group_replication_flow_control_mode</a>设置为<code>QUOTA</code>，并且看到该集群的其他成员之一落后（达到阈值），则会将写入操作限制为最小配额。 此配额是根据最后一秒中应用的transactions数计算的，然后通过减去上一个周期的“over the quota”消息来减少。 </p>
+<blockquote>
+<p>and then it is reduced below that by subtracting the “over the quota” messages from the last period.</p>
+</blockquote>
+<p>这意味着与Galera相反，Galera的(flow control)阈值是有短板节点决定的，对于我们在MySQL组复制中，编写事务的节点(译注: 写节点)检查其阈值流量控制值并将它们与来自其他节点的统计数据进行比较以决定是否进行flow control。</p>
+<p>您可以在Vitor的文章<a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/zooming-in-on-group-replication-performance/">Zooming-in on Group Replication Performance</a>一文中找到有关组复制流控制的更多信息</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-如何确定Single-Primary模式下的MGR主节点"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/08/25/%E5%A6%82%E4%BD%95%E7%A1%AE%E5%AE%9ASingle-Primary%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84MGR%E4%B8%BB%E8%8A%82%E7%82%B9/">如何确定Single-Primary模式下的MGR主节点</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/08/25/%E5%A6%82%E4%BD%95%E7%A1%AE%E5%AE%9ASingle-Primary%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84MGR%E4%B8%BB%E8%8A%82%E7%82%B9/" class="article-date">
+	  <time datetime="2018-08-25T15:00:00.000Z" itemprop="datePublished">2018-08-25</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="如何确定Single-Primary模式下的MGR主节点-文档-ID-2214438-1"><a href="#如何确定Single-Primary模式下的MGR主节点-文档-ID-2214438-1" class="headerlink" title="如何确定Single-Primary模式下的MGR主节点(文档 ID 2214438.1)"></a><a target="_blank" rel="noopener" href="https://support.oracle.com/epmos/faces/DocumentDisplay?_afrLoop=27962468209367&amp;parent=DOCUMENT&amp;sourceId=2215424.1&amp;id=2214438.1&amp;_afrWindowMode=0&amp;_adf.ctrl-state=s3zl3ux6s_200">如何确定Single-Primary模式下的MGR主节点(文档 ID 2214438.1)</a></h1><h2 id="MySQL-5-7"><a href="#MySQL-5-7" class="headerlink" title="MySQL 5.7"></a>MySQL 5.7</h2><p>可以通过global status <code>group_replication_primary_member</code>确定<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT VARIABLE<span class="emphasis">_VALUE</span></span><br><span class="line"><span class="emphasis">         FROM performance_</span>schema.global<span class="emphasis">_status</span></span><br><span class="line"><span class="emphasis">        WHERE VARIABLE_</span>NAME = <span class="emphasis">&#x27;group_replication_primary_member&#x27;</span>;</span><br><span class="line"><span class="code">+--------------------------------------+</span></span><br><span class="line">| VARIABLE<span class="emphasis">_VALUE                       |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+</span></span><br><span class="line"><span class="emphasis">| 9d7f8c28-c02c-11e6-9829-08002715584a |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>如果是Multi-Primary默认则结果为空</p>
+</blockquote>
+<p>可以结合<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/replication-group-members-table.html">performance_schema.replication_group_members</a>表 获取主机名和端口信息:<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">SELECT </span><br><span class="line"><span class="code">    MEMBER_HOST, MEMBER_PORT</span></span><br><span class="line">FROM</span><br><span class="line"><span class="code">    performance_schema.replication_group_members</span></span><br><span class="line">WHERE</span><br><span class="line"><span class="code">    MEMBER_ID = (SELECT </span></span><br><span class="line"><span class="code">            VARIABLE_VALUE</span></span><br><span class="line"><span class="code">        FROM</span></span><br><span class="line"><span class="code">            performance_schema.global_status</span></span><br><span class="line"><span class="code">        WHERE</span></span><br><span class="line"><span class="code">            VARIABLE_NAME = &#x27;group_replication_primary_member&#x27;);</span></span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| MEMBER<span class="emphasis">_HOST | MEMBER_</span>PORT |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| ol7         |        3306 |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>或者获取全部成员信息:<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">SELECT </span><br><span class="line"><span class="code">    MEMBER_ID,</span></span><br><span class="line"><span class="code">    MEMBER_HOST,</span></span><br><span class="line"><span class="code">    MEMBER_PORT,</span></span><br><span class="line"><span class="code">    MEMBER_STATE,</span></span><br><span class="line"><span class="code">    IF(global_status.VARIABLE_NAME IS NOT NULL,</span></span><br><span class="line"><span class="code">        &#x27;PRIMARY&#x27;,</span></span><br><span class="line"><span class="code">        &#x27;SECONDARY&#x27;) AS MEMBER_ROLE</span></span><br><span class="line">FROM</span><br><span class="line"><span class="code">    performance_schema.replication_group_members</span></span><br><span class="line"><span class="code">        LEFT JOIN</span></span><br><span class="line"><span class="code">    performance_schema.global_status ON global_status.VARIABLE_NAME = &#x27;group_replication_primary_member&#x27;</span></span><br><span class="line"><span class="code">        AND global_status.VARIABLE_VALUE = replication_group_members.MEMBER_ID;</span></span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span></span><br><span class="line">| MEMBER<span class="emphasis">_ID                            | MEMBER_</span>HOST | MEMBER<span class="emphasis">_PORT | MEMBER_</span>STATE | MEMBER<span class="emphasis">_ROLE |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+-------------+-------------+--------------+-------------+</span></span><br><span class="line"><span class="emphasis">| 9d7f8c28-c02c-11e6-9829-08002715584a | ol7         |        3306 | ONLINE       | PRIMARY     |</span></span><br><span class="line"><span class="emphasis">| f2bbb11d-c0c4-11e6-98ec-08002715584a | ol7         |        3308 | ONLINE       | SECONDARY   |</span></span><br><span class="line"><span class="emphasis">| f5bb7d78-c02c-11e6-9c56-08002715584a | ol7         |        3307 | ONLINE       | SECONDARY   |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+-------------+-------------+--------------+-------------+</span></span><br><span class="line"><span class="emphasis">3 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="MySQL-8-0-2-and-Later"><a href="#MySQL-8-0-2-and-Later" class="headerlink" title="MySQL 8.0.2 and Later"></a>MySQL 8.0.2 and Later</h2><p>MySQL 8.0.2开始, <a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/group-replication-extending-group-replication-performance_schema-tables/">Performance Schema被扩展</a><br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT MEMBER<span class="emphasis">_HOST, MEMBER_</span>PORT</span><br><span class="line"><span class="code">         FROM performance_schema.replication_group_members</span></span><br><span class="line"><span class="code">        WHERE MEMBER_ROLE = &#x27;PRIMARY&#x27;;</span></span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| MEMBER<span class="emphasis">_HOST | MEMBER_</span>PORT |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| ol7         |        3306 |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>或者获取全部成员信息:<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT MEMBER<span class="emphasis">_ID, MEMBER_</span>HOST, MEMBER<span class="emphasis">_PORT, MEMBER_</span>STATE, MEMBER<span class="emphasis">_ROLE, MEMBER_</span>VERSION</span><br><span class="line"><span class="code">         FROM performance_schema.replication_group_members;</span></span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span>----------------+</span><br><span class="line">| MEMBER<span class="emphasis">_ID                            | MEMBER_</span>HOST | MEMBER<span class="emphasis">_PORT | MEMBER_</span>STATE | MEMBER<span class="emphasis">_ROLE | MEMBER_</span>VERSION |</span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span>----------------+</span><br><span class="line">| 33565eab-731f-11e7-8e94-08002715584a | ol7         |        3307 | ONLINE       | SECONDARY   | 8.0.2          |</span><br><span class="line">| 86034b0a-731f-11e7-9f33-08002715584a | ol7         |        3308 | ONLINE       | SECONDARY   | 8.0.2          |</span><br><span class="line">| a45d3804-731e-11e7-9003-08002715584a | ol7         |        3306 | ONLINE       | PRIMARY     | 8.0.2          |</span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span>----------------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>References<br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/group-replication-find-primary.html">https://dev.mysql.com/doc/refman/en/group-replication-find-primary.html</a><br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/group-replication-options.html#sysvar_group_replication_single_primary_mode">https://dev.mysql.com/doc/refman/en/group-replication-options.html#sysvar_group_replication_single_primary_mode</a><br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/replication-group-members-table.html">https://dev.mysql.com/doc/refman/en/replication-group-members-table.html</a><br><a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/group-replication-extending-group-replication-performance_schema-tables/">http://mysqlhighavailability.com/group-replication-extending-group-replication-performance_schema-tables/</a><br><a target="_blank" rel="noopener" href="http://lefred.be/content/mysql-group-replication-who-is-the-primary-master-updated/">http://lefred.be/content/mysql-group-replication-who-is-the-primary-master-updated/</a> </p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-执行sql文件限制频率避免流控"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/08/20/%E6%89%A7%E8%A1%8Csql%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6%E9%A2%91%E7%8E%87%E9%81%BF%E5%85%8D%E6%B5%81%E6%8E%A7/">执行sql文件限制频率避免流控</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/08/20/%E6%89%A7%E8%A1%8Csql%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6%E9%A2%91%E7%8E%87%E9%81%BF%E5%85%8D%E6%B5%81%E6%8E%A7/" class="article-date">
+	  <time datetime="2018-08-20T15:04:00.000Z" itemprop="datePublished">2018-08-20</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="避免流控"><a href="#避免流控" class="headerlink" title="避免流控"></a>避免流控</h2><p>对于pxc, 为了避免流控, 可以在导入.sql文件时, 先对文件做处理<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">awk</span> &#x27;<span class="number">1</span>;NR%<span class="number">1000</span>==<span class="number">0</span>&#123;print <span class="string">&quot;select sleep(1);&quot;</span>&#125;&#x27; xxx.sql &gt; xxx_dba.sql</span><br></pre></td></tr></table></figure><br>上面的命令每1000行增加一行<code>select sleep(1);</code>, 这样执行频率是1k/s</p>
+<p>对于mysqldump产生的sql文件, 则需要在导出是指定<br><figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump --<span class="meta">skip</span>-extended-<span class="meta">insert</span></span><br></pre></td></tr></table></figure><br>每行一个insert语句, 之后再使用awk处理</p>
+<p>使用pt-fifo-split</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">FLAT_FILE</span>=<span class="string">&quot;/tmp/big_file.txt&quot;</span></span><br><span class="line"><span class="attribute">FIFO_PATH</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.fifo&quot;</span></span><br><span class="line"><span class="attribute">LOAD_FILE</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.load&quot;</span></span><br><span class="line"><span class="attribute">CHUNK_SIZE</span>=1000</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Split the file</span></span><br><span class="line">pt-fifo-split --force --lines <span class="variable">$&#123;CHUNK_SIZE&#125;</span> <span class="variable">$&#123;FLAT_FILE&#125;</span> --fifo <span class="variable">$&#123;FIFO_PATH&#125;</span> &amp;</span><br><span class="line"><span class="comment"># Sleep 10 seconds to assure $&#123;FIFO_PATH&#125; exists before entering loop</span></span><br><span class="line">sleep 10</span><br><span class="line"><span class="keyword">while</span> [ -e <span class="variable">$&#123;FIFO_PATH&#125;</span> ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  # Write chunk <span class="keyword">to</span> disk</span><br><span class="line">  cat <span class="variable">$&#123;FIFO_PATH&#125;</span> &gt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  # Load chunk into table</span><br><span class="line">  mysql <span class="attribute">--database</span>=test \</span><br><span class="line">   --show-warnings \</span><br><span class="line">   -vv &lt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  sleep 1</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-Write-set Cache(GCache)"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/06/02/Write-set%20Cache(GCache)/">Write-set Cache(GCache)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/06/02/Write-set%20Cache(GCache)/" class="article-date">
+	  <time datetime="2018-06-02T05:23:00.000Z" itemprop="datePublished">2018-06-02</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="Write-set-Cache-GCache"><a href="#Write-set-Cache-GCache" class="headerlink" title="Write-set Cache(GCache)"></a>Write-set Cache(GCache)</h3><p>Galear Cluster将write-sets存储在一个称为<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/glossary.html#term-write-set-cache">Write-set Cache</a>(或称为GCache)的特殊的cache中. GCache cache is a memory allocator for write-sets.主要目的是为了最大限度地减少RAM上的<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/glossary.html#term-write-set">write-set</a>footprint. Galera集群通过将卸载写入集存储到磁盘来改善此问题.</p>
+<p>GCache采用三种类型的存储：</p>
+<ul>
+<li><p><strong>Permanent In-Memory Store </strong>Here write-sets allocate using the default memory allocator for the operating system. This is useful in systems that have spare RAM. The store has a hard size limit.</p>
+<p>By default it is disabled.</p>
+<p>这个就是说可以用操作系统的内存空间, 对于有空闲内存的系统比较合适. 这个空间大小有一个硬性的限制, 貌似是这个参数gcache.mem_size=0[^1]</p>
+<p>默认不使用内存.</p>
+</li>
+<li><p><strong>Permanent Ring-Buffer File</strong> Here write-sets pre-allocate to disk during cache initialization. This is intended as the main write-set store.</p>
+<p>这一个块循环使用的区域, 是写到磁盘上的 , 貌似是这个参数gcache.size = 128M<a href="Galera复制的事务缓存大小。这定义了用作IST源的galera.cache文件的大小。此变量的值越大，重新加入节点将获得IST而不是SST的机会就越好。">^2</a></p>
+</li>
+<li><p><strong>On-Demand Page Store</strong> 这里写集根据需要在运行时分配给内存映射的页面文件。   默认情况下，其大小为128Mb(gcache.page_size[^3])，但如果需要存储更大的写入集，则可能会更大。页面存储的大小受可用磁盘空间的限制。默认情况下，Galera Cluster会在不使用时删除页面文件，但您可以对要保留的页面文件的总大小设置限制。 </p>
+<p>When all other stores are disabled, at least one page file remains present on disk.</p>
+</li>
+</ul>
+<p>Galera集群使用分配算法，尝试按上述顺序存储写入集。也就是说，它首先尝试使用永久性内存存储。如果写入集没有足够的空间，它将尝试存储到永久环形缓冲区文件。页面存储总是成功，除非写入集大于可用磁盘空间。</p>
+<blockquote>
+<p>Galera Cluster uses an allocation algorithm that attempts to store write-sets in the above order. That is, first it attempts to use permanent in-memory store. If there is not enough space for the write-set, it attempts to store to the permanent ring-buffer file. The page store always succeeds, unless the write-set is larger than the available disk space.</p>
+</blockquote>
+<p>默认情况下，写集缓存分配进程工作目录中的文件。您可以使用<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/galeraparameters.html#gcache-dir">gcache.dir</a>参数指定写入集缓存的专用位置.</p>
+<p>[^1]: Deprecated in 5.6.22-25.8 . This variable has been deprecated and shouldn’t be used as it could cause a node to crash.</p>
+<p><img src="/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180601165051861.png" alt="image-20180601165051861"></p>
+<p>当节点接收状态传输时，它们不能处理传入的写集，直到它们完成状态更新。在某些方法下，发送状态转移的节点也被阻塞。为防止数据库进一步落后，GCache将内存映射文件中的传入写入集保存到磁盘。   此参数定义要为当前环形缓冲区存储分配的磁盘空间量。节点在启动数据库服务器时分配此空间。</p>
+<p>[^3]: This variable can be used to specify the size of the page files in the page storage.</p>
+<p><img src="/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180601165332896.png" alt="image-20180601165332896"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-gcache.freeze_purge_at_seqno"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/06/02/gcache.freeze_purge_at_seqno/">Want IST Not SST for Node Rejoins? We Have a Solution!</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/06/02/gcache.freeze_purge_at_seqno/" class="article-date">
+	  <time datetime="2018-06-02T04:23:00.000Z" itemprop="datePublished">2018-06-02</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Want-IST-Not-SST-for-Node-Rejoins-We-Have-a-Solution"><a href="#Want-IST-Not-SST-for-Node-Rejoins-We-Have-a-Solution" class="headerlink" title="Want IST Not SST for Node Rejoins? We Have a Solution!"></a>Want IST Not SST for Node Rejoins? We Have a Solution!</h1><p><a target="_blank" rel="noopener" href="https://www.percona.com/blog/author/krunal-bauskar/">Krunal Bauskar</a> | February 13, 2018 |  Posted In: <a target="_blank" rel="noopener" href="https://www.percona.com/blog/category/high-availability/">High-availability</a>, <a target="_blank" rel="noopener" href="https://www.percona.com/blog/category/mysql/">MySQL</a>, <a target="_blank" rel="noopener" href="https://www.percona.com/blog/category/percona-xtradb-cluster/">Percona XtraDB Cluster</a></p>
+<p>如果我们告诉你，有一种确定的方法可以让节点rejoin使用IST而不是SST？您可以保证新节点使用IST重新加入. 听起来很有趣？请继续阅读.</p>
+<p>通常当一个节点脱离集群一段时间(处于维护目的或就是shutdown了), 集群上其他节点的gcache将用来在前者重新加入集群时提供前者在脱离期间缺失的write-set(s). 如果您配置了较大的gcache, 或downtime足够段, 则此方法可行. 对于生产环境来说, 无论是设置较大的gcache或者缩短停机窗口都不够好.</p>
+<p>在停机之前在潜在的DONOR节点上重新配置gcache需要关闭节点.(gcache不能动态调整大小), Restoring it back to original size needs another shutdown. So “<strong>three shutdowns</strong>” for a single downtime. <strong>*No way …… not acceptable with busy production clusters and the possibility of more errors.*</strong></p>
+<h2 id="Introducing-“gcache-freeze-purge-at-seqno”"><a href="#Introducing-“gcache-freeze-purge-at-seqno”" class="headerlink" title="Introducing “gcache.freeze_purge_at_seqno”"></a><strong>Introducing “gcache.freeze_purge_at_seqno”</strong></h2><p>基于以上痛点, 我们在<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2018/01/26/percona-xtradb-cluster-5-7-20-29-24-is-now-available/">Percona XtraDB Cluster 5.7.20</a>引入了<strong>gcache.freeze_purge_at_seqno</strong>.这将控制清除gcache, 从而在节点重新加入时保留更多的数据以促进IST.</p>
+<p>Galera集群世界中的所有事务都被分配了唯一的全局序列号（seqno）.跟踪事情发生使用此seqno（如wsrep_last_applied，wsrep_last_committed，wsrep_replicated，wsrep_local_cached_downto等<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.7/wsrep-status-index.html">^1</a>）.wsrep_local_cached_downto表示gcache已被清除的序列号。假设wsrep_local_cached_downto = N，那么gcache具有来自[N，wsrep_replicated]的数据, 并清除了[1，N)数据。</p>
+<p>gcache.freeze_purge_at_seqno takes three values:</p>
+<pre><code>1. -1(默认值): no freeze, the purge operates as normal.
+2. **x (should be valid seqno in gcache):** freeze purge of write-sets &gt;= x. The best way to select x is to use the wsrep_last_applied value as an indicator from the node that you plan to shut down. (wsrep_applied * 0.09. Retain this extra 10% to trick the [safety gap heuristic algorithm of IST](https://www.percona.com/blog/2017/11/15/understanding-ist-donor-selected/).)
+3. **now:** freeze purge of write-sets &amp;gt;= smallest seqno currently in gcache. Instant freeze of gcache-purge. (If tracing x (above) is difficult, simply use “now” and you are good).
+</code></pre><p>在集群的现有节点上进行设置（这将继续作为集群的一部分，并可以充当潜在的捐助者）。该节点继续保留写集，从而允许重启节点使用IST重新加入。 （您可以在重启需要rejoin的节点时通过指定<code>—wsrep_sst_donor</code>将该节点作为首选DONOR进行提供）</p>
+<blockquote>
+<p>Set this on an existing node of the cluster (that will continue to be part of the cluster and can act as potential DONOR). This node continues to retain the write-sets, thereby allowing the restarting node to rejoin using IST. (You can feed the said node as a preferred DONOR through wsrep_sst_donor while restarting the said rejoining node.)</p>
+</blockquote>
+<p>请记住，一旦节点重新加入，请将其设回-1。这可以避免超出上述时间表的DONOR上的占用空间。在下一个清除周期中，所有旧的保留写入集也会被释放（回收空间回到原始状态）.</p>
+<p>Note:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">To find out existing value of gcache.freeze_purge_at_seqno query wsrep_provider_options.</span><br><span class="line"><span class="keyword">select</span> @@wsrep_provider_options;</span><br><span class="line"></span><br><span class="line">To <span class="keyword">set</span> gcache.freeze_purge_at_seqno</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> wsrep_provider_options=<span class="string">&quot;gcache.freeze_purge_at_seqno = now&quot;</span>;</span><br></pre></td></tr></table></figure>
+<h2 id="Why-should-you-use-it"><a href="#Why-should-you-use-it" class="headerlink" title="Why should you use it?"></a>Why should you use it?</h2><ul>
+<li>gcache动态增长（使用现有的页面存储机制），并在用户将其设置回-1时收缩。这意味着您只在需要时使用(更多的)磁盘空间.</li>
+<li>不需要重新启动. 用户只需专注于需要维护的节点.</li>
+<li>No complex math or understanding of seqno involved (simply use “now”).</li>
+<li>Less prone to error, as SST is one of the major error-prone areas with the cluster.</li>
+</ul>
+<p>So why wait? Give it a try! It is part of <a target="_blank" rel="noopener" href="https://www.percona.com/blog/2018/01/26/percona-xtradb-cluster-5-7-20-29-24-is-now-available/">Percona XtraDB Cluster 5.7.20</a> onwards, and helps you get IST not SST for node rejoins</p>
+<p>Note: If you need more information about gcache, check <a target="_blank" rel="noopener" href="https://www.percona.com/blog/2016/11/16/all-you-need-to-know-about-gcache-galera-cache/">here</a> and <a target="_blank" rel="noopener" href="https://www.percona.com/blog/2017/11/15/understanding-ist-donor-selected/">here</a></p>
+
       
     </div>
     <footer class="article-footer">
@@ -591,7 +889,7 @@
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/5/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/7/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/5/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/7/">下一页 »</a>
   </nav>
 
 </section>

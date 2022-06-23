@@ -65,7 +65,7 @@
     <link rel="stylesheet" href="/css/vdonate.css" >
   
 
-<meta name="generator" content="Hexo 5.1.1"></head>
+<meta name="generator" content="Hexo 6.2.0"></head>
 
 
 
@@ -305,14 +305,24 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-CONFIG REWRITE命令"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-AUTO-INC锁和AUTO_INCREMENT在InnoDB中处理方式"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2016/12/15/AUTO-INC%E9%94%81%E5%92%8CAUTO_INCREMENT%E5%9C%A8InnoDB%E4%B8%AD%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F/">AUTO-INC锁和AUTO_INCREMENT在InnoDB中处理方式</a>
+    </h1>
+  
+
+      </header>
+    
     <div class="article-meta">
       
-	<a href="/2018/01/19/CONFIG%20REWRITE%E5%91%BD%E4%BB%A4/" class="article-date">
-	  <time datetime="2018-01-19T03:09:11.000Z" itemprop="datePublished">2018-01-19</time>
+	<a href="/2016/12/15/AUTO-INC%E9%94%81%E5%92%8CAUTO_INCREMENT%E5%9C%A8InnoDB%E4%B8%AD%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F/" class="article-date">
+	  <time datetime="2016-12-15T14:00:00.000Z" itemprop="datePublished">2016-12-15</time>
 	</a>
 
       
@@ -322,32 +332,94 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="CONFIG-REWRITE"><a href="#CONFIG-REWRITE" class="headerlink" title="CONFIG REWRITE"></a>CONFIG REWRITE</h1><blockquote>
-<p>Available since 2.8.0.</p>
+        <h2 id="AUTO-INC-Locks"><a href="#AUTO-INC-Locks" class="headerlink" title="AUTO-INC Locks"></a>AUTO-INC Locks</h2><blockquote>
+<p>An AUTO-INC lock is a special table-level lock taken by transactions inserting into tables with AUTO_INCREMENT columns. In the simplest case, if one transaction is inserting values into the table, any other transactions must wait to do their own inserts into that table, so that rows inserted by the first transaction receive consecutive primary key values.</p>
 </blockquote>
-<p>CONFIG REWRITE命令用于重写redis server启动时使用的配置文件,以最小的变动反映当前server的实际配置,当前的实际配置可能会由于CONFIG SET的使用而与启动时的配置文件不同.</p>
-<blockquote>
-<p>类似 scope=spfile</p>
-</blockquote>
-<p>重写以非常保守的方式执行:</p>
+<p>The innodb_autoinc_lock_mode configuration option controls the algorithm used for auto-increment locking. It allows you to choose how to trade off between predictable sequences of auto-increment values and maximum concurrency for insert operations.</p>
+<p>AUTO-INC锁是当向使用含有AUTO_INCREMENT列的表中插入数据时需要获取的一种特殊的表级锁<br>在最简单的情况下，如果一个事务正在向表中插入值，则任何其他事务必须等待对该表执行自己的插入操作，以便第一个事务插入的行的值是连续的。<br>innodb_autoinc_lock_mode配置选项控制用于自动增量锁定的算法。 它允许您选择如何在可预测的自动递增值序列和插入操作的最大并发性之间进行权衡。</p>
+<h2 id="AUTO-INCREMENT-Handling-in-InnoDB"><a href="#AUTO-INCREMENT-Handling-in-InnoDB" class="headerlink" title="AUTO_INCREMENT Handling in InnoDB"></a>AUTO_INCREMENT Handling in InnoDB</h2><p>InnoDB提供了一个可配置的锁定机制，可以显着提高使用AUTO_INCREMENT列向表中添加行的SQL语句的可伸缩性和性能。 要对InnoDB表使用AUTO_INCREMENT机制，必须将AUTO_INCREMENT列定义为索引的一部分，以便可以对表执行相当于索引的<code>SELECT MAX（ai_col）</code>查找以获取最大列值。 通常，这是通过使列成为某些表索引的第一列来实现的。</p>
+<p>本节介绍AUTO_INCREMENT锁定模式的行为，对不同AUTO_INCREMENT锁定模式设置的使用含义，以及InnoDB如何初始化AUTO_INCREMENT计数器。</p>
 <ul>
-<li>尽可能保留原始redis.conf的注释和整体结构.</li>
-<li>如果一个选项已经存在于旧的redis.conf文件中,它将被原地更新.</li>
-<li>如果某个选项尚不存在,但设置为其默认值,则不会由重写过程添加.</li>
-<li>如果某个选项尚不存在,但它被设置为非默认值,则会将其附加到文件末尾.</li>
-<li>Non used lines are blanked. For instance if you used to have multiple save directives, but the current configuration has fewer or none as you disabled RDB persistence, all the lines will be blanked.<blockquote>
-<p>未使用的行将被删除.例如,如果您曾经设置多个save,但是后来却通过config set只设置了更少的或者config set save ‘’,那么所有的未使用save将被删除</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@cn_mu_binlog_backup ~]# redis-cli -p 6379<span class="built_in"> config </span><span class="builtin-name">get</span> save</span><br><span class="line">1) <span class="string">&quot;save&quot;</span></span><br><span class="line">2) <span class="string">&quot;&quot;</span></span><br><span class="line">[root@cn_mu_binlog_backup ~]# cat /usr/local/redis/etc/6379_redis.conf|grep save</span><br><span class="line"><span class="comment">#   save &lt;seconds&gt; &lt;changes&gt;</span></span><br><span class="line"><span class="comment">#   Will save the DB if both the given number of seconds and the given</span></span><br><span class="line"><span class="comment">#   In the example below the behaviour will be to save:</span></span><br><span class="line"><span class="comment">#   <span class="doctag">Note:</span> you can disable saving completely by commenting out all &quot;save&quot; lines.</span></span><br><span class="line"><span class="comment">#   It is also possible to remove all the previously configured save</span></span><br><span class="line"><span class="comment">#   points by adding a save directive with a single empty string argument</span></span><br><span class="line"><span class="comment">#   save &quot;&quot;</span></span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line"></span><br><span class="line">重写</span><br><span class="line">[root@cn_mu_binlog_backup ~]# redis-cli -p 6379<span class="built_in"> config </span>rewrite</span><br><span class="line">OK</span><br><span class="line"></span><br><span class="line">[root@cn_mu_binlog_backup ~]# cat /usr/local/redis/etc/6379_redis.conf|grep save</span><br><span class="line"><span class="comment">#   save &lt;seconds&gt; &lt;changes&gt;</span></span><br><span class="line"><span class="comment">#   Will save the DB if both the given number of seconds and the given</span></span><br><span class="line"><span class="comment">#   In the example below the behaviour will be to save:</span></span><br><span class="line"><span class="comment">#   <span class="doctag">Note:</span> you can disable saving completely by commenting out all &quot;save&quot; lines.</span></span><br><span class="line"><span class="comment">#   It is also possible to remove all the previously configured save</span></span><br><span class="line"><span class="comment">#   points by adding a save directive with a single empty string argument</span></span><br><span class="line"><span class="comment">#   save &quot;&quot;</span></span><br><span class="line"><span class="comment"># (at least one save point) and the latest background save failed.</span></span><br><span class="line">stop-writes-on-bgsave-<span class="builtin-name">error</span> <span class="literal">yes</span></span><br><span class="line"><span class="comment"># If you want to save some CPU in the saving child set it to &#x27;no&#x27; but</span></span><br><span class="line"><span class="comment"># algorithms (in order to save memory), so you can tune it for speed or</span></span><br><span class="line"><span class="comment"># the configured save points).</span></span><br><span class="line"><span class="comment"># saving process (a background save or AOF log background rewriting) is</span></span><br><span class="line"><span class="comment"># Lists are also encoded in a special way to save a lot of space.</span></span><br><span class="line"><span class="comment"># order to save a lot of space. This encoding is only used when the length and</span></span><br></pre></td></tr></table></figure>
-</blockquote>
+<li><p>InnoDB AUTO_INCREMENT锁定模式</p>
+</li>
+<li><p>InnoDB AUTO_INCREMENT锁定模式使用含义</p>
+</li>
+<li><p>InnoDB AUTO_INCREMENT计数器初始化</p>
 </li>
 </ul>
-<p>如果由于某种原因原来的配置文件不再存在,CONFIG REWRITE也可以重写配置文件. 但是,如果服务器启动时没有配置文件,CONFIG REWRITE将只返回一个错误.</p>
-<h2 id="原子重写过程"><a href="#原子重写过程" class="headerlink" title="原子重写过程"></a>原子重写过程</h2><p>In order to make sure the redis.conf file is always consistent, that is, on errors or crashes you always end with the old file, or the new one, the rewrite is performed with a single write(2) call that has enough content to be at least as big as the old file. Sometimes additional padding in the form of comments is added in order to make sure the resulting file is big enough, and later the file gets truncated to remove the padding at the end.</p>
-<blockquote>
-<p>为了确保redis.conf文件始终保持一致,即在出现错误或崩溃时总是以旧文件或新文件结束,重写将使用具有足够内容的单次写入(2)调用来执行 至少与旧文件一样大. 有时会添加注释形式的其他填充以确保生成的文件足够大,然后文件被截断以删除最后的填充.</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-Innodb事务隔离级别"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2016/12/13/Innodb%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/">Innodb事务隔离级别</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2016/12/13/Innodb%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" class="article-date">
+	  <time datetime="2016-12-13T14:00:00.000Z" itemprop="datePublished">2016-12-13</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Innodb事务隔离级别"><a href="#Innodb事务隔离级别" class="headerlink" title="Innodb事务隔离级别"></a>Innodb事务隔离级别</h2><h3 id="REPEATABLE-READ"><a href="#REPEATABLE-READ" class="headerlink" title="REPEATABLE READ"></a>REPEATABLE READ</h3><blockquote>
+<p>This is the default isolation level for InnoDB. Consistent reads within the same transaction read the snapshot established by the first read. This means that if you issue several plain (nonlocking) SELECT statements within the same transaction, these SELECT statements are consistent also with respect to each other.</p>
 </blockquote>
-<h2 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h2><p><a target="_blank" rel="noopener" href="https://redis.io/topics/protocol#simple-string-reply">Simple string reply</a>: OK 当配置被正确重写. 否则,返回错误</p>
-
+<p>这是 InnoDB 默认的事务隔离级别,同一事物通过第一次创建的快照来构造一致性读.这意味着如果你在同一会话执行多次查询(非锁定读),那么每次获取的结果都是彼此相等的</p>
+<blockquote>
+<p>For locking reads (SELECT with FOR UPDATE or LOCK IN SHARE MODE), UPDATE, and DELETE statements, locking depends on whether the statement uses a unique index with a unique search condition, or a range-type search condition.</p>
+</blockquote>
+<p>对于锁定读,(SELECT with FOR UPDATE or LOCK IN SHARE MODE), UPDATE, 和 DELETE语句,是否锁定取决于此次查询(UPDATE DELETE 也是一种查询)是否通过唯一条件或范围条件查询使用唯一索引</p>
+<blockquote>
+<p>For a unique index with a unique search condition, InnoDB locks only the index record found, not the gap before it.</p>
+</blockquote>
+<ul>
+<li>For a unique index with a unique search condition,InnoDB只锁索引记录,不锁 gap<ul>
+<li>For other search conditions, InnoDB locks the index range scanned, using gap locks or next-key locks to block insertions by other sessions into the gaps covered by the range</li>
+</ul>
+</li>
+</ul>
+<h3 id="READ-COMMITTED"><a href="#READ-COMMITTED" class="headerlink" title="READ COMMITTED"></a>READ COMMITTED</h3><blockquote>
+<p>Each consistent read, even within the same transaction, sets and reads its own fresh snapshot. For information about consistent reads</p>
+</blockquote>
+<p>read view在 innodb 如何避免幻读中已经介绍过</p>
+<blockquote>
+<p>For locking reads (SELECT with FOR UPDATE or LOCK IN SHARE MODE), UPDATE statements, and DELETE statements, InnoDB locks only index records, not the gaps before them, and thus permits the free insertion of new records next to locked records. Gap locking is only used for foreign-key constraint checking and duplicate-key checking.</p>
+</blockquote>
+<p>locking reads(SELECT with FOR UPDATE or LOCK IN SHARE MODE),UPDATE 语句,DELETE语句,InnoDB 都只会锁index records(也就是 record lock),不会产生 gap lock,因此允许在 gap 中插入新的 records.Gap locking只在外键约束检查和重复值检查时产生</p>
+<blockquote>
+<p>Because gap locking is disabled, phantom problems may occur, as other sessions can insert new rows into the gaps</p>
+</blockquote>
+<p>因为gap locking被 disabled,幻读问题可能会产生,其他会话可以在 gap 中插入新的记录</p>
       
     </div>
     <footer class="article-footer">
@@ -365,7 +437,7 @@
 
 
   
-    <article id="post-redis-cli"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-MySQL(InnoDB)如何避免幻读"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -373,7 +445,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/01/18/redis-cli/">redis-cli,Redis命令行界面</a>
+      <a class="article-title" href="/2016/12/12/MySQL(InnoDB)%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E5%B9%BB%E8%AF%BB/">MySQL(InnoDB)如何避免幻读</a>
     </h1>
   
 
@@ -381,8 +453,8 @@
     
     <div class="article-meta">
       
-	<a href="/2018/01/18/redis-cli/" class="article-date">
-	  <time datetime="2018-01-17T16:00:00.000Z" itemprop="datePublished">2018-01-18</time>
+	<a href="/2016/12/12/MySQL(InnoDB)%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E5%B9%BB%E8%AF%BB/" class="article-date">
+	  <time datetime="2016-12-12T14:00:00.000Z" itemprop="datePublished">2016-12-12</time>
 	</a>
 
       
@@ -392,15 +464,16 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="redis-cli-Redis命令行界面"><a href="#redis-cli-Redis命令行界面" class="headerlink" title="redis-cli,Redis命令行界面"></a>redis-cli,Redis命令行界面</h1><p>redis-cli是Redis命令行界面，一个简单的程序，允许向Redis发送命令，并直接从终端读取服务器发送的回复。</p>
-<p>它有两种主要的模式：一种是交互模式，在这种模式下，用户输入命令并获得回复的REPL（Read Eval Print Loop）另一种模式是将命令作为redis-cli的参数发送，执行并打印在标准输出上。</p>
-<p>在交互模式下，redis-cli具有基本的行编辑功能，可以提供良好的打字体验。</p>
-<p>但是，redis-cli不只是这一点。有些选项可以用来启动程序，以便将其放入特殊模式，以便redis-cli可以完成更复杂的任务，例如模拟slave并打印从master接收到的复制流，查看复制延迟，并显示统计数据，甚至一个ASCII艺术频谱图的延迟样本和频率，以及许多其他事情。</p>
-<p>本指南将涵盖redis-cli的不同方面，由简入繁。</p>
-<p>如果您要广泛使用Redis，或者您已经这么做了，那么很可能会碰巧使用redis-cli。花一些时间来熟悉它可能是一个非常好的主意，一旦你知道了命令行界面的所有技巧，你就会看到你将更有效地使用Redis。</p>
-<h1 id="命令行用法"><a href="#命令行用法" class="headerlink" title="命令行用法"></a>命令行用法</h1><p>如下可以直接非交互模式执行命令并在标准输出获取返回结果<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">redis-cli incr mycounter</span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">7</span></span><br></pre></td></tr></table></figure></p>
-<p>‘()’内为返回结果的类型.当我们需要获取返回结果作为下一个命令的输入,或者希望将结果重定向到文件中时,我们可能不需要显示类型信息.<br>实际上,redis-cli会自动检测,当它检测到标准输出是一个tty(a terminal basically)时,它会显示类型信息来提升可读性,否则它会启用原始输出模式,如下所示:<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli incr mycounter &gt; <span class="regexp">/tmp/</span>output.txt</span><br><span class="line">$ cat <span class="regexp">/tmp/</span>output.txt</span><br><span class="line"><span class="number">8</span></span><br></pre></td></tr></table></figure><br>这一次当CLI检测到输出不在写入terminal后,(integer)被删除了不再显示. 你可以使用<code>--raw</code>选项来强制输出到终端的内容也不显示类型信息<br><figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli <span class="comment">--raw incr mycounter</span></span><br><span class="line"><span class="number">9</span></span><br></pre></td></tr></table></figure></p>
-<p>同样的,你也可以使用<code>--no-raw</code>强制非tty输出也显示类型信息<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> incr no</span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">1</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> --raw incr no</span><br><span class="line"><span class="number">2</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> incr no &gt; res.txt</span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# cat res.txt </span><br><span class="line"><span class="number">3</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> --no-raw incr no &gt; res.txt</span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# cat res.txt </span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">4</span></span><br></pre></td></tr></table></figure><br>
+        <h3 id="幻读Phantom-Rows"><a href="#幻读Phantom-Rows" class="headerlink" title="幻读Phantom Rows"></a>幻读Phantom Rows</h3><blockquote>
+<p>The so-called phantom problem occurs within a transaction when the same query produces different sets of rows at different times. For example, if a SELECT is executed twice, but returns a row the second time that was not returned the first time, the row is a “phantom” row.</p>
+</blockquote>
+<p>幻读问题是指一个事务的两次不同时间的相同查询返回了不同的的结果集。例如:一个 select 语句执行了两次，但是在第二次返回了第一次没有返回的行,那么这些行就是“phantom” row.</p>
+<h3 id="read-view-或者说-MVCC-实现了一致性不锁定读-Consistent-Nonlocking-Reads-，从而避免了幻读"><a href="#read-view-或者说-MVCC-实现了一致性不锁定读-Consistent-Nonlocking-Reads-，从而避免了幻读" class="headerlink" title="read view(或者说 MVCC)实现了一致性不锁定读(Consistent Nonlocking Reads)，从而避免了幻读"></a>read view(或者说 MVCC)实现了一致性不锁定读(Consistent Nonlocking Reads)，从而避免了幻读</h3><h4 id="实验1"><a href="#实验1" class="headerlink" title="实验1:"></a>实验1:</h4><p>开两个窗口设置<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">session</span> tx_isolation=<span class="string">&#x27;REPEATABLE-READ&#x27;</span>;</span><br><span class="line"><span class="keyword">select</span> @@session.autocommit;<span class="keyword">select</span> @@global.tx_isolation,@@session.tx_isolation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> read_view(<span class="built_in">text</span> <span class="built_in">varchar</span>(<span class="number">50</span>));</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> read_view <span class="keyword">values</span>(<span class="string">&#x27;init&#x27;</span>);</span><br></pre></td></tr></table></figure></p>
+<p>两个会话开始事务<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">SESSION_A</span>&gt;begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="attribute">SESSION_B</span>&gt;begin;</span><br><span class="line"><span class="attribute">Query</span> OK, <span class="number">0</span> rows affected (<span class="number">0</span>.<span class="number">00</span> sec)</span><br></pre></td></tr></table></figure></p>
+<p>SESSION_A执行一个查询，这个查询可以访问任何表，这个查询的目的是创建一个当前时间点的快照<br><code>START TRANSACTION WITH CONSISTENT SNAPSHOT;</code>也可以达到同样的效果</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;select * from dept;</span></span><br><span class="line"><span class="emphasis">+--------+------------+----------+</span></span><br><span class="line"><span class="emphasis">| deptno | dname      | loc      |</span></span><br><span class="line"><span class="emphasis">+--------+------------+----------+</span></span><br><span class="line"><span class="emphasis">|     10 | ACCOUNTING | NEW YORK |</span></span><br><span class="line"><span class="emphasis">|     20 | RESEARCH   | DALLAS   |</span></span><br><span class="line"><span class="emphasis">|     30 | SALES      | CHICAGO  |</span></span><br><span class="line"><span class="emphasis">|     40 | OPERATIONS | BOSTON   |</span></span><br><span class="line"><span class="emphasis">+--------+------------+----------+</span></span><br><span class="line"><span class="emphasis">4 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure>
+<p>SESSION_B 插入一条记录并提交<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SESSION_B&gt;<span class="keyword">insert</span> <span class="keyword">into</span> read_view <span class="keyword">values</span>(<span class="string">&#x27;after session A select&#x27;</span>);</span><br><span class="line">Query OK, <span class="number">1</span> <span class="keyword">row</span> affected (<span class="number">0.01</span> sec)</span><br><span class="line"></span><br><span class="line">SESSION_B&gt;<span class="keyword">commit</span>;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure></p>
+<p>SESSION_A<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">SESSION<span class="emphasis">_A&gt;select * from read_</span>view;</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">| text |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">| init |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">SESSION<span class="emphasis">_A&gt;commit;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">SESSION_</span>A&gt;select * from read<span class="emphasis">_view;</span></span><br><span class="line"><span class="emphasis">+------------------------+</span></span><br><span class="line"><span class="emphasis">| text                   |</span></span><br><span class="line"><span class="emphasis">+------------------------+</span></span><br><span class="line"><span class="emphasis">| init                   |</span></span><br><span class="line"><span class="emphasis">| after session A select |</span></span><br><span class="line"><span class="emphasis">+------------------------+</span></span><br><span class="line"><span class="emphasis">2 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure><br>由于 SESSION_A 第一次的查询开始于 SESSION_B 插入数据前，通过创建了一个以SELECT操作的时间为基准点的 read view,避免了幻读的产生<br>所以在 SESSION_A 的事务结束前,无法看到 SESSION_B 对表 read_view 做出的任何更改 (insert,delete,update)</p>
       
     </div>
     <footer class="article-footer">
@@ -418,7 +491,7 @@
 
 
   
-    <article id="post-自定义函数改表关联优化一例"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-Auto_increment详解"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -426,7 +499,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/12/28/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0%E6%94%B9%E8%A1%A8%E5%85%B3%E8%81%94%E4%BC%98%E5%8C%96%E4%B8%80%E4%BE%8B/">自定义函数改表关联优化一例</a>
+      <a class="article-title" href="/2016/07/31/Auto_increment%E8%AF%A6%E8%A7%A3/">Auto_increment详解</a>
     </h1>
   
 
@@ -434,8 +507,8 @@
     
     <div class="article-meta">
       
-	<a href="/2017/12/28/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0%E6%94%B9%E8%A1%A8%E5%85%B3%E8%81%94%E4%BC%98%E5%8C%96%E4%B8%80%E4%BE%8B/" class="article-date">
-	  <time datetime="2017-12-28T10:05:00.000Z" itemprop="datePublished">2017-12-28</time>
+	<a href="/2016/07/31/Auto_increment%E8%AF%A6%E8%A7%A3/" class="article-date">
+	  <time datetime="2016-07-31T14:00:00.000Z" itemprop="datePublished">2016-07-31</time>
 	</a>
 
       
@@ -445,9 +518,10 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>今天朋友丢来一个SQL,叫我帮忙优化一下.受过<a target="_blank" rel="noopener" href="http://blog.csdn.net/robinson1988/article/details/12747113">落总</a>真传,我瞄了几眼就知道咋回事了</p>
-<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">SELECT ESS<span class="selector-class">.PK_NO</span>,</span><br><span class="line">       HE<span class="selector-class">.EMPID</span>,</span><br><span class="line">       HE<span class="selector-class">.LOCAL_NAME</span>,</span><br><span class="line">       ESS<span class="selector-class">.ITEM_NO</span> ITEM_NO_NO,</span><br><span class="line">       ESS<span class="selector-class">.PERSON_ID</span>,</span><br><span class="line">       GET_DEPT_NAME(HE<span class="selector-class">.DEPTNO</span>, <span class="string">&#x27;zh&#x27;</span>) DEPT_NAME,</span><br><span class="line">       GET_GLOBAL_NAME(ESS<span class="selector-class">.ITEM_NO</span>, <span class="string">&#x27;zh&#x27;</span>) ITEM_NAME,</span><br><span class="line">       ESS<span class="selector-class">.AR_DATE_STR</span>,</span><br><span class="line">       TO_CHAR(ESS<span class="selector-class">.FROM_TIME</span>, <span class="string">&#x27;HH24:MI&#x27;</span>) FROM_TIME,</span><br><span class="line">       TO_CHAR(ESS<span class="selector-class">.TO_TIME</span>, <span class="string">&#x27;HH24:MI&#x27;</span>) TO_TIME,</span><br><span class="line">       ESS<span class="selector-class">.QUANTITY</span>,</span><br><span class="line">       ESS<span class="selector-class">.REMARK</span>,</span><br><span class="line">       HE<span class="selector-class">.EMPID</span>,</span><br><span class="line">       ESS<span class="selector-class">.AR_DATE_STR</span>,</span><br><span class="line">       GET_GLOBAL_NAME(ESS<span class="selector-class">.STATUS_CODE</span>, <span class="string">&#x27;zh&#x27;</span>) STATUS_CODE,</span><br><span class="line">       GET_GLOBAL_NAME(ESS<span class="selector-class">.ITEM_NO</span>, <span class="string">&#x27;zh&#x27;</span>) ITEM_NO,</span><br><span class="line">       ESS<span class="selector-class">.REMARK</span>,</span><br><span class="line">       ESS.LOCK_YN</span><br><span class="line">  FROM AR_DETAIL_HYOSUNG_JX ESS, HR_EMPLOYEE HE</span><br><span class="line"> WHERE ESS<span class="selector-class">.PERSON_ID</span> = HE.PERSON_ID</span><br><span class="line">   AND ESS<span class="selector-class">.PERSON_ID</span> NOT LIKE <span class="string">&#x27;111111%&#x27;</span></span><br><span class="line">   AND ESS<span class="selector-class">.ITEM_NO</span> IN (<span class="string">&#x27;141454&#x27;</span>, <span class="string">&#x27;14015951&#x27;</span>, <span class="string">&#x27;141445&#x27;</span>, <span class="string">&#x27;141443&#x27;</span>, <span class="string">&#x27;190000514&#x27;</span>)</span><br><span class="line">   AND EXISTS (SELECT B1.DEPTID</span><br><span class="line">          FROM HR_DEPARTMENT B1</span><br><span class="line">         WHERE B1<span class="selector-class">.DEPTNO</span> = HE.DEPTNO</span><br><span class="line">         START WITH B1<span class="selector-class">.DEPTNO</span> <span class="keyword">in</span></span><br><span class="line">                    (SELECT HRD.DEPTID</span><br><span class="line">                       FROM HR_DEPARTMENT HRD</span><br><span class="line">                      WHERE HRD<span class="selector-class">.MANAGER_EMP_ID</span> = <span class="string">&#x27;11111117&#x27;</span>)</span><br><span class="line">        CONNECT BY PRIOR B1<span class="selector-class">.DEPTNO</span> = B1.PARENT_DEPT_NO</span><br><span class="line">        UNION</span><br><span class="line">        SELECT AR_SUPERVISOR_INFO.DEPTNO</span><br><span class="line">          FROM AR_SUPERVISOR_INFO</span><br><span class="line">         WHERE AR_SUPERVISOR_INFO<span class="selector-class">.DEPTNO</span> = HE.DEPTNO</span><br><span class="line">           AND AR_SUPERVISOR_INFO<span class="selector-class">.PERSON_ID</span> = <span class="string">&#x27;11111117&#x27;</span>)</span><br><span class="line"> ORDER BY ESS<span class="selector-class">.AR_DATE_STR</span> ASC, ESS<span class="selector-class">.CREATE_DATE</span> DESC, HE<span class="selector-class">.DEPTNO</span>, HE.EMPID</span><br></pre></td></tr></table></figure>
-<p>我让他先执行一下SQL 看看几秒,他说6秒<br>OK,再把select 里面那俩自定义函数<code>GET_DEPT_NAME</code>,<code>GET_GLOBAL_NAME</code> 注释掉查一下, 他说1.5秒<br>那这个SQL就是慢在这俩自定义函数上呗, 这个查询每返回一行,这函数就要执行一次<br>那么函数可以改成 标量 , 标量可以改成 letf join. </p>
+        <h2 id="Auto-increment"><a href="#Auto-increment" class="headerlink" title="Auto_increment"></a>Auto_increment</h2><p>Mysql AUTO_INCREMENT</p>
+<h3 id="1-Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值"><a href="#1-Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值" class="headerlink" title="1.Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值"></a>1.Innodb表的自动增长列可以手工插入，但是插入的值如果是空或者0，则实际插入的将是自动增长后的值</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create table t1(id int not null auto<span class="emphasis">_increment primary key,name varchar(10));</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.06 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; desc t1;</span></span><br><span class="line"><span class="emphasis">+-------+-------------+------+-----+---------+----------------+</span></span><br><span class="line"><span class="emphasis">| Field | Type        | Null | Key | Default | Extra          |</span></span><br><span class="line"><span class="emphasis">+-------+-------------+------+-----+---------+----------------+</span></span><br><span class="line"><span class="emphasis">| id    | int(11)     | NO   | PRI | NULL    | auto_</span>increment |</span><br><span class="line">| name  | varchar(10) | YES  |     | NULL    |                |</span><br><span class="line"><span class="code">+-------+</span>-------------<span class="code">+------+</span>-----<span class="code">+---------+</span>----------------+</span><br><span class="line">2 rows in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into t1 values(0,<span class="emphasis">&#x27;fanboshi&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; insert into t1 values(null,<span class="emphasis">&#x27;duyalan&#x27;</span>);</span><br><span class="line">Query OK, 1 row affected (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t1;</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">| id | name     |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">|  1 | fanboshi |</span><br><span class="line">|  2 | duyalan  |</span><br><span class="line"><span class="code">+----+</span>----------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h3 id="2-可以通过alter-table-t1-auto-incremenrt-n-语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置"><a href="#2-可以通过alter-table-t1-auto-incremenrt-n-语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置" class="headerlink" title="2.可以通过alter table t1 auto_incremenrt=n 语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置"></a>2.可以通过alter table t1 auto_incremenrt=n 语句强制设置自动增长列的初始值，默认从1开始，但是该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要数据库启动后重新设置</h3><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; alter table t1 auto<span class="emphasis">_increment=5;</span></span><br><span class="line"><span class="emphasis">Query OK, 0 rows affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis">Records: 0  Duplicates: 0  Warnings: 0</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; insert into t1 values(null,&#x27;handudu&#x27;);</span></span><br><span class="line"><span class="emphasis">Query OK, 1 row affected (0.00 sec)</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">mysql&gt; select * from t1;</span></span><br><span class="line"><span class="emphasis">+----+----------+</span></span><br><span class="line"><span class="emphasis">| id | name     |</span></span><br><span class="line"><span class="emphasis">+----+----------+</span></span><br><span class="line"><span class="emphasis">|  1 | fanboshi |</span></span><br><span class="line"><span class="emphasis">|  2 | duyalan  |</span></span><br><span class="line"><span class="emphasis">|  5 | handudu  |</span></span><br><span class="line"><span class="emphasis">+----+----------+</span></span><br><span class="line"><span class="emphasis">3 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-可以是用last-insert-id-查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。"><a href="#3-可以是用last-insert-id-查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。" class="headerlink" title="3.可以是用last_insert_id()查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。"></a>3.可以是用last_insert_id()查询当前线程最后插入记录使用的值。如果一次插入多条记录，那么返回的是第一条记录使用的自动增长值。</h3>
       
     </div>
     <footer class="article-footer">
@@ -465,7 +539,7 @@
 
 
   
-    <article id="post-PMM使用Grafana告警"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-hello-world"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -473,7 +547,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/">PMM使用Grafana告警</a>
+      <a class="article-title" href="/2016/01/01/hello-world/">Hello World</a>
     </h1>
   
 
@@ -481,8 +555,8 @@
     
     <div class="article-meta">
       
-	<a href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/" class="article-date">
-	  <time datetime="2017-12-15T05:26:00.000Z" itemprop="datePublished">2017-12-15</time>
+	<a href="/2016/01/01/hello-world/" class="article-date">
+	  <time datetime="2015-12-31T17:02:03.000Z" itemprop="datePublished">2016-01-01</time>
 	</a>
 
       
@@ -492,107 +566,16 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="PMM如何告警"><a href="#PMM如何告警" class="headerlink" title="PMM如何告警?"></a>PMM如何告警?</h1><p>从Grafana v4.0开始增加了<a target="_blank" rel="noopener" href="http://docs.grafana.org/alerting/rules/">Alterting</a>功能 (  PMM 1.0.7 版本时Grafana版本为4.0). 这篇文章将手把手教你如何配置你的告警</p>
-<h2 id="开始创建Alert"><a href="#开始创建Alert" class="headerlink" title="开始创建Alert"></a>开始创建Alert</h2><p>在<a href="http://fuxkdb.com/2017/08/01/%E9%83%A8%E7%BD%B2PMM/">PMM部署</a>完成后,你可以看到如下界面<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_1.png" alt="image"></p>
-<p>此时你可能需要对<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_connected">Threads_connected</a> / <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_running">Threads_running</a> 指标进行监控</p>
-<p>点击对应的Graph标题,点击Edit<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_2.png" alt="image"></p>
-<p>按下图方式依次点击ALert -&gt; Create Alert 创建告警<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_3.png" alt="image"></p>
-<p>不幸的是,当你尝试对A指标创建如下告警时,Grafana提示一个错误“Template variables are not supported in alert queries.”<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_4.png" alt="image"></p>
-<p>首先A代表什么可以从Metrics菜单中看到,从图中可以看到对于<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_connected">Threads_connected</a>值的获取表达式中包含了变量<code>$host</code>, 而<code>$host</code>是箭头所指的Host下拉菜单传递的<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_5.png" alt="image"><br>对于<a target="_blank" rel="noopener" href="https://github.com/grafana/grafana/issues/6557">使用变量的Mertrics,无法创建Alert</a></p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
+        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/deployment.html">Deployment</a></p>
 
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-Pt-table-checksum原理浅析"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/11/24/Pt-table-checksum%E5%8E%9F%E7%90%86%E6%B5%85%E6%9E%90/">Pt-table-checksum原理浅析</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/11/24/Pt-table-checksum%E5%8E%9F%E7%90%86%E6%B5%85%E6%9E%90/" class="article-date">
-	  <time datetime="2017-11-24T03:01:00.000Z" itemprop="datePublished">2017-11-24</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Pt-table-checksum原理浅析"><a href="#Pt-table-checksum原理浅析" class="headerlink" title="Pt-table-checksum原理浅析"></a>Pt-table-checksum原理浅析</h2><p>主库建一个表<br><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">node1&gt; <span class="keyword">create</span> <span class="keyword">table</span> fan(id <span class="type">int</span>) engine=innodb;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.12</span> sec)</span><br><span class="line"></span><br><span class="line">node1&gt; <span class="keyword">insert</span> <span class="keyword">into</span> fan <span class="keyword">values</span>(<span class="number">1</span>);</span><br><span class="line">Query OK, <span class="number">1</span> <span class="keyword">row</span> affected (<span class="number">0.07</span> sec)</span><br></pre></td></tr></table></figure><br>从库制造不一致<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">node2&gt; select * from fan;</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">| id  |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">|    1 |</span><br><span class="line"><span class="code">+------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">node2&gt; update fan set id=2;</span><br></pre></td></tr></table></figure><br>两边打开general log,然后<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node1 ~]# pt-table-checksum --nocheck-replication-filters --no-check-binlog-format h=<span class="number">172.16</span><span class="number">.83</span><span class="number">.17</span>,u=root,p=mysql,P=<span class="number">3307</span> --replicate=percona.checksums --recursion-method=dsn=h=<span class="number">172.16</span><span class="number">.83</span><span class="number">.21</span>,D=percona,t=dsns --databases=sysbench --tables=fan</span><br><span class="line">            TS ERRORS  DIFFS    ROWS  CHUNKS SKIPPED    TIME TABLE</span><br><span class="line"><span class="number">11</span><span class="number">-06</span>T05:<span class="number">12</span>:<span class="number">58</span>      <span class="number">0</span>      <span class="number">1</span>        <span class="number">1</span>      <span class="number">1</span>      <span class="number">0</span>  <span class="number">0.344</span> sysbench.fan</span><br></pre></td></tr></table></figure></p>
-<p>先看两边的checksums表<br><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">node1&gt; select * from  `percona`.`checksums` where tbl=&#x27;fan&#x27;;</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">| db      | tbl | chunk | chunk_time | chunk_index | lower_boundary | upper_boundary | this_crc | this_cnt | master_crc | master_cnt | ts                  |</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">| sysbench | fan |    1 |  0.019798 | NULL        | NULL          | NULL          | 42981178 |        1 | 42981178  |          1 | 2017-11-06 05<span class="function">:12</span><span class="function">:58</span> |</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line"></span><br><span class="line">node2&gt; select * from  `percona`.`checksums` where tbl=&#x27;fan&#x27;;</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">| db      | tbl | chunk | chunk_time | chunk_index | lower_boundary | upper_boundary | this_crc | this_cnt | master_crc | master_cnt | ts                  |</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">| sysbench | fan |    1 |  0.019798 | NULL        | NULL          | NULL          | 40deaf21 |        1 | 42981178  |          1 | 2017-11-06 05<span class="function">:12</span><span class="function">:58</span> |</span><br><span class="line">+<span class="params">----------</span>+<span class="params">-----</span>+<span class="params">-------</span>+<span class="params">------------</span>+<span class="params">-------------</span>+<span class="params">----------------</span>+<span class="params">----------------</span>+<span class="params">----------</span>+<span class="params">----------</span>+<span class="params">------------</span>+<span class="params">------------</span>+<span class="params">---------------------</span>+</span><br><span class="line">1 row in <span class="keyword">set</span> <span class="params">(0.04 sec)</span></span><br></pre></td></tr></table></figure><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-pybackup使用文档"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/11/12/pybackup%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/">pybackup使用文档</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/11/12/pybackup%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/" class="article-date">
-	  <time datetime="2017-11-12T14:04:00.000Z" itemprop="datePublished">2017-11-12</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="pybackup使用文档"><a href="#pybackup使用文档" class="headerlink" title="pybackup使用文档"></a>pybackup使用文档</h1><p><a target="_blank" rel="noopener" href="https://github.com/Fanduzi/pybackup">https://github.com/Fanduzi/pybackup</a><br>pybackup源自于对线上备份脚本的改进和对备份情况的监控需求.<br>原本生产库的备份是通过shell脚本调用mydumper,之后再将备份通过rsync传输到备份机.<br>想要获取备份状态,时间,rsync传输时间等信息只能通过解析日志.<br>pybackup由python编写,调用mydumper和rsync,将备份信息存入数据库中,后期可以通过grafana图形化展示和监控备份<br>目前不支持2.6,仅在2.7.14做过测试</p>
-<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>帮助信息<br><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@iZ23t8cwo3iZ backup_db]# <span class="keyword">python</span> pybackup.<span class="keyword">py</span> -h</span><br><span class="line">Usage:</span><br><span class="line">        pybackup.<span class="keyword">py</span> mydumper ARG_WITH_NO_--... (([--<span class="keyword">no</span>-rsync] [--<span class="keyword">no</span>-<span class="keyword">history</span>]) | [--<span class="keyword">only</span>-backup])</span><br><span class="line">        pybackup.<span class="keyword">py</span> <span class="keyword">only</span>-rsync [--backup-dir=<span class="symbol">&lt;DIR&gt;</span>] [--bk-id=<span class="symbol">&lt;id&gt;</span>] [--<span class="built_in">log</span>-<span class="keyword">file</span>=<span class="symbol">&lt;log&gt;</span>]</span><br><span class="line">        pybackup.<span class="keyword">py</span> -h | --<span class="keyword">help</span></span><br><span class="line">        pybackup.<span class="keyword">py</span> --<span class="keyword">version</span></span><br><span class="line"></span><br><span class="line">Option<span class="variable">s:</span></span><br><span class="line">        -h --<span class="keyword">help</span>                      Show <span class="keyword">help</span> information.</span><br><span class="line">        --<span class="keyword">version</span>                      Show <span class="keyword">version</span>.</span><br><span class="line">        --<span class="keyword">no</span>-rsync                     Do not use rsync.</span><br><span class="line">        --<span class="keyword">no</span>-<span class="keyword">history</span>                   Do not record backup <span class="keyword">history</span> information.</span><br><span class="line">        --<span class="keyword">only</span>-backup                  Equal <span class="keyword">to</span> use both --<span class="keyword">no</span>-rsync <span class="built_in">and</span> --<span class="keyword">no</span>-<span class="keyword">history</span>.</span><br><span class="line">        --<span class="keyword">only</span>-rsync                   When you backup <span class="built_in">complete</span>, but rsync failed, use this option <span class="keyword">to</span> rsync your backup.</span><br><span class="line">        --backup-dir=<span class="symbol">&lt;DIR&gt;</span>             The directory where the backup <span class="keyword">files</span> need <span class="keyword">to</span> <span class="keyword">be</span> rsync are located. [defaul<span class="variable">t:</span> ./]</span><br><span class="line">        --bk-id=<span class="symbol">&lt;id&gt;</span>                   bk-id in table user_backup.</span><br><span class="line">        --<span class="built_in">log</span>-<span class="keyword">file</span>=<span class="symbol">&lt;log&gt;</span>               <span class="built_in">log</span> <span class="keyword">file</span> [defaul<span class="variable">t:</span> ./rsync.<span class="built_in">log</span>]</span><br><span class="line"></span><br><span class="line">more <span class="keyword">help</span> information in:</span><br><span class="line">http<span class="variable">s:</span>//github.<span class="keyword">com</span>/Fanduzi</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pybackup.<span class="keyword">py</span> mydumper ARG_WITH_NO_--... (([--<span class="keyword">no</span>-rsync] [--<span class="keyword">no</span>-<span class="keyword">history</span>]) | [--<span class="keyword">only</span>-backup])</span><br></pre></td></tr></table></figure>
-<p>除了最后三个参数,使用的所有参数和mydumper -h中列出的参数相同. 只不过目前只支持长选项,并且不带’–’</p>
       
     </div>
     <footer class="article-footer">
@@ -615,7 +598,7 @@
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/11/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/13/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/11/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span>
   </nav>
 
 </section>

@@ -65,7 +65,7 @@
     <link rel="stylesheet" href="/css/vdonate.css" >
   
 
-<meta name="generator" content="Hexo 5.1.1"></head>
+<meta name="generator" content="Hexo 6.2.0"></head>
 
 
 
@@ -305,7 +305,7 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-2020-05-03-A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2019-12-10-MGR参数之group_replication_ip_whitelist"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -313,7 +313,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/03/2020-05-03-A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL/">译文-A Simple Approach to Troubleshooting High CPU in MySQL</a>
+      <a class="article-title" href="/2019/12/10/2019-12-10-MGR%E5%8F%82%E6%95%B0%E4%B9%8Bgroup_replication_ip_whitelist/">MGR参数之group_replication_ip_whitelist</a>
     </h1>
   
 
@@ -321,8 +321,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/05/03/2020-05-03-A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL/" class="article-date">
-	  <time datetime="2020-05-03T04:21:00.000Z" itemprop="datePublished">2020-05-03</time>
+	<a href="/2019/12/10/2019-12-10-MGR%E5%8F%82%E6%95%B0%E4%B9%8Bgroup_replication_ip_whitelist/" class="article-date">
+	  <time datetime="2019-12-10T09:45:00.000Z" itemprop="datePublished">2019-12-10</time>
 	</a>
 
       
@@ -332,9 +332,13 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL-在MySQL中对高CPU进行故障排除的简单方法"><a href="#A-Simple-Approach-to-Troubleshooting-High-CPU-in-MySQL-在MySQL中对高CPU进行故障排除的简单方法" class="headerlink" title="A Simple Approach to Troubleshooting High CPU in MySQL - 在MySQL中对高CPU进行故障排除的简单方法"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/04/23/a-simple-approach-to-troubleshooting-high-cpu-in-mysql/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=86927141&amp;_hsenc=p2ANqtz-9FKmIBbxMf6uIKGVu8XOdzrDOdN3z9Pu3rppuxgjHmw0XPCCQ3GMztIb71uO4Zj60pTwMNwr1h6a3GDJQXK4cuZ5Xc3Q&amp;_hsmi=86927141">A Simple Approach to Troubleshooting High CPU in MySQL</a> - 在MySQL中对高CPU进行故障排除的简单方法</h1><p>我们的一位客户最近问，是否有可能从MySQL方面识别导致系统CPU使用率高的查询。 PostgreSQL和Oracle DBA长期以来一直使用简单的OS工具查找罪魁祸首，但是它对MySQL无效，因为历史上我们一直缺乏将OS线程与内部线程进行匹配的工具 - 直到最近。</p>
-<p>Percona添加了支持，可从针对MySQL 5.6.27的Percona Server开始，通过information_schema.processlist表的TID列将进程列表ID映射到OS线程ID。 在5.7发行版中，MySQL扩展了PERFORMANCE_SCHEMA.THREADS表并添加了一个名为THREAD_OS_ID的新列，从而实现了自己的实现，Percona Server for MySQL代替了自己的列，因为它通常尽可能地靠近上游。 </p>
-<p>对于在其他内核正常运行时查询使一个特定CPU过载的情况，以下方法很有用。 对于一般的CPU使用问题，可以使用不同的方法，例如另一篇博客文章<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2019/03/07/reducing-high-cpu-on-mysql-a-case-study/">Reducing High CPU on MySQL: A Case Study</a>的方法.<br>
+        <p><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mgr/group_replication_ip_whitelist/group_replication_ip_whitelist1.png" alt="img"></p>
+<p>尝试将10.133.1.46加入192.168.2.224的集群失败</p>
+<p>需要设置参数<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_ip_whitelist">group_replication_ip_whitelist </a></p>
+<p>此参数虽然是动态参数, 但是要使之生效需要节点重新加入集群</p>
+<blockquote>
+<p>To specify a whitelist manually, use the <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_ip_whitelist"><code>group_replication_ip_whitelist</code></a> option. You cannot change the whitelist on a server while it is an active member of a replication group. If the member is active, you must issue a <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/stop-group-replication.html"><code>STOP GROUP_REPLICATION</code></a> statement before changing the whitelist, and a <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/start-group-replication.html"><code>START GROUP_REPLICATION</code></a> statement afterwards.</p>
+</blockquote>
       
     </div>
     <footer class="article-footer">
@@ -352,7 +356,7 @@
 
 
   
-    <article id="post-2020-05-03-译文-Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2019-12-02-TiDB-Binlog部署"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -360,7 +364,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/03/2020-05-03-%E8%AF%91%E6%96%87-Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations/">译文-Group Replication and Percona XtraDB Cluster: Overview of Common Operations</a>
+      <a class="article-title" href="/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/">TiDB Binlog部署</a>
     </h1>
   
 
@@ -368,8 +372,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/05/03/2020-05-03-%E8%AF%91%E6%96%87-Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations/" class="article-date">
-	  <time datetime="2020-05-03T04:20:00.000Z" itemprop="datePublished">2020-05-03</time>
+	<a href="/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/" class="article-date">
+	  <time datetime="2019-12-02T11:31:00.000Z" itemprop="datePublished">2019-12-02</time>
 	</a>
 
       
@@ -379,8 +383,8 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations"><a href="#Group-Replication-and-Percona-XtraDB-Cluster-Overview-of-Common-Operations" class="headerlink" title="Group Replication and Percona XtraDB Cluster: Overview of Common Operations"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/04/28/group-replication-and-percona-xtradb-cluster-overview-of-common-operations/">Group Replication and Percona XtraDB Cluster: Overview of Common Operations</a></h1><p>在这篇博客文章中，我将概述使用MySQL Group Replication 8.0.19 (aka GR 国内爱叫MGR发现国外还是习惯叫GR)和<a target="_blank" rel="noopener" href="https://www.percona.com/downloads/Percona-XtraDB-Cluster-80/LATEST/">Percona XtraDB Cluster 8</a> (PXC)(基于Galera)时最常见的故障转移场景和操作，并解释每种技术如何处理每种情况。我已经创建了一个包含三个节点的集群，使用一个主节点和一个包含三个节点的PXC进行组复制，它们均使用默认参数配置。 我还将使用ProxySQL与两个群集进行交互。</p>
-<p>在这两个群集中，节点的名称分别为<code>mysql1</code>，<code>mysql2</code>和<code>mysql3</code>。 在组复制中，如果我们使用单主模式，则主节点处理写请求。 在PXC中，我也将使用相同的术语，并将在发送写操作的节点称为Primary。 请注意，在PXC中没有主节点的概念，所有节点都是相等的。<br>
+        <h1 id="TiDB-Binlog部署"><a href="#TiDB-Binlog部署" class="headerlink" title="TiDB Binlog部署"></a>TiDB Binlog部署</h1><h2 id="环境信息"><a href="#环境信息" class="headerlink" title="环境信息"></a>环境信息</h2><p>中控机是<code>10.152.x.133</code></p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-attr">[tidb_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[tikv_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[pd_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## <span class="selector-tag">Monitoring</span> <span class="selector-tag">Part</span></span><br><span class="line"># <span class="selector-tag">prometheus</span> <span class="selector-tag">and</span> <span class="selector-tag">pushgateway</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitoring_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[grafana_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"># <span class="selector-tag">node_exporter</span> <span class="selector-tag">and</span> <span class="selector-tag">blackbox_exporter</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitored_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[alertmanager_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
@@ -398,7 +402,7 @@
 
 
   
-    <article id="post-2020-05-03-[译文]ClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2019-11-12-ProxySQL平滑下线节点"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -406,7 +410,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups/">译文-ClickHouse In the Storm. Part 2 - Maximum QPS for key-value lookups</a>
+      <a class="article-title" href="/2019/11/12/2019-11-12-ProxySQL%E5%B9%B3%E6%BB%91%E4%B8%8B%E7%BA%BF%E8%8A%82%E7%82%B9/">ProxySQL平滑下线节点</a>
     </h1>
   
 
@@ -414,8 +418,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-2-Maximum-QPS-for-key-value-lookups/" class="article-date">
-	  <time datetime="2020-05-03T03:43:00.000Z" itemprop="datePublished">2020-05-03</time>
+	<a href="/2019/11/12/2019-11-12-ProxySQL%E5%B9%B3%E6%BB%91%E4%B8%8B%E7%BA%BF%E8%8A%82%E7%82%B9/" class="article-date">
+	  <time datetime="2019-11-12T13:57:00.000Z" itemprop="datePublished">2019-11-12</time>
 	</a>
 
       
@@ -425,11 +429,54 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="ClickHouse-In-the-Storm-Part-2-Maximum-QPS-for-key-value-lookups"><a href="#ClickHouse-In-the-Storm-Part-2-Maximum-QPS-for-key-value-lookups" class="headerlink" title="ClickHouse In the Storm. Part 2: Maximum QPS for key-value lookups"></a>ClickHouse In the Storm. Part 2: Maximum QPS for key-value lookups</h1><p><a target="_blank" rel="noopener" href="https://www.altinity.com/blog/clickhouse-in-the-storm-part-1">上一篇文章</a>调查了ClickHouse的连接性基准，以估计服务器并发的总体性能。 在本文中，我们将以实际示例为例，并在涉及实际数据时探讨并发性能。</p>
-<h2 id="MergeTree-Key-value-lookup"><a href="#MergeTree-Key-value-lookup" class="headerlink" title="MergeTree: Key-value lookup"></a>MergeTree: Key-value lookup</h2><p>让我们看看MergeTree引擎表如何处理高并发性，以及它能够处理多少个QPS用于键值查找。</p>
-<p>我们将使用2个综合数据集：</p>
-<p>‘fs12M’-具有1200万条记录的表，id为FixedString(16)和5个不同类型的参数：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> default.fs12M (</span><br><span class="line">    <span class="keyword">id</span> FixedString(<span class="number">16</span>),</span><br><span class="line">    value1 Float64,</span><br><span class="line">    value2 Float64,</span><br><span class="line">    value3 UInt32,</span><br><span class="line">    value4 UInt64,</span><br><span class="line">    str_value <span class="keyword">String</span></span><br><span class="line">) <span class="keyword">ENGINE</span> = MergeTree <span class="keyword">PARTITION</span> <span class="keyword">BY</span> tuple() <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">id</span></span><br><span class="line"><span class="keyword">SETTINGS</span> index_granularity = <span class="number">256</span></span><br></pre></td></tr></table></figure>
+        <h1 id="ProxySQL平滑下线节点"><a href="#ProxySQL平滑下线节点" class="headerlink" title="ProxySQL平滑下线节点"></a>ProxySQL平滑下线节点</h1><p>因为MGR多主DDL和DML不能并发在不同节点执行, 而我们又存在即通过KO又通过ProxySQL访问的数据库的情况, 为了避免在发生故障, 我们决定将ProxySQL中配置的集群真实ip删除, 改为使用KO的vip.<br>本文介绍如何平滑下线ProxySQL节点, 从而做到对业务无感知.</p>
+<blockquote>
+<p>KO我司自研php中间件</p>
+</blockquote>
+<h2 id="环境介绍"><a href="#环境介绍" class="headerlink" title="环境介绍"></a>环境介绍</h2><table>
+<thead>
+<tr>
+<th>10.133.x.59</th>
+<th>跑sysbench</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10.133.x.52:3307</td>
+<td>测试集群节点</td>
+</tr>
+<tr>
+<td>10.133.x.53:3307</td>
+<td>测试集群节点</td>
+</tr>
+<tr>
+<td>10.133.x.54:3307</td>
+<td>测试集群节点</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>VIP</th>
+<th>访问类型</th>
+<th>所在服务器</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10.133.x.202</td>
+<td>KO</td>
+<td>10.133.x.202</td>
+</tr>
+<tr>
+<td>10.133.x.203</td>
+<td>ProxySQL</td>
+<td>10.133.x.203</td>
+</tr>
+</tbody>
+</table>
+<p>ProxySQL版本<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">admin@127.0.0.1 23:12:02 [(none)]&gt; select version();</span><br><span class="line"><span class="code">+-------------------+</span></span><br><span class="line">| version() |</span><br><span class="line"><span class="code">+-------------------+</span></span><br><span class="line">| 2.0.8-67-g877cab1 |</span><br><span class="line"><span class="code">+-------------------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>MySQL版本<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@localhost 23:17:56 [(none)]&gt; select version();</span><br><span class="line"><span class="code">+------------+</span></span><br><span class="line">| version() |</span><br><span class="line"><span class="code">+------------+</span></span><br><span class="line">| 5.7.26-log |</span><br><span class="line"><span class="code">+------------+</span></span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure></p>
       
     </div>
     <footer class="article-footer">
@@ -447,7 +494,7 @@
 
 
   
-    <article id="post-2020-05-03-[译文]ClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---最大QPS估算"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2019-10-21-如何自己制作机械键盘"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -455,7 +502,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---%E6%9C%80%E5%A4%A7QPS%E4%BC%B0%E7%AE%97/">译文-ClickHouse In the Storm. Part 1 - Maximum QPS estimation - 最大QPS估算</a>
+      <a class="article-title" href="/2019/10/21/2019-10-21-%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/">如何自己制作机械键盘</a>
     </h1>
   
 
@@ -463,8 +510,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---%E6%9C%80%E5%A4%A7QPS%E4%BC%B0%E7%AE%97/" class="article-date">
-	  <time datetime="2020-05-03T03:33:00.000Z" itemprop="datePublished">2020-05-03</time>
+	<a href="/2019/10/21/2019-10-21-%E5%A6%82%E4%BD%95%E8%87%AA%E5%B7%B1%E5%88%B6%E4%BD%9C%E6%9C%BA%E6%A2%B0%E9%94%AE%E7%9B%98/" class="article-date">
+	  <time datetime="2019-10-21T13:57:00.000Z" itemprop="datePublished">2019-10-21</time>
 	</a>
 
       
@@ -474,13 +521,14 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="ClickHouse-In-the-Storm-Part-1-Maximum-QPS-estimation-最大QPS估算"><a href="#ClickHouse-In-the-Storm-Part-1-Maximum-QPS-estimation-最大QPS估算" class="headerlink" title="ClickHouse In the Storm. Part 1: Maximum QPS estimation - 最大QPS估算"></a>ClickHouse In the Storm. Part 1: Maximum QPS estimation - 最大QPS估算</h1><p>ClickHouse是一个用于分析的OLAP数据库, 因此典型的使用场景是处理相对少量的请求:</p>
+        <h1 id="如何自己制作机械键盘"><a href="#如何自己制作机械键盘" class="headerlink" title="如何自己制作机械键盘"></a>如何自己制作机械键盘</h1><p>本文记录自己的初次”客制化”经历, 键圈大佬请略过, 错误之处请指正, 装逼犯自动忽视~</p>
+<h2 id="材料准备"><a href="#材料准备" class="headerlink" title="材料准备"></a>材料准备</h2><h3 id="轴体"><a href="#轴体" class="headerlink" title="轴体"></a>轴体</h3><p>轴体这里就不做介绍了, 如果你也是萌新的话, 就先了解这四种轴吧:</p>
 <ul>
-<li>每小时几个查询到每秒几十甚至几百个查询</li>
-<li>影响大量数据(gigabytes/millions of rows)</li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E9%9D%92%E8%BD%B4/6499406?fr=aladdin">青轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E8%8C%B6%E8%BD%B4/6486400?fr=aladdin">茶轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E7%BA%A2%E8%BD%B4">红轴</a></li>
+<li><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E9%BB%91%E8%BD%B4">黑轴</a></li>
 </ul>
-<p>但是它在其他情况下表现如何? Let’s try to use a steam-hammer to crack nuts, 并检查ClickHouse每秒将如何处理数千个小请求。 这将帮助我们更好地理解可能的用例范围和限制。</p>
-<p>这篇文章分为两个部分。 第一部分介绍连接性基准测试和测试设置。 下一部分将介绍涉及实际数据的方案中的最大QPS。<br>
       
     </div>
     <footer class="article-footer">
@@ -498,7 +546,7 @@
 
 
   
-    <article id="post-2020-05-02-ClickHouse多实例部署"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2019-07-21-MySQL-Error-log监控"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -506,7 +554,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/02/2020-05-02-ClickHouse%E5%A4%9A%E5%AE%9E%E4%BE%8B%E9%83%A8%E7%BD%B2/">ClickHouse多实例部署</a>
+      <a class="article-title" href="/2019/07/21/2019-07-21-MySQL-Error-log%E7%9B%91%E6%8E%A7/">MySQL Error log监控</a>
     </h1>
   
 
@@ -514,8 +562,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/05/02/2020-05-02-ClickHouse%E5%A4%9A%E5%AE%9E%E4%BE%8B%E9%83%A8%E7%BD%B2/" class="article-date">
-	  <time datetime="2020-05-02T15:46:00.000Z" itemprop="datePublished">2020-05-02</time>
+	<a href="/2019/07/21/2019-07-21-MySQL-Error-log%E7%9B%91%E6%8E%A7/" class="article-date">
+	  <time datetime="2019-07-21T01:59:00.000Z" itemprop="datePublished">2019-07-21</time>
 	</a>
 
       
@@ -525,8 +573,7 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="ClickHouse多实例部署"><a href="#ClickHouse多实例部署" class="headerlink" title="ClickHouse多实例部署"></a>ClickHouse多实例部署</h1><p>本人刚接触ClickHouse两周, 难免有错误之处, 感谢指正. 另外一些参数我也不甚理解, 大家也可以先不必纠结参数, 先部署起来再说, 我的感触是部署后就会对整体结构有了一遍认识. 如果多实例都可以部署完毕, 那么生产单实例部署当然就不成问题了.</p>
-<p>生产环境并不建议多实例部署, ClickHouse一个查询可以用到多个CPU, 本例只适用于测试环境</p>
+        <h1 id="MySQL-Error-log监控"><a href="#MySQL-Error-log监控" class="headerlink" title="MySQL Error log监控"></a>MySQL Error log监控</h1><p>告警日志监控其实比较简单了, 怎么做都行. 目前我们这里是使用下面的方法<br>FileBeat采集日志 -&gt; Kafka -&gt; 自己写脚本消费出来 -&gt; 企业微信机器人告警<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_1.png" alt="image"><br>效果如下<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_error_log_mon_2.png" alt="image"></p>
       
     </div>
     <footer class="article-footer">
@@ -544,7 +591,7 @@
 
 
   
-    <article id="post-2020-04-15-Zookeeper3.6.0集群部署文档"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2019-07-20-记一次PMM容器被误删除的恢复"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -552,7 +599,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/04/15/2020-04-15-Zookeeper3.6.0%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">Zookeeper3.6.0集群部署文档</a>
+      <a class="article-title" href="/2019/07/20/2019-07-20-%E8%AE%B0%E4%B8%80%E6%AC%A1PMM%E5%AE%B9%E5%99%A8%E8%A2%AB%E8%AF%AF%E5%88%A0%E9%99%A4%E7%9A%84%E6%81%A2%E5%A4%8D/">记一次PMM容器被误删除的恢复</a>
     </h1>
   
 
@@ -560,8 +607,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/04/15/2020-04-15-Zookeeper3.6.0%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" class="article-date">
-	  <time datetime="2020-04-15T15:32:00.000Z" itemprop="datePublished">2020-04-15</time>
+	<a href="/2019/07/20/2019-07-20-%E8%AE%B0%E4%B8%80%E6%AC%A1PMM%E5%AE%B9%E5%99%A8%E8%A2%AB%E8%AF%AF%E5%88%A0%E9%99%A4%E7%9A%84%E6%81%A2%E5%A4%8D/" class="article-date">
+	  <time datetime="2019-07-20T06:01:00.000Z" itemprop="datePublished">2019-07-20</time>
 	</a>
 
       
@@ -571,7 +618,218 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Zookeeper3-6-0集群部署文档"><a href="#Zookeeper3-6-0集群部署文档" class="headerlink" title="Zookeeper3.6.0集群部署文档"></a>Zookeeper3.6.0集群部署文档</h1><p>一点一点完善…</p>
+        <h1 id="记一次PMM容器被误删除的恢复"><a href="#记一次PMM容器被误删除的恢复" class="headerlink" title="记一次PMM容器被误删除的恢复"></a>记一次PMM容器被误删除的恢复</h1><p>昨天PMM Data Container和PMM Server Container 都不小心被误删了, 还好是使用的<code>docker rm container_id</code>删的, 没有加<code>-v</code>. 本人docker渣渣, 后来找运维同时帮忙终于恢复了<br>首先找到宿主机volumes路径<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>node1 volumes]# pwd</span><br><span class="line">/var/lib/docker/volumes</span><br><span class="line">[<span class="symbol">root@</span>node1 volumes]# ll</span><br><span class="line">total <span class="number">32</span></span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Aug <span class="number">3</span> <span class="number">2018</span> <span class="number">4430</span>beeb61fbc26802dc1b31d9fe3a02772482d8ae31bd50110957f16256f02e</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">29</span> <span class="number">47</span>ce712fd5e32abcf60e9650f349ac1304e0c20d062bd54724123f6cb700a79e</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Aug <span class="number">3</span> <span class="number">2018</span> <span class="number">6</span>ecf1c674f9f8e6f3dda7f7da352b70860125147b4489c6a8fe00fa59892436f</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Aug <span class="number">3</span> <span class="number">2018</span> <span class="number">83</span>db182943136c354bf95c0b4d07a8272017fd1698557d27b97dae49c82a8e76</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">29</span> c9e3a964fd76dcad88ac992933ca97ac920c41239f9807f1ca91f939bd71ea03</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">29</span> e92a37881c9b378bc4b00094b3f7e38ace3ae3655c33677a79da1be5652a318a</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Aug <span class="number">3</span> <span class="number">2018</span> fcddf90d2cb64035c8c69165f69c5d7a780ac580c991f02af801bc65fa2ca609</span><br><span class="line">-rw------- <span class="number">1</span> root root <span class="number">65536</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">29</span> metadata.db</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">26</span> sentry-data</span><br><span class="line">drwxr-xr-x <span class="number">3</span> root root <span class="number">26</span> Jul <span class="number">19</span> <span class="number">18</span>:<span class="number">26</span> sentry-postgres</span><br></pre></td></tr></table></figure></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2019-07-20-MySQL慢查询平台架构方案"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/07/20/2019-07-20-MySQL%E6%85%A2%E6%9F%A5%E8%AF%A2%E5%B9%B3%E5%8F%B0%E6%9E%B6%E6%9E%84%E6%96%B9%E6%A1%88/">MySQL慢查询平台架构方案</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/07/20/2019-07-20-MySQL%E6%85%A2%E6%9F%A5%E8%AF%A2%E5%B9%B3%E5%8F%B0%E6%9E%B6%E6%9E%84%E6%96%B9%E6%A1%88/" class="article-date">
+	  <time datetime="2019-07-20T05:23:00.000Z" itemprop="datePublished">2019-07-20</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL慢查询平台架构方案"><a href="#MySQL慢查询平台架构方案" class="headerlink" title="MySQL慢查询平台架构方案"></a>MySQL慢查询平台架构方案</h1><h2 id="方案1"><a href="#方案1" class="headerlink" title="方案1"></a>方案1</h2><p><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mysql_slow_1.png" alt="image"></p>
+<p>Filebeat读取slow log 到kafka , logstash从kafka消费后解析成出各个列, 然后写入MySQL, 但是这样的问题是查询语句是这样的<br><code>select * from A where id=1</code>. 而我们需要去除谓词的SQL, 也就是<code>select * from A where id=?</code> 这样的, 这样才好对SQL进行聚合分析<br>于是用Canal拉binlog, 再写到kafka, 然后python消费, 获取id, sql文本, 使用pt-fingerprint去除谓词后再更新回去.</p>
+<p>这个架构看起来蛮高大上 想了想还是复杂了写, 环节太些, 容易出问题. </p>
+<ul>
+<li>优点: 慢查询准实时获取(但可能是伪需求)</li>
+<li>缺点: 架构复制易出错, MySQL版本升级如果slow log格式发生变化, 维护logstash的grok会很麻烦</li>
+</ul>
+<p>有人说为什么不用Filebeat ingest直接到ES, 这要图标用Kibana就好了. 我的考虑是:<br>1.还要做谓词去除<br>2.这样做出的图没法和我们业务的服务数关联, 业务人员查询就必须知道数据库的IP端口<br>详细方案可以参考下面的文档</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/f3be9cce9b77">https://www.jianshu.com/p/f3be9cce9b77</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/3cf0e2a8d23d">https://www.jianshu.com/p/3cf0e2a8d23d</a></p>
+</blockquote>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2019-07-03-记录一些有用的pt-query-digest-filter"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/07/03/2019-07-03-%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%89%E7%94%A8%E7%9A%84pt-query-digest-filter/">记录一些有用的pt-query-digest filter</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/07/03/2019-07-03-%E8%AE%B0%E5%BD%95%E4%B8%80%E4%BA%9B%E6%9C%89%E7%94%A8%E7%9A%84pt-query-digest-filter/" class="article-date">
+	  <time datetime="2019-07-03T15:03:33.000Z" itemprop="datePublished">2019-07-03</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>自己写了一些和整理了些filter, 百度是搜不到的哈, 除了最后那俩anemometer的</p>
+<p>不输出Database 为 mysql|performance_schema|information_schema|sys|db_monitor 的查询<br><figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">((\$event-&gt;&#123;db&#125; || &#x27;&#x27;) =~ m/^(?!(<span class="name">mysql</span><span class="name">|performance_schema|</span><span class="name">information_schema</span><span class="name">|sys|</span><span class="name">db_monitor</span>))/ </span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2019-06-22-MySQL大表传输表空间的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/">MySQL大表传输表空间的坑</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/" class="article-date">
+	  <time datetime="2019-06-22T11:23:00.000Z" itemprop="datePublished">2019-06-22</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL大表传输表空间的坑"><a href="#MySQL大表传输表空间的坑" class="headerlink" title="MySQL大表传输表空间的坑"></a>MySQL大表传输表空间的坑</h1><p>  最近刚帮业务线拆分完数据库, 源环境遗留了一张700G的大表, 虽说现在不用了, 但是业务方还是不希望删掉, 于是打算把这张表迁移到归档库, 这样有需要是还可以查询.<br>  700G的表想了想, 如果是逻辑导出再导入的话, 感觉会很慢. 于是决定使用传输表空间方式恢复到归档库中</p>
+<blockquote>
+<p>源库和归档库均为MGR集群 Multi-Primary Mode.</p>
+</blockquote>
+<h2 id="恢复备份"><a href="#恢复备份" class="headerlink" title="恢复备份"></a>恢复备份</h2><p>过程简单写, 并非本文重点<br><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xbstream -vx <span class="params">--parallel=10</span> &lt; mysql_backup_20190618.xbstream -C <span class="string">/rundata/backup/</span> &gt; <span class="string">/tmp/xb.log</span> 2&gt;&amp;1 &amp;</span><br><span class="line"><span class="keyword">cd</span> <span class="string">/rundata/backup/datadir</span></span><br><span class="line">rm 除这张700g表A的所有其他表的qp文件</span><br><span class="line">xtrabackup <span class="params">--decompress</span> <span class="params">--parallel=10</span> <span class="params">--remove-original</span> <span class="params">--target-dir=/rundata/backup/</span></span><br><span class="line">innobackupex <span class="params">--apply-log</span> <span class="params">--export</span> <span class="string">/rundata/backup/</span></span><br></pre></td></tr></table></figure></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-限制备份速度防止网卡打满"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/06/12/%E9%99%90%E5%88%B6%E5%A4%87%E4%BB%BD%E9%80%9F%E5%BA%A6%E9%98%B2%E6%AD%A2%E7%BD%91%E5%8D%A1%E6%89%93%E6%BB%A1/">限制备份速度防止网卡打满</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/06/12/%E9%99%90%E5%88%B6%E5%A4%87%E4%BB%BD%E9%80%9F%E5%BA%A6%E9%98%B2%E6%AD%A2%E7%BD%91%E5%8D%A1%E6%89%93%E6%BB%A1/" class="article-date">
+	  <time datetime="2019-06-11T20:00:00.000Z" itemprop="datePublished">2019-06-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="限制备份速度防止网卡打满"><a href="#限制备份速度防止网卡打满" class="headerlink" title="限制备份速度防止网卡打满"></a>限制备份速度防止网卡打满</h1><p>最近在做拆库, 于是就做了很多表迁移工作, 需要使用<code>mysqldump</code>远程备份数据, 然后发现备份时很容易就把源库网卡打满了. 想过用<code>tc</code>命令限速, 发现有点复杂. 今天无意间看<code>xtrabackup</code>文档发现一个方法</p>
+<p>Throttling the throughput to 10MB/sec. This requires the ‘pv’ tools; you can find them at the official site or install it from the distribution package (“apt-get install pv”)<br><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ innobackupex --stream=tar ./ <span class="params">| pv -q -L10m \</span></span><br><span class="line"><span class="params">|</span> ssh user@desthost <span class="string">&quot;cat - &gt; /data/backups/backup.tar&quot;</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>Make a Streaming Backup<br><a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtrabackup/2.4/howtos/recipes_ibkx_stream.html">https://www.percona.com/doc/percona-xtrabackup/2.4/howtos/recipes_ibkx_stream.html</a></p>
+</blockquote>
+<p>查看pv的介绍, 主要是辅助查看一些进度 progressbar ETA什么的:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://linux.cn/article-6734-1.html">如何使用 pv 命令监控 linux 命令的执行进度</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.howtoing.com/monitor-copy-backup-tar-progress-in-linux-using-pv-command">如何使用“pv”命令监视（复制/备份/压缩）数据的进度 - Howtoing运维教程</a></li>
+<li><a target="_blank" rel="noopener" href="https://wangchujiang.com/linux-command/c/pv.html">pv命令介绍</a></li>
+</ul>
+<p>在google搜索<code>mysqldump pv</code> 基本也是些查看<code>进度</code>的文章</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://landcareweb.com/questions/6489/you-mei-you-ban-fa-rang-mysqldumpjin-du-tiao-xian-shi-yong-hu-de-bei-fen-zhuang-tai">http://landcareweb.com/questions/6489/you-mei-you-ban-fa-rang-mysqldumpjin-du-tiao-xian-shi-yong-hu-de-bei-fen-zhuang-tai</a><br><a target="_blank" rel="noopener" href="https://www.2cto.com/database/201310/248423.html">https://www.2cto.com/database/201310/248423.html</a><br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/4852933/does-mysqldump-support-a-progress-bar">https://stackoverflow.com/questions/4852933/does-mysqldump-support-a-progress-bar</a></p>
+</blockquote>
+<h2 id="我们这里主要目的是限速-照猫画虎-可以这样实现"><a href="#我们这里主要目的是限速-照猫画虎-可以这样实现" class="headerlink" title="我们这里主要目的是限速, 照猫画虎, 可以这样实现"></a>我们这里主要目的是限速, 照猫画虎, 可以这样实现</h2><p>导出限速<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump <span class="string">| pv -q -L10m &gt; xx.sql</span></span><br></pre></td></tr></table></figure><br>限速导入<br><figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat xx.sql | <span class="type">pv</span> -q -L10m | <span class="type">mysql</span></span><br></pre></td></tr></table></figure><br>导入查看进度<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pv xx.sql <span class="string">| mysql</span></span><br></pre></td></tr></table></figure></p>
+
       
     </div>
     <footer class="article-footer">
@@ -594,7 +852,7 @@
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/4/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/6/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/4/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/6/">下一页 »</a>
   </nav>
 
 </section>

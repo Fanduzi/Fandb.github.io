@@ -65,7 +65,7 @@
     <link rel="stylesheet" href="/css/vdonate.css" >
   
 
-<meta name="generator" content="Hexo 5.1.1"></head>
+<meta name="generator" content="Hexo 6.2.0"></head>
 
 
 
@@ -305,7 +305,7 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-2020-01-12-Canal-dynamicTopic问题"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-PXC7种故障场景及恢复方法"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -313,7 +313,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/">Canal dynamicTopic问题</a>
+      <a class="article-title" href="/2018/05/29/PXC7%E7%A7%8D%E6%95%85%E9%9A%9C%E5%9C%BA%E6%99%AF%E5%8F%8A%E6%81%A2%E5%A4%8D%E6%96%B9%E6%B3%95/">[译]PXC7中故障场景及恢复方法</a>
     </h1>
   
 
@@ -321,8 +321,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/" class="article-date">
-	  <time datetime="2020-01-12T04:23:00.000Z" itemprop="datePublished">2020-01-12</time>
+	<a href="/2018/05/29/PXC7%E7%A7%8D%E6%95%85%E9%9A%9C%E5%9C%BA%E6%99%AF%E5%8F%8A%E6%81%A2%E5%A4%8D%E6%96%B9%E6%B3%95/" class="article-date">
+	  <time datetime="2018-05-29T04:23:00.000Z" itemprop="datePublished">2018-05-29</time>
 	</a>
 
       
@@ -332,14 +332,167 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>未来同事跑了几个月的canal突然报下面的错, 使用了dynamicTopic. 其实我没有用过dynamicTopic, 只能搜一搜issue</p>
+        <p>与标准的MySQL复制不同，PXC群集就像一个逻辑实体，它负责关注每个节点的状态和一致性以及群集状态。这样可以保持更好的数据完整性，然后您可以从传统的异步复制中获益，同时允许在同一时间在多个节点上进行安全写入. </p>
+<p>假设我们有一个PXC集群包含3个节点</p>
+<h2 id="情景1"><a href="#情景1" class="headerlink" title="情景1"></a>情景1</h2><p><img src="https://www.percona.com/blog/wp-content/uploads/2014/08/g1.png" alt="情景1"></p>
+<p>节点A正常停止, 例如需要停库做一些维护, 配置变更等操作.</p>
+<p>在这种情况下，其他节点从该节点接收”good bye”消息, 因此集群大小将会缩小(在这个例子中缩小为2), 并且某些属性如quorum caculation和auto increment(我理解为auto_increment_increment和auto_increment_offset会由于集群扩缩动态调整).  一旦我们重新开始的一个节点，它会根据它的my.cnf中wsrep_cluster_address设置加入群集. 这个过程与普通的复制有很大的不同 - 在A节点再次与集群完全同步之前，A节点不会接受供任何请求，因此仅仅是与集群建立连接是不够的，而是必须要先完成state transfer. 如果B或C节点的writeset cache (<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/wsrep-provider-index.html#gcache.size">gcache.size</a>), 仍然有恢复A节点所需的所有事务, 那么将使用<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/statetransfer.html#incremental-state-transfer-ist">IST</a> 否则使用 <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.6/manual/state_snapshot_transfer.html">SST</a> . 因此，如<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2014/01/08/finding-good-ist-donor-percona-xtradb-cluster-5-6/">本文</a>所示，确定最佳donor很重要. 如果由于donor的gcache中缺少交易而导致IST不可用，则由donor作出回退决定，而SST自动启动。</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-如何做好MySQL的备份"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/04/28/%E5%A6%82%E4%BD%95%E5%81%9A%E5%A5%BDMySQL%E7%9A%84%E5%A4%87%E4%BB%BD/">如何做好MySQL的备份</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/04/28/%E5%A6%82%E4%BD%95%E5%81%9A%E5%A5%BDMySQL%E7%9A%84%E5%A4%87%E4%BB%BD/" class="article-date">
+	  <time datetime="2018-04-27T16:23:00.000Z" itemprop="datePublished">2018-04-28</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="如何做好MySQL的备份"><a href="#如何做好MySQL的备份" class="headerlink" title="如何做好MySQL的备份"></a>如何做好MySQL的备份</h1><h2 id="物理备份还是逻辑备份"><a href="#物理备份还是逻辑备份" class="headerlink" title="物理备份还是逻辑备份?"></a>物理备份还是逻辑备份?</h2><p>其实物理备份和逻辑备份并没有好坏之分, 关键是要适合你的场景. </p>
+<h3 id="两种备份方式的备份工具有"><a href="#两种备份方式的备份工具有" class="headerlink" title="两种备份方式的备份工具有:"></a>两种备份方式的备份工具有:</h3><ul>
+<li>逻辑备份工具: [mysqldump, mysqlpump, mydumper, select into out file]</li>
+<li>物理备份工具: [xtrabackup, TokuBackup, Tokudb-xtrabackup]</li>
+</ul>
+<h3 id="两种备份方式的对比如下"><a href="#两种备份方式的对比如下" class="headerlink" title="两种备份方式的对比如下"></a>两种备份方式的对比如下</h3><ul>
+<li>备份速度<br>  物理备份比逻辑备份快吗? 不要想当然, 至少我的测试结果并不是这样</li>
+<li>恢复速度<br>  物理备份恢复实际就是mv操作(使用xtrabackup,在备份机做prepare), 而逻辑备份则是漫长的导入.<br>  同机器 1.5T库, 逻辑备份大小151G, 做恢复需要27小时左右, 而物理备份恢复则完全取决于磁盘iops, 不用测也知道要比逻辑备份快很多</li>
+<li>备份集大小<br>  实际测试1T的库(大部分为InnoDB表), 逻辑备份集大小为<code>46G</code>, 而物理备份为<code>255G</code></li>
+</ul>
+<p>根据以上三点, 就可以选择备份方式了吗? 我认为不能. 还有一点是数据库服务器和备份服务器之间的网络情况, 和你期望的恢复时间是多久</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-Load-data奇怪的问题"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/03/03/Load-data%E5%A5%87%E6%80%AA%E7%9A%84%E9%97%AE%E9%A2%98/">Load data奇怪的问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/03/03/Load-data%E5%A5%87%E6%80%AA%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
+	  <time datetime="2018-03-03T07:26:00.000Z" itemprop="datePublished">2018-03-03</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Load-data奇怪的问题"><a href="#Load-data奇怪的问题" class="headerlink" title="Load data奇怪的问题"></a>Load data奇怪的问题</h1><p>公司一套所谓的BI库(5.5 innodb引擎),由于太大了,考虑转用TokuDB引擎,最近在测试,直接在一个新环境安装Percona5.7.21,然后恢复备份,转换为TokuDB表, 再做从库和原5.5库同步(5.5 是statement格式)<br>准备同步上,然后这套环境部署一下应用,再全面的测一下.<br>结果发现同步报错了<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">root@localhost</span> <span class="attr">10:42:</span>  [<span class="string">test</span>]<span class="string">&gt;</span> <span class="string">show</span> <span class="string">slave</span> <span class="string">status\G</span></span><br><span class="line"><span class="string">***************************</span> <span class="number">1</span><span class="string">.</span> <span class="string">row</span> <span class="string">***************************</span></span><br><span class="line">               <span class="attr">Slave_IO_State:</span> <span class="string">Waiting</span> <span class="string">for</span> <span class="string">master</span> <span class="string">to</span> <span class="string">send</span> <span class="string">event</span></span><br><span class="line">                  <span class="attr">Master_Host:</span> <span class="string">xx.xx.xx.xx</span></span><br><span class="line">                  <span class="attr">Master_User:</span> <span class="string">slave</span></span><br><span class="line">                  <span class="attr">Master_Port:</span> <span class="number">3306</span></span><br><span class="line">                <span class="attr">Connect_Retry:</span> <span class="number">60</span></span><br><span class="line">              <span class="attr">Master_Log_File:</span> <span class="string">mysql-bin.010346</span></span><br><span class="line">          <span class="attr">Read_Master_Log_Pos:</span> <span class="number">715054772</span></span><br><span class="line">               <span class="attr">Relay_Log_File:</span> <span class="string">mysql-relay.000010</span></span><br><span class="line">                <span class="attr">Relay_Log_Pos:</span> <span class="number">376792000</span></span><br><span class="line">        <span class="attr">Relay_Master_Log_File:</span> <span class="string">mysql-bin.010288</span></span><br><span class="line">             <span class="attr">Slave_IO_Running:</span> <span class="literal">Yes</span></span><br><span class="line">            <span class="attr">Slave_SQL_Running:</span> <span class="literal">No</span></span><br><span class="line">              <span class="attr">Replicate_Do_DB:</span> </span><br><span class="line">          <span class="attr">Replicate_Ignore_DB:</span> </span><br><span class="line">           <span class="attr">Replicate_Do_Table:</span> </span><br><span class="line">       <span class="attr">Replicate_Ignore_Table:</span> </span><br><span class="line">      <span class="attr">Replicate_Wild_Do_Table:</span> </span><br><span class="line">  <span class="attr">Replicate_Wild_Ignore_Table:</span> <span class="string">mysql.%,information_schema.%,performance_schema.%,union_log%.%,test.%</span></span><br><span class="line">                   <span class="attr">Last_Errno:</span> <span class="number">1300</span></span><br><span class="line">                   <span class="attr">Last_Error:</span> <span class="string">Coordinator</span> <span class="string">stopped</span> <span class="string">because</span> <span class="string">there</span> <span class="string">were</span> <span class="string">error(s)</span> <span class="string">in</span> <span class="string">the</span> <span class="string">worker(s).</span> <span class="attr">The most recent failure being:</span> <span class="string">Worker</span> <span class="number">1</span> <span class="string">failed</span> <span class="string">executing</span> <span class="string">transaction</span> <span class="string">&#x27;ANONYMOUS&#x27;</span> <span class="string">at</span> <span class="string">master</span> <span class="string">log</span> <span class="string">mysql-bin.010288,</span> <span class="string">end_log_pos</span> <span class="number">378517485</span><span class="string">.</span> <span class="string">See</span> <span class="string">error</span> <span class="string">log</span> <span class="string">and/or</span> <span class="string">performance_schema.replication_applier_status_by_worker</span> <span class="string">table</span> <span class="string">for</span> <span class="string">more</span> <span class="string">details</span> <span class="string">about</span> <span class="string">this</span> <span class="string">failure</span> <span class="string">or</span> <span class="string">others,</span> <span class="string">if</span> <span class="string">any.</span></span><br><span class="line">                 <span class="attr">Skip_Counter:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">Exec_Master_Log_Pos:</span> <span class="number">376791811</span></span><br><span class="line">              <span class="attr">Relay_Log_Space:</span> <span class="number">74984691638</span></span><br><span class="line">              <span class="attr">Until_Condition:</span> <span class="string">None</span></span><br><span class="line">               <span class="attr">Until_Log_File:</span> </span><br><span class="line">                <span class="attr">Until_Log_Pos:</span> <span class="number">0</span></span><br><span class="line">           <span class="attr">Master_SSL_Allowed:</span> <span class="literal">No</span></span><br><span class="line">           <span class="attr">Master_SSL_CA_File:</span> </span><br><span class="line">           <span class="attr">Master_SSL_CA_Path:</span> </span><br><span class="line">              <span class="attr">Master_SSL_Cert:</span> </span><br><span class="line">            <span class="attr">Master_SSL_Cipher:</span> </span><br><span class="line">               <span class="attr">Master_SSL_Key:</span> </span><br><span class="line">        <span class="attr">Seconds_Behind_Master:</span> <span class="literal">NULL</span></span><br><span class="line"><span class="attr">Master_SSL_Verify_Server_Cert:</span> <span class="literal">No</span></span><br><span class="line">                <span class="attr">Last_IO_Errno:</span> <span class="number">0</span></span><br><span class="line">                <span class="attr">Last_IO_Error:</span> </span><br><span class="line">               <span class="attr">Last_SQL_Errno:</span> <span class="number">1300</span></span><br><span class="line">               <span class="attr">Last_SQL_Error:</span> <span class="string">Coordinator</span> <span class="string">stopped</span> <span class="string">because</span> <span class="string">there</span> <span class="string">were</span> <span class="string">error(s)</span> <span class="string">in</span> <span class="string">the</span> <span class="string">worker(s).</span> <span class="attr">The most recent failure being:</span> <span class="string">Worker</span> <span class="number">1</span> <span class="string">failed</span> <span class="string">executing</span> <span class="string">transaction</span> <span class="string">&#x27;ANONYMOUS&#x27;</span> <span class="string">at</span> <span class="string">master</span> <span class="string">log</span> <span class="string">mysql-bin.010288,</span> <span class="string">end_log_pos</span> <span class="number">378517485</span><span class="string">.</span> <span class="string">See</span> <span class="string">error</span> <span class="string">log</span> <span class="string">and/or</span> <span class="string">performance_schema.replication_applier_status_by_worker</span> <span class="string">table</span> <span class="string">for</span> <span class="string">more</span> <span class="string">details</span> <span class="string">about</span> <span class="string">this</span> <span class="string">failure</span> <span class="string">or</span> <span class="string">others,</span> <span class="string">if</span> <span class="string">any.</span></span><br><span class="line">  <span class="attr">Replicate_Ignore_Server_Ids:</span> </span><br><span class="line">             <span class="attr">Master_Server_Id:</span> <span class="number">12</span></span><br><span class="line">                  <span class="attr">Master_UUID:</span> </span><br><span class="line">             <span class="attr">Master_Info_File:</span> <span class="string">mysql.slave_master_info</span></span><br><span class="line">                    <span class="attr">SQL_Delay:</span> <span class="number">0</span></span><br><span class="line">          <span class="attr">SQL_Remaining_Delay:</span> <span class="literal">NULL</span></span><br><span class="line">      <span class="attr">Slave_SQL_Running_State:</span> </span><br><span class="line">           <span class="attr">Master_Retry_Count:</span> <span class="number">86400</span></span><br><span class="line">                  <span class="attr">Master_Bind:</span> </span><br><span class="line">      <span class="attr">Last_IO_Error_Timestamp:</span> </span><br><span class="line">     <span class="attr">Last_SQL_Error_Timestamp:</span> <span class="number">180402</span> <span class="number">00</span><span class="string">:07:09</span></span><br><span class="line">               <span class="attr">Master_SSL_Crl:</span> </span><br><span class="line">           <span class="attr">Master_SSL_Crlpath:</span> </span><br><span class="line">           <span class="attr">Retrieved_Gtid_Set:</span> </span><br><span class="line">            <span class="attr">Executed_Gtid_Set:</span> <span class="string">a3f4b929-31a0-11e8-9714-f8bc123346cc:1-864</span></span><br><span class="line">                <span class="attr">Auto_Position:</span> <span class="number">0</span></span><br><span class="line">         <span class="attr">Replicate_Rewrite_DB:</span> </span><br><span class="line">                 <span class="attr">Channel_Name:</span> </span><br><span class="line">           <span class="attr">Master_TLS_Version:</span> </span><br><span class="line"><span class="number">1</span> <span class="string">row</span> <span class="string">in</span> <span class="string">set</span> <span class="string">(0.00</span> <span class="string">sec)</span></span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-5.5.x升级5.7.21步骤"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/02/11/5.5.x%E5%8D%87%E7%BA%A75.7.21%E6%AD%A5%E9%AA%A4/">5.5.x升级5.7.21步骤</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/02/11/5.5.x%E5%8D%87%E7%BA%A75.7.21%E6%AD%A5%E9%AA%A4/" class="article-date">
+	  <time datetime="2018-02-11T03:22:00.000Z" itemprop="datePublished">2018-02-11</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="5-5-x升级5-7-21步骤"><a href="#5-5-x升级5-7-21步骤" class="headerlink" title="5.5.x升级5.7.21步骤"></a>5.5.x升级5.7.21步骤</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><h3 id="上传软件包"><a href="#上传软件包" class="headerlink" title="上传软件包"></a>上传软件包</h3><p>根据官方文档说明</p>
 <blockquote>
-<p>关于dynamicTopic和partitionHash的说明</p>
-<h3 id="canal-mq-dynamicTopic-表达式说明"><a href="#canal-mq-dynamicTopic-表达式说明" class="headerlink" title="canal.mq.dynamicTopic 表达式说明"></a>canal.mq.dynamicTopic 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema 或 schema.table，多个配置之间使用逗号或分号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以test_test为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..* 匹配所有表，则每个表都会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到库名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：<span class="built_in">test</span>,test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到<span class="built_in">test</span>的topic上，test1\\.test1的表发送到对应的test1_test1 topic上，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">为满足更大的灵活性，允许对匹配条件的规则指定发送的topic名字，配置格式：topicName:schema 或 topicName:schema.table</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1: <span class="built_in">test</span>:<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以<span class="built_in">test</span>为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2: <span class="built_in">test</span>:.*\\..* 匹配所有表，因为有指定topic，则每个表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3: <span class="built_in">test</span>:<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：testA:<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到testA的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：test0:<span class="built_in">test</span>,test1:test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到test0的topic下，test1\\.test1的表发送到对应的test1的topic下，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">大家可以结合自己的业务需求，设置匹配规则，建议MQ开启自动创建topic的能力</span></span><br></pre></td></tr></table></figure>
-<h3 id="canal-mq-partitionHash-表达式说明"><a href="#canal-mq-partitionHash-表达式说明" class="headerlink" title="canal.mq.partitionHash 表达式说明"></a>canal.mq.partitionHash 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema.table:pk1^pk2，多个配置之间使用逗号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span>:pk1^pk2 指定匹配的单表，对应的<span class="built_in">hash</span>字段为pk1 + pk2</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..*:id 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为id</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：.*\\..*:<span class="variable">$pk</span>$ 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为表主键(自动查找)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4: 匹配规则啥都不写，则默认发到0这个partition上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：.*\\..* ，不指定pk信息的正则匹配，将所有正则匹配的表,对应的<span class="built_in">hash</span>字段为表名</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">按表<span class="built_in">hash</span>: 一张表的所有数据可以发到同一个分区，不同表之间会做散列 (会有热点表分区过大问题)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子6: <span class="built_in">test</span>\\.<span class="built_in">test</span>:id,.\\..* , 针对<span class="built_in">test</span>的表按照id散列,其余的表按照table散列</span></span><br></pre></td></tr></table></figure>
-<p>注意：大家可以结合自己的业务需求，设置匹配规则，多条匹配规则之间是按照顺序进行匹配(命中一条规则就返回)</p>
-<p>其他详细参数可参考<a target="_blank" rel="noopener" href="https://github.com/alibaba/canal/wiki/AdminGuide">Canal AdminGuide</a></p>
+<p>Upgrading to the latest release is recommended before upgrading to the next version</p>
 </blockquote>
+<p>当前版本5.5.46,需要上传三个包</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">mysql</span>-<span class="number">5</span>.<span class="number">5</span>.<span class="number">59</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz</span><br><span class="line"><span class="attribute">mysql</span>-<span class="number">5</span>.<span class="number">6</span>.<span class="number">39</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz</span><br><span class="line"><span class="attribute">mysql</span>-<span class="number">5</span>.<span class="number">7</span>.<span class="number">21</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz</span><br></pre></td></tr></table></figure>
+<p>创建目录</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">mkdir</span> /usr/local/&#123;mysql-<span class="number">5</span>.<span class="number">5</span>.<span class="number">59</span>,mysql-<span class="number">5</span>.<span class="number">6</span>.<span class="number">39</span>,mysql-<span class="number">5</span>.<span class="number">7</span>.<span class="number">21</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>解压</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">tar</span> -zxvf mysql-<span class="number">5</span>.<span class="number">5</span>.<span class="number">59</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz -C /usr/local/mysql-<span class="number">5</span>.<span class="number">5</span>.<span class="number">59</span>/</span><br><span class="line"><span class="attribute">tar</span> -zxvf mysql-<span class="number">5</span>.<span class="number">6</span>.<span class="number">39</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz -C /usr/local/mysql-<span class="number">5</span>.<span class="number">6</span>.<span class="number">39</span>/</span><br><span class="line"><span class="attribute">tar</span> -zxvf mysql-<span class="number">5</span>.<span class="number">7</span>.<span class="number">21</span>-linux-glibc<span class="number">2</span>.<span class="number">12</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz -C /usr/local/mysql-<span class="number">5</span>.<span class="number">7</span>.<span class="number">21</span>/</span><br></pre></td></tr></table></figure>
+<p>设置环境变量</p>
+<figure class="highlight taggerscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">zst_ps1()</span><br><span class="line">&#123;</span><br><span class="line">  Date=$(date +<span class="variable">%F)</span></span><br><span class="line"><span class="variable">  Time=$(date +%</span>H:<span class="variable">%M:%</span>S)</span><br><span class="line"></span><br><span class="line">  PS1=&quot;<span class="symbol">\\</span>n<span class="symbol">\[</span><span class="symbol">\e</span>[1;37m[<span class="symbol">\e</span>[m<span class="symbol">\]</span><span class="symbol">\[</span><span class="symbol">\e</span>[1;33m<span class="symbol">\u</span><span class="symbol">\e</span>[m<span class="symbol">\]</span><span class="symbol">\[</span><span class="symbol">\e</span>[1;33m@<span class="symbol">\h</span><span class="symbol">\e</span>[m<span class="symbol">\]</span><span class="symbol">\[</span><span class="symbol">\e</span>[1;35m <span class="keyword">$Time \e[m\]\e[1;36m\w\e[m\e[1;37m]\e[m\n\\$&quot;</span></span><br><span class="line"><span class="keyword">&#125;</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">PROMPT_COMMAND=zst_ps1</span></span><br><span class="line"><span class="keyword"></span></span><br><span class="line"><span class="keyword">export PATH=/usr/local/mysql/bin:$PATH</span></span><br><span class="line"><span class="keyword">export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/mysql/lib</span></span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
@@ -357,7 +510,7 @@
 
 
   
-    <article id="post-2020-01-09-译文-Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-MySQL-5.5.X升级至5.7.21遇到的坑(一)"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -365,7 +518,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/01/09/2020-01-09-%E8%AF%91%E6%96%87-Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative/">译文 Streaming MySQL Backups with Percona XtraBackup – Another Alternative</a>
+      <a class="article-title" href="/2018/02/10/MySQL-5.5.X%E5%8D%87%E7%BA%A7%E8%87%B35.7.21%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91(%E4%B8%80)/">MySQL 5.5.X升级至5.7.21遇到的坑(一)</a>
     </h1>
   
 
@@ -373,8 +526,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/01/09/2020-01-09-%E8%AF%91%E6%96%87-Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative/" class="article-date">
-	  <time datetime="2020-01-09T02:01:00.000Z" itemprop="datePublished">2020-01-09</time>
+	<a href="/2018/02/10/MySQL-5.5.X%E5%8D%87%E7%BA%A7%E8%87%B35.7.21%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91(%E4%B8%80)/" class="article-date">
+	  <time datetime="2018-02-10T12:23:00.000Z" itemprop="datePublished">2018-02-10</time>
 	</a>
 
       
@@ -384,14 +537,9 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative"><a href="#Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative" class="headerlink" title="Streaming MySQL Backups with Percona XtraBackup – Another Alternative"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2021/01/08/streaming-mysql-backups-with-percona-xtrabackup-another-alternative/">Streaming MySQL Backups with Percona XtraBackup – Another Alternative</a></h1><p>使用Percona XtraBackup流式传输MySQL备份-另一种选择</p>
-<p>今天我将向你介绍另一种使用<a target="_blank" rel="noopener" href="https://www.percona.com/software/mysql-database/percona-xtrabackup">Percona XtraBackup</a>在服务器间创建并传递备份的方式. 这个方法和网上的其他方法有什么不同吗? 其实并没有很大不同, 但是在性能和可用性方面很有趣.</p>
-<p>我们将xbstream实用程序与pigz和socat的功能结合在一起, 以在拥有多个处理器的情况下利用多处理功能, 同时在此组件成为瓶颈的情况下, 减少对网络带宽的使用. 因此, 让我们解释每个组件: </p>
-<p><strong>socat: </strong>代表SOcket CAT. 它是一个用于在两个地址之间进行数据传输的实用程序. </p>
-<p>使socat如此通用的原因是地址可以代表网络套接字, 任何文件描述符, Unix域数据报或流套接字, TCP和UDP（在IPv4和IPv6上）, 在IPv4 / IPv6上的SOCKS 4 / 4a, SCTP , PTY, 数据报和流套接字, 命名管道和未命名管道, 原始IP套接字, OpenSSL, 或者在Linux上甚至任何任意网络设备上</p>
-<p><strong>Pigz: </strong>它代表gzip的并行实现, 它是gzip的全功能替代品, 在压缩数据时利用了多个处理器和多个内核. </p>
-<p><strong>xbstream : （</strong>具有并行性）并行处理多个文件. </p>
-<p>所需软件包: pigz, socat, 当然还有 Percona XtraBackup</p>
+        <h1 id="MySQL-5-5-X升级至5-7-21遇到的坑-一"><a href="#MySQL-5-5-X升级至5-7-21遇到的坑-一" class="headerlink" title="MySQL 5.5.X升级至5.7.21遇到的坑(一)"></a>MySQL 5.5.X升级至5.7.21遇到的坑(一)</h1><h2 id="发现问题"><a href="#发现问题" class="headerlink" title="发现问题"></a>发现问题</h2><p>将一个测试环境的5.5.x升级到5.7.21后,打算将5.7.21作为从库,开始同步主库数据(binlog_format=statement),结果刚一start slave就报错<br><figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Coordinator stopped because there were error(s) in the worker(s). The most recent failure being: Worker 1 failed executing transaction &#x27;ANONYMOUS&#x27; at master log mysql-bin.000004, end_log_pos 812. See error log<span class="built_in"> and/or </span>performance_schema.replication_applier_status_by_worker table for more details about this failure<span class="built_in"> or </span>others,<span class="built_in"> if </span>any.</span><br></pre></td></tr></table></figure><br>查看error log<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">2018-02-10T19:52:52.347979+08:00 3 [Warning] Slave I/O for channel &#x27;&#x27;: Notifying master by <span class="keyword">SET</span> @master_binlog_checksum= @@global.binlog_checksum <span class="keyword">failed</span> <span class="keyword">with</span> er</span><br><span class="line">ror: <span class="literal">Unknown</span> <span class="keyword">system</span> <span class="keyword">variable</span> <span class="string">&#x27;binlog_checksum&#x27;</span>, Error_code: <span class="number">1193</span></span><br><span class="line"><span class="number">2018</span><span class="number">-02</span><span class="number">-10</span>T19:<span class="number">52</span>:<span class="number">52.348080</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3</span> [<span class="keyword">Warning</span>] <span class="keyword">Slave</span> I/O <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span>: <span class="literal">Unknown</span> <span class="keyword">system</span> <span class="keyword">variable</span> <span class="string">&#x27;SERVER_UUID&#x27;</span> <span class="keyword">on</span> master. A probable cause <span class="keyword">is</span> that the <span class="keyword">variable</span> i</span><br><span class="line">s <span class="keyword">not</span> supported <span class="keyword">on</span> the <span class="keyword">master</span> (<span class="keyword">version</span>: <span class="number">5.5</span><span class="number">.59</span>-<span class="keyword">log</span>), even though it <span class="keyword">is</span> <span class="keyword">on</span> the <span class="keyword">slave</span> (<span class="keyword">version</span>: <span class="number">5.7</span><span class="number">.21</span>-<span class="keyword">log</span>), Error_code: <span class="number">1193</span></span><br><span class="line"><span class="number">2018</span><span class="number">-02</span><span class="number">-10</span>T19:<span class="number">52</span>:<span class="number">52.445947</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">5</span> [<span class="keyword">ERROR</span>] <span class="keyword">Slave</span> <span class="keyword">SQL</span> <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span>: Worker <span class="number">1</span> <span class="keyword">failed</span> executing <span class="keyword">transaction</span> <span class="string">&#x27;ANONYMOUS&#x27;</span> <span class="keyword">at</span> <span class="keyword">master</span> <span class="keyword">log</span> , end_log_pos <span class="number">2651</span>; Error </span><br><span class="line">&#x27;You have an error in your SQL syntax; <span class="keyword">check</span> the <span class="keyword">manual</span> that corresponds <span class="keyword">to</span> your MySQL <span class="keyword">server</span> <span class="keyword">version</span> <span class="keyword">for</span> the <span class="keyword">right</span> syntax <span class="keyword">to</span> <span class="keyword">use</span> near <span class="string">&#x27;GET, POST, FILE, CLASS,</span></span><br><span class="line"><span class="string"> METHOD ) VALUES ( &#x27;</span>maokaixin<span class="string">&#x27;, 1518159802, 3395959414, &#x27;&#x27; at line 1&#x27;</span> <span class="keyword">on</span> query. <span class="keyword">Default</span> <span class="keyword">database</span>: <span class="string">&#x27;fandb&#x27;</span>. <span class="keyword">Query</span>: <span class="string">&#x27;INSERT INTO postlog ( USERNAME, TIME, IP, GE</span></span><br><span class="line"><span class="string">T, POST, FILE, CLASS, METHOD ) VALUES ( &#x27;</span>maokaixin<span class="string">&#x27;, 1518159802, 3395959414, &#x27;</span>gameid:<span class="number">0</span>;&#x27;, &#x27;&#x27;, &#x27;&#x27;, &#x27;api&#x27;, &#x27;ajaxGetServers&#x27; )&#x27;, Error_code: 1064</span><br><span class="line">2018-02-10T19:52:52.446217+08:00 4 [Warning] Slave SQL for channel &#x27;&#x27;: ... The slave coordinator and worker threads are stopped, possibly leaving data in incon</span><br><span class="line">sistent state. A restart should <span class="keyword">restore</span> consistency automatically, although <span class="keyword">using</span> non-<span class="keyword">transactional</span> <span class="keyword">storage</span> <span class="keyword">for</span> <span class="keyword">data</span> <span class="keyword">or</span> info <span class="keyword">tables</span> <span class="keyword">or</span> <span class="keyword">DDL</span> queries could <span class="keyword">lead</span> t</span><br><span class="line">o problems. <span class="keyword">In</span> such cases you have <span class="keyword">to</span> examine your <span class="keyword">data</span> (see documentation <span class="keyword">for</span> details). Error_code: <span class="number">1756</span></span><br><span class="line"><span class="number">2018</span><span class="number">-02</span><span class="number">-10</span>T19:<span class="number">52</span>:<span class="number">52.446235</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">4</span> [Note] <span class="keyword">Slave</span> <span class="keyword">SQL</span> <span class="keyword">thread</span> <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span> exiting, <span class="keyword">replication</span> stopped <span class="keyword">in</span> <span class="keyword">log</span> <span class="string">&#x27;mysql-bin.000003&#x27;</span> <span class="keyword">at</span> <span class="keyword">position</span> <span class="number">2313</span></span><br><span class="line"><span class="number">2018</span><span class="number">-02</span><span class="number">-10</span>T19:<span class="number">53</span>:<span class="number">15.708058</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">7</span> [Note] <span class="keyword">Slave</span> <span class="keyword">SQL</span> <span class="keyword">thread</span> <span class="keyword">for</span> channel <span class="string">&#x27;&#x27;</span> <span class="keyword">initialized</span>, <span class="keyword">starting</span> <span class="keyword">replication</span> <span class="keyword">in</span> <span class="keyword">log</span> <span class="string">&#x27;mysql-bin.000003&#x27;</span> <span class="keyword">at</span> <span class="keyword">position</span> <span class="number">2313</span>, relay l</span><br><span class="line">og <span class="string">&#x27;./mysql-relay.000009&#x27;</span> <span class="keyword">position</span>: <span class="number">304</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="找出原因"><a href="#找出原因" class="headerlink" title="找出原因"></a>找出原因</h2><p>头两个<code>Warning</code>是由于主库没有binlog_checksum参数，也没有SERVER_UUID参数(看来从库开始同步时要先去主库查询这两个参数)<br>接着的<code>ERROR</code>报的错误竟然是<code>error in your SQL syntax</code>语法错误.</p>
+<p>解析binlog后查到SQL语句为<br><figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">INSERT <span class="keyword">INTO</span> postlog ( USERNAME, TIME, IP, GET, POST, FILE, <span class="keyword">CLASS</span>, <span class="function"><span class="keyword">METHOD</span> ) <span class="title">VALUES</span> <span class="params">( <span class="string">&#x27;maokaixin&#x27;</span>, 1518159802, 3395959414, <span class="string">&#x27;gameid:0;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;api&#x27;</span>, <span class="string">&#x27;ajaxGetServers&#x27;</span> )</span>;</span></span><br></pre></td></tr></table></figure><br>我依次在5.5和5.7的环境执行这个SQL发现该SQL在5.5可以正常执行，而在5.7执行就会报错语法错误<br>于是一点一点分析这个SQL哪有问题，说实话肉眼真没看出来<br>只好在5.7一点一点执行<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> postlog ( USERNAME, <span class="built_in">TIME</span>, IP) <span class="keyword">VALUES</span> ( <span class="string">&#x27;maokaixin&#x27;</span>, <span class="number">1518159802</span>, <span class="number">3395959414</span>);</span><br></pre></td></tr></table></figure><br>没问题可以执行<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> postlog ( USERNAME, <span class="built_in">TIME</span>, IP, <span class="keyword">GET</span>) <span class="keyword">VALUES</span> ( <span class="string">&#x27;maokaixin&#x27;</span>, <span class="number">1518159802</span>, <span class="number">3395959414</span>, <span class="string">&#x27;gameid:0;&#x27;</span>);</span><br></pre></td></tr></table></figure><br>报错了！,那显然就是<code>GET</code>有问题。 怀疑是保留字？</p>
       
     </div>
     <footer class="article-footer">
@@ -409,24 +557,14 @@
 
 
   
-    <article id="post-2019-12-12-TiDB-Syncer不同表名库名同步且支持pt-osc改表"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-python2 yum module is needed for this  module"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/">TiDB Syncer不同表名库名同步且支持pt-osc改表</a>
-    </h1>
-  
-
-      </header>
-    
     <div class="article-meta">
       
-	<a href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/" class="article-date">
-	  <time datetime="2019-12-12T13:55:00.000Z" itemprop="datePublished">2019-12-12</time>
+	<a href="/2018/02/09/python2%20yum%20module%20is%20needed%20for%20this%20%20module/" class="article-date">
+	  <time datetime="2018-02-09T06:00:17.000Z" itemprop="datePublished">2018-02-09</time>
 	</a>
 
       
@@ -436,105 +574,15 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="TiDB-Syncer不同表名库名同步且支持pt-osc改表"><a href="#TiDB-Syncer不同表名库名同步且支持pt-osc改表" class="headerlink" title="TiDB Syncer不同表名库名同步且支持pt-osc改表"></a>TiDB Syncer不同表名库名同步且支持pt-osc改表</h1><p>mysql端库名叫sysbench, 表名sbtest11<br>tidb端库名ptosc_sysbench,表名ptosc_sbtest11</p>
-<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_new&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_old&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[route-rules]]</span></span><br><span class="line"><span class="attr">pattern-schema</span> = <span class="string">&quot;sysbench&quot;</span></span><br><span class="line"><span class="attr">pattern-table</span> = <span class="string">&quot;sbtest11&quot;</span></span><br><span class="line"><span class="attr">target-schema</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">target-table</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2019-12-10-Drainer不支持的DDL-1"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/">Drainer不支持的DDL-1</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/" class="article-date">
-	  <time datetime="2019-12-10T13:23:00.000Z" itemprop="datePublished">2019-12-10</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="Drainer不支持的DDL-1"><a href="#Drainer不支持的DDL-1" class="headerlink" title="Drainer不支持的DDL-1"></a>Drainer不支持的DDL-1</h1><p>版本3.0.5</p>
-<h2 id="1-rename-table-t1-to-b-db-b-t1"><a href="#1-rename-table-t1-to-b-db-b-t1" class="headerlink" title="1.rename table t1 to b_db.b_t1"></a>1.rename table t1 to b_db.b_t1</h2><p>已经做好TiDB-&gt;MySQL的同步, 开启了pump, drainer</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2019-12-10-MGR参数之group_replication_ip_whitelist"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/12/10/2019-12-10-MGR%E5%8F%82%E6%95%B0%E4%B9%8Bgroup_replication_ip_whitelist/">MGR参数之group_replication_ip_whitelist</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/12/10/2019-12-10-MGR%E5%8F%82%E6%95%B0%E4%B9%8Bgroup_replication_ip_whitelist/" class="article-date">
-	  <time datetime="2019-12-10T09:45:00.000Z" itemprop="datePublished">2019-12-10</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/mgr/group_replication_ip_whitelist/group_replication_ip_whitelist1.png" alt="img"></p>
-<p>尝试将10.133.1.46加入192.168.2.224的集群失败</p>
-<p>需要设置参数<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_ip_whitelist">group_replication_ip_whitelist </a></p>
-<p>此参数虽然是动态参数, 但是要使之生效需要节点重新加入集群</p>
+        <p>pyenv装的2.7.14 无法用ansible yum.(其实不是pyenv的原因,自己编译安装的2.7.14也不行)</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">#ansible OA* -m yum -a<span class="string">&quot;name=mutt state=present&quot;</span> </span><br><span class="line">OA_P | FAILED! =&gt; &#123;</span><br><span class="line">    <span class="string">&quot;changed&quot;</span>: <span class="keyword">false</span>, </span><br><span class="line">    <span class="string">&quot;msg&quot;</span>: <span class="string">&quot;python2 yum module is needed for this  module&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">OA_S | FAILED! =&gt; &#123;</span><br><span class="line">    <span class="string">&quot;changed&quot;</span>: <span class="keyword">false</span>, </span><br><span class="line">    <span class="string">&quot;msg&quot;</span>: <span class="string">&quot;python2 yum module is needed for this  module&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#ansible OA* -m shell -a <span class="string">&quot;which python pip&quot;</span></span><br><span class="line">OA_P | SUCCESS | rc=<span class="number">0</span> &gt;&gt;</span><br><span class="line"><span class="regexp">/root/</span>.pyenv<span class="regexp">/versions/</span><span class="number">2.7</span>.<span class="number">14</span><span class="regexp">/bin/</span>python</span><br><span class="line"><span class="regexp">/root/</span>.pyenv<span class="regexp">/versions/</span><span class="number">2.7</span>.<span class="number">14</span><span class="regexp">/bin/</span>pip</span><br><span class="line">OA_S | SUCCESS | rc=<span class="number">0</span> &gt;&gt;</span><br><span class="line"><span class="regexp">/root/</span>.pyenv<span class="regexp">/versions/</span><span class="number">2.7</span>.<span class="number">14</span><span class="regexp">/bin/</span>python</span><br><span class="line"><span class="regexp">/root/</span>.pyenv<span class="regexp">/versions/</span><span class="number">2.7</span>.<span class="number">14</span><span class="regexp">/bin/</span>pip</span><br><span class="line"></span><br><span class="line">#vi <span class="regexp">/etc/</span>ansible<span class="regexp">/hosts/</span>oa </span><br><span class="line">[OA]</span><br><span class="line">OA_P ansible_connection=local</span><br><span class="line">OA_S ansible_ssh_host=<span class="number">172.16</span>.<span class="number">200.209</span> </span><br><span class="line">[OA:vars]</span><br><span class="line">ansible_python_interpreter=<span class="regexp">/root/</span>.pyenv<span class="regexp">/shims/</span>python</span><br></pre></td></tr></table></figure>
+<p>使用系统默认的python作为解释器可以使用yum模块<br><figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">[root@OA_P <span class="number">13</span>:<span class="number">04</span>:<span class="number">15</span> /etc/ansible/roles]</span><br><span class="line"><span class="comment">#ansible OA* -m yum -a&quot;name=mutt state=present&quot; </span></span><br><span class="line">OA_P | FAILED! =&gt; &#123;</span><br><span class="line">    <span class="string">&quot;changed&quot;</span>: <span class="literal">false</span>, </span><br><span class="line">    <span class="string">&quot;msg&quot;</span>: <span class="string">&quot;python2 bindings for rpm are needed for this module. python2 yum module is needed for this  module&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">OA_S | FAILED! =&gt; &#123;</span><br><span class="line">    <span class="string">&quot;changed&quot;</span>: <span class="literal">false</span>, </span><br><span class="line">    <span class="string">&quot;msg&quot;</span>: <span class="string">&quot;python2 bindings for rpm are needed for this module. python2 yum module is needed for this  module&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">^C</span><br><span class="line">[root@OA_P <span class="number">13</span>:<span class="number">04</span>:<span class="number">28</span> /etc/ansible/roles]</span><br><span class="line"><span class="comment">#ansible OA* -m yum -a&quot;name=mutt state=present&quot; -e &quot;ansible_python_interpreter=/usr/bin/python&quot;</span></span><br><span class="line">OA_S | SUCCESS =&gt; &#123;</span><br><span class="line">    <span class="string">&quot;changed&quot;</span>: <span class="literal">false</span>, </span><br><span class="line">    <span class="string">&quot;msg&quot;</span>: <span class="string">&quot;&quot;</span>, </span><br><span class="line">    <span class="string">&quot;rc&quot;</span>: <span class="number">0</span>, </span><br><span class="line">    <span class="string">&quot;results&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;5:mutt-1.5.20-8.20091214hg736b6a.el6.x86_64 providing mutt is already installed&quot;</span></span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br><span class="line">OA_P | FAILED! =&gt; &#123;</span><br><span class="line">    <span class="string">&quot;changed&quot;</span>: <span class="literal">false</span>, </span><br><span class="line">    <span class="string">&quot;msg&quot;</span>: <span class="string">&quot;The following packages have pending transactions: mutt-x86_64&quot;</span>, </span><br><span class="line">    <span class="string">&quot;rc&quot;</span>: <span class="number">125</span>, </span><br><span class="line">    <span class="string">&quot;results&quot;</span>: []</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>这是因为2.6可以import yum而2.7不行<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#python</span></span><br><span class="line">Python 2.7.14 (default, Dec 15 2017, 23:08:56) </span><br><span class="line">[GCC 4.4.7 20120313 (Red Hat 4.4.7-18)] on linux2</span><br><span class="line">Type <span class="string">&quot;help&quot;</span>, <span class="string">&quot;copyright&quot;</span>, <span class="string">&quot;credits&quot;</span> <span class="keyword">or</span> <span class="string">&quot;license&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt;&gt;&gt; import yum</span><br><span class="line">Traceback (most recent call last):</span><br><span class="line">  File <span class="string">&quot;&lt;stdin&gt;&quot;</span>, line 1, <span class="keyword">in</span> &lt;module&gt;</span><br><span class="line">ImportError: <span class="literal">No</span> module named yum</span><br><span class="line"></span><br><span class="line"><span class="comment">#python2.6</span></span><br><span class="line">Python 2.6.6 (r266:84292, Aug 18 2016, 15:13:37) </span><br><span class="line">[GCC 4.4.7 20120313 (Red Hat 4.4.7-17)] on linux2</span><br><span class="line">Type <span class="string">&quot;help&quot;</span>, <span class="string">&quot;copyright&quot;</span>, <span class="string">&quot;credits&quot;</span> <span class="keyword">or</span> <span class="string">&quot;license&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt;&gt;&gt; import yum</span><br></pre></td></tr></table></figure></p>
+<p>目前我的解决方法是, 在yum之前先set facts, 之后在set回来<br><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">set_fact:</span></span><br><span class="line">    <span class="attr">ansible_python_default_interpreter:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; ansible_python_interpreter &#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">ansible_python_interpreter:</span>  <span class="string">&quot;/usr/bin/python&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">安装依赖包</span></span><br><span class="line">  <span class="attr">yum:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; item.line &#125;&#125;</span>&quot;</span></span><br><span class="line">    <span class="attr">state:</span> <span class="string">present</span></span><br><span class="line">  <span class="attr">with_items:</span></span><br><span class="line">    <span class="bullet">-</span> &#123; <span class="attr">line:</span> <span class="string">&#x27;openssl&#x27;</span> &#125;</span><br><span class="line">    <span class="bullet">-</span> &#123; <span class="attr">line:</span> <span class="string">&#x27;openssl-devel&#x27;</span> &#125;</span><br><span class="line">    <span class="bullet">-</span> &#123; <span class="attr">line:</span> <span class="string">&#x27;mutt&#x27;</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">set_fact:</span></span><br><span class="line">    <span class="attr">ansible_python_interpreter:</span> <span class="string">&quot;<span class="template-variable">&#123;&#123; ansible_python_default_interpreter &#125;&#125;</span>&quot;</span></span><br></pre></td></tr></table></figure></p>
+<p>参考</p>
 <blockquote>
-<p>To specify a whitelist manually, use the <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_ip_whitelist"><code>group_replication_ip_whitelist</code></a> option. You cannot change the whitelist on a server while it is an active member of a replication group. If the member is active, you must issue a <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/stop-group-replication.html"><code>STOP GROUP_REPLICATION</code></a> statement before changing the whitelist, and a <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/start-group-replication.html"><code>START GROUP_REPLICATION</code></a> statement afterwards.</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/openshift/openshift-ansible/issues/855">https://github.com/openshift/openshift-ansible/issues/855</a><br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/29711514/no-module-named-yum-error-with-python2-7-when-using-ansible-on-fedora/36138921#36138921">https://stackoverflow.com/questions/29711514/no-module-named-yum-error-with-python2-7-when-using-ansible-on-fedora/36138921#36138921</a></p>
 </blockquote>
+
       
     </div>
     <footer class="article-footer">
@@ -552,24 +600,14 @@
 
 
   
-    <article id="post-2019-12-02-TiDB-Binlog部署"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-CONFIG REWRITE命令"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/">TiDB Binlog部署</a>
-    </h1>
-  
-
-      </header>
-    
     <div class="article-meta">
       
-	<a href="/2019/12/02/2019-12-02-TiDB-Binlog%E9%83%A8%E7%BD%B2/" class="article-date">
-	  <time datetime="2019-12-02T11:31:00.000Z" itemprop="datePublished">2019-12-02</time>
+	<a href="/2018/01/19/CONFIG%20REWRITE%E5%91%BD%E4%BB%A4/" class="article-date">
+	  <time datetime="2018-01-19T03:09:11.000Z" itemprop="datePublished">2018-01-19</time>
 	</a>
 
       
@@ -579,8 +617,183 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="TiDB-Binlog部署"><a href="#TiDB-Binlog部署" class="headerlink" title="TiDB Binlog部署"></a>TiDB Binlog部署</h1><h2 id="环境信息"><a href="#环境信息" class="headerlink" title="环境信息"></a>环境信息</h2><p>中控机是<code>10.152.x.133</code></p>
-<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-attr">[tidb_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[tikv_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[pd_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## <span class="selector-tag">Monitoring</span> <span class="selector-tag">Part</span></span><br><span class="line"># <span class="selector-tag">prometheus</span> <span class="selector-tag">and</span> <span class="selector-tag">pushgateway</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitoring_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[grafana_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"># <span class="selector-tag">node_exporter</span> <span class="selector-tag">and</span> <span class="selector-tag">blackbox_exporter</span> <span class="selector-tag">servers</span></span><br><span class="line"><span class="selector-attr">[monitored_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.10</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.11</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.12</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br><span class="line"></span><br><span class="line"><span class="selector-attr">[alertmanager_servers]</span></span><br><span class="line">10<span class="selector-class">.152</span><span class="selector-class">.x</span><span class="selector-class">.133</span></span><br></pre></td></tr></table></figure>
+        <h1 id="CONFIG-REWRITE"><a href="#CONFIG-REWRITE" class="headerlink" title="CONFIG REWRITE"></a>CONFIG REWRITE</h1><blockquote>
+<p>Available since 2.8.0.</p>
+</blockquote>
+<p>CONFIG REWRITE命令用于重写redis server启动时使用的配置文件,以最小的变动反映当前server的实际配置,当前的实际配置可能会由于CONFIG SET的使用而与启动时的配置文件不同.</p>
+<blockquote>
+<p>类似 scope=spfile</p>
+</blockquote>
+<p>重写以非常保守的方式执行:</p>
+<ul>
+<li>尽可能保留原始redis.conf的注释和整体结构.</li>
+<li>如果一个选项已经存在于旧的redis.conf文件中,它将被原地更新.</li>
+<li>如果某个选项尚不存在,但设置为其默认值,则不会由重写过程添加.</li>
+<li>如果某个选项尚不存在,但它被设置为非默认值,则会将其附加到文件末尾.</li>
+<li>Non used lines are blanked. For instance if you used to have multiple save directives, but the current configuration has fewer or none as you disabled RDB persistence, all the lines will be blanked.<blockquote>
+<p>未使用的行将被删除.例如,如果您曾经设置多个save,但是后来却通过config set只设置了更少的或者config set save ‘’,那么所有的未使用save将被删除</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@cn_mu_binlog_backup ~]# redis-cli -p 6379<span class="built_in"> config </span><span class="builtin-name">get</span> save</span><br><span class="line">1) <span class="string">&quot;save&quot;</span></span><br><span class="line">2) <span class="string">&quot;&quot;</span></span><br><span class="line">[root@cn_mu_binlog_backup ~]# cat /usr/local/redis/etc/6379_redis.conf|grep save</span><br><span class="line"><span class="comment">#   save &lt;seconds&gt; &lt;changes&gt;</span></span><br><span class="line"><span class="comment">#   Will save the DB if both the given number of seconds and the given</span></span><br><span class="line"><span class="comment">#   In the example below the behaviour will be to save:</span></span><br><span class="line"><span class="comment">#   <span class="doctag">Note:</span> you can disable saving completely by commenting out all &quot;save&quot; lines.</span></span><br><span class="line"><span class="comment">#   It is also possible to remove all the previously configured save</span></span><br><span class="line"><span class="comment">#   points by adding a save directive with a single empty string argument</span></span><br><span class="line"><span class="comment">#   save &quot;&quot;</span></span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line"><span class="built_in">..</span>.</span><br><span class="line"></span><br><span class="line">重写</span><br><span class="line">[root@cn_mu_binlog_backup ~]# redis-cli -p 6379<span class="built_in"> config </span>rewrite</span><br><span class="line">OK</span><br><span class="line"></span><br><span class="line">[root@cn_mu_binlog_backup ~]# cat /usr/local/redis/etc/6379_redis.conf|grep save</span><br><span class="line"><span class="comment">#   save &lt;seconds&gt; &lt;changes&gt;</span></span><br><span class="line"><span class="comment">#   Will save the DB if both the given number of seconds and the given</span></span><br><span class="line"><span class="comment">#   In the example below the behaviour will be to save:</span></span><br><span class="line"><span class="comment">#   <span class="doctag">Note:</span> you can disable saving completely by commenting out all &quot;save&quot; lines.</span></span><br><span class="line"><span class="comment">#   It is also possible to remove all the previously configured save</span></span><br><span class="line"><span class="comment">#   points by adding a save directive with a single empty string argument</span></span><br><span class="line"><span class="comment">#   save &quot;&quot;</span></span><br><span class="line"><span class="comment"># (at least one save point) and the latest background save failed.</span></span><br><span class="line">stop-writes-on-bgsave-<span class="builtin-name">error</span> <span class="literal">yes</span></span><br><span class="line"><span class="comment"># If you want to save some CPU in the saving child set it to &#x27;no&#x27; but</span></span><br><span class="line"><span class="comment"># algorithms (in order to save memory), so you can tune it for speed or</span></span><br><span class="line"><span class="comment"># the configured save points).</span></span><br><span class="line"><span class="comment"># saving process (a background save or AOF log background rewriting) is</span></span><br><span class="line"><span class="comment"># Lists are also encoded in a special way to save a lot of space.</span></span><br><span class="line"><span class="comment"># order to save a lot of space. This encoding is only used when the length and</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+</ul>
+<p>如果由于某种原因原来的配置文件不再存在,CONFIG REWRITE也可以重写配置文件. 但是,如果服务器启动时没有配置文件,CONFIG REWRITE将只返回一个错误.</p>
+<h2 id="原子重写过程"><a href="#原子重写过程" class="headerlink" title="原子重写过程"></a>原子重写过程</h2><p>In order to make sure the redis.conf file is always consistent, that is, on errors or crashes you always end with the old file, or the new one, the rewrite is performed with a single write(2) call that has enough content to be at least as big as the old file. Sometimes additional padding in the form of comments is added in order to make sure the resulting file is big enough, and later the file gets truncated to remove the padding at the end.</p>
+<blockquote>
+<p>为了确保redis.conf文件始终保持一致,即在出现错误或崩溃时总是以旧文件或新文件结束,重写将使用具有足够内容的单次写入(2)调用来执行 至少与旧文件一样大. 有时会添加注释形式的其他填充以确保生成的文件足够大,然后文件被截断以删除最后的填充.</p>
+</blockquote>
+<h2 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h2><p><a target="_blank" rel="noopener" href="https://redis.io/topics/protocol#simple-string-reply">Simple string reply</a>: OK 当配置被正确重写. 否则,返回错误</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-redis-cli"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/01/18/redis-cli/">redis-cli,Redis命令行界面</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/01/18/redis-cli/" class="article-date">
+	  <time datetime="2018-01-17T16:00:00.000Z" itemprop="datePublished">2018-01-18</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="redis-cli-Redis命令行界面"><a href="#redis-cli-Redis命令行界面" class="headerlink" title="redis-cli,Redis命令行界面"></a>redis-cli,Redis命令行界面</h1><p>redis-cli是Redis命令行界面，一个简单的程序，允许向Redis发送命令，并直接从终端读取服务器发送的回复。</p>
+<p>它有两种主要的模式：一种是交互模式，在这种模式下，用户输入命令并获得回复的REPL（Read Eval Print Loop）另一种模式是将命令作为redis-cli的参数发送，执行并打印在标准输出上。</p>
+<p>在交互模式下，redis-cli具有基本的行编辑功能，可以提供良好的打字体验。</p>
+<p>但是，redis-cli不只是这一点。有些选项可以用来启动程序，以便将其放入特殊模式，以便redis-cli可以完成更复杂的任务，例如模拟slave并打印从master接收到的复制流，查看复制延迟，并显示统计数据，甚至一个ASCII艺术频谱图的延迟样本和频率，以及许多其他事情。</p>
+<p>本指南将涵盖redis-cli的不同方面，由简入繁。</p>
+<p>如果您要广泛使用Redis，或者您已经这么做了，那么很可能会碰巧使用redis-cli。花一些时间来熟悉它可能是一个非常好的主意，一旦你知道了命令行界面的所有技巧，你就会看到你将更有效地使用Redis。</p>
+<h1 id="命令行用法"><a href="#命令行用法" class="headerlink" title="命令行用法"></a>命令行用法</h1><p>如下可以直接非交互模式执行命令并在标准输出获取返回结果<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">redis-cli incr mycounter</span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">7</span></span><br></pre></td></tr></table></figure></p>
+<p>‘()’内为返回结果的类型.当我们需要获取返回结果作为下一个命令的输入,或者希望将结果重定向到文件中时,我们可能不需要显示类型信息.<br>实际上,redis-cli会自动检测,当它检测到标准输出是一个tty(a terminal basically)时,它会显示类型信息来提升可读性,否则它会启用原始输出模式,如下所示:<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli incr mycounter &gt; <span class="regexp">/tmp/</span>output.txt</span><br><span class="line">$ cat <span class="regexp">/tmp/</span>output.txt</span><br><span class="line"><span class="number">8</span></span><br></pre></td></tr></table></figure><br>这一次当CLI检测到输出不在写入terminal后,(integer)被删除了不再显示. 你可以使用<code>--raw</code>选项来强制输出到终端的内容也不显示类型信息<br><figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli <span class="comment">--raw incr mycounter</span></span><br><span class="line"><span class="number">9</span></span><br></pre></td></tr></table></figure></p>
+<p>同样的,你也可以使用<code>--no-raw</code>强制非tty输出也显示类型信息<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> incr no</span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">1</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> --raw incr no</span><br><span class="line"><span class="number">2</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> incr no &gt; res.txt</span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# cat res.txt </span><br><span class="line"><span class="number">3</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> --no-raw incr no &gt; res.txt</span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# cat res.txt </span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">4</span></span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-自定义函数改表关联优化一例"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/12/28/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0%E6%94%B9%E8%A1%A8%E5%85%B3%E8%81%94%E4%BC%98%E5%8C%96%E4%B8%80%E4%BE%8B/">自定义函数改表关联优化一例</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/12/28/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0%E6%94%B9%E8%A1%A8%E5%85%B3%E8%81%94%E4%BC%98%E5%8C%96%E4%B8%80%E4%BE%8B/" class="article-date">
+	  <time datetime="2017-12-28T10:05:00.000Z" itemprop="datePublished">2017-12-28</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>今天朋友丢来一个SQL,叫我帮忙优化一下.受过<a target="_blank" rel="noopener" href="http://blog.csdn.net/robinson1988/article/details/12747113">落总</a>真传,我瞄了几眼就知道咋回事了</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">SELECT ESS<span class="selector-class">.PK_NO</span>,</span><br><span class="line">       HE<span class="selector-class">.EMPID</span>,</span><br><span class="line">       HE<span class="selector-class">.LOCAL_NAME</span>,</span><br><span class="line">       ESS<span class="selector-class">.ITEM_NO</span> ITEM_NO_NO,</span><br><span class="line">       ESS<span class="selector-class">.PERSON_ID</span>,</span><br><span class="line">       GET_DEPT_NAME(HE<span class="selector-class">.DEPTNO</span>, <span class="string">&#x27;zh&#x27;</span>) DEPT_NAME,</span><br><span class="line">       GET_GLOBAL_NAME(ESS<span class="selector-class">.ITEM_NO</span>, <span class="string">&#x27;zh&#x27;</span>) ITEM_NAME,</span><br><span class="line">       ESS<span class="selector-class">.AR_DATE_STR</span>,</span><br><span class="line">       TO_CHAR(ESS<span class="selector-class">.FROM_TIME</span>, <span class="string">&#x27;HH24:MI&#x27;</span>) FROM_TIME,</span><br><span class="line">       TO_CHAR(ESS<span class="selector-class">.TO_TIME</span>, <span class="string">&#x27;HH24:MI&#x27;</span>) TO_TIME,</span><br><span class="line">       ESS<span class="selector-class">.QUANTITY</span>,</span><br><span class="line">       ESS<span class="selector-class">.REMARK</span>,</span><br><span class="line">       HE<span class="selector-class">.EMPID</span>,</span><br><span class="line">       ESS<span class="selector-class">.AR_DATE_STR</span>,</span><br><span class="line">       GET_GLOBAL_NAME(ESS<span class="selector-class">.STATUS_CODE</span>, <span class="string">&#x27;zh&#x27;</span>) STATUS_CODE,</span><br><span class="line">       GET_GLOBAL_NAME(ESS<span class="selector-class">.ITEM_NO</span>, <span class="string">&#x27;zh&#x27;</span>) ITEM_NO,</span><br><span class="line">       ESS<span class="selector-class">.REMARK</span>,</span><br><span class="line">       ESS.LOCK_YN</span><br><span class="line">  FROM AR_DETAIL_HYOSUNG_JX ESS, HR_EMPLOYEE HE</span><br><span class="line"> WHERE ESS<span class="selector-class">.PERSON_ID</span> = HE.PERSON_ID</span><br><span class="line">   AND ESS<span class="selector-class">.PERSON_ID</span> NOT LIKE <span class="string">&#x27;111111%&#x27;</span></span><br><span class="line">   AND ESS<span class="selector-class">.ITEM_NO</span> IN (<span class="string">&#x27;141454&#x27;</span>, <span class="string">&#x27;14015951&#x27;</span>, <span class="string">&#x27;141445&#x27;</span>, <span class="string">&#x27;141443&#x27;</span>, <span class="string">&#x27;190000514&#x27;</span>)</span><br><span class="line">   AND EXISTS (SELECT B1.DEPTID</span><br><span class="line">          FROM HR_DEPARTMENT B1</span><br><span class="line">         WHERE B1<span class="selector-class">.DEPTNO</span> = HE.DEPTNO</span><br><span class="line">         START WITH B1<span class="selector-class">.DEPTNO</span> <span class="keyword">in</span></span><br><span class="line">                    (SELECT HRD.DEPTID</span><br><span class="line">                       FROM HR_DEPARTMENT HRD</span><br><span class="line">                      WHERE HRD<span class="selector-class">.MANAGER_EMP_ID</span> = <span class="string">&#x27;11111117&#x27;</span>)</span><br><span class="line">        CONNECT BY PRIOR B1<span class="selector-class">.DEPTNO</span> = B1.PARENT_DEPT_NO</span><br><span class="line">        UNION</span><br><span class="line">        SELECT AR_SUPERVISOR_INFO.DEPTNO</span><br><span class="line">          FROM AR_SUPERVISOR_INFO</span><br><span class="line">         WHERE AR_SUPERVISOR_INFO<span class="selector-class">.DEPTNO</span> = HE.DEPTNO</span><br><span class="line">           AND AR_SUPERVISOR_INFO<span class="selector-class">.PERSON_ID</span> = <span class="string">&#x27;11111117&#x27;</span>)</span><br><span class="line"> ORDER BY ESS<span class="selector-class">.AR_DATE_STR</span> ASC, ESS<span class="selector-class">.CREATE_DATE</span> DESC, HE<span class="selector-class">.DEPTNO</span>, HE.EMPID</span><br></pre></td></tr></table></figure>
+<p>我让他先执行一下SQL 看看几秒,他说6秒<br>OK,再把select 里面那俩自定义函数<code>GET_DEPT_NAME</code>,<code>GET_GLOBAL_NAME</code> 注释掉查一下, 他说1.5秒<br>那这个SQL就是慢在这俩自定义函数上呗, 这个查询每返回一行,这函数就要执行一次<br>那么函数可以改成 标量 , 标量可以改成 letf join. </p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-PMM使用Grafana告警"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/">PMM使用Grafana告警</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/12/15/PMM%E4%BD%BF%E7%94%A8Grafana%E5%91%8A%E8%AD%A6/" class="article-date">
+	  <time datetime="2017-12-15T05:26:00.000Z" itemprop="datePublished">2017-12-15</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="PMM如何告警"><a href="#PMM如何告警" class="headerlink" title="PMM如何告警?"></a>PMM如何告警?</h1><p>从Grafana v4.0开始增加了<a target="_blank" rel="noopener" href="http://docs.grafana.org/alerting/rules/">Alterting</a>功能 (  PMM 1.0.7 版本时Grafana版本为4.0). 这篇文章将手把手教你如何配置你的告警</p>
+<h2 id="开始创建Alert"><a href="#开始创建Alert" class="headerlink" title="开始创建Alert"></a>开始创建Alert</h2><p>在<a href="http://fuxkdb.com/2017/08/01/%E9%83%A8%E7%BD%B2PMM/">PMM部署</a>完成后,你可以看到如下界面<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_1.png" alt="image"></p>
+<p>此时你可能需要对<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_connected">Threads_connected</a> / <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_running">Threads_running</a> 指标进行监控</p>
+<p>点击对应的Graph标题,点击Edit<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_2.png" alt="image"></p>
+<p>按下图方式依次点击ALert -&gt; Create Alert 创建告警<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_3.png" alt="image"></p>
+<p>不幸的是,当你尝试对A指标创建如下告警时,Grafana提示一个错误“Template variables are not supported in alert queries.”<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_4.png" alt="image"></p>
+<p>首先A代表什么可以从Metrics菜单中看到,从图中可以看到对于<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Threads_connected">Threads_connected</a>值的获取表达式中包含了变量<code>$host</code>, 而<code>$host</code>是箭头所指的Host下拉菜单传递的<br><img src="https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/images/pmm_alert_5.png" alt="image"><br>对于<a target="_blank" rel="noopener" href="https://github.com/grafana/grafana/issues/6557">使用变量的Mertrics,无法创建Alert</a></p>
       
     </div>
     <footer class="article-footer">
@@ -603,7 +816,7 @@
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/6/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/8/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/6/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/8/">下一页 »</a>
   </nav>
 
 </section>

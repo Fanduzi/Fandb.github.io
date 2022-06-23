@@ -65,7 +65,7 @@
     <link rel="stylesheet" href="/css/vdonate.css" >
   
 
-<meta name="generator" content="Hexo 5.1.1"></head>
+<meta name="generator" content="Hexo 6.2.0"></head>
 
 
 
@@ -305,7 +305,7 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-MGR vs PXC Benchmark"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-Hexo博客配置"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -313,7 +313,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/09/11/MGR%20vs%20PXC%20Benchmark/">MGR vs PXC Benchmark</a>
+      <a class="article-title" href="/2017/08/05/Hexo%E5%8D%9A%E5%AE%A2%E9%85%8D%E7%BD%AE/">Hexo博客配置</a>
     </h1>
   
 
@@ -321,8 +321,8 @@
     
     <div class="article-meta">
       
-	<a href="/2018/09/11/MGR%20vs%20PXC%20Benchmark/" class="article-date">
-	  <time datetime="2018-09-11T14:23:00.000Z" itemprop="datePublished">2018-09-11</time>
+	<a href="/2017/08/05/Hexo%E5%8D%9A%E5%AE%A2%E9%85%8D%E7%BD%AE/" class="article-date">
+	  <time datetime="2017-08-05T08:40:53.000Z" itemprop="datePublished">2017-08-05</time>
 	</a>
 
       
@@ -332,38 +332,213 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="MGR-vs-PXC-Benchmark"><a href="#MGR-vs-PXC-Benchmark" class="headerlink" title="MGR vs PXC Benchmark"></a>MGR vs PXC Benchmark</h1><p>本次测试将MGR与PXC进行对比, 意在比较MGR自身不同流控阈值下性能表现以及观察MGR与PXC相同负载下的性能表现. 测试工具使用<code>sysbench 1.1.0-431660d</code></p>
-<p>基础环将信息如下表所示, 在三个测试服务器部署了3306, 3307两套集群</p>
-<table>
+        <h2 id="Hexo博客配置"><a href="#Hexo博客配置" class="headerlink" title="Hexo博客配置"></a>Hexo博客配置</h2><p>基于<a target="_blank" rel="noopener" href="https://github.com/iTimeTraveler/hexo-theme-hiker"><strong>hexo-theme-hiker</strong></a>主题</p>
+<p>先看myblog下的_config.yml完整配置</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Hexo Configuration</span></span><br><span class="line"><span class="comment">## Docs: https://hexo.io/docs/configuration.html</span></span><br><span class="line"><span class="comment">## Source: https://github.com/hexojs/hexo/</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Site</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">Fan()</span></span><br><span class="line"><span class="attr">subtitle:</span></span><br><span class="line"><span class="attr">description:</span></span><br><span class="line"><span class="attr">author:</span> <span class="string">a</span> <span class="string">dba&#x27;s</span> <span class="string">blog</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">zh-CN</span></span><br><span class="line"><span class="attr">timezone:</span> <span class="string">Asia/Shanghai</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># URL</span></span><br><span class="line"><span class="comment">## If your site is put in a subdirectory, set url as &#x27;http://yoursite.com/child&#x27; and root as &#x27;/child/&#x27;</span></span><br><span class="line"><span class="attr">url:</span> <span class="string">http://yoursite.com</span></span><br><span class="line"><span class="attr">root:</span> <span class="string">/Fandb.github.io</span></span><br><span class="line"><span class="attr">permalink:</span> <span class="string">:year/:month/:day/:title/</span></span><br><span class="line"><span class="attr">permalink_defaults:</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Directory</span></span><br><span class="line"><span class="attr">source_dir:</span> <span class="string">source</span></span><br><span class="line"><span class="attr">public_dir:</span> <span class="string">public</span></span><br><span class="line"><span class="attr">tag_dir:</span> <span class="string">tags</span></span><br><span class="line"><span class="attr">archive_dir:</span> <span class="string">archives</span></span><br><span class="line"><span class="attr">category_dir:</span> <span class="string">categories</span></span><br><span class="line"><span class="attr">code_dir:</span> <span class="string">downloads/code</span></span><br><span class="line"><span class="attr">i18n_dir:</span> <span class="string">:lang</span></span><br><span class="line"><span class="attr">skip_render:</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Writing</span></span><br><span class="line"><span class="attr">new_post_name:</span> <span class="string">:title.md</span> <span class="comment"># File name of new posts</span></span><br><span class="line"><span class="attr">default_layout:</span> <span class="string">post</span></span><br><span class="line"><span class="attr">titlecase:</span> <span class="literal">false</span> <span class="comment"># Transform title into titlecase</span></span><br><span class="line"><span class="attr">external_link:</span> <span class="literal">true</span> <span class="comment"># Open external links in new tab</span></span><br><span class="line"><span class="attr">filename_case:</span> <span class="number">0</span></span><br><span class="line"><span class="attr">render_drafts:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">post_asset_folder:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">relative_link:</span> <span class="literal">false</span></span><br><span class="line"><span class="attr">future:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">highlight:</span></span><br><span class="line">  <span class="attr">enable:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">line_number:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">auto_detect:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">tab_replace:</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Home page setting</span></span><br><span class="line"><span class="comment"># path: Root path for your blogs index page. (default = &#x27;&#x27;)</span></span><br><span class="line"><span class="comment"># per_page: Posts displayed per page. (0 = disable pagination)</span></span><br><span class="line"><span class="comment"># order_by: Posts order. (Order by date descending by default)</span></span><br><span class="line"><span class="attr">index_generator:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">  <span class="attr">per_page:</span> <span class="number">6</span></span><br><span class="line">  <span class="attr">order_by:</span> <span class="string">-date</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Category &amp; Tag</span></span><br><span class="line"><span class="attr">default_category:</span> <span class="string">uncategorized</span></span><br><span class="line"><span class="attr">category_map:</span></span><br><span class="line"><span class="attr">tag_map:</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Date / Time format</span></span><br><span class="line"><span class="comment">## Hexo uses Moment.js to parse and display date</span></span><br><span class="line"><span class="comment">## You can customize the date format as defined in</span></span><br><span class="line"><span class="comment">## http://momentjs.com/docs/#/displaying/format/</span></span><br><span class="line"><span class="attr">date_format:</span> <span class="string">YYYY-MM-DD</span></span><br><span class="line"><span class="attr">time_format:</span> <span class="string">HH:mm:ss</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Pagination</span></span><br><span class="line"><span class="comment">## Set per_page to 0 to disable pagination</span></span><br><span class="line"><span class="attr">per_page:</span> <span class="number">10</span></span><br><span class="line"><span class="attr">pagination_dir:</span> <span class="string">page</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Extensions</span></span><br><span class="line"><span class="comment">## Plugins: https://hexo.io/plugins/</span></span><br><span class="line"><span class="comment">## Themes: https://hexo.io/themes/</span></span><br><span class="line"><span class="attr">theme:</span> <span class="string">hiker</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Deployment</span></span><br><span class="line"><span class="comment">## Docs: https://hexo.io/docs/deployment.html</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repository:</span></span><br><span class="line">        <span class="attr">github:</span> <span class="string">https://github.com/Fanduzi/Fandb.github.io.git</span></span><br><span class="line">        <span class="attr">coding:</span> <span class="string">https://git.coding.net/Fandb/Fandb.blog.git</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">master</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note</p>
+<p>冒号后面要空一格</p>
+</blockquote>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-使用Hexo-+-github快速搭建个人博客"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/05/%E4%BD%BF%E7%94%A8Hexo-+-github%E5%BF%AB%E9%80%9F%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/">使用Hexo + github快速搭建个人博客</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/05/%E4%BD%BF%E7%94%A8Hexo-+-github%E5%BF%AB%E9%80%9F%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/" class="article-date">
+	  <time datetime="2017-08-05T07:55:12.000Z" itemprop="datePublished">2017-08-05</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="使用Hexo-github快速搭建个人博客"><a href="#使用Hexo-github快速搭建个人博客" class="headerlink" title="使用Hexo + github快速搭建个人博客"></a>使用Hexo + github快速搭建个人博客</h2><h3 id="安装依赖软件"><a href="#安装依赖软件" class="headerlink" title="安装依赖软件"></a>安装依赖软件</h3><h4 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h4><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo <span class="keyword">brew </span><span class="keyword">install </span>git</span><br></pre></td></tr></table></figure>
+<h4 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h4><p>Mac下最简单的做法便是直接下载pkg文件进行安装，最新版本的下载地址如下，选择后缀为pkg的文件下载安装即可：<br><a target="_blank" rel="noopener" href="https://nodejs.org/download/release/latest/">https://nodejs.org/download/release/latest/</a><br>安装完成后修改环境变量<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vi ~/.bash_profile</span><br><span class="line">添加</span><br><span class="line"><span class="builtin-name">export</span> <span class="attribute">PATH</span>=/usr/local/bin:$PATH</span><br></pre></td></tr></table></figure></p>
+<h4 id="将npm源替换成淘宝源"><a href="#将npm源替换成淘宝源" class="headerlink" title="将npm源替换成淘宝源"></a>将npm源替换成淘宝源</h4><figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm config <span class="keyword">set</span> <span class="keyword">registry</span> <span class="keyword">http</span>://<span class="keyword">registry</span>.npm.taobao.org/</span><br></pre></td></tr></table></figure>
+<h4 id="安装Hexo"><a href="#安装Hexo" class="headerlink" title="安装Hexo"></a>安装Hexo</h4><p>安装前先介绍几个hexo常用的命令<br><figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>hexo g <span class="comment">#完整命令为hexo generate，用于生成静态文件</span></span><br><span class="line"><span class="variable">$ </span>hexo s <span class="comment">#完整命令为hexo server，用于启动服务器，主要用来本地预览</span></span><br><span class="line"><span class="variable">$ </span>hexo d <span class="comment">#完整命令为hexo deploy，用于将本地文件发布到github上</span></span><br><span class="line"><span class="variable">$ </span>hexo n <span class="comment">#完整命令为hexo new，用于新建一篇文章</span></span><br></pre></td></tr></table></figure><br>利用 npm 命令安装：<br><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo npm <span class="keyword">install</span> -g hexo</span><br></pre></td></tr></table></figure><br>报错可尝试<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm <span class="keyword">install</span> <span class="comment">--unsafe-perm -g hexo</span></span><br></pre></td></tr></table></figure><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-Percona Monitoring and Management架构"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/02/Percona%20Monitoring%20and%20Management%E6%9E%B6%E6%9E%84/">Percona Monitoring and Management架构</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/02/Percona%20Monitoring%20and%20Management%E6%9E%B6%E6%9E%84/" class="article-date">
+	  <time datetime="2017-08-02T14:00:00.000Z" itemprop="datePublished">2017-08-02</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Percona-Monitoring-and-Management架构"><a href="#Percona-Monitoring-and-Management架构" class="headerlink" title="Percona Monitoring and Management架构"></a>Percona Monitoring and Management架构</h2><p>PMM基于简单的client-server模型,可实现高效的扩展性,它包含以下模块:</p>
+<ul>
+<li>PMM Client,安装在任何你希望被监控的数据库服务器上.它会手机服务器指标和查询分析数据以提供一份完整的性能概览.数据被收集并发送到PMM Server</li>
+<li>PMM Server是PMM的核心部分,它聚合手机的数据,并以Web界面的表格,仪表盘和图形的形式展现</li>
+</ul>
+<p>这些模块被封装以提供简单的安装和使用给用户,无需关心它的内部实现方法.但是，如果要利用PMM的全部潜力，内部结构就很重要.</p>
+<ul>
+<li><a href="#pmm_client">PMM Client</a></li>
+<li><a href="#pmm_server">PMM Server</a></li>
+<li><a href="#部署方案">部署方案</a><ul>
+<li><a href="#简单场景">简单场景</a></li>
+<li><a href="#典型场景">典型场景</a></li>
+</ul>
+</li>
+</ul>
+<p>PMM是旨在无缝协同工作的工具集合。 一些是由Percona开发的，一些是第三方开源工具。<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-PMM部署遇到的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/01/PMM%E9%83%A8%E7%BD%B2%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/">PMM部署遇到的坑</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/01/PMM%E9%83%A8%E7%BD%B2%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" class="article-date">
+	  <time datetime="2017-08-01T14:00:00.000Z" itemprop="datePublished">2017-08-01</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="PMM部署遇到的坑"><a href="#PMM部署遇到的坑" class="headerlink" title="PMM部署遇到的坑"></a>PMM部署遇到的坑</h1><table>
 <thead>
 <tr>
-<th>Host</th>
-<th>IP</th>
-<th>MGR</th>
-<th>PXC</th>
+<th>系统</th>
+<th>内核版本</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>data-191</td>
-<td>192.168.8.191</td>
-<td>3306</td>
-<td>3307</td>
-</tr>
-<tr>
-<td>data-219</td>
-<td>192.168.8.219</td>
-<td>3306</td>
-<td>3307</td>
-</tr>
-<tr>
-<td>data-220</td>
-<td>192.168.8.220</td>
-<td>3306</td>
-<td>3307</td>
+<td>CentOS release 6.4 (Final)</td>
+<td>2.6.32-358.el6.x86_64</td>
 </tr>
 </tbody>
 </table>
+<p>1.公司环境pull不下来</p>
+<p>在自己的环境pull下来然后save image</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@slave oracle]# docker images</span><br><span class="line">REPOSITORY                     TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">docker.io/percona/pmm-server   1.2.0               eb82a0e154c8        2 weeks ago         1.266 GB</span><br><span class="line">docker.io/percona/pmm-server   latest              eb82a0e154c8        2 weeks ago         1.266 GB</span><br><span class="line">[root@slave oracle]# docker save eb82a0e154c8 &gt; pmm-server.tar</span><br><span class="line"></span><br><span class="line">[root@slave oracle]# scp pmm-server.tar 10.4.2.43:~/</span><br><span class="line">root@10.4.2.43&#x27;s password: </span><br><span class="line">pmm-server.tar                                                                                                                                                        100% 1232MB 902.5KB/s   23:18  </span><br></pre></td></tr></table></figure>
+<p>在原环境导入</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@test2 ~]# docker load &lt; pmm-server.tar </span><br></pre></td></tr></table></figure>
+<p>repostory和tag是<none></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@test2 ~]# docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              abdf7c1b7a63        2 weeks ago         1.266 GB</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              3690474eb5b4        11 months ago       0 B</span><br></pre></td></tr></table></figure>
+<p>修改tag</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>test2 ~]# docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              abdf7c1b7a63        <span class="number">2</span> weeks ago         <span class="number">1.266</span> GB</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              <span class="number">3690474</span>eb5b4        <span class="number">11</span> months ago       <span class="number">0</span> B</span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker tag abdf7c1b7a63 docker.io/percona/pmm-server:<span class="number">1.2</span><span class="number">.0</span></span><br></pre></td></tr></table></figure>
+<p>2.docker容器无法启动 no such file or directory statusCode=404</p>
+<p>这个搜了半天不知道是什么原因,怀疑是内核版本太低</p>
+<blockquote>
+<p>因为CentOS6.4自带内核版本是2.6.32-358.23.2.el6.x86_64，而Docker要求内核版本大于3.0，推荐3.8以上的内核</p>
+<p><a target="_blank" rel="noopener" href="https://yq.aliyun.com/ziliao/48262">https://yq.aliyun.com/ziliao/48262</a></p>
+</blockquote>
+<p>遂升级内核</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http://elrepo.org/linux/kernel/el6/x86_64/RPMS/kernel-lt-3.10.107-1.el6.elrepo.x86_64.rpm</span><br></pre></td></tr></table></figure>
+<p>如果连接不对,自己去<a target="_blank" rel="noopener" href="http://elrepo.org/linux/kernel/el6/x86_64/RPMS/看一眼,找一个合适的">http://elrepo.org/linux/kernel/el6/x86_64/RPMS/看一眼,找一个合适的</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpm -ivh kernel-lt-3.10.107-1.el6.elrepo.x86_64.rpm</span><br></pre></td></tr></table></figure>
+<p>修改grub.conf</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/grub.conf</span><br><span class="line"><span class="meta">#</span><span class="bash"> grub.conf generated by anaconda</span></span><br><span class="line"><span class="meta">#</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Note that you <span class="keyword">do</span> not have to rerun grub after making changes to this file</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> NOTICE:  You have a /boot partition.  This means that</span></span><br><span class="line"><span class="meta">#</span><span class="bash">          all kernel and initrd paths are relative to /boot/, eg.</span></span><br><span class="line"><span class="meta">#</span><span class="bash">          root (hd0,0)</span></span><br><span class="line"><span class="meta">#</span><span class="bash">          kernel /vmlinuz-version ro root=/dev/mapper/VolGroup-LogVol00</span></span><br><span class="line"><span class="meta">#</span><span class="bash">          initrd /initrd-[generic-]version.img</span></span><br><span class="line"><span class="meta">#</span><span class="bash">boot=/dev/sda</span></span><br><span class="line">default=1</span><br><span class="line">timeout=5</span><br><span class="line">splashimage=(hd0,0)/grub/splash.xpm.gz</span><br><span class="line">hiddenmenu</span><br><span class="line">title CentOS (3.10.107-1.el6.elrepo.x86_64)</span><br><span class="line">        root (hd0,0)</span><br><span class="line">        kernel /vmlinuz-3.10.107-1.el6.elrepo.x86_64 ro root=/dev/mapper/VolGroup-LogVol00 rd_NO_LUKS LANG=en_US.UTF-8 rd_NO_MD SYSFONT=latarcyrheb-sun16 crashkernel=auto  KEYBOARDTYPE=pc KEYTABLE=us rd_LVM_LV=VolGroup/LogVol00 rd_NO_DM rhgb quiet numa=off elevator=deadline</span><br><span class="line">        initrd /initramfs-3.10.107-1.el6.elrepo.x86_64.img</span><br><span class="line">title CentOS (2.6.32-358.el6.x86_64)</span><br><span class="line">        root (hd0,0)</span><br><span class="line">        kernel /vmlinuz-2.6.32-358.el6.x86_64 ro root=/dev/mapper/VolGroup-LogVol00 rd_NO_LUKS LANG=en_US.UTF-8 rd_NO_MD SYSFONT=latarcyrheb-sun16 crashkernel=auto  KEYBOARDTYPE=pc KEYTABLE=us rd_LVM_LV=VolGroup/LogVol00 rd_NO_DM rhgb quiet numa=off elevator=deadline</span><br><span class="line">        initrd /initramfs-2.6.32-358.el6.x86_64.img</span><br><span class="line">        </span><br><span class="line">现在title CentOS (3.10.107-1.el6.elrepo.x86_64)在 0 号位置,所以将</span><br><span class="line">default=1改为default=0</span><br><span class="line">重启os</span><br></pre></td></tr></table></figure>
+<p>重启后</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@test2 ~]# cat /etc/redhat-release </span><br><span class="line">CentOS release 6.9 (Final)</span><br><span class="line">[root@test2 ~]# uname -r</span><br><span class="line">3.10.107-1.el6.elrepo.x86_64</span><br></pre></td></tr></table></figure>
+<p>再次创建container成功</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[root@test2 ~]# docker load &lt; pmm-server.tar </span><br><span class="line">[root@test2 ~]# docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              abdf7c1b7a63        2 weeks ago         1.266 GB</span><br><span class="line">&lt;none&gt;              &lt;none&gt;              3690474eb5b4        11 months ago       0 B</span><br><span class="line">[root@test2 ~]# docker tag abdf7c1b7a63 docker.io/percona/pmm-server:1.2.0</span><br><span class="line">[root@test2 ~]# docker create \</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -v /opt/prometheus/data \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -v /opt/consul-data \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -v /var/lib/mysql \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -v /var/lib/grafana \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    --name pmm-data \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    percona/pmm-server:1.2.0 /bin/<span class="literal">true</span></span></span><br><span class="line">094c63bd911b5139a267abe7939e5c4442cdc857970dedaccb9ae0cb5f165fc9</span><br><span class="line">[root@test2 ~]# docker run -d \</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    -p 80:80 \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    --volumes-from pmm-data \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    --name pmm-server \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    --restart always \</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">    percona/pmm-server:1.2.0</span></span><br><span class="line">69195dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03</span><br><span class="line">[root@test2 ~]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED             STATUS              PORTS                         NAMES</span><br><span class="line">69195dca404b        percona/pmm-server:1.2.0   &quot;/opt/entrypoint.sh&quot;   11 seconds ago      Up 9 seconds        0.0.0.0:80-&gt;80/tcp, 443/tcp   pmm-server          </span><br><span class="line">094c63bd911b        percona/pmm-server:1.2.0   &quot;/bin/true&quot;            21 seconds ago                                                        pmm-data            </span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note</p>
+<p>PMM-server选择一个内核版本搞的服务器就行</p>
+<p>PMM-client无所谓</p>
+</blockquote>
+<p>3.pmm-data 状态为Exited<br>内核版本低</p>
+<p>4.MySQL dashboard没数据<br>防火墙没关<br><figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pmm-admin check-network</span><br><span class="line"></span><br><span class="line">centos 7</span><br><span class="line">停止：<span class="keyword"> system</span>ctl disable firewalld</span><br><span class="line">禁用：<span class="keyword"> system</span>ctl stop firewalld</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<p>5.容器时区为UTC与我们系统CST差八个小时<br>进入容器<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp <span class="regexp">/usr/</span>share<span class="regexp">/zoneinfo/</span>Asia<span class="regexp">/Shanghai /</span>etc/localtime</span><br></pre></td></tr></table></figure><br><a target="_blank" rel="noopener" href="http://www.cnblogs.com/w2206/p/6904446.html">http://www.cnblogs.com/w2206/p/6904446.html</a></p>
+
       
     </div>
     <footer class="article-footer">
@@ -381,7 +556,7 @@
 
 
   
-    <article id="post-MySQL Group Replication- understanding Flow Control[译文]"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-部署PMM"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -389,7 +564,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/08/26/MySQL%20Group%20Replication-%20understanding%20Flow%20Control%5B%E8%AF%91%E6%96%87%5D/">MySQL Group Replication- understanding Flow Control[译文]</a>
+      <a class="article-title" href="/2017/08/01/%E9%83%A8%E7%BD%B2PMM/">部署PMM</a>
     </h1>
   
 
@@ -397,8 +572,8 @@
     
     <div class="article-meta">
       
-	<a href="/2018/08/26/MySQL%20Group%20Replication-%20understanding%20Flow%20Control%5B%E8%AF%91%E6%96%87%5D/" class="article-date">
-	  <time datetime="2018-08-26T15:05:00.000Z" itemprop="datePublished">2018-08-26</time>
+	<a href="/2017/08/01/%E9%83%A8%E7%BD%B2PMM/" class="article-date">
+	  <time datetime="2017-08-01T14:00:00.000Z" itemprop="datePublished">2017-08-01</time>
 	</a>
 
       
@@ -408,195 +583,89 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="MySQL-Group-Replication-understanding-Flow-Control"><a href="#MySQL-Group-Replication-understanding-Flow-Control" class="headerlink" title="MySQL Group Replication: understanding Flow Control"></a><a target="_blank" rel="noopener" href="https://lefred.be/content/mysql-group-replication-understanding-flow-control/">MySQL Group Replication: understanding Flow Control</a></h1><p>使用MySQL Group Replication时，某些成员可能落后于该组。 由于负载，硬件限制等原因…这种滞后可能会导致不能保持良好的性能认证行为和不能尽可能降低认证失败次数.应用队列(applying queue)越大, 与尚未应用的事务发生冲突的风险就越大（这在Multi-Primary Groups上是有问题的）。</p>
-<p>Galera用户已经熟悉这个概念(译注: 指流控的概念). MySQL Group Replication的实现与Galera有两个主要不同点:</p>
+        <h1 id="部署PMM"><a href="#部署PMM" class="headerlink" title="部署PMM"></a>部署PMM</h1><ul>
+<li><a href="#run">运行PMM Server</a><ul>
+<li><a href="#docker">通过Docker运行</a></li>
+</ul>
+</li>
+<li><a href="#client">安装PMM Client</a></li>
+<li><a href="#connect">Connect PMM Client to PMM Server</a></li>
+<li><a href="#collection">Start data collection</a></li>
+</ul>
+<p><span style="color:#ffffff;" id="run"></span></p>
+<h2 id="1-在主机上运行PMM-Server，用于访问收集的数据，查看基于时间的图表，并执行性能分析。"><a href="#1-在主机上运行PMM-Server，用于访问收集的数据，查看基于时间的图表，并执行性能分析。" class="headerlink" title="1.在主机上运行PMM Server，用于访问收集的数据，查看基于时间的图表，并执行性能分析。"></a>1.在主机上运行PMM Server，用于访问收集的数据，查看基于时间的图表，并执行性能分析。</h2><p>可以通过三种方式运行PMM Server:</p>
 <ul>
-<li><p>the Group is never totally stalled(译注: Group不会彻底停止接收写请求)</p>
-</li>
-<li><p>the node having issues doesn’t send flow control messages to the rest of the group asking for slowing down(译注: 短板节点不会向Group的其他节点发送flow control消息来要求集群减速)</p>
-</li>
+<li><a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/deploy/server/docker.html#run-server-docker">Run PMM Server using Docker</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/deploy/server/virtual-appliance.html#run-server-ova">Run PMM Server as a virtual appliance</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/deploy/server/ami.html#run-server-ami">Run PMM Server using Amazon Machine Image (AMI)</a></li>
 </ul>
-<p>实际上，该组的每个成员都会向其他成员发送有关其队列（applier queue and certification queue）的一些统计信息。 然后，如果每个节点意识到一个节点达到了其中一个队列的阈值，则决定是否减速：</p>
-<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">group_replication_flow_control_applier_threshold (<span class="keyword">default</span> <span class="keyword">is</span> <span class="number">25000</span>)</span><br><span class="line"></span><br><span class="line">group_replication_flow_control_certifier_threshold (<span class="keyword">default</span> <span class="keyword">is</span> <span class="number">25000</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>因此，如果在节点上将<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_flow_control_mode">group_replication_flow_control_mode</a>设置为<code>QUOTA</code>，并且看到该集群的其他成员之一落后（达到阈值），则会将写入操作限制为最小配额。 此配额是根据最后一秒中应用的transactions数计算的，然后通过减去上一个周期的“over the quota”消息来减少。 </p>
 <blockquote>
-<p>and then it is reduced below that by subtracting the “over the quota” messages from the last period.</p>
+<p>这里只介绍通过Docker方式运行PMM Server</p>
 </blockquote>
-<p>这意味着与Galera相反，Galera的(flow control)阈值是有短板节点决定的，对于我们在MySQL组复制中，编写事务的节点(译注: 写节点)检查其阈值流量控制值并将它们与来自其他节点的统计数据进行比较以决定是否进行flow control。</p>
-<p>您可以在Vitor的文章<a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/zooming-in-on-group-replication-performance/">Zooming-in on Group Replication Performance</a>一文中找到有关组复制流控制的更多信息</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-如何确定Single-Primary模式下的MGR主节点"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/08/25/%E5%A6%82%E4%BD%95%E7%A1%AE%E5%AE%9ASingle-Primary%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84MGR%E4%B8%BB%E8%8A%82%E7%82%B9/">如何确定Single-Primary模式下的MGR主节点</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/08/25/%E5%A6%82%E4%BD%95%E7%A1%AE%E5%AE%9ASingle-Primary%E6%A8%A1%E5%BC%8F%E4%B8%8B%E7%9A%84MGR%E4%B8%BB%E8%8A%82%E7%82%B9/" class="article-date">
-	  <time datetime="2018-08-25T15:00:00.000Z" itemprop="datePublished">2018-08-25</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="如何确定Single-Primary模式下的MGR主节点-文档-ID-2214438-1"><a href="#如何确定Single-Primary模式下的MGR主节点-文档-ID-2214438-1" class="headerlink" title="如何确定Single-Primary模式下的MGR主节点(文档 ID 2214438.1)"></a><a target="_blank" rel="noopener" href="https://support.oracle.com/epmos/faces/DocumentDisplay?_afrLoop=27962468209367&amp;parent=DOCUMENT&amp;sourceId=2215424.1&amp;id=2214438.1&amp;_afrWindowMode=0&amp;_adf.ctrl-state=s3zl3ux6s_200">如何确定Single-Primary模式下的MGR主节点(文档 ID 2214438.1)</a></h1><h2 id="MySQL-5-7"><a href="#MySQL-5-7" class="headerlink" title="MySQL 5.7"></a>MySQL 5.7</h2><p>可以通过global status <code>group_replication_primary_member</code>确定<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT VARIABLE<span class="emphasis">_VALUE</span></span><br><span class="line"><span class="emphasis">         FROM performance_</span>schema.global<span class="emphasis">_status</span></span><br><span class="line"><span class="emphasis">        WHERE VARIABLE_</span>NAME = <span class="emphasis">&#x27;group_replication_primary_member&#x27;</span>;</span><br><span class="line"><span class="code">+--------------------------------------+</span></span><br><span class="line">| VARIABLE<span class="emphasis">_VALUE                       |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+</span></span><br><span class="line"><span class="emphasis">| 9d7f8c28-c02c-11e6-9829-08002715584a |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+</span></span><br><span class="line"><span class="emphasis">1 row in set (0.00 sec)</span></span><br></pre></td></tr></table></figure></p>
+<p><span style="color:#ffffff;" id="docker"></span></p>
+<h3 id="Running-PMM-Server-Using-Docker"><a href="#Running-PMM-Server-Using-Docker" class="headerlink" title="Running PMM Server Using Docker"></a>Running PMM Server Using Docker</h3><p>PMM服务器的Docker映像公开托管在<a target="_blank" rel="noopener" href="https://hub.docker.com/r/percona/pmm-server/。">https://hub.docker.com/r/percona/pmm-server/。</a> 如果要从Docker映像运行PMM Server，则主机必须能够运行Docker 1.12.6或更高版本，并具有网络访问权限。</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">安装docker</span></span><br><span class="line"><span class="attr">首先安装epel源</span></span><br><span class="line"><span class="attr">wget</span> <span class="string">-P /etc/yum.repos.d/ http://mirrors.aliyun.com/repo/epel-6.repo</span></span><br><span class="line"><span class="attr">yum</span> <span class="string">clean all</span></span><br><span class="line"><span class="attr">yum</span> <span class="string">makecache</span></span><br><span class="line"><span class="attr">yum</span> <span class="string">-y install docker-io  </span></span><br><span class="line"><span class="attr">yum</span> <span class="string">upgrade device-mapper-libs -y</span></span><br><span class="line"><span class="attr">service</span> <span class="string">docker start</span></span><br></pre></td></tr></table></figure>
+<p>修改docker容器存储路径,默认存储在/var/lib/docker下.这里使用软连接方式修改<br><figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">service stop docker</span><br><span class="line">cd /var/<span class="class"><span class="keyword">lib</span>/<span class="title">docker</span></span></span><br><span class="line">cp -r * <span class="regexp">/data/docker</span><span class="regexp">/</span></span><br><span class="line"><span class="regexp">mv /var</span><span class="regexp">/lib/docker</span> /var/<span class="class"><span class="keyword">lib</span>/<span class="title">docker</span>.<span class="title">bak</span></span></span><br><span class="line">ln -s /var/<span class="class"><span class="keyword">lib</span>/<span class="title">docker</span> /<span class="title">data</span>/<span class="title">docker</span></span></span><br><span class="line">service start docker</span><br></pre></td></tr></table></figure></p>
+<p>禁用防火墙<br><figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">停止： systemctl <span class="keyword">disable</span> firewalld</span><br><span class="line">禁用： systemctl <span class="keyword">stop</span> firewalld</span><br></pre></td></tr></table></figure><br>关闭或者设置 IPTABLES<br><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#PMM</span><br><span class="line"><span class="variable">$IPTABLES</span> -A INPUT -<span class="selector-tag">p</span> tcp --dport <span class="number">42002</span> -j ACCEPT</span><br><span class="line"><span class="variable">$IPTABLES</span> -A INPUT -<span class="selector-tag">p</span> tcp --dport <span class="number">42000</span> -j ACCEPT</span><br></pre></td></tr></table></figure><br>这两个端口号是哪来的的呢? 是在pmm-admin check-network看到的(官方文档也有描述)<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">* Connection:<span class="built_in"> Client </span>&lt;-- Server</span><br><span class="line">-------------- ---------- --------------------- ------- ---------- ---------</span><br><span class="line">SERVICE<span class="built_in"> TYPE </span> NAME      REMOTE ENDPOINT      STATUS  HTTPS/TLS  PASSWORD </span><br><span class="line">-------------- ---------- --------------------- ------- ---------- ---------</span><br><span class="line">linux:metrics  pt_slave1  120.27.136.247:42000  OK      <span class="literal">YES</span>        -        </span><br><span class="line">mysql:metrics  pt_slave1  120.27.136.247:42002  OK      <span class="literal">YES</span>        -        </span><br></pre></td></tr></table></figure><br>安装Percona-toolkit (Query Analytics需要)<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">yum</span> install percona-xtrabackup-<span class="number">24</span>.x<span class="number">86</span>_<span class="number">64</span> percona-xtrabackup-<span class="number">24</span>-debuginfo.x<span class="number">86</span>_<span class="number">64</span> percona-xtrabackup-test-<span class="number">24</span>.x<span class="number">86</span>_<span class="number">64</span> percona-toolkit.x<span class="number">86</span>_<span class="number">64</span> percona-toolkit-debuginfo.x<span class="number">86</span>_<span class="number">64</span> percona-toolkit.x<span class="number">86</span>_<span class="number">64</span> -y</span><br><span class="line"><span class="attribute">yum</span> install qpress* -y</span><br></pre></td></tr></table></figure><br>创建专用用户赋予权限<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span>, PROCESS, SUPER, <span class="keyword">REPLICATION</span> <span class="keyword">CLIENT</span>, RELOAD <span class="keyword">ON</span> *.* <span class="keyword">TO</span> <span class="string">&#x27;pmm&#x27;</span>@<span class="string">&#x27; localhost&#x27;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&#x27;pass&#x27;</span> <span class="keyword">WITH</span> MAX_USER_CONNECTIONS <span class="number">10</span>;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span>, <span class="keyword">UPDATE</span>, <span class="keyword">DELETE</span>, <span class="keyword">DROP</span> <span class="keyword">ON</span> performance_schema.* <span class="keyword">TO</span> <span class="string">&#x27;pmm&#x27;</span>@<span class="string">&#x27; localhost&#x27;</span>;</span><br></pre></td></tr></table></figure><br>mysql:metrics 需要REPLICATION CLIENT权限<br>mysql:queries 需要SUPER权限<br>具体参考 [What privileges are required to monitor a MySQL instance?(<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/faq.html#id11">https://www.percona.com/doc/percona-monitoring-and-management/faq.html#id11</a>)</p>
+<h4 id="Step-1-创建PMM-Data-Container"><a href="#Step-1-创建PMM-Data-Container" class="headerlink" title="Step 1.创建PMM Data Container"></a>Step 1.创建PMM Data Container</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> docker create \</span></span><br><span class="line">  -v /opt/prometheus/data \</span><br><span class="line">  -v /opt/consul-data \</span><br><span class="line">  -v /var/lib/mysql \</span><br><span class="line">  -v /var/lib/grafana \</span><br><span class="line">  --name pmm-data \</span><br><span class="line">  percona/pmm-server:latest /bin/true</span><br></pre></td></tr></table></figure>
 <blockquote>
-<p>如果是Multi-Primary默认则结果为空</p>
+<p>Note</p>
+<p>如果再本地找不到,Docker会从Dockerhub拉取image</p>
+<p>确保你在使用最新版本的Docker</p>
+<p>This container does not run, it simply exists to make sure you retain all PMM data when you upgrade to a newer <code>pmm-server</code> image. Do not remove or re-create this container, unless you intend to wipe out all PMM data and start over.</p>
 </blockquote>
-<p>可以结合<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/replication-group-members-table.html">performance_schema.replication_group_members</a>表 获取主机名和端口信息:<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">SELECT </span><br><span class="line"><span class="code">    MEMBER_HOST, MEMBER_PORT</span></span><br><span class="line">FROM</span><br><span class="line"><span class="code">    performance_schema.replication_group_members</span></span><br><span class="line">WHERE</span><br><span class="line"><span class="code">    MEMBER_ID = (SELECT </span></span><br><span class="line"><span class="code">            VARIABLE_VALUE</span></span><br><span class="line"><span class="code">        FROM</span></span><br><span class="line"><span class="code">            performance_schema.global_status</span></span><br><span class="line"><span class="code">        WHERE</span></span><br><span class="line"><span class="code">            VARIABLE_NAME = &#x27;group_replication_primary_member&#x27;);</span></span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| MEMBER<span class="emphasis">_HOST | MEMBER_</span>PORT |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| ol7         |        3306 |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>或者获取全部成员信息:<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">SELECT </span><br><span class="line"><span class="code">    MEMBER_ID,</span></span><br><span class="line"><span class="code">    MEMBER_HOST,</span></span><br><span class="line"><span class="code">    MEMBER_PORT,</span></span><br><span class="line"><span class="code">    MEMBER_STATE,</span></span><br><span class="line"><span class="code">    IF(global_status.VARIABLE_NAME IS NOT NULL,</span></span><br><span class="line"><span class="code">        &#x27;PRIMARY&#x27;,</span></span><br><span class="line"><span class="code">        &#x27;SECONDARY&#x27;) AS MEMBER_ROLE</span></span><br><span class="line">FROM</span><br><span class="line"><span class="code">    performance_schema.replication_group_members</span></span><br><span class="line"><span class="code">        LEFT JOIN</span></span><br><span class="line"><span class="code">    performance_schema.global_status ON global_status.VARIABLE_NAME = &#x27;group_replication_primary_member&#x27;</span></span><br><span class="line"><span class="code">        AND global_status.VARIABLE_VALUE = replication_group_members.MEMBER_ID;</span></span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span></span><br><span class="line">| MEMBER<span class="emphasis">_ID                            | MEMBER_</span>HOST | MEMBER<span class="emphasis">_PORT | MEMBER_</span>STATE | MEMBER<span class="emphasis">_ROLE |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+-------------+-------------+--------------+-------------+</span></span><br><span class="line"><span class="emphasis">| 9d7f8c28-c02c-11e6-9829-08002715584a | ol7         |        3306 | ONLINE       | PRIMARY     |</span></span><br><span class="line"><span class="emphasis">| f2bbb11d-c0c4-11e6-98ec-08002715584a | ol7         |        3308 | ONLINE       | SECONDARY   |</span></span><br><span class="line"><span class="emphasis">| f5bb7d78-c02c-11e6-9c56-08002715584a | ol7         |        3307 | ONLINE       | SECONDARY   |</span></span><br><span class="line"><span class="emphasis">+--------------------------------------+-------------+-------------+--------------+-------------+</span></span><br><span class="line"><span class="emphasis">3 rows in set (0.00 sec)</span></span><br></pre></td></tr></table></figure></p>
-<h2 id="MySQL-8-0-2-and-Later"><a href="#MySQL-8-0-2-and-Later" class="headerlink" title="MySQL 8.0.2 and Later"></a>MySQL 8.0.2 and Later</h2><p>MySQL 8.0.2开始, <a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/group-replication-extending-group-replication-performance_schema-tables/">Performance Schema被扩展</a><br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT MEMBER<span class="emphasis">_HOST, MEMBER_</span>PORT</span><br><span class="line"><span class="code">         FROM performance_schema.replication_group_members</span></span><br><span class="line"><span class="code">        WHERE MEMBER_ROLE = &#x27;PRIMARY&#x27;;</span></span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| MEMBER<span class="emphasis">_HOST | MEMBER_</span>PORT |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">| ol7         |        3306 |</span><br><span class="line"><span class="code">+-------------+</span>-------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure><br>或者获取全部成员信息:<br><figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT MEMBER<span class="emphasis">_ID, MEMBER_</span>HOST, MEMBER<span class="emphasis">_PORT, MEMBER_</span>STATE, MEMBER<span class="emphasis">_ROLE, MEMBER_</span>VERSION</span><br><span class="line"><span class="code">         FROM performance_schema.replication_group_members;</span></span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span>----------------+</span><br><span class="line">| MEMBER<span class="emphasis">_ID                            | MEMBER_</span>HOST | MEMBER<span class="emphasis">_PORT | MEMBER_</span>STATE | MEMBER<span class="emphasis">_ROLE | MEMBER_</span>VERSION |</span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span>----------------+</span><br><span class="line">| 33565eab-731f-11e7-8e94-08002715584a | ol7         |        3307 | ONLINE       | SECONDARY   | 8.0.2          |</span><br><span class="line">| 86034b0a-731f-11e7-9f33-08002715584a | ol7         |        3308 | ONLINE       | SECONDARY   | 8.0.2          |</span><br><span class="line">| a45d3804-731e-11e7-9003-08002715584a | ol7         |        3306 | ONLINE       | PRIMARY     | 8.0.2          |</span><br><span class="line"><span class="code">+--------------------------------------+</span>-------------<span class="code">+-------------+</span>--------------<span class="code">+-------------+</span>----------------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure></p>
-<blockquote>
-<p>References<br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/group-replication-find-primary.html">https://dev.mysql.com/doc/refman/en/group-replication-find-primary.html</a><br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/group-replication-options.html#sysvar_group_replication_single_primary_mode">https://dev.mysql.com/doc/refman/en/group-replication-options.html#sysvar_group_replication_single_primary_mode</a><br><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/en/replication-group-members-table.html">https://dev.mysql.com/doc/refman/en/replication-group-members-table.html</a><br><a target="_blank" rel="noopener" href="http://mysqlhighavailability.com/group-replication-extending-group-replication-performance_schema-tables/">http://mysqlhighavailability.com/group-replication-extending-group-replication-performance_schema-tables/</a><br><a target="_blank" rel="noopener" href="http://lefred.be/content/mysql-group-replication-who-is-the-primary-master-updated/">http://lefred.be/content/mysql-group-replication-who-is-the-primary-master-updated/</a> </p>
-</blockquote>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-执行sql文件限制频率避免流控"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/08/20/%E6%89%A7%E8%A1%8Csql%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6%E9%A2%91%E7%8E%87%E9%81%BF%E5%85%8D%E6%B5%81%E6%8E%A7/">执行sql文件限制频率避免流控</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/08/20/%E6%89%A7%E8%A1%8Csql%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6%E9%A2%91%E7%8E%87%E9%81%BF%E5%85%8D%E6%B5%81%E6%8E%A7/" class="article-date">
-	  <time datetime="2018-08-20T15:04:00.000Z" itemprop="datePublished">2018-08-20</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="避免流控"><a href="#避免流控" class="headerlink" title="避免流控"></a>避免流控</h2><p>对于pxc, 为了避免流控, 可以在导入.sql文件时, 先对文件做处理<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">awk</span> &#x27;<span class="number">1</span>;NR%<span class="number">1000</span>==<span class="number">0</span>&#123;print <span class="string">&quot;select sleep(1);&quot;</span>&#125;&#x27; xxx.sql &gt; xxx_dba.sql</span><br></pre></td></tr></table></figure><br>上面的命令每1000行增加一行<code>select sleep(1);</code>, 这样执行频率是1k/s</p>
-<p>对于mysqldump产生的sql文件, 则需要在导出是指定<br><figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump --<span class="meta">skip</span>-extended-<span class="meta">insert</span></span><br></pre></td></tr></table></figure><br>每行一个insert语句, 之后再使用awk处理</p>
-<p>使用pt-fifo-split</p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">FLAT_FILE</span>=<span class="string">&quot;/tmp/big_file.txt&quot;</span></span><br><span class="line"><span class="attribute">FIFO_PATH</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.fifo&quot;</span></span><br><span class="line"><span class="attribute">LOAD_FILE</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.load&quot;</span></span><br><span class="line"><span class="attribute">CHUNK_SIZE</span>=1000</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Split the file</span></span><br><span class="line">pt-fifo-split --force --lines <span class="variable">$&#123;CHUNK_SIZE&#125;</span> <span class="variable">$&#123;FLAT_FILE&#125;</span> --fifo <span class="variable">$&#123;FIFO_PATH&#125;</span> &amp;</span><br><span class="line"><span class="comment"># Sleep 10 seconds to assure $&#123;FIFO_PATH&#125; exists before entering loop</span></span><br><span class="line">sleep 10</span><br><span class="line"><span class="keyword">while</span> [ -e <span class="variable">$&#123;FIFO_PATH&#125;</span> ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  # Write chunk <span class="keyword">to</span> disk</span><br><span class="line">  cat <span class="variable">$&#123;FIFO_PATH&#125;</span> &gt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  # Load chunk into table</span><br><span class="line">  mysql <span class="attribute">--database</span>=test \</span><br><span class="line">   --show-warnings \</span><br><span class="line">   -vv &lt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  sleep 1</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-Write-set Cache(GCache)"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/06/02/Write-set%20Cache(GCache)/">Write-set Cache(GCache)</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/06/02/Write-set%20Cache(GCache)/" class="article-date">
-	  <time datetime="2018-06-02T05:23:00.000Z" itemprop="datePublished">2018-06-02</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="Write-set-Cache-GCache"><a href="#Write-set-Cache-GCache" class="headerlink" title="Write-set Cache(GCache)"></a>Write-set Cache(GCache)</h3><p>Galear Cluster将write-sets存储在一个称为<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/glossary.html#term-write-set-cache">Write-set Cache</a>(或称为GCache)的特殊的cache中. GCache cache is a memory allocator for write-sets.主要目的是为了最大限度地减少RAM上的<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/glossary.html#term-write-set">write-set</a>footprint. Galera集群通过将卸载写入集存储到磁盘来改善此问题.</p>
-<p>GCache采用三种类型的存储：</p>
+<p>上述命令执行以下工作:</p>
 <ul>
-<li><p><strong>Permanent In-Memory Store </strong>Here write-sets allocate using the default memory allocator for the operating system. This is useful in systems that have spare RAM. The store has a hard size limit.</p>
-<p>By default it is disabled.</p>
-<p>这个就是说可以用操作系统的内存空间, 对于有空闲内存的系统比较合适. 这个空间大小有一个硬性的限制, 貌似是这个参数gcache.mem_size=0[^1]</p>
-<p>默认不使用内存.</p>
-</li>
-<li><p><strong>Permanent Ring-Buffer File</strong> Here write-sets pre-allocate to disk during cache initialization. This is intended as the main write-set store.</p>
-<p>这一个块循环使用的区域, 是写到磁盘上的 , 貌似是这个参数gcache.size = 128M<a href="Galera复制的事务缓存大小。这定义了用作IST源的galera.cache文件的大小。此变量的值越大，重新加入节点将获得IST而不是SST的机会就越好。">^2</a></p>
-</li>
-<li><p><strong>On-Demand Page Store</strong> 这里写集根据需要在运行时分配给内存映射的页面文件。   默认情况下，其大小为128Mb(gcache.page_size[^3])，但如果需要存储更大的写入集，则可能会更大。页面存储的大小受可用磁盘空间的限制。默认情况下，Galera Cluster会在不使用时删除页面文件，但您可以对要保留的页面文件的总大小设置限制。 </p>
-<p>When all other stores are disabled, at least one page file remains present on disk.</p>
-</li>
+<li><code>docker create</code>命令指示Docker守护程序从映像创建一个容器.</li>
+<li><code>-v</code>选项初始化容器的数据卷.</li>
+<li><code>--name</code>选项为可用于引用Docker网络中的容器的容器分配一个自定义名称。 在次数为：pmm-data.</li>
+<li><code>percona/pmm-server:1.5.2</code>是导出容器的映像的名称和版本标签.</li>
+<li><code>/bin/true</code>是容器运行命令</li>
 </ul>
-<p>Galera集群使用分配算法，尝试按上述顺序存储写入集。也就是说，它首先尝试使用永久性内存存储。如果写入集没有足够的空间，它将尝试存储到永久环形缓冲区文件。页面存储总是成功，除非写入集大于可用磁盘空间。</p>
+<h4 id="Step-2-Create-and-Run-the-PMM-Server-Container"><a href="#Step-2-Create-and-Run-the-PMM-Server-Container" class="headerlink" title="Step 2.Create and Run the PMM Server Container"></a>Step 2.Create and Run the PMM Server Container</h4><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="builtin-name">run</span> -d \</span><br><span class="line">  -p 80:80 \</span><br><span class="line">  --volumes-from pmm-data \</span><br><span class="line">  --name pmm-server \</span><br><span class="line">  -e <span class="attribute">SERVER_USER</span>=hehe \</span><br><span class="line">  -e <span class="attribute">SERVER_PASSWORD</span>=ninainaide \</span><br><span class="line">  -e <span class="attribute">METRICS_RETENTION</span>=4320h \</span><br><span class="line">  -e <span class="attribute">METRICS_MEMORY</span>=35651584 \</span><br><span class="line">  -e <span class="attribute">METRICS_RESOLUTION</span>=3s \</span><br><span class="line">  -e <span class="attribute">DISABLE_TELEMETRY</span>=<span class="literal">true</span> \</span><br><span class="line">  --restart always \</span><br><span class="line">  percona/pmm-server:1.5.2</span><br></pre></td></tr></table></figure>
+<p>上述命令执行以下工作:</p>
+<ul>
+<li><code>docker run</code>命令指示docker守护程序从映像运行容器。</li>
+<li><code>-d</code>选项以分离模式（即后台）启动容器。</li>
+<li><code>-p</code>选项映射用于访问PMM服务器Web UI的端口。 例如，如果端口80不可用，则可以使用-p 8080：80将着陆页映射到端口8080。</li>
+<li><code>--volumes-from</code>选项从pmm-data容器中装载卷（请参阅步骤1.创建一个PMM数据容器）。</li>
+<li><code>—name</code>选项为可用于引用Docker网络中的容器的容器分配一个自定义名称。 在这种情况下：pmm-server。</li>
+<li><code>—restart</code>选项定义容器的重新启动策略。 设置它始终确保Docker守护程序在启动时启动容器，并在容器退出时重新启动它。</li>
+<li><code>percona / pmm-server:1.5.2</code>是导出容器的映像的名称和版本标签。</li>
+<li><code>-e</code> SERVER_USER SERVER_PASSWORD是为了安全，设置访问PMM web页面所需的用户名和密码(否则任何有你pmm地址的人都可以访问) <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/security.html">Security Features in Percona Monitoring and Management</a></li>
+<li><code>-e</code> METRICS_MEMORY 默认prometheus使用768M内存存储最近的data chunks 使用此参数设置 具体参考<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/faq.html#id3">How to control memory consumption for PMM?</a></li>
+<li><code>-e</code> METRICS_RESOLUTION pmm-server 和 client 网络不太好的话把这个值设大一点 1~5s 超过5s promethes无法启动 具体参考<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/faq.html#id16">What resolution is used for metrics?</a></li>
+</ul>
+<p><span style="color:#ffffff;" id="client"></span></p>
+<h2 id="2-在所有需要监控的服务器安装PMM-Client"><a href="#2-在所有需要监控的服务器安装PMM-Client" class="headerlink" title="2.在所有需要监控的服务器安装PMM Client"></a>2.在所有需要监控的服务器安装PMM Client</h2><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">安装percona源</span><br><span class="line">rpm -ivh https:<span class="regexp">//</span>www.percona.com<span class="regexp">/downloads/</span>percona-release<span class="regexp">/redhat/</span><span class="number">0.1</span>-<span class="number">4</span>/percona-release-<span class="number">0.1</span>-<span class="number">4</span>.noarch.rpm</span><br><span class="line">sudo yum install pmm-client</span><br></pre></td></tr></table></figure>
+<p><span style="color:#ffffff;" id="connect"></span></p>
+<h2 id="3-Connect-PMM-Client-to-PMM-Server"><a href="#3-Connect-PMM-Client-to-PMM-Server" class="headerlink" title="3.Connect PMM Client to PMM Server"></a>3.Connect PMM Client to PMM Server</h2><p>在安装完PMM Client后,它并不会自动连接PMM Server.</p>
+<p>要将客户端连接到PMM服务器，请使用pmm-admin config –server命令指定IP地址。 例如，如果PMM服务器在192.168.100.1上运行，并且在IP 192.168.200.1的计算机上安装了PMM Client：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pmm-admin<span class="built_in"> config </span>--server 192.168.100.1 --server-user jsmith --server-password pass1234</span><br><span class="line">OK, PMM<span class="built_in"> server </span>is alive.</span><br><span class="line"></span><br><span class="line">PMM<span class="built_in"> Server </span>     | 192.168.100.1</span><br><span class="line">Client Name    | ubuntu-amd64</span><br><span class="line">Client<span class="built_in"> Address </span> | 192.168.200.1</span><br></pre></td></tr></table></figure>
 <blockquote>
-<p>Galera Cluster uses an allocation algorithm that attempts to store write-sets in the above order. That is, first it attempts to use permanent in-memory store. If there is not enough space for the write-set, it attempts to store to the permanent ring-buffer file. The page store always succeeds, unless the write-set is larger than the available disk space.</p>
+<p>Note</p>
+<p>If you changed the default port 80 when <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/deploy/run-pmm-server">running PMM Server</a>, specify it after the server’s IP address. For example:</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pmm-admin<span class="built_in"> config </span>--server 192.168.100.1:8080 --server-user jsmith --server-password pass1234</span><br></pre></td></tr></table></figure>
+<p>可以添加–client-name参数指定客户端名称,否则为主机名,但是像ECS那样的默认主机名<code>iZbp1igpeohje7z5ugkdr9Z</code>肯定不是我们想要的<br><span style="color:#ffffff;" id="collection"></span></p>
 </blockquote>
-<p>默认情况下，写集缓存分配进程工作目录中的文件。您可以使用<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/galeraparameters.html#gcache-dir">gcache.dir</a>参数指定写入集缓存的专用位置.</p>
-<p>[^1]: Deprecated in 5.6.22-25.8 . This variable has been deprecated and shouldn’t be used as it could cause a node to crash.</p>
-<p><img src="/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180601165051861.png" alt="image-20180601165051861"></p>
-<p>当节点接收状态传输时，它们不能处理传入的写集，直到它们完成状态更新。在某些方法下，发送状态转移的节点也被阻塞。为防止数据库进一步落后，GCache将内存映射文件中的传入写入集保存到磁盘。   此参数定义要为当前环形缓冲区存储分配的磁盘空间量。节点在启动数据库服务器时分配此空间。</p>
-<p>[^3]: This variable can be used to specify the size of the page files in the page storage.</p>
-<p><img src="/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180601165332896.png" alt="image-20180601165332896"></p>
+<h2 id="4-Start-data-collection"><a href="#4-Start-data-collection" class="headerlink" title="4.Start data collection"></a>4.Start data collection</h2><p>After you <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/deploy/connect-client.html#connect-client">connect the client to PMM Server</a>, enable data collection from the database instance by <a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-monitoring-and-management/pmm-admin.html#pmm-admin-add">adding a monitoring service</a>.</p>
+<p>To enable general system metrics, MySQL metrics, and MySQL query analytics, run:</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo pmm-admin add mysql --user mysql --password mysql --socket <span class="regexp">/data/my</span>sqldata<span class="regexp">/3306/my</span>sql.sock</span><br></pre></td></tr></table></figure>
+<p>To enable general system metrics, MongoDB metrics, and MongoDB query analytics, run:</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo pmm-admin --dev-<span class="builtin-name">enable</span> <span class="builtin-name">add</span> mongodb</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note</p>
+<p>MongoDB查询分析是实验性的，在添加时需要–dev-enable选项。 没有此选项，则只会添加一般系统指标和MongoDB指标.</p>
+</blockquote>
+<p>To enable ProxySQL performance metrics, run:</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo pmm-admin <span class="keyword">add</span><span class="bash"> proxysql:metrics</span></span><br></pre></td></tr></table></figure>
+<p>要查看正在监控的内容，请运行:</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo pmm-admin <span class="built_in">list</span></span><br></pre></td></tr></table></figure>
+<p>举例你开启了系统和MongoDB指标监控,会产生类似下面的输出:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo pmm-admin list</span></span><br><span class="line">pmm-admin 1.1.3</span><br><span class="line"></span><br><span class="line">PMM Server      | 192.168.100.1</span><br><span class="line">Client Name    | ubuntu-amd64</span><br><span class="line">Client Address  | 192.168.200.1</span><br><span class="line">Service manager | linux-systemd</span><br><span class="line"></span><br><span class="line">---------------- ----------- ----------- -------- ---------------- --------</span><br><span class="line">SERVICE TYPE    NAME        LOCAL PORT  RUNNING  DATA SOURCE      OPTIONS</span><br><span class="line">---------------- ----------- ----------- -------- ---------------- --------</span><br><span class="line">linux:metrics    mongo-main  42000      YES      -</span><br><span class="line">mongodb:metrics  mongo-main  42003      YES      localhost:27017</span><br></pre></td></tr></table></figure>
+<p>有关添加实例的更多信息，请运行<code>pmm-admin add —help</code>.</p>
+<p>装完一定要用<code>pmm-admin check-network</code>检查,下面的是正常的<br><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">[root@iZbp1igpeohje7z5ugkdr9Z log]# pmm-admin check-network</span><br><span class="line">PMM<span class="built_in"> Network </span>Status</span><br><span class="line"></span><br><span class="line">Server<span class="built_in"> Address </span>| xx.xx.xx.xx</span><br><span class="line">Client<span class="built_in"> Address </span>| xx.xx.xx.xx </span><br><span class="line"></span><br><span class="line">*<span class="built_in"> System </span>Time</span><br><span class="line">NTP<span class="built_in"> Server </span>(0.pool.ntp.org)        | 2017-09-28 15:44:39 +0800 CST</span><br><span class="line">PMM<span class="built_in"> Server </span>                         | 2017-09-28 07:44:38 +0000 GMT</span><br><span class="line">PMM<span class="built_in"> Client </span>                         | 2017-09-28 15:44:39 +0800 CST</span><br><span class="line">PMM<span class="built_in"> Server </span>Time Drift              | OK</span><br><span class="line">PMM<span class="built_in"> Client </span>Time Drift              | OK</span><br><span class="line">PMM<span class="built_in"> Client </span><span class="keyword">to</span> PMM<span class="built_in"> Server </span>Time Drift | OK</span><br><span class="line"></span><br><span class="line">* Connection:<span class="built_in"> Client </span>--&gt; Server</span><br><span class="line">-------------------- -------      </span><br><span class="line">SERVER<span class="built_in"> SERVICE </span>     STATUS      </span><br><span class="line">-------------------- -------      </span><br><span class="line">Consul API          OK</span><br><span class="line">Prometheus API      OK</span><br><span class="line">Query Analytics API  OK</span><br><span class="line"></span><br><span class="line">Connection duration | 31.032856ms</span><br><span class="line">Request duration    | 31.557981ms</span><br><span class="line">Full round trip    | 62.590837ms</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">* Connection:<span class="built_in"> Client </span>&lt;-- Server</span><br><span class="line">-------------- ---------- -------------------- ------- ---------- ---------</span><br><span class="line">SERVICE<span class="built_in"> TYPE </span> NAME      REMOTE ENDPOINT      STATUS  HTTPS/TLS  PASSWORD </span><br><span class="line">-------------- ---------- -------------------- ------- ---------- ---------</span><br><span class="line">linux:metrics  pt_slave5  101.37.14.213:42000  OK      <span class="literal">YES</span>        -        </span><br><span class="line">mysql:metrics  pt_slave5  101.37.14.213:42002  OK      <span class="literal">YES</span>        -        </span><br></pre></td></tr></table></figure><br>修改容器时区(你试试不改时区grafana邮件告警的时候时间对吗 :) )<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp <span class="regexp">/usr/</span>share<span class="regexp">/zoneinfo/</span>Asia<span class="regexp">/Shanghai /</span>etc/localtime</span><br></pre></td></tr></table></figure></p>
+<p>重启<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>test2 ~]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED            STATUS                      PORTS                        NAMES</span><br><span class="line"><span class="number">69195</span>dca404b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/opt/entrypoint.sh&quot;</span>  <span class="number">28</span> hours ago        Exited (<span class="number">128</span>) <span class="number">6</span> minutes ago  <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:<span class="number">80</span>-&gt;<span class="number">80</span>/tcp, <span class="number">443</span>/tcp  pmm-server          </span><br><span class="line"><span class="number">094</span>c63bd911b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/bin/true&quot;</span>            <span class="number">28</span> hours ago                                                                  pmm-data            </span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker start <span class="number">69195</span>dca404b</span><br><span class="line">Error response <span class="keyword">from</span> daemon: Cannot start container <span class="number">69195</span>dca404b: Error getting container <span class="number">69195</span>dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03 <span class="keyword">from</span> driver devicemapper: Error mounting <span class="string">&#x27;/dev/mapper/docker-253:0-6947028-69195dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03&#x27;</span> on <span class="string">&#x27;/var/lib/docker/devicemapper/mnt/69195dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03&#x27;</span>: device <span class="keyword">or</span> resource busy</span><br><span class="line">Error: failed to start containers: [<span class="number">69195</span>dca404b]</span><br><span class="line"></span><br><span class="line">umount /var/lib/docker/devicemapper/mnt/<span class="number">69195</span>dca404bc607fa12a9cd6436a9786a71dcf226a0e4c1d6bf0b9879a14f03</span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED            STATUS                      PORTS                        NAMES</span><br><span class="line"><span class="number">69195</span>dca404b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/opt/entrypoint.sh&quot;</span>  <span class="number">28</span> hours ago        Exited (<span class="number">128</span>) <span class="number">8</span> minutes ago  <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:<span class="number">80</span>-&gt;<span class="number">80</span>/tcp, <span class="number">443</span>/tcp  pmm-server          </span><br><span class="line"><span class="number">094</span>c63bd911b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/bin/true&quot;</span>            <span class="number">28</span> hours ago                                                                  pmm-data            </span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker start <span class="number">69195</span>dca404b</span><br><span class="line"><span class="number">69195</span>dca404b</span><br><span class="line">[<span class="symbol">root@</span>test2 ~]# docker ps -a</span><br><span class="line">CONTAINER ID        IMAGE                      COMMAND                CREATED            STATUS              PORTS                        NAMES</span><br><span class="line"><span class="number">69195</span>dca404b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/opt/entrypoint.sh&quot;</span>  <span class="number">28</span> hours ago        Up <span class="number">5</span> seconds        <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:<span class="number">80</span>-&gt;<span class="number">80</span>/tcp, <span class="number">443</span>/tcp  pmm-server          </span><br><span class="line"><span class="number">094</span>c63bd911b        percona/pmm-server:<span class="number">1.5</span><span class="number">.2</span>  <span class="string">&quot;/bin/true&quot;</span>            <span class="number">28</span> hours ago                                                          pmm-data          </span><br></pre></td></tr></table></figure></p>
 
       
     </div>
@@ -615,7 +684,7 @@
 
 
   
-    <article id="post-gcache.freeze_purge_at_seqno"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-MHA在监控和故障转移时都做了什么"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -623,7 +692,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/06/02/gcache.freeze_purge_at_seqno/">Want IST Not SST for Node Rejoins? We Have a Solution!</a>
+      <a class="article-title" href="/2017/07/24/MHA%E5%9C%A8%E7%9B%91%E6%8E%A7%E5%92%8C%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB%E6%97%B6%E9%83%BD%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88/">MHA在监控和故障转移时都做了什么</a>
     </h1>
   
 
@@ -631,8 +700,8 @@
     
     <div class="article-meta">
       
-	<a href="/2018/06/02/gcache.freeze_purge_at_seqno/" class="article-date">
-	  <time datetime="2018-06-02T04:23:00.000Z" itemprop="datePublished">2018-06-02</time>
+	<a href="/2017/07/24/MHA%E5%9C%A8%E7%9B%91%E6%8E%A7%E5%92%8C%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB%E6%97%B6%E9%83%BD%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88/" class="article-date">
+	  <time datetime="2017-07-24T14:00:00.000Z" itemprop="datePublished">2017-07-24</time>
 	</a>
 
       
@@ -642,32 +711,210 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Want-IST-Not-SST-for-Node-Rejoins-We-Have-a-Solution"><a href="#Want-IST-Not-SST-for-Node-Rejoins-We-Have-a-Solution" class="headerlink" title="Want IST Not SST for Node Rejoins? We Have a Solution!"></a>Want IST Not SST for Node Rejoins? We Have a Solution!</h1><p><a target="_blank" rel="noopener" href="https://www.percona.com/blog/author/krunal-bauskar/">Krunal Bauskar</a> | February 13, 2018 |  Posted In: <a target="_blank" rel="noopener" href="https://www.percona.com/blog/category/high-availability/">High-availability</a>, <a target="_blank" rel="noopener" href="https://www.percona.com/blog/category/mysql/">MySQL</a>, <a target="_blank" rel="noopener" href="https://www.percona.com/blog/category/percona-xtradb-cluster/">Percona XtraDB Cluster</a></p>
-<p>如果我们告诉你，有一种确定的方法可以让节点rejoin使用IST而不是SST？您可以保证新节点使用IST重新加入. 听起来很有趣？请继续阅读.</p>
-<p>通常当一个节点脱离集群一段时间(处于维护目的或就是shutdown了), 集群上其他节点的gcache将用来在前者重新加入集群时提供前者在脱离期间缺失的write-set(s). 如果您配置了较大的gcache, 或downtime足够段, 则此方法可行. 对于生产环境来说, 无论是设置较大的gcache或者缩短停机窗口都不够好.</p>
-<p>在停机之前在潜在的DONOR节点上重新配置gcache需要关闭节点.(gcache不能动态调整大小), Restoring it back to original size needs another shutdown. So “<strong>three shutdowns</strong>” for a single downtime. <strong>*No way …… not acceptable with busy production clusters and the possibility of more errors.*</strong></p>
-<h2 id="Introducing-“gcache-freeze-purge-at-seqno”"><a href="#Introducing-“gcache-freeze-purge-at-seqno”" class="headerlink" title="Introducing “gcache.freeze_purge_at_seqno”"></a><strong>Introducing “gcache.freeze_purge_at_seqno”</strong></h2><p>基于以上痛点, 我们在<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2018/01/26/percona-xtradb-cluster-5-7-20-29-24-is-now-available/">Percona XtraDB Cluster 5.7.20</a>引入了<strong>gcache.freeze_purge_at_seqno</strong>.这将控制清除gcache, 从而在节点重新加入时保留更多的数据以促进IST.</p>
-<p>Galera集群世界中的所有事务都被分配了唯一的全局序列号（seqno）.跟踪事情发生使用此seqno（如wsrep_last_applied，wsrep_last_committed，wsrep_replicated，wsrep_local_cached_downto等<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.7/wsrep-status-index.html">^1</a>）.wsrep_local_cached_downto表示gcache已被清除的序列号。假设wsrep_local_cached_downto = N，那么gcache具有来自[N，wsrep_replicated]的数据, 并清除了[1，N)数据。</p>
-<p>gcache.freeze_purge_at_seqno takes three values:</p>
-<pre><code>1. -1(默认值): no freeze, the purge operates as normal.
-2. **x (should be valid seqno in gcache):** freeze purge of write-sets &gt;= x. The best way to select x is to use the wsrep_last_applied value as an indicator from the node that you plan to shut down. (wsrep_applied * 0.09. Retain this extra 10% to trick the [safety gap heuristic algorithm of IST](https://www.percona.com/blog/2017/11/15/understanding-ist-donor-selected/).)
-3. **now:** freeze purge of write-sets &amp;gt;= smallest seqno currently in gcache. Instant freeze of gcache-purge. (If tracing x (above) is difficult, simply use “now” and you are good).
-</code></pre><p>在集群的现有节点上进行设置（这将继续作为集群的一部分，并可以充当潜在的捐助者）。该节点继续保留写集，从而允许重启节点使用IST重新加入。 （您可以在重启需要rejoin的节点时通过指定<code>—wsrep_sst_donor</code>将该节点作为首选DONOR进行提供）</p>
+        <h2 id="MHA在监控和故障转移时都做了什么"><a href="#MHA在监控和故障转移时都做了什么" class="headerlink" title="MHA在监控和故障转移时都做了什么"></a>MHA在监控和故障转移时都做了什么</h2><p>以下是MHA(masterha_manager)在监控和故障切换上的基本流程</p>
+<h3 id="验证复制配置和识别当前主库"><a href="#验证复制配置和识别当前主库" class="headerlink" title="验证复制配置和识别当前主库"></a>验证复制配置和识别当前主库</h3><ul>
+<li><p>通过连接配置文件中描述的所有主机来识别当前主库.你不必手动指明那个主句是主库,MHA会自动检查复制设置并识别当前主库.</p>
 <blockquote>
-<p>Set this on an existing node of the cluster (that will continue to be part of the cluster and can act as potential DONOR). This node continues to retain the write-sets, thereby allowing the restarting node to rejoin using IST. (You can feed the said node as a preferred DONOR through wsrep_sst_donor while restarting the said rejoining node.)</p>
+<p>注意:MHA本身不能构建复制环境,MHA监控已存在的复制环境</p>
 </blockquote>
-<p>请记住，一旦节点重新加入，请将其设回-1。这可以避免超出上述时间表的DONOR上的占用空间。在下一个清除周期中，所有旧的保留写入集也会被释放（回收空间回到原始状态）.</p>
-<p>Note:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">To find out existing value of gcache.freeze_purge_at_seqno query wsrep_provider_options.</span><br><span class="line"><span class="keyword">select</span> @@wsrep_provider_options;</span><br><span class="line"></span><br><span class="line">To <span class="keyword">set</span> gcache.freeze_purge_at_seqno</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> wsrep_provider_options=<span class="string">&quot;gcache.freeze_purge_at_seqno = now&quot;</span>;</span><br></pre></td></tr></table></figure>
-<h2 id="Why-should-you-use-it"><a href="#Why-should-you-use-it" class="headerlink" title="Why should you use it?"></a>Why should you use it?</h2><ul>
-<li>gcache动态增长（使用现有的页面存储机制），并在用户将其设置回-1时收缩。这意味着您只在需要时使用(更多的)磁盘空间.</li>
-<li>不需要重新启动. 用户只需专注于需要维护的节点.</li>
-<li>No complex math or understanding of seqno involved (simply use “now”).</li>
-<li>Less prone to error, as SST is one of the major error-prone areas with the cluster.</li>
-</ul>
-<p>So why wait? Give it a try! It is part of <a target="_blank" rel="noopener" href="https://www.percona.com/blog/2018/01/26/percona-xtradb-cluster-5-7-20-29-24-is-now-available/">Percona XtraDB Cluster 5.7.20</a> onwards, and helps you get IST not SST for node rejoins</p>
-<p>Note: If you need more information about gcache, check <a target="_blank" rel="noopener" href="https://www.percona.com/blog/2016/11/16/all-you-need-to-know-about-gcache-galera-cache/">here</a> and <a target="_blank" rel="noopener" href="https://www.percona.com/blog/2017/11/15/understanding-ist-donor-selected/">here</a></p>
+</li>
+<li><p>If any slave is dead at this stage, terminating the script for safety reasons(If any slave is dead, MHA can not recover the dead slave, of course). 开启监控时任何slave发生故障都会导致监控退出,MHA并不能修复从库</p>
+</li>
+<li><p>如果任何必要的脚本没有安装在所有Node,MHA abort而不会启动监控</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
 
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-MHA 配置文件"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/07/20/MHA%20%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/">MHA配置文件</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/20/MHA%20%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/" class="article-date">
+	  <time datetime="2017-07-20T14:00:00.000Z" itemprop="datePublished">2017-07-20</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="MHA-配置文件"><a href="#MHA-配置文件" class="headerlink" title="MHA 配置文件"></a>MHA 配置文件</h2><ul>
+<li><a href="#1">创建application配置文件</a></li>
+<li><a href="#2">创建global配置文件</a></li>
+<li><a href="#3">Binlog server</a></li>
+</ul>
+<p><span style="color:#ffffff;" id="1"></span></p>
+<h3 id="创建application配置文件"><a href="#创建application配置文件" class="headerlink" title="创建application配置文件"></a>创建application配置文件</h3><p>示例<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-masterha_manager参数说明"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/07/20/masterha_manager%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E/">masterha_manager参数说明</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/20/masterha_manager%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E/" class="article-date">
+	  <time datetime="2017-07-20T14:00:00.000Z" itemprop="datePublished">2017-07-20</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="masterha-manager-Command-to-run-MHA-Manager"><a href="#masterha-manager-Command-to-run-MHA-Manager" class="headerlink" title="masterha_manager: Command to run MHA Manager"></a>masterha_manager: Command to run MHA Manager</h2><p>MHA Manager can be started by executing masterha_manager command.</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># masterha_manager --conf=<span class="regexp">/etc/</span>conf<span class="regexp">/masterha/</span>app1.cnf</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>masterha_manager takes below arguments.</p>
+<h2 id="Common-arguments"><a href="#Common-arguments" class="headerlink" title="Common arguments"></a>Common arguments</h2>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-MHA Tutorial"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/07/19/MHA%20Tutorial/">MHA Tutorial</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/19/MHA%20Tutorial/" class="article-date">
+	  <time datetime="2017-07-19T15:00:00.000Z" itemprop="datePublished">2017-07-19</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="MHA-Tutorial"><a href="#MHA-Tutorial" class="headerlink" title="MHA Tutorial"></a>MHA Tutorial</h2><h3 id="简单故障转移"><a href="#简单故障转移" class="headerlink" title="简单故障转移"></a>简单故障转移</h3><h4 id="构建复制环境"><a href="#构建复制环境" class="headerlink" title="构建复制环境"></a>构建复制环境</h4><p>MHA不会帮你搭建复制环境,所以你需要自己搭建复制.换句话说,你可以在已有环境中使用MHA.举个例子,假设有四台主机:host1,host2,host3,host4.主库运行在host1,两个从库分别运行在host2和host3,而host4负责运行MHA Manager.</p>
+<h4 id="在host1-host4安装MHA-Node"><a href="#在host1-host4安装MHA-Node" class="headerlink" title="在host1-host4安装MHA Node"></a>在host1-host4安装MHA Node</h4><p>See <a target="_blank" rel="noopener" href="https://github.com/yoshinorim/mha4mysql-manager/wiki/Installation#Installing_MHA_Node">Installing MHA Node</a><br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-MHA Overview"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/07/19/MHA%20Overview/">MHA Overview</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/07/19/MHA%20Overview/" class="article-date">
+	  <time datetime="2017-07-19T14:00:00.000Z" itemprop="datePublished">2017-07-19</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="MHA概览"><a href="#MHA概览" class="headerlink" title="MHA概览"></a>MHA概览</h2><p>MHA能够实现自动化的master failover和从库升级为new master,通常这一过程只需要10-30秒的停机时间.MHA最大程度保证了数据一致性,对性能零影响,易于安装,并且不需要改变现有部署情况.</p>
+<p>MHA支持计划性在线主库切换,在短时间内(0.5-2秒)的停机时间(仅限阻塞写入)，将当前运行的主机安全地更改为新主机.</p>
+<p>MHA提供以下功能,并且可用于需要高可用性,数据完整性和近乎不间断主库维护的许多部署中.</p>
+<ul>
+<li><p>Automated master monitoring and failover</p>
       
     </div>
     <footer class="article-footer">
@@ -690,7 +937,7 @@
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/9/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><a class="page-number" href="/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/11/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/9/">« 上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/11/">下一页 »</a>
   </nav>
 
 </section>

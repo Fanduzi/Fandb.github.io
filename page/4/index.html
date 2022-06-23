@@ -65,7 +65,7 @@
     <link rel="stylesheet" href="/css/vdonate.css" >
   
 
-<meta name="generator" content="Hexo 5.1.1"></head>
+<meta name="generator" content="Hexo 6.2.0"></head>
 
 
 
@@ -305,7 +305,7 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-2020-08-23-ProxySQL升级时对默认部署的实例的影响"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2020-04-15-Kafka版本升级"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -313,7 +313,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-ProxySQL%E5%8D%87%E7%BA%A7%E6%97%B6%E5%AF%B9%E9%BB%98%E8%AE%A4%E9%83%A8%E7%BD%B2%E7%9A%84%E5%AE%9E%E4%BE%8B%E7%9A%84%E5%BD%B1%E5%93%8D/">ProxySQL升级时对默认部署的实例的影响</a>
+      <a class="article-title" href="/2020/04/15/2020-04-15-Kafka%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/">Kafka版本升级</a>
     </h1>
   
 
@@ -321,8 +321,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/08/23/2020-08-23-ProxySQL%E5%8D%87%E7%BA%A7%E6%97%B6%E5%AF%B9%E9%BB%98%E8%AE%A4%E9%83%A8%E7%BD%B2%E7%9A%84%E5%AE%9E%E4%BE%8B%E7%9A%84%E5%BD%B1%E5%93%8D/" class="article-date">
-	  <time datetime="2020-08-23T10:54:00.000Z" itemprop="datePublished">2020-08-23</time>
+	<a href="/2020/04/15/2020-04-15-Kafka%E7%89%88%E6%9C%AC%E5%8D%87%E7%BA%A7/" class="article-date">
+	  <time datetime="2020-04-15T15:29:00.000Z" itemprop="datePublished">2020-04-15</time>
 	</a>
 
       
@@ -332,9 +332,7 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>公司有使用默认安装目录的ProxySQL跑业务. 在升级2.0.8 至 2.0.12的时候发现卸载2.0.8后这些使用默认方式安装的ProxySQL实例就会被关闭.</p>
-<p>原因是rpm包安装和卸载前后执行了一些动作</p>
-<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">[root@bj1-mysql-manager-prod-<span class="number">0</span>1 tmp]<span class="comment"># rpm --scripts -qp  /tmp/proxysql-2.0.8-1-centos7.x86_64.rpm </span></span><br><span class="line">preinstall scriptlet (using /bin/sh):</span><br><span class="line"><span class="comment"># Cleanup artifacts</span></span><br><span class="line"><span class="keyword">if</span> [ -f /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span> ];</span> <span class="keyword">then</span> </span><br><span class="line">    rm -fr /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span></span></span><br><span class="line">fi</span><br><span class="line">postinstall scriptlet (using /bin/sh):</span><br><span class="line"><span class="comment"># Create relevant user, directories and configuration files</span></span><br><span class="line"><span class="keyword">if</span> [ ! -d /var/run/proxysql ]; <span class="keyword">then</span> /bin/mkdir /var/run/proxysql ; fi</span><br><span class="line"><span class="keyword">if</span> [ ! -d /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span> ];</span> <span class="keyword">then</span> /bin/mkdir /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span> ;</span> fi</span><br><span class="line"><span class="keyword">if</span> ! id -u proxysql &gt; <span class="regexp">/dev/null</span> <span class="number">2</span>&gt;&amp;<span class="number">1</span>; <span class="keyword">then</span> useradd -r -U -s /bin/<span class="literal">false</span> -d /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span> -<span class="title">c</span> &quot;<span class="title">ProxySQL</span> <span class="title">Server</span>&quot; <span class="title">proxysql</span>;</span> fi</span><br><span class="line">/bin/chown -R <span class="symbol">proxysql:</span> /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span> /<span class="title">var</span>/<span class="title">run</span>/<span class="title">proxysql</span></span></span><br><span class="line">/bin/chown <span class="symbol">root:</span>proxysql /etc/proxysql.cnf</span><br><span class="line">/bin/chmod <span class="number">640</span> /etc/proxysql.cnf</span><br><span class="line"><span class="comment"># Configure systemd appropriately.</span></span><br><span class="line">/bin/systemctl daemon-reload</span><br><span class="line">/bin/systemctl enable proxysql.service</span><br><span class="line"><span class="comment"># Notify that a package update is in progress in order to start service.</span></span><br><span class="line"><span class="keyword">if</span> [ $<span class="number">1</span> -eq <span class="number">2</span> ]; <span class="keyword">then</span> /bin/touch /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span> ;</span> fi</span><br><span class="line">preuninstall scriptlet (using /bin/sh):</span><br><span class="line"><span class="comment"># When uninstalling always try stop the service, ignore failures</span></span><br><span class="line">/bin/systemctl stop proxysql || <span class="literal">true</span></span><br><span class="line">postuninstall scriptlet (using /bin/sh):</span><br><span class="line"><span class="keyword">if</span> [ $<span class="number">1</span> -eq <span class="number">0</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="comment"># This is a pure uninstall, systemd unit file removed</span></span><br><span class="line">    <span class="comment"># only daemon-reload is needed.</span></span><br><span class="line">    /bin/systemctl daemon-reload</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="comment"># This is an upgrade, ProxySQL should be started. This</span></span><br><span class="line">    <span class="comment"># logic works for packages newer than 2.0.7 and ensures</span></span><br><span class="line">    <span class="comment"># a faster restart time.</span></span><br><span class="line">    /bin/systemctl start proxysql.service</span><br><span class="line">    /bin/rm -fr /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span></span></span><br><span class="line">fi</span><br><span class="line">posttrans scriptlet (using /bin/sh):</span><br><span class="line"><span class="keyword">if</span> [ -f /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span> ];</span> <span class="keyword">then</span></span><br><span class="line">    <span class="comment"># This is a safeguard to start the service after an update</span></span><br><span class="line">    <span class="comment"># which supports legacy &quot;preun&quot; / &quot;postun&quot; logic and will</span></span><br><span class="line">    <span class="comment"># only execute for packages before 2.0.7.</span></span><br><span class="line">    /bin/systemctl start proxysql.service</span><br><span class="line">    /bin/rm -fr /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span></span></span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+        <h1 id="Kafka版本升级"><a href="#Kafka版本升级" class="headerlink" title="Kafka版本升级"></a>Kafka版本升级</h1><p>本文档介绍<code>kafka_2.11_2.1.1</code>升级到<code>2.12-2.4.1</code>的具体操作方法. 其他版本大同小异, 详见<a target="_blank" rel="noopener" href="http://kafka.apache.org/documentation/#upgrade">1.5 Upgrading From Previous Versions</a></p>
       
     </div>
     <footer class="article-footer">
@@ -352,7 +350,7 @@
 
 
   
-    <article id="post-2020-08-23-MySQL动态行转列"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2017-08-22-使用Ansible自动部署MGR中生成group_replication_group_seeds值的方法"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -360,7 +358,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-MySQL%E5%8A%A8%E6%80%81%E8%A1%8C%E8%BD%AC%E5%88%97/">MySQL动态行转列</a>
+      <a class="article-title" href="/2020/03/20/2017-08-22-%E4%BD%BF%E7%94%A8Ansible%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2MGR%E4%B8%AD%E7%94%9F%E6%88%90group_replication_group_seeds%E5%80%BC%E7%9A%84%E6%96%B9%E6%B3%95/">使用Ansible自动部署MGR中生成group_replication_group_seeds值的方法</a>
     </h1>
   
 
@@ -368,8 +366,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/08/23/2020-08-23-MySQL%E5%8A%A8%E6%80%81%E8%A1%8C%E8%BD%AC%E5%88%97/" class="article-date">
-	  <time datetime="2020-08-23T10:51:00.000Z" itemprop="datePublished">2020-08-23</time>
+	<a href="/2020/03/20/2017-08-22-%E4%BD%BF%E7%94%A8Ansible%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2MGR%E4%B8%AD%E7%94%9F%E6%88%90group_replication_group_seeds%E5%80%BC%E7%9A%84%E6%96%B9%E6%B3%95/" class="article-date">
+	  <time datetime="2020-03-20T04:23:00.000Z" itemprop="datePublished">2020-03-20</time>
 	</a>
 
       
@@ -379,7 +377,9 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="通过max行转列不是动态的-你还是要知道所有列名才可以"><a href="#通过max行转列不是动态的-你还是要知道所有列名才可以" class="headerlink" title="通过max行转列不是动态的, 你还是要知道所有列名才可以"></a>通过max行转列不是动态的, 你还是要知道所有列名才可以</h2><figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">root<span class="meta">@localhost</span> 17:46:56 [fanboshi]&gt; select <span class="symbol">*</span> from t3;</span><br><span class="line">+----+---------+------+-----------+</span><br><span class="line">|<span class="string"> id </span>|<span class="string"> title   </span>|<span class="string"> env  </span>|<span class="string"> progress  </span>|</span><br><span class="line">+----+---------+------+-----------+</span><br><span class="line">|<span class="string">  1 </span>|<span class="string"> 工单1   </span>|<span class="string">    1 </span>|<span class="string"> 完成      </span>|</span><br><span class="line">|<span class="string">  2 </span>|<span class="string"> 工单1   </span>|<span class="string">    2 </span>|<span class="string"> 完成      </span>|</span><br><span class="line">|<span class="string">  3 </span>|<span class="string"> 工单1   </span>|<span class="string">    3 </span>|<span class="string"> 待审核    </span>|</span><br><span class="line">|<span class="string">  4 </span>|<span class="string"> 工单2   </span>|<span class="string">    1 </span>|<span class="string"> 待审核    </span>|</span><br><span class="line">+----+---------+------+-----------+</span><br><span class="line">4 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">root<span class="meta">@localhost</span> 17:48:20 [fanboshi]&gt; select title,max(if(env=1,progress,-1)) &#x27;RC&#x27;,max(if(env=2,progress,-1)) &#x27;Stage&#x27;,max(if(env=3,progress,-1)) &#x27;Prod&#x27; from t3 group by title;</span><br><span class="line">+---------+-----------+--------+-----------+</span><br><span class="line">|<span class="string"> title   </span>|<span class="string"> RC        </span>|<span class="string"> Stage  </span>|<span class="string"> Prod      </span>|</span><br><span class="line">+---------+-----------+--------+-----------+</span><br><span class="line">|<span class="string"> 工单1   </span>|<span class="string"> 完成      </span>|<span class="string"> 完成   </span>|<span class="string"> 待审核    </span>|</span><br><span class="line">|<span class="string"> 工单2   </span>|<span class="string"> 待审核    </span>|<span class="string"> -1     </span>|<span class="string"> -1        </span>|</span><br><span class="line">+---------+-----------+--------+-----------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+        <h1 id="生成group-replication-group-seeds值的方法"><a href="#生成group-replication-group-seeds值的方法" class="headerlink" title="生成group_replication_group_seeds值的方法"></a>生成group_replication_group_seeds值的方法</h1><h2 id="网卡不统一"><a href="#网卡不统一" class="headerlink" title="网卡不统一"></a>网卡不统一</h2><p>之前我是通过<code>groups[&#39;mfw_test&#39;] | map(&#39;extract&#39;, hostvars, [&#39;ansible_all_ipv4_addresses&#39;])</code>这种形式, 去一个inventory group下每一个host的<code>ansible_all_ipv4_addresses</code></p>
+<p>ansible_all_ipv4_address是所有网卡上的ip, 包括手动添加的ip(例如vip)</p>
+<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;msg&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;centos-1&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;ansible_all_ipv4_addresses&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;192.168.124.136&quot;</span>, </span><br><span class="line">            <span class="string">&quot;172.16.120.10&quot;</span></span><br><span class="line">        ], </span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
@@ -397,7 +397,7 @@
 
 
   
-    <article id="post-2020-08-23-死锁案例2-两个UPDATE死锁"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2020-03-19-使用python消费canal-protobuf格式数据"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -405,7 +405,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-%E6%AD%BB%E9%94%81%E6%A1%88%E4%BE%8B2-%E4%B8%A4%E4%B8%AAUPDATE%E6%AD%BB%E9%94%81/">死锁案例2 两个UPDATE死锁</a>
+      <a class="article-title" href="/2020/03/19/2020-03-19-%E4%BD%BF%E7%94%A8python%E6%B6%88%E8%B4%B9canal-protobuf%E6%A0%BC%E5%BC%8F%E6%95%B0%E6%8D%AE/">使用python消费canal protobuf格式数据</a>
     </h1>
   
 
@@ -413,8 +413,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/08/23/2020-08-23-%E6%AD%BB%E9%94%81%E6%A1%88%E4%BE%8B2-%E4%B8%A4%E4%B8%AAUPDATE%E6%AD%BB%E9%94%81/" class="article-date">
-	  <time datetime="2020-08-23T10:44:00.000Z" itemprop="datePublished">2020-08-23</time>
+	<a href="/2020/03/19/2020-03-19-%E4%BD%BF%E7%94%A8python%E6%B6%88%E8%B4%B9canal-protobuf%E6%A0%BC%E5%BC%8F%E6%95%B0%E6%8D%AE/" class="article-date">
+	  <time datetime="2020-03-19T15:23:00.000Z" itemprop="datePublished">2020-03-19</time>
 	</a>
 
       
@@ -424,11 +424,10 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>2020.05.18 16:12 收到报警</p>
-<p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/image-20200519140217826.png" alt=""></p>
-<p>登录主机, 查看error log( 开启了innodb_print_all_deadlocks参数)</p>
-<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">*** (<span class="number">1</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">1261729280</span>, ACTIVE <span class="number">0</span> sec starting index read</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line">LOCK WAIT <span class="number">3</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">2</span> row lock(s)</span><br><span class="line">MySQL thread id <span class="number">3645828</span>, OS thread handle <span class="number">139681739994880</span>, query id <span class="number">1522438991</span> <span class="number">172.16</span><span class="number">.23</span><span class="number">.82</span> yos_rw Searching rows <span class="keyword">for</span> update</span><br><span class="line">UPDATE f_log SET D_UPDATED_AT = NOW() , I_STATUS = <span class="number">17</span> WHERE I_STATUS = <span class="number">1</span> AND I_TYPE = <span class="number">1</span></span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696061</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">1</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">1208</span> page no <span class="number">29439</span> n bits <span class="number">160</span> index PRIMARY of table `yos`.`f_log` trx id <span class="number">1261729280</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696079</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">2</span>) TRANSACTION:</span><br><span class="line"></span><br><span class="line">TRANSACTION <span class="number">1261729278</span>, ACTIVE <span class="number">0</span> sec updating <span class="keyword">or</span> deleting</span><br><span class="line">mysql tables <span class="keyword">in</span> use <span class="number">1</span>, locked <span class="number">1</span></span><br><span class="line"><span class="number">10</span> lock struct(s), heap size <span class="number">1136</span>, <span class="number">7</span> row lock(s), undo log entries <span class="number">3</span></span><br><span class="line">MySQL thread id <span class="number">3056367</span>, OS thread handle <span class="number">139682403342080</span>, query id <span class="number">1522438990</span> <span class="number">172.16</span><span class="number">.23</span><span class="number">.82</span> yos_rw updating</span><br><span class="line">UPDATE f_log SET D_UPDATED_AT=<span class="string">&#x27;2020-05-18 16:11:11.693998&#x27;</span>,I_STATUS=<span class="number">3</span> WHERE (I_FILE_ID=<span class="string">&#x27;92b52d6589ce11a9a3c985e7c5f37462efb66ac7&#x27;</span>)</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696099</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">2</span>) HOLDS THE LOCK(S):</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">1208</span> page no <span class="number">29439</span> n bits <span class="number">160</span> index PRIMARY of table `yos`.`f_log` trx id <span class="number">1261729278</span> lock_mode X locks rec but <span class="keyword">not</span> gap</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696112</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** (<span class="number">2</span>) WAITING FOR THIS LOCK TO BE GRANTED:</span><br><span class="line"></span><br><span class="line">RECORD LOCKS space id <span class="number">1208</span> page no <span class="number">17</span> n bits <span class="number">1120</span> index idx_status_type of table `yos`.`f_log` trx id <span class="number">1261729278</span> lock_mode X locks rec but <span class="keyword">not</span> gap waiting</span><br><span class="line"><span class="number">2020</span><span class="number">-05</span><span class="number">-18</span>T16:<span class="number">11</span>:<span class="number">11.696223</span>+<span class="number">08</span>:<span class="number">00</span> <span class="number">3056367</span> [Note] InnoDB: *** WE ROLL BACK TRANSACTION (<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
-<p>简单解释一下上面的死锁日志</p>
+        <p>canal -&gt; kafka -&gt; consumer. flatMessage=False<br>参考 <a target="_blank" rel="noopener" href="https://github.com/haozi3156666/canal-python">canal Python客户端</a>.<br>由于<a target="_blank" rel="noopener" href="https://github.com/haozi3156666/canal-python">canal Python客户端</a>是作为canal的client直连canal 11111端口消费数据而非消费kafka数据, 所以example不能照搬, 需要做一些修改</p>
+<p>Python3.7.4</p>
+<p>requriments</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">backcall</span>==<span class="number">0</span>.<span class="number">1</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">bleach</span>==<span class="number">3</span>.<span class="number">1</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">canal</span>-python==<span class="number">0</span>.<span class="number">4</span></span><br><span class="line"><span class="attribute">certifi</span>==<span class="number">2019</span>.<span class="number">6</span>.<span class="number">16</span></span><br><span class="line"><span class="attribute">chardet</span>==<span class="number">3</span>.<span class="number">0</span>.<span class="number">4</span></span><br><span class="line"><span class="attribute">confluent</span>-kafka==<span class="number">1</span>.<span class="number">3</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">decorator</span>==<span class="number">4</span>.<span class="number">4</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">docopt</span>==<span class="number">0</span>.<span class="number">6</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">docutils</span>==<span class="number">0</span>.<span class="number">15</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">idna</span>==<span class="number">2</span>.<span class="number">8</span></span><br><span class="line"><span class="attribute">ipython</span>==<span class="number">7</span>.<span class="number">13</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">ipython</span>-genutils==<span class="number">0</span>.<span class="number">2</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">jedi</span>==<span class="number">0</span>.<span class="number">16</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">parso</span>==<span class="number">0</span>.<span class="number">6</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">pexpect</span>==<span class="number">4</span>.<span class="number">8</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">pickleshare</span>==<span class="number">0</span>.<span class="number">7</span>.<span class="number">5</span></span><br><span class="line"><span class="attribute">pkginfo</span>==<span class="number">1.5.0.1</span></span><br><span class="line"><span class="attribute">prompt</span>-toolkit==<span class="number">3</span>.<span class="number">0</span>.<span class="number">4</span></span><br><span class="line"><span class="attribute">protobuf</span>==<span class="number">3</span>.<span class="number">9</span>.<span class="number">1</span></span><br><span class="line"><span class="attribute">ptyprocess</span>==<span class="number">0</span>.<span class="number">6</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">Pygments</span>==<span class="number">2</span>.<span class="number">4</span>.<span class="number">2</span></span><br><span class="line"><span class="attribute">readme</span>-renderer==<span class="number">24</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">requests</span>==<span class="number">2</span>.<span class="number">22</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">requests</span>-toolbelt==<span class="number">0</span>.<span class="number">9</span>.<span class="number">1</span></span><br><span class="line"><span class="attribute">six</span>==<span class="number">1</span>.<span class="number">12</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">tqdm</span>==<span class="number">4</span>.<span class="number">34</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">traitlets</span>==<span class="number">4</span>.<span class="number">3</span>.<span class="number">3</span></span><br><span class="line"><span class="attribute">twine</span>==<span class="number">1</span>.<span class="number">13</span>.<span class="number">0</span></span><br><span class="line"><span class="attribute">urllib3</span>==<span class="number">1</span>.<span class="number">25</span>.<span class="number">3</span></span><br><span class="line"><span class="attribute">wcwidth</span>==<span class="number">0</span>.<span class="number">1</span>.<span class="number">8</span></span><br><span class="line"><span class="attribute">webencodings</span>==<span class="number">0</span>.<span class="number">5</span>.<span class="number">1</span></span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
@@ -446,7 +445,7 @@
 
 
   
-    <article id="post-2020-06-18-MGR单主到底做不做冲突检测"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2020-03-07-Canal-dynamicTopic问题续"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -454,7 +453,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/06/18/2020-06-18-MGR%E5%8D%95%E4%B8%BB%E5%88%B0%E5%BA%95%E5%81%9A%E4%B8%8D%E5%81%9A%E5%86%B2%E7%AA%81%E6%A3%80%E6%B5%8B/">MGR单主到底做不做冲突检测?</a>
+      <a class="article-title" href="/2020/03/07/2020-03-07-Canal-dynamicTopic%E9%97%AE%E9%A2%98%E7%BB%AD/">Canal dynamicTopic问题续</a>
     </h1>
   
 
@@ -462,8 +461,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/06/18/2020-06-18-MGR%E5%8D%95%E4%B8%BB%E5%88%B0%E5%BA%95%E5%81%9A%E4%B8%8D%E5%81%9A%E5%86%B2%E7%AA%81%E6%A3%80%E6%B5%8B/" class="article-date">
-	  <time datetime="2020-06-18T14:23:00.000Z" itemprop="datePublished">2020-06-18</time>
+	<a href="/2020/03/07/2020-03-07-Canal-dynamicTopic%E9%97%AE%E9%A2%98%E7%BB%AD/" class="article-date">
+	  <time datetime="2020-03-07T13:23:00.000Z" itemprop="datePublished">2020-03-07</time>
 	</a>
 
       
@@ -473,10 +472,9 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>和同事探讨一个问题, MGR单主做不做冲突检测.</p>
-<p>我理解是不需要做的, 因为已经明确只有主节点才能写入数据了, 那么必然不会有数据冲突的可能, 没必要再做冲突检测浪费性能了.</p>
-<p>看了下<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/group-replication-single-primary-mode.html">官方文档</a></p>
-<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">In</span> single-primary mode,<span class="built_in"> Group </span>Replication enforces that only a single<span class="built_in"> server </span>writes <span class="keyword">to</span> the group, so compared <span class="keyword">to</span> multi-primary mode, consistency checking can be less strict <span class="keyword">and</span> DDL statements <span class="keyword">do</span> <span class="keyword">not</span> need <span class="keyword">to</span> be handled with any extra care</span><br></pre></td></tr></table></figure>
+        <p>最近在新公司搭了一套canal. 按照&lt;<dynamicTopic问题>&gt;设置了<code>canal.mq.topic</code>和<code>canal.mq.dynamicTopic</code></p>
+<p>意图将一些不符合dynamicTopic匹配的语句的消息发送到一个默认的topic而避免报错<code>INVALID_TOPIC_EXCEPTION</code></p>
+<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># table regex</span></span><br><span class="line">canal.instance.filter.regex=fanboshi\\..*,sysbench\\..*</span><br><span class="line"><span class="meta"># table black regex</span></span><br><span class="line">canal.instance.filter.black.regex=.*\\.\\_.*\\_ghc,.*\\.\\_.*\\_gho,.*\\.\\_.*\\_del</span><br><span class="line"><span class="meta"># table field filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.field=test1.t_product:id/subject/keywords,test2.t_company:id/name/contact/ch</span></span><br><span class="line"><span class="meta"># table field black filter(format: schema1.tableName1:field1/field2,schema2.tableName2:field1/field2)</span></span><br><span class="line"><span class="meta">#canal.instance.filter.black.field=test1.t_product:subject/product_image,test2.t_company:id/name/contact/ch</span></span><br><span class="line"></span><br><span class="line"><span class="meta"># mq config</span></span><br><span class="line">canal.mq.topic=default_topic</span><br><span class="line"><span class="meta"># dynamic topic route by schema or table regex</span></span><br><span class="line"><span class="meta">#canal.mq.dynamicTopic=mytest1.user,mytest2\\..*,.*\\..*</span></span><br><span class="line">canal.mq.dynamicTopic=.*\\..*</span><br><span class="line"><span class="meta">#canal.mq.partition=0</span></span><br><span class="line"><span class="meta"># hash partition config</span></span><br><span class="line"><span class="meta">#canal.mq.partitionsNum=3</span></span><br><span class="line"><span class="meta">#canal.mq.partitionHash=test.table:id^name,.*\\..*</span></span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
@@ -494,7 +492,7 @@
 
 
   
-    <article id="post-2020-05-16-译文-New-Feature-in-Percona-XtraDB-Cluster-8.0-–-Streaming-Replication"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2020-03-06-canal.mq.flatMessage参数"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -502,7 +500,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/16/2020-05-16-%E8%AF%91%E6%96%87-New-Feature-in-Percona-XtraDB-Cluster-8.0-%E2%80%93-Streaming-Replication/">译文 New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication</a>
+      <a class="article-title" href="/2020/03/06/2020-03-06-canal.mq.flatMessage%E5%8F%82%E6%95%B0/">canal.mq.flatMessage参数</a>
     </h1>
   
 
@@ -510,8 +508,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/05/16/2020-05-16-%E8%AF%91%E6%96%87-New-Feature-in-Percona-XtraDB-Cluster-8.0-%E2%80%93-Streaming-Replication/" class="article-date">
-	  <time datetime="2020-05-16T14:56:00.000Z" itemprop="datePublished">2020-05-16</time>
+	<a href="/2020/03/06/2020-03-06-canal.mq.flatMessage%E5%8F%82%E6%95%B0/" class="article-date">
+	  <time datetime="2020-03-06T14:23:00.000Z" itemprop="datePublished">2020-03-06</time>
 	</a>
 
       
@@ -521,9 +519,9 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication"><a href="#New-Feature-in-Percona-XtraDB-Cluster-8-0-–-Streaming-Replication" class="headerlink" title="New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/05/15/new-feature-in-percona-xtradb-cluster-8-0-streaming-replication/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=88003187&amp;_hsenc=p2ANqtz-8AwEjtYpEuWSlNMk6OX4QGFsnPUWMEcW9o9FWOjQI_UGqkjKzcXPvfKm7evqRE0EuwXnrLs-tTDdcMby4ADbQWg5nLqw&amp;_hsmi=88003187">New Feature in Percona XtraDB Cluster 8.0 – Streaming Replication</a></h1><p>Percona XtraDB Cluster 8.0附带了一个升级的Galera 4.0库, 它提供了一个新特性—<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>.让我们回顾一下它是什么, 什么时候可能有用</p>
-<p>以前版本的Percona XtraDB集群和Galera 3.x在处理大事务方面有限制.</p>
-<p>让我们看一下sysbench-tpcc工作负载下的性能, 与此同时, 我们对一个表执行了一个大的更新语句, 该更新甚至与主工作负载中的表都不相关.<br>
+        <p>canal.mq.flatMessage</p>
+<p>是否为json格式<br>如果设置为false,对应MQ收到的消息为protobuf格式<br>需要通过CanalMessageDeserializer进行解码</p>
+<p>canal.mq.flatMessage = true 生产到kafka的消息就是json的, 否则就是protobuf二进制的<br>
       
     </div>
     <footer class="article-footer">
@@ -541,7 +539,7 @@
 
 
   
-    <article id="post-2020-05-16-[译文]Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0"  class="article article-type-post" itemscope itemprop="blogPost" >
+    <article id="post-2020-01-21-mlanuch文档翻译"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
     
@@ -549,7 +547,7 @@
         
   
     <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/16/2020-05-16-%5B%E8%AF%91%E6%96%87%5DGalera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/">译文 Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0</a>
+      <a class="article-title" href="/2020/01/21/2020-01-21-mlanuch%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/">mlanuch文档翻译</a>
     </h1>
   
 
@@ -557,8 +555,8 @@
     
     <div class="article-meta">
       
-	<a href="/2020/05/16/2020-05-16-%5B%E8%AF%91%E6%96%87%5DGalera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8.0/" class="article-date">
-	  <time datetime="2020-05-16T14:40:00.000Z" itemprop="datePublished">2020-05-16</time>
+	<a href="/2020/01/21/2020-01-21-mlanuch%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/" class="article-date">
+	  <time datetime="2020-01-21T10:09:00.000Z" itemprop="datePublished">2020-01-21</time>
 	</a>
 
       
@@ -568,10 +566,205 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8-0"><a href="#Galera-4-Streaming-Replication-in-Percona-XtraDB-Cluster-8-0" class="headerlink" title="Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2020/05/13/galera-4-streaming-replication-in-percona-xtradb-cluster-8-0/?utm_campaign=Blog%202016%3A%20Subscribers%20To%20Blog%20Weekly%20Recap%20Email%20--%202.15.16&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=88003187&amp;_hsenc=p2ANqtz-8AwEjtYpEuWSlNMk6OX4QGFsnPUWMEcW9o9FWOjQI_UGqkjKzcXPvfKm7evqRE0EuwXnrLs-tTDdcMby4ADbQWg5nLqw&amp;_hsmi=88003187">Galera 4 Streaming Replication in Percona XtraDB Cluster 8.0</a></h1><p>我正在测试最新的<a target="_blank" rel="noopener" href="https://www.percona.com/software/mysql-database/percona-xtradb-cluster">Percona XtraDB Cluster</a> 8.0 (PXC)版本, 其中包含了Galera 4插件, 我想分享一下到目前为止我在<a target="_blank" rel="noopener" href="https://galeracluster.com/library/documentation/streaming-replication.html">Streaming Replication</a>特性方面的经验和想法, </p>
-<h3 id="What-Is-Streaming-Replication-in-One-Sentence"><a href="#What-Is-Streaming-Replication-in-One-Sentence" class="headerlink" title="What Is Streaming Replication, in One Sentence?"></a>What Is Streaming Replication, in One Sentence?</h3><p>在Galera 4中, 大型事务可以分割成更小的片段, 甚至在提交之前, 这些片段就已经被复制到其他节点, 并且已经开始了认证(certification)和应用(apply)过程.</p>
-<p>手册描述了所有的优点和缺点, 但是让我们看看它是如何工作的. 我已经创建了一个包含1千万行的表, 我将在这个表上运行一些大的update语句, </p>
-<p>首先, 我在不使用Streaming Replication的情况下运行更新, 由于默认情况下Streaming Replication是disabled, 所以我们不需要做任何事情, 只需运行更新即可. 在<code>node1</code>上, 我记录更新之前和之后的时间, 在<code>node2</code>上, 我每秒钟运行一次select,   以查看这个更新在其他节点上实际提交的时间.<br>
+        <p>[TOC]</p>
+<h1 id="mlanuch"><a href="#mlanuch" class="headerlink" title="mlanuch"></a>mlanuch</h1><p>使用此工具，您可以快速启动并监视本地计算机上的MongoDB环境。 它支持独立服务器，副本集和分片群集的各种配置。 单个节点或节点组可以轻松停止并重新启动。</p>
+<p>除了下面列出的mlaunch的所有列出的参数之外，您还可以传递<code>mongos</code>或<code>mongod</code>二进制文件可以理解的任意选项，mlaunch会传递正确的参数给<code>mongos</code>或<code>mongod</code>二进制文件。 这包括<code>-f</code>或<code>--config</code>选项，以传递带有更多选项的配置文件。<br>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2020-01-12-Canal-dynamicTopic问题"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/">Canal dynamicTopic问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/01/12/2020-01-12-Canal-dynamicTopic%E9%97%AE%E9%A2%98/" class="article-date">
+	  <time datetime="2020-01-12T04:23:00.000Z" itemprop="datePublished">2020-01-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>未来同事跑了几个月的canal突然报下面的错, 使用了dynamicTopic. 其实我没有用过dynamicTopic, 只能搜一搜issue</p>
+<blockquote>
+<p>关于dynamicTopic和partitionHash的说明</p>
+<h3 id="canal-mq-dynamicTopic-表达式说明"><a href="#canal-mq-dynamicTopic-表达式说明" class="headerlink" title="canal.mq.dynamicTopic 表达式说明"></a>canal.mq.dynamicTopic 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema 或 schema.table，多个配置之间使用逗号或分号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以test_test为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..* 匹配所有表，则每个表都会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到库名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到各自表名的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：<span class="built_in">test</span>,test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到<span class="built_in">test</span>的topic上，test1\\.test1的表发送到对应的test1_test1 topic上，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">为满足更大的灵活性，允许对匹配条件的规则指定发送的topic名字，配置格式：topicName:schema 或 topicName:schema.table</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1: <span class="built_in">test</span>:<span class="built_in">test</span>\\.<span class="built_in">test</span> 指定匹配的单表，发送到以<span class="built_in">test</span>为名字的topic上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2: <span class="built_in">test</span>:.*\\..* 匹配所有表，因为有指定topic，则每个表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3: <span class="built_in">test</span>:<span class="built_in">test</span> 指定匹配对应的库，一个库的所有表都会发送到<span class="built_in">test</span>的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4：testA:<span class="built_in">test</span>\\.* 指定匹配的表达式，针对匹配的表会发送到testA的topic下</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：test0:<span class="built_in">test</span>,test1:test1\\.test1，指定多个表达式，会将<span class="built_in">test</span>库的表都发送到test0的topic下，test1\\.test1的表发送到对应的test1的topic下，其余的表发送到默认的canal.mq.topic值</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">大家可以结合自己的业务需求，设置匹配规则，建议MQ开启自动创建topic的能力</span></span><br></pre></td></tr></table></figure>
+<h3 id="canal-mq-partitionHash-表达式说明"><a href="#canal-mq-partitionHash-表达式说明" class="headerlink" title="canal.mq.partitionHash 表达式说明"></a>canal.mq.partitionHash 表达式说明</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">canal 1.1.3版本之后, 支持配置格式：schema.table:pk1^pk2，多个配置之间使用逗号分隔</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子1：<span class="built_in">test</span>\\.<span class="built_in">test</span>:pk1^pk2 指定匹配的单表，对应的<span class="built_in">hash</span>字段为pk1 + pk2</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子2：.*\\..*:id 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为id</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子3：.*\\..*:<span class="variable">$pk</span>$ 正则匹配，指定所有正则匹配的表对应的<span class="built_in">hash</span>字段为表主键(自动查找)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子4: 匹配规则啥都不写，则默认发到0这个partition上</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子5：.*\\..* ，不指定pk信息的正则匹配，将所有正则匹配的表,对应的<span class="built_in">hash</span>字段为表名</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">按表<span class="built_in">hash</span>: 一张表的所有数据可以发到同一个分区，不同表之间会做散列 (会有热点表分区过大问题)</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">例子6: <span class="built_in">test</span>\\.<span class="built_in">test</span>:id,.\\..* , 针对<span class="built_in">test</span>的表按照id散列,其余的表按照table散列</span></span><br></pre></td></tr></table></figure>
+<p>注意：大家可以结合自己的业务需求，设置匹配规则，多条匹配规则之间是按照顺序进行匹配(命中一条规则就返回)</p>
+<p>其他详细参数可参考<a target="_blank" rel="noopener" href="https://github.com/alibaba/canal/wiki/AdminGuide">Canal AdminGuide</a></p>
+</blockquote>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2020-01-09-译文-Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/01/09/2020-01-09-%E8%AF%91%E6%96%87-Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative/">译文 Streaming MySQL Backups with Percona XtraBackup – Another Alternative</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/01/09/2020-01-09-%E8%AF%91%E6%96%87-Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative/" class="article-date">
+	  <time datetime="2020-01-09T02:01:00.000Z" itemprop="datePublished">2020-01-09</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative"><a href="#Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative" class="headerlink" title="Streaming MySQL Backups with Percona XtraBackup – Another Alternative"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2021/01/08/streaming-mysql-backups-with-percona-xtrabackup-another-alternative/">Streaming MySQL Backups with Percona XtraBackup – Another Alternative</a></h1><p>使用Percona XtraBackup流式传输MySQL备份-另一种选择</p>
+<p>今天我将向你介绍另一种使用<a target="_blank" rel="noopener" href="https://www.percona.com/software/mysql-database/percona-xtrabackup">Percona XtraBackup</a>在服务器间创建并传递备份的方式. 这个方法和网上的其他方法有什么不同吗? 其实并没有很大不同, 但是在性能和可用性方面很有趣.</p>
+<p>我们将xbstream实用程序与pigz和socat的功能结合在一起, 以在拥有多个处理器的情况下利用多处理功能, 同时在此组件成为瓶颈的情况下, 减少对网络带宽的使用. 因此, 让我们解释每个组件: </p>
+<p><strong>socat: </strong>代表SOcket CAT. 它是一个用于在两个地址之间进行数据传输的实用程序. </p>
+<p>使socat如此通用的原因是地址可以代表网络套接字, 任何文件描述符, Unix域数据报或流套接字, TCP和UDP（在IPv4和IPv6上）, 在IPv4 / IPv6上的SOCKS 4 / 4a, SCTP , PTY, 数据报和流套接字, 命名管道和未命名管道, 原始IP套接字, OpenSSL, 或者在Linux上甚至任何任意网络设备上</p>
+<p><strong>Pigz: </strong>它代表gzip的并行实现, 它是gzip的全功能替代品, 在压缩数据时利用了多个处理器和多个内核. </p>
+<p><strong>xbstream : （</strong>具有并行性）并行处理多个文件. </p>
+<p>所需软件包: pigz, socat, 当然还有 Percona XtraBackup</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2019-12-12-TiDB-Syncer不同表名库名同步且支持pt-osc改表"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/">TiDB Syncer不同表名库名同步且支持pt-osc改表</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/" class="article-date">
+	  <time datetime="2019-12-12T13:55:00.000Z" itemprop="datePublished">2019-12-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="TiDB-Syncer不同表名库名同步且支持pt-osc改表"><a href="#TiDB-Syncer不同表名库名同步且支持pt-osc改表" class="headerlink" title="TiDB Syncer不同表名库名同步且支持pt-osc改表"></a>TiDB Syncer不同表名库名同步且支持pt-osc改表</h1><p>mysql端库名叫sysbench, 表名sbtest11<br>tidb端库名ptosc_sysbench,表名ptosc_sbtest11</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_new&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_old&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[route-rules]]</span></span><br><span class="line"><span class="attr">pattern-schema</span> = <span class="string">&quot;sysbench&quot;</span></span><br><span class="line"><span class="attr">pattern-table</span> = <span class="string">&quot;sbtest11&quot;</span></span><br><span class="line"><span class="attr">target-schema</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">target-table</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2019-12-10-Drainer不支持的DDL-1"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/">Drainer不支持的DDL-1</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/12/10/2019-12-10-Drainer%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84DDL-1/" class="article-date">
+	  <time datetime="2019-12-10T13:23:00.000Z" itemprop="datePublished">2019-12-10</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Drainer不支持的DDL-1"><a href="#Drainer不支持的DDL-1" class="headerlink" title="Drainer不支持的DDL-1"></a>Drainer不支持的DDL-1</h1><p>版本3.0.5</p>
+<h2 id="1-rename-table-t1-to-b-db-b-t1"><a href="#1-rename-table-t1-to-b-db-b-t1" class="headerlink" title="1.rename table t1 to b_db.b_t1"></a>1.rename table t1 to b_db.b_t1</h2><p>已经做好TiDB-&gt;MySQL的同步, 开启了pump, drainer</p>
       
     </div>
     <footer class="article-footer">
@@ -594,7 +787,7 @@
   <nav id="page-nav">
     <!--  -->
     
-    <a class="extend prev" rel="prev" href="/page/3/">« 上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/5/">下一页 »</a>
+    <a class="extend prev" rel="prev" href="/page/3/">« 上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/5/">下一页 »</a>
   </nav>
 
 </section>
