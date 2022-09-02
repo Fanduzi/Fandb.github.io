@@ -332,7 +332,7 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>同事要做一个数据库迁移, 方法就是加从库, 然后主从切换, 再下掉老主库, 完成迁移<br>原本是一主两从集群, 增加三个从库变为一主无从</p>
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>同事要做一个数据库迁移, 方法就是加从库, 然后主从切换, 再下掉老主库, 完成迁移<br>原本是一主两从集群, 增加三个从库变为一主五从</p>
 <p>使用命令切换时报错(以下是本地测试复现的命令)</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">resources/bin/orchestrator-client -c graceful-master-takeover-auto -alias orc_prod_infra_broker -d <span class="number">172.20</span><span class="number">.0</span><span class="number">.14</span>:<span class="number">3306</span> -b <span class="string">&#x27;superuser:superpass&#x27;</span></span><br><span class="line">Desginated instance <span class="number">172.20</span><span class="number">.0</span><span class="number">.14</span>:<span class="number">3306</span> cannot take over all of its siblings. Error: <span class="number">2022</span><span class="number">-09</span><span class="number">-02</span> <span class="number">15</span>:<span class="number">33</span>:<span class="number">27</span> ERROR Relocating <span class="number">2</span> replicas of <span class="number">172.20</span><span class="number">.0</span><span class="number">.10</span>:<span class="number">3306</span> below <span class="number">172.20</span><span class="number">.0</span><span class="number">.14</span>:<span class="number">3306</span> turns to be too <span class="built_in">complex</span>; please do it manually</span><br></pre></td></tr></table></figure>
       
