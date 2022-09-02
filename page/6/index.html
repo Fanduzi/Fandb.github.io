@@ -305,6 +305,67 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-限制备份速度防止网卡打满"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/06/12/%E9%99%90%E5%88%B6%E5%A4%87%E4%BB%BD%E9%80%9F%E5%BA%A6%E9%98%B2%E6%AD%A2%E7%BD%91%E5%8D%A1%E6%89%93%E6%BB%A1/">限制备份速度防止网卡打满</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/06/12/%E9%99%90%E5%88%B6%E5%A4%87%E4%BB%BD%E9%80%9F%E5%BA%A6%E9%98%B2%E6%AD%A2%E7%BD%91%E5%8D%A1%E6%89%93%E6%BB%A1/" class="article-date">
+	  <time datetime="2019-06-11T20:00:00.000Z" itemprop="datePublished">2019-06-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="限制备份速度防止网卡打满"><a href="#限制备份速度防止网卡打满" class="headerlink" title="限制备份速度防止网卡打满"></a>限制备份速度防止网卡打满</h1><p>最近在做拆库, 于是就做了很多表迁移工作, 需要使用<code>mysqldump</code>远程备份数据, 然后发现备份时很容易就把源库网卡打满了. 想过用<code>tc</code>命令限速, 发现有点复杂. 今天无意间看<code>xtrabackup</code>文档发现一个方法</p>
+<p>Throttling the throughput to 10MB/sec. This requires the ‘pv’ tools; you can find them at the official site or install it from the distribution package (“apt-get install pv”)<br><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ innobackupex --stream=tar ./ <span class="params">| pv -q -L10m \</span></span><br><span class="line"><span class="params">|</span> ssh user@desthost <span class="string">&quot;cat - &gt; /data/backups/backup.tar&quot;</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>Make a Streaming Backup<br><a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtrabackup/2.4/howtos/recipes_ibkx_stream.html">https://www.percona.com/doc/percona-xtrabackup/2.4/howtos/recipes_ibkx_stream.html</a></p>
+</blockquote>
+<p>查看pv的介绍, 主要是辅助查看一些进度 progressbar ETA什么的:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://linux.cn/article-6734-1.html">如何使用 pv 命令监控 linux 命令的执行进度</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.howtoing.com/monitor-copy-backup-tar-progress-in-linux-using-pv-command">如何使用“pv”命令监视（复制/备份/压缩）数据的进度 - Howtoing运维教程</a></li>
+<li><a target="_blank" rel="noopener" href="https://wangchujiang.com/linux-command/c/pv.html">pv命令介绍</a></li>
+</ul>
+<p>在google搜索<code>mysqldump pv</code> 基本也是些查看<code>进度</code>的文章</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://landcareweb.com/questions/6489/you-mei-you-ban-fa-rang-mysqldumpjin-du-tiao-xian-shi-yong-hu-de-bei-fen-zhuang-tai">http://landcareweb.com/questions/6489/you-mei-you-ban-fa-rang-mysqldumpjin-du-tiao-xian-shi-yong-hu-de-bei-fen-zhuang-tai</a><br><a target="_blank" rel="noopener" href="https://www.2cto.com/database/201310/248423.html">https://www.2cto.com/database/201310/248423.html</a><br><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/4852933/does-mysqldump-support-a-progress-bar">https://stackoverflow.com/questions/4852933/does-mysqldump-support-a-progress-bar</a></p>
+</blockquote>
+<h2 id="我们这里主要目的是限速-照猫画虎-可以这样实现"><a href="#我们这里主要目的是限速-照猫画虎-可以这样实现" class="headerlink" title="我们这里主要目的是限速, 照猫画虎, 可以这样实现"></a>我们这里主要目的是限速, 照猫画虎, 可以这样实现</h2><p>导出限速<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump <span class="string">| pv -q -L10m &gt; xx.sql</span></span><br></pre></td></tr></table></figure><br>限速导入<br><figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat xx.sql | <span class="type">pv</span> -q -L10m | <span class="type">mysql</span></span><br></pre></td></tr></table></figure><br>导入查看进度<br><figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pv xx.sql <span class="string">| mysql</span></span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-修改sysbench输出格式为csv或json 添加自定义指标"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -796,76 +857,6 @@
 <p>当节点接收状态传输时，它们不能处理传入的写集，直到它们完成状态更新。在某些方法下，发送状态转移的节点也被阻塞。为防止数据库进一步落后，GCache将内存映射文件中的传入写入集保存到磁盘。   此参数定义要为当前环形缓冲区存储分配的磁盘空间量。节点在启动数据库服务器时分配此空间。</p>
 <p>[^3]: This variable can be used to specify the size of the page files in the page storage.</p>
 <p><img src="/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180601165332896.png" alt="image-20180601165332896"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-gcache.freeze_purge_at_seqno"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/06/02/gcache.freeze_purge_at_seqno/">Want IST Not SST for Node Rejoins? We Have a Solution!</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/06/02/gcache.freeze_purge_at_seqno/" class="article-date">
-	  <time datetime="2018-06-02T04:23:00.000Z" itemprop="datePublished">2018-06-02</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="Want-IST-Not-SST-for-Node-Rejoins-We-Have-a-Solution"><a href="#Want-IST-Not-SST-for-Node-Rejoins-We-Have-a-Solution" class="headerlink" title="Want IST Not SST for Node Rejoins? We Have a Solution!"></a>Want IST Not SST for Node Rejoins? We Have a Solution!</h1><p><a target="_blank" rel="noopener" href="https://www.percona.com/blog/author/krunal-bauskar/">Krunal Bauskar</a> | February 13, 2018 |  Posted In: <a target="_blank" rel="noopener" href="https://www.percona.com/blog/category/high-availability/">High-availability</a>, <a target="_blank" rel="noopener" href="https://www.percona.com/blog/category/mysql/">MySQL</a>, <a target="_blank" rel="noopener" href="https://www.percona.com/blog/category/percona-xtradb-cluster/">Percona XtraDB Cluster</a></p>
-<p>如果我们告诉你，有一种确定的方法可以让节点rejoin使用IST而不是SST？您可以保证新节点使用IST重新加入. 听起来很有趣？请继续阅读.</p>
-<p>通常当一个节点脱离集群一段时间(处于维护目的或就是shutdown了), 集群上其他节点的gcache将用来在前者重新加入集群时提供前者在脱离期间缺失的write-set(s). 如果您配置了较大的gcache, 或downtime足够段, 则此方法可行. 对于生产环境来说, 无论是设置较大的gcache或者缩短停机窗口都不够好.</p>
-<p>在停机之前在潜在的DONOR节点上重新配置gcache需要关闭节点.(gcache不能动态调整大小), Restoring it back to original size needs another shutdown. So “<strong>three shutdowns</strong>” for a single downtime. <strong>*No way …… not acceptable with busy production clusters and the possibility of more errors.*</strong></p>
-<h2 id="Introducing-“gcache-freeze-purge-at-seqno”"><a href="#Introducing-“gcache-freeze-purge-at-seqno”" class="headerlink" title="Introducing “gcache.freeze_purge_at_seqno”"></a><strong>Introducing “gcache.freeze_purge_at_seqno”</strong></h2><p>基于以上痛点, 我们在<a target="_blank" rel="noopener" href="https://www.percona.com/blog/2018/01/26/percona-xtradb-cluster-5-7-20-29-24-is-now-available/">Percona XtraDB Cluster 5.7.20</a>引入了<strong>gcache.freeze_purge_at_seqno</strong>.这将控制清除gcache, 从而在节点重新加入时保留更多的数据以促进IST.</p>
-<p>Galera集群世界中的所有事务都被分配了唯一的全局序列号（seqno）.跟踪事情发生使用此seqno（如wsrep_last_applied，wsrep_last_committed，wsrep_replicated，wsrep_local_cached_downto等<a target="_blank" rel="noopener" href="https://www.percona.com/doc/percona-xtradb-cluster/5.7/wsrep-status-index.html">^1</a>）.wsrep_local_cached_downto表示gcache已被清除的序列号。假设wsrep_local_cached_downto = N，那么gcache具有来自[N，wsrep_replicated]的数据, 并清除了[1，N)数据。</p>
-<p>gcache.freeze_purge_at_seqno takes three values:</p>
-<pre><code>1. -1(默认值): no freeze, the purge operates as normal.
-2. **x (should be valid seqno in gcache):** freeze purge of write-sets &gt;= x. The best way to select x is to use the wsrep_last_applied value as an indicator from the node that you plan to shut down. (wsrep_applied * 0.09. Retain this extra 10% to trick the [safety gap heuristic algorithm of IST](https://www.percona.com/blog/2017/11/15/understanding-ist-donor-selected/).)
-3. **now:** freeze purge of write-sets &amp;gt;= smallest seqno currently in gcache. Instant freeze of gcache-purge. (If tracing x (above) is difficult, simply use “now” and you are good).
-</code></pre><p>在集群的现有节点上进行设置（这将继续作为集群的一部分，并可以充当潜在的捐助者）。该节点继续保留写集，从而允许重启节点使用IST重新加入。 （您可以在重启需要rejoin的节点时通过指定<code>—wsrep_sst_donor</code>将该节点作为首选DONOR进行提供）</p>
-<blockquote>
-<p>Set this on an existing node of the cluster (that will continue to be part of the cluster and can act as potential DONOR). This node continues to retain the write-sets, thereby allowing the restarting node to rejoin using IST. (You can feed the said node as a preferred DONOR through wsrep_sst_donor while restarting the said rejoining node.)</p>
-</blockquote>
-<p>请记住，一旦节点重新加入，请将其设回-1。这可以避免超出上述时间表的DONOR上的占用空间。在下一个清除周期中，所有旧的保留写入集也会被释放（回收空间回到原始状态）.</p>
-<p>Note:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">To find out existing value of gcache.freeze_purge_at_seqno query wsrep_provider_options.</span><br><span class="line"><span class="keyword">select</span> @@wsrep_provider_options;</span><br><span class="line"></span><br><span class="line">To <span class="keyword">set</span> gcache.freeze_purge_at_seqno</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> wsrep_provider_options=<span class="string">&quot;gcache.freeze_purge_at_seqno = now&quot;</span>;</span><br></pre></td></tr></table></figure>
-<h2 id="Why-should-you-use-it"><a href="#Why-should-you-use-it" class="headerlink" title="Why should you use it?"></a>Why should you use it?</h2><ul>
-<li>gcache动态增长（使用现有的页面存储机制），并在用户将其设置回-1时收缩。这意味着您只在需要时使用(更多的)磁盘空间.</li>
-<li>不需要重新启动. 用户只需专注于需要维护的节点.</li>
-<li>No complex math or understanding of seqno involved (simply use “now”).</li>
-<li>Less prone to error, as SST is one of the major error-prone areas with the cluster.</li>
-</ul>
-<p>So why wait? Give it a try! It is part of <a target="_blank" rel="noopener" href="https://www.percona.com/blog/2018/01/26/percona-xtradb-cluster-5-7-20-29-24-is-now-available/">Percona XtraDB Cluster 5.7.20</a> onwards, and helps you get IST not SST for node rejoins</p>
-<p>Note: If you need more information about gcache, check <a target="_blank" rel="noopener" href="https://www.percona.com/blog/2016/11/16/all-you-need-to-know-about-gcache-galera-cache/">here</a> and <a target="_blank" rel="noopener" href="https://www.percona.com/blog/2017/11/15/understanding-ist-donor-selected/">here</a></p>
 
       
     </div>

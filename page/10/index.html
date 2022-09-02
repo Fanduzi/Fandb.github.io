@@ -305,6 +305,53 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-抓跑得慢的SQL，查看正在跑的sql的等待事件"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2017/08/09/%E6%8A%93%E8%B7%91%E5%BE%97%E6%85%A2%E7%9A%84SQL%EF%BC%8C%E6%9F%A5%E7%9C%8B%E6%AD%A3%E5%9C%A8%E8%B7%91%E7%9A%84sql%E7%9A%84%E7%AD%89%E5%BE%85%E4%BA%8B%E4%BB%B6/">抓跑得慢的SQL，查看正在跑的sql的等待事件</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/08/09/%E6%8A%93%E8%B7%91%E5%BE%97%E6%85%A2%E7%9A%84SQL%EF%BC%8C%E6%9F%A5%E7%9C%8B%E6%AD%A3%E5%9C%A8%E8%B7%91%E7%9A%84sql%E7%9A%84%E7%AD%89%E5%BE%85%E4%BA%8B%E4%BB%B6/" class="article-date">
+	  <time datetime="2017-08-09T13:00:00.000Z" itemprop="datePublished">2017-08-09</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">select (sysdate-<span class="selector-tag">a</span>.logon_time)*<span class="number">24</span>*<span class="number">60</span> minutes,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.username</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.BLOCKING_INSTANCE</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.BLOCKING_SESSION</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.program</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.machine</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.osuser</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.status</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.sid</span>,</span><br><span class="line">       <span class="selector-tag">a</span>.serial#,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.event</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.p1</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.p2</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.p3</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.sql_id</span>,</span><br><span class="line">       <span class="selector-tag">a</span><span class="selector-class">.sql_child_number</span>,</span><br><span class="line">       <span class="selector-tag">b</span>.sql_text</span><br><span class="line">  from v<span class="variable">$session</span> <span class="selector-tag">a</span>, v<span class="variable">$sql</span> b</span><br><span class="line"> where</span><br><span class="line">   <span class="selector-tag">a</span><span class="selector-class">.sql_address</span> = <span class="selector-tag">b</span>.address</span><br><span class="line">   and <span class="selector-tag">a</span><span class="selector-class">.sql_hash_value</span> = <span class="selector-tag">b</span>.hash_value</span><br><span class="line">   and <span class="selector-tag">a</span>.sql_child_number=<span class="selector-tag">b</span>.child_number</span><br><span class="line">   and <span class="selector-tag">a</span><span class="selector-class">.event</span> not <span class="keyword">in</span> (<span class="string">&#x27;SQL*Net message from client&#x27;</span>,<span class="string">&#x27;Space Manager: slave idle wait&#x27;</span>)</span><br><span class="line">  -- and <span class="selector-tag">a</span><span class="selector-class">.username</span> like <span class="string">&#x27;%USERNAME%&#x27;</span> </span><br><span class="line">   <span class="attribute">order</span> by <span class="number">1</span> desc;</span><br></pre></td></tr></table></figure>
+<p>在查执行计划<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Select</span> * from table(dbms_xplan.display_cursor(&#x27;<span class="number">91</span>prd<span class="number">0</span>dh<span class="number">0</span>bs<span class="number">8</span>d&#x27;,<span class="number">0</span>,&#x27;<span class="literal">ALL</span>&#x27;));</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-Hexo博客配置"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -866,55 +913,6 @@
       
         <h2 id="MHA-Tutorial"><a href="#MHA-Tutorial" class="headerlink" title="MHA Tutorial"></a>MHA Tutorial</h2><h3 id="简单故障转移"><a href="#简单故障转移" class="headerlink" title="简单故障转移"></a>简单故障转移</h3><h4 id="构建复制环境"><a href="#构建复制环境" class="headerlink" title="构建复制环境"></a>构建复制环境</h4><p>MHA不会帮你搭建复制环境,所以你需要自己搭建复制.换句话说,你可以在已有环境中使用MHA.举个例子,假设有四台主机:host1,host2,host3,host4.主库运行在host1,两个从库分别运行在host2和host3,而host4负责运行MHA Manager.</p>
 <h4 id="在host1-host4安装MHA-Node"><a href="#在host1-host4安装MHA-Node" class="headerlink" title="在host1-host4安装MHA Node"></a>在host1-host4安装MHA Node</h4><p>See <a target="_blank" rel="noopener" href="https://github.com/yoshinorim/mha4mysql-manager/wiki/Installation#Installing_MHA_Node">Installing MHA Node</a><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-MHA Overview"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2017/07/19/MHA%20Overview/">MHA Overview</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2017/07/19/MHA%20Overview/" class="article-date">
-	  <time datetime="2017-07-19T14:00:00.000Z" itemprop="datePublished">2017-07-19</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="MHA概览"><a href="#MHA概览" class="headerlink" title="MHA概览"></a>MHA概览</h2><p>MHA能够实现自动化的master failover和从库升级为new master,通常这一过程只需要10-30秒的停机时间.MHA最大程度保证了数据一致性,对性能零影响,易于安装,并且不需要改变现有部署情况.</p>
-<p>MHA支持计划性在线主库切换,在短时间内(0.5-2秒)的停机时间(仅限阻塞写入)，将当前运行的主机安全地更改为新主机.</p>
-<p>MHA提供以下功能,并且可用于需要高可用性,数据完整性和近乎不间断主库维护的许多部署中.</p>
-<ul>
-<li><p>Automated master monitoring and failover</p>
       
     </div>
     <footer class="article-footer">
