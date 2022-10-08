@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>orchestrator lastest slave选择逻辑&#34;不合理&#34;导致的数据丢失问题 | Fan()</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="MySQLOrchestrator" />
+  
+  
+  
+  
+  <meta name="description" content="Orchestrator Lastest Slave选择逻辑”不合理”导致的数据丢失问题首先说明, “不合理”只是站在个人角度的结论. 到底合理不合理, 我说了不算.以我对Orchestrator的了解, Orchestrator目标是追求可用性优先, 而非数据完整性. 很多公司也使用了Orchestrator, 我感觉未必知道有这个问题, 或者说, 别问, 问就是”我们追求可用性”. 现在的问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Orchestrator Lastest Slave选择逻辑&quot;不合理&quot;导致的数据丢失问题">
+<meta property="og:url" content="http://fuxkdb.com/2022/09/22/2022-09-22-Orchestrator-Lastest-Slave%E9%80%89%E6%8B%A9%E9%80%BB%E8%BE%91%E4%B8%8D%E5%90%88%E7%90%86%E5%AF%BC%E8%87%B4%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="Fan()">
+<meta property="og:description" content="Orchestrator Lastest Slave选择逻辑”不合理”导致的数据丢失问题首先说明, “不合理”只是站在个人角度的结论. 到底合理不合理, 我说了不算.以我对Orchestrator的了解, Orchestrator目标是追求可用性优先, 而非数据完整性. 很多公司也使用了Orchestrator, 我感觉未必知道有这个问题, 或者说, 别问, 问就是”我们追求可用性”. 现在的问题">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/picgo/2022/09/23/14-19-50-20220923141950-936ec9.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/picgo/2022/09/23/14-25-20-20220923142519-20d602.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/picgo/2022/09/23/14-35-47-20220923143547-1f6c7a.png">
+<meta property="article:published_time" content="2022-09-22T08:23:00.000Z">
+<meta property="article:modified_time" content="2022-10-08T12:02:44.330Z">
+<meta property="article:author" content="大范">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Orchestrator">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/picgo/2022/09/23/14-19-50-20220923141950-936ec9.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Fan()" type="application/atom+xml">
+  
+
+  
+
+  <link rel="icon" href="/css/images/mylogo.jpeg">
+  <link rel="apple-touch-icon" href="/css/images/mylogo.jpeg">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt; src:url("/css/fonts/FuturaPTBold.otf") format("woff");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt-light; src:url("/css/fonts/FuturaPTBook.otf") format("woff");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt-italic; src:url("/css/fonts/FuturaPTBookOblique.otf") format("woff");font-weight:400;font-style:italic;}
+}
+
+  </style>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+
+  
+<script src="/js/jquery-3.1.1.min.js"></script>
+
+  
+<script src="/js/bootstrap.js"></script>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+
+  
+    
+<link rel="stylesheet" href="/css/dialog.css">
+
+  
+
+  
+
+  
+    <link rel="stylesheet" href="/css/header-post.css" >
+  
+
+  
+  
+  
+    <link rel="stylesheet" href="/css/vdonate.css" >
+  
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+  <div id="container">
+    <div id="wrap">
+      
+        <header>
+
+    <div id="allheader" class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="navbar-inner">
+          
+          <div class="container"> 
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+
+            
+              <a class="brand" style="
+                 margin-top: 0px;"  
+                href="#" data-toggle="modal" data-target="#myModal" >
+                  <img width="124px" height="124px" alt="Hike News" src="/css/images/mylogo.jpeg">
+              </a>
+            
+            
+            <div class="navbar-collapse collapse">
+              <ul class="hnav navbar-nav">
+                
+                  <li> <a class="main-nav-link" href="/">首页</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/archives">归档</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/tags">标签</a> </li>
+                
+                  <li> <a class="main-nav-link" href="/about">关于</a> </li>
+                
+                  <li><div id="search-form-wrap">
+
+    <form class="search-form">
+        <input type="text" class="ins-search-input search-form-input" placeholder="" />
+        <button type="submit" class="search-form-submit"></button>
+    </form>
+    <div class="ins-search">
+    <div class="ins-search-mask"></div>
+    <div class="ins-search-container">
+        <div class="ins-input-wrapper">
+            <input type="text" class="ins-search-input" placeholder="请输入关键词..." />
+            <span class="ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(无标题)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+</div></li>
+            </div>
+          </div>
+                
+      </div>
+    </div>
+
+</header>
+
+
+
+      
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-2022-09-22-Orchestrator-Lastest-Slave选择逻辑不合理导致的数据丢失问题" style="width: 75%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      Orchestrator Lastest Slave选择逻辑&#34;不合理&#34;导致的数据丢失问题
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2022/09/22/2022-09-22-Orchestrator-Lastest-Slave%E9%80%89%E6%8B%A9%E9%80%BB%E8%BE%91%E4%B8%8D%E5%90%88%E7%90%86%E5%AF%BC%E8%87%B4%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/" class="article-date">
+	  <time datetime="2022-09-22T08:23:00.000Z" itemprop="datePublished">2022-09-22</time>
+	</a>
+
+      
+      
+	<a class="article-views">
+	<span id="busuanzi_container_page_pv">
+		阅读量<span id="busuanzi_value_page_pv"></span>
+	</span>
+	</a>
+
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Orchestrator-Lastest-Slave选择逻辑”不合理”导致的数据丢失问题"><a href="#Orchestrator-Lastest-Slave选择逻辑”不合理”导致的数据丢失问题" class="headerlink" title="Orchestrator Lastest Slave选择逻辑”不合理”导致的数据丢失问题"></a>Orchestrator Lastest Slave选择逻辑”不合理”导致的数据丢失问题</h1><p>首先说明, “不合理”只是站在个人角度的结论. 到底合理不合理, 我说了不算.<br>以我对Orchestrator的了解, Orchestrator目标是追求可用性优先, 而非数据完整性. 很多公司也使用了Orchestrator, 我感觉未必知道有这个问题, 或者说, <strong>别问, 问就是”我们追求可用性”</strong>.</p>
+<p>现在的问题是, 即便开了半同步, 也可能丢数据.</p>
+<p>然而矛盾的点是, 线上主从的复制延迟是大家都要监控和管理的, 不会长期处于高延迟状态, 起码我经历的公司都是这样, 99.9%的集群主从延迟在1s内. 个别集群在高峰期会升高一点, 但很快又会下降; 又或者这些集群本身就是AP型业务.</p>
+<p>那么既然我们可以保证复制延迟小于1s, 根据<code>ReadBinlogCoordinates</code>选择Latest slave又能导致”恢复时间”增大多少呢? 而为了这X秒的快速恢复, 你又要花多少时间修复数据呢?</p>
+<span id="more"></span>
+
+<h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>我在2021年2月调研orchestrator时发现了这个问题, 问题的详细描述和复现方法见<a target="_blank" rel="noopener" href="https://github.com/openark/orchestrator/issues/1312">issue#1312</a>, 我在这里简单描述一下.<br>原生orchestrator根据ExecBinlogCoordinates选择Latest Slave. 即ExecBinlogCoordinates大的为Latest Slave. 但ExecBinlogCoordinates大的副本不一定有最全的日志.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ExecBinlogCoordinates 是应用binlog坐标的意思</span><br><span class="line">对应show slave status中的</span><br><span class="line"> - Relay_Master_Log_File</span><br><span class="line"> - Exec_Master_Log_Pos</span><br><span class="line"></span><br><span class="line">表示sql_thread已经应用了主库哪个binlog哪个位置的日志.</span><br></pre></td></tr></table></figure>
+
+<p>假设我有一个一主两从复制集, 半同步开启, <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/replication-options-source.html#sysvar_rpl_semi_sync_master_wait_for_slave_count">rpl_semi_sync_master_wait_for_slave_count</a> &#x3D; 1<br>M 是主, S1 和 S2 是从</p>
+<p>在某个时间点:</p>
+<ul>
+<li>S1 的 ExecBinlogCoordinates &lt; S2 的 ExecBinlogCoordinate</li>
+<li>S2 网络有问题. 一些binlog事件还没有写入S2的relay log，但是IO_THREAD状态还在running.</li>
+</ul>
+<p>此时, 主库宕机, 原生orchestrator会选择S2作为新主库, 这会导致数据丢失</p>
+<p>在学习orchestrator源码后, 我修改了Latest Slave的选择逻辑, 解决了上述问题, 修改内容详见<a target="_blank" rel="noopener" href="https://github.com/Fanduzi/orchestrator/pull/1">fix-1312</a></p>
+<h2 id="测试环境说明"><a href="#测试环境说明" class="headerlink" title="测试环境说明"></a>测试环境说明</h2><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/picgo/2022/09/23/14-19-50-20220923141950-936ec9.png"></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">master fanboshi<span class="variable">@127</span><span class="number">.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">15</span>:<span class="number">25</span>:<span class="number">08</span> [dbms_monitor]<span class="operator">&gt;</span> <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> cluster;</span><br><span class="line"><span class="operator">+</span><span class="comment">----+-----------+--------------+--------------------+-------------+-------------+--------------------+------+----------------+---------------------+---------------------+</span></span><br><span class="line"><span class="operator">|</span> id <span class="operator">|</span> env       <span class="operator">|</span> cluster_name <span class="operator">|</span> cluster_xxx_domain <span class="operator">|</span> datacenter  <span class="operator">|</span> region      <span class="operator">|</span> hostname           <span class="operator">|</span> port <span class="operator">|</span> promotion_rule <span class="operator">|</span> D_UPDATED_AT        <span class="operator">|</span> D_CREATED_AT        <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+-----------+--------------+--------------------+-------------+-------------+--------------------+------+----------------+---------------------+---------------------+</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">1</span> <span class="operator">|</span> dev       <span class="operator">|</span> orc_dev_test <span class="operator">|</span> <span class="keyword">NULL</span>               <span class="operator">|</span> cn<span class="operator">-</span>north<span class="number">-1</span>a <span class="operator">|</span> <span class="number">123456</span>Cloud <span class="operator">|</span> bj1<span class="operator">-</span>mysql<span class="operator">-</span>test<span class="number">-01</span>  <span class="operator">|</span> <span class="number">3310</span> <span class="operator">|</span> neutral        <span class="operator">|</span> <span class="number">2022</span><span class="number">-06</span><span class="number">-14</span> <span class="number">21</span>:<span class="number">40</span>:<span class="number">34</span> <span class="operator">|</span> <span class="number">2022</span><span class="number">-06</span><span class="number">-14</span> <span class="number">21</span>:<span class="number">40</span>:<span class="number">34</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">2</span> <span class="operator">|</span> dev       <span class="operator">|</span> orc_dev_test <span class="operator">|</span> <span class="keyword">NULL</span>               <span class="operator">|</span> cn<span class="operator">-</span>north<span class="number">-1</span>a <span class="operator">|</span> <span class="number">123456</span>Cloud <span class="operator">|</span> bj1<span class="operator">-</span>mysql<span class="operator">-</span>test<span class="number">-03</span>  <span class="operator">|</span> <span class="number">3310</span> <span class="operator">|</span> neutral        <span class="operator">|</span> <span class="number">2022</span><span class="number">-06</span><span class="number">-18</span> <span class="number">11</span>:<span class="number">33</span>:<span class="number">50</span> <span class="operator">|</span> <span class="number">2022</span><span class="number">-06</span><span class="number">-14</span> <span class="number">21</span>:<span class="number">40</span>:<span class="number">34</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span>  <span class="number">3</span> <span class="operator">|</span> dev       <span class="operator">|</span> orc_dev_test <span class="operator">|</span> <span class="keyword">NULL</span>               <span class="operator">|</span> cn<span class="operator">-</span>north<span class="number">-1</span>a <span class="operator">|</span> <span class="number">123456</span>Cloud <span class="operator">|</span> bj1<span class="operator">-</span>mysql<span class="operator">-</span>test<span class="number">-02</span>  <span class="operator">|</span> <span class="number">3310</span> <span class="operator">|</span> neutral        <span class="operator">|</span> <span class="number">2022</span><span class="number">-06</span><span class="number">-14</span> <span class="number">21</span>:<span class="number">40</span>:<span class="number">34</span> <span class="operator">|</span> <span class="number">2022</span><span class="number">-06</span><span class="number">-14</span> <span class="number">21</span>:<span class="number">40</span>:<span class="number">34</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">----+-----------+--------------+--------------------+-------------+-------------+--------------------+------+----------------+---------------------+---------------------+</span></span><br><span class="line"><span class="number">3</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>为了方便测试, 在所有从库</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">stop slave;</span><br><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> slave_net_timeout <span class="operator">=</span> <span class="number">3600</span>;</span><br><span class="line">CHANGE MASTER <span class="keyword">TO</span> MASTER_CONNECT_RETRY<span class="operator">=</span><span class="number">1</span>, MASTER_RETRY_COUNT<span class="operator">=</span><span class="number">86400</span>, MASTER_HEARTBEAT_PERIOD<span class="operator">=</span><span class="number">1800</span>;</span><br><span class="line"><span class="keyword">start</span> slave;</span><br></pre></td></tr></table></figure>
+
+<p>s1</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">slave1 root<span class="variable">@localhost</span> <span class="number">15</span>:<span class="number">46</span>:<span class="number">17</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">show</span> <span class="keyword">global</span> status <span class="keyword">like</span> <span class="string">&#x27;%semi%&#x27;</span>;</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------+----------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name                              <span class="operator">|</span> <span class="keyword">Value</span>    <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------+----------+</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_clients               <span class="operator">|</span> <span class="number">0</span>        <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_net_avg_wait_time     <span class="operator">|</span> <span class="number">0</span>        <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_net_wait_time         <span class="operator">|</span> <span class="number">0</span>        <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_net_waits             <span class="operator">|</span> <span class="number">3074</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_no_times              <span class="operator">|</span> <span class="number">3</span>        <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_no_tx                 <span class="operator">|</span> <span class="number">0</span>        <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_status                <span class="operator">|</span> OFF      <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_timefunc_failures     <span class="operator">|</span> <span class="number">0</span>        <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_tx_avg_wait_time      <span class="operator">|</span> <span class="number">16165</span>    <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_tx_wait_time          <span class="operator">|</span> <span class="number">47722030</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_tx_waits              <span class="operator">|</span> <span class="number">2952</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_wait_pos_backtraverse <span class="operator">|</span> <span class="number">3</span>        <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_wait_sessions         <span class="operator">|</span> <span class="number">0</span>        <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_yes_tx                <span class="operator">|</span> <span class="number">2950</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_slave_status                 <span class="operator">|</span> <span class="keyword">ON</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------+----------+</span></span><br><span class="line"><span class="number">15</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"> </span><br><span class="line">slave1 root<span class="variable">@localhost</span> <span class="number">15</span>:<span class="number">48</span>:<span class="number">16</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> mysql.slave_master_info\G</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">       Number_of_lines: <span class="number">25</span></span><br><span class="line">       Master_log_name: mysql<span class="operator">-</span>bin<span class="number">.000001</span></span><br><span class="line">        Master_log_pos: <span class="number">154</span></span><br><span class="line">                  Host: <span class="number">192.168</span>.xx<span class="number">.93</span></span><br><span class="line">             User_name: repler</span><br><span class="line">         User_password: superpass</span><br><span class="line">                  Port: <span class="number">3310</span></span><br><span class="line">         Connect_retry: <span class="number">1</span></span><br><span class="line">           Enabled_ssl: <span class="number">0</span></span><br><span class="line">                Ssl_ca:</span><br><span class="line">            Ssl_capath:</span><br><span class="line">              Ssl_cert:</span><br><span class="line">            Ssl_cipher:</span><br><span class="line">               Ssl_key:</span><br><span class="line">Ssl_verify_server_cert: <span class="number">0</span></span><br><span class="line">             Heartbeat: <span class="number">1800</span></span><br><span class="line">                  Bind:</span><br><span class="line">    Ignored_server_ids: <span class="number">0</span></span><br><span class="line">                  Uuid: <span class="number">635</span>da820<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="number">-8550</span><span class="operator">-</span>fa163e6d6e43</span><br><span class="line">           Retry_count: <span class="number">86400</span></span><br><span class="line">               Ssl_crl:</span><br><span class="line">           Ssl_crlpath:</span><br><span class="line"> Enabled_auto_position: <span class="number">1</span></span><br><span class="line">          Channel_name:</span><br><span class="line">           Tls_version:</span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>s2</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">slave2 root<span class="variable">@localhost</span> <span class="number">15</span>:<span class="number">46</span>:<span class="number">20</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">show</span> <span class="keyword">global</span> status <span class="keyword">like</span> <span class="string">&#x27;%semi%&#x27;</span>;</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name                              <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_clients               <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_net_avg_wait_time     <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_net_wait_time         <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_net_waits             <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_no_times              <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_no_tx                 <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_status                <span class="operator">|</span> OFF   <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_timefunc_failures     <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_tx_avg_wait_time      <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_tx_wait_time          <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_tx_waits              <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_wait_pos_backtraverse <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_wait_sessions         <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_yes_tx                <span class="operator">|</span> <span class="number">0</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_slave_status                 <span class="operator">|</span> <span class="keyword">ON</span>    <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------+-------+</span></span><br><span class="line"><span class="number">15</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.01</span> sec)</span><br><span class="line"> </span><br><span class="line">slave2 root<span class="variable">@localhost</span> <span class="number">15</span>:<span class="number">48</span>:<span class="number">21</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> mysql.slave_master_info\G</span><br><span class="line"><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span> <span class="number">1.</span> <span class="type">row</span> <span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span><span class="operator">*</span></span><br><span class="line">       Number_of_lines: <span class="number">25</span></span><br><span class="line">       Master_log_name: mysql<span class="operator">-</span>bin<span class="number">.000001</span></span><br><span class="line">        Master_log_pos: <span class="number">154</span></span><br><span class="line">                  Host: <span class="number">192.168</span>.xx<span class="number">.93</span></span><br><span class="line">             User_name: repler</span><br><span class="line">         User_password: superpass</span><br><span class="line">                  Port: <span class="number">3310</span></span><br><span class="line">         Connect_retry: <span class="number">1</span></span><br><span class="line">           Enabled_ssl: <span class="number">0</span></span><br><span class="line">                Ssl_ca:</span><br><span class="line">            Ssl_capath:</span><br><span class="line">              Ssl_cert:</span><br><span class="line">            Ssl_cipher:</span><br><span class="line">               Ssl_key:</span><br><span class="line">Ssl_verify_server_cert: <span class="number">0</span></span><br><span class="line">             Heartbeat: <span class="number">1800</span></span><br><span class="line">                  Bind:</span><br><span class="line">    Ignored_server_ids: <span class="number">0</span></span><br><span class="line">                  Uuid: <span class="number">635</span>da820<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="number">-8550</span><span class="operator">-</span>fa163e6d6e43</span><br><span class="line">           Retry_count: <span class="number">86400</span></span><br><span class="line">               Ssl_crl:</span><br><span class="line">           Ssl_crlpath:</span><br><span class="line"> Enabled_auto_position: <span class="number">1</span></span><br><span class="line">          Channel_name:</span><br><span class="line">           Tls_version:</span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>主库设置</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> <span class="keyword">global</span> rpl_semi_sync_master_timeout<span class="operator">=</span><span class="number">4294967295</span>;</span><br><span class="line"></span><br><span class="line">master fanboshi<span class="variable">@127</span><span class="number">.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">15</span>:<span class="number">47</span>:<span class="number">08</span> [dbms_monitor]<span class="operator">&gt;</span> <span class="keyword">set</span> <span class="keyword">global</span> rpl_semi_sync_master_timeout<span class="operator">=</span><span class="number">4294967295</span>;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"> </span><br><span class="line">fanboshi<span class="variable">@127</span><span class="number">.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">15</span>:<span class="number">47</span>:<span class="number">30</span> [dbms_monitor]<span class="operator">&gt;</span> <span class="keyword">show</span> <span class="keyword">global</span> status <span class="keyword">like</span> <span class="string">&#x27;%semi%&#x27;</span>;</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------+-----------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name                              <span class="operator">|</span> <span class="keyword">Value</span>     <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------+-----------+</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_clients               <span class="operator">|</span> <span class="number">2</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_net_avg_wait_time     <span class="operator">|</span> <span class="number">0</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_net_wait_time         <span class="operator">|</span> <span class="number">0</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_net_waits             <span class="operator">|</span> <span class="number">2689143</span>   <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_no_times              <span class="operator">|</span> <span class="number">4</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_no_tx                 <span class="operator">|</span> <span class="number">1</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_status                <span class="operator">|</span> <span class="keyword">ON</span>        <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_timefunc_failures     <span class="operator">|</span> <span class="number">0</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_tx_avg_wait_time      <span class="operator">|</span> <span class="number">439</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_tx_wait_time          <span class="operator">|</span> <span class="number">592895132</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_tx_waits              <span class="operator">|</span> <span class="number">1349976</span>   <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_wait_pos_backtraverse <span class="operator">|</span> <span class="number">3</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_wait_sessions         <span class="operator">|</span> <span class="number">0</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_master_yes_tx                <span class="operator">|</span> <span class="number">1349975</span>   <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> Rpl_semi_sync_slave_status                 <span class="operator">|</span> OFF       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------+-----------+</span></span><br><span class="line"><span class="number">15</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"> </span><br><span class="line">master fanboshi<span class="variable">@127</span><span class="number">.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">15</span>:<span class="number">47</span>:<span class="number">58</span> [dbms_monitor]<span class="operator">&gt;</span> <span class="keyword">show</span> <span class="keyword">global</span> variables <span class="keyword">like</span> <span class="string">&#x27;%semi%&#x27;</span>;</span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------------------+------------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name                             <span class="operator">|</span> <span class="keyword">Value</span>      <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------------------+------------+</span></span><br><span class="line"><span class="operator">|</span> rpl_semi_sync_master_enabled              <span class="operator">|</span> <span class="keyword">ON</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> rpl_semi_sync_master_timeout              <span class="operator">|</span> <span class="number">4294967295</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> rpl_semi_sync_master_trace_level          <span class="operator">|</span> <span class="number">32</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> rpl_semi_sync_master_wait_for_slave_count <span class="operator">|</span> <span class="number">1</span>          <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> rpl_semi_sync_master_wait_no_slave        <span class="operator">|</span> <span class="keyword">ON</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> rpl_semi_sync_master_wait_point           <span class="operator">|</span> AFTER_SYNC <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> rpl_semi_sync_slave_enabled               <span class="operator">|</span> <span class="keyword">ON</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">|</span> rpl_semi_sync_slave_trace_level           <span class="operator">|</span> <span class="number">32</span>         <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">-------------------------------------------+------------+</span></span><br><span class="line"><span class="number">8</span> <span class="keyword">rows</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>通过一个脚本模拟数据写入test.t1表</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">cat insert.py</span><br><span class="line"><span class="comment">#!/root/.pyenv/versions/myrecover/bin/python</span></span><br><span class="line"><span class="comment"># -*- coding: utf8 -*-</span></span><br><span class="line"><span class="comment"># __author__ = &#x27;Fan()&#x27;</span></span><br><span class="line"><span class="comment"># Date: 2022-06-01</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line"> </span><br><span class="line">conn = pymysql.connect(host=<span class="string">&#x27;192.168.xx.93&#x27;</span>, port=<span class="number">16033</span>, user=<span class="string">&#x27;dbms_monitor_rw&#x27;</span>, password=<span class="string">&#x27;superpass&#x27;</span>,</span><br><span class="line">                       db=<span class="string">&#x27;test&#x27;</span>, connect_timeout=<span class="number">1</span>, read_timeout=<span class="number">1</span>, write_timeout=<span class="number">1</span>,</span><br><span class="line">                       autocommit=<span class="literal">True</span>, charset=<span class="string">&#x27;utf8&#x27;</span>)</span><br><span class="line">cursor = conn.cursor(pymysql.cursors.DictCursor)</span><br><span class="line"> </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        time.sleep(<span class="number">0.5</span>)</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            conn.ping(reconnect=<span class="literal">True</span>)</span><br><span class="line">            cursor.execute(<span class="string">&quot;replace into t1(id, ctime) values(1, now());&quot;</span>)</span><br><span class="line">        <span class="keyword">except</span> pymysql.Error <span class="keyword">as</span> e:</span><br><span class="line">            sql = self.cursor.mogrify(sql)</span><br><span class="line">            <span class="built_in">print</span>(sql)</span><br></pre></td></tr></table></figure>
+<h1 id="原生orchestrator问题复现"><a href="#原生orchestrator问题复现" class="headerlink" title="原生orchestrator问题复现"></a>原生orchestrator问题复现</h1><p>在s1, 执行以下语句, 锁住t1表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">slave1 root<span class="variable">@localhost</span> <span class="number">20</span>:<span class="number">57</span>:<span class="number">04</span> [test]<span class="operator">&gt;</span> <span class="keyword">begin</span>;lock <span class="keyword">table</span> test.t1 read;</span><br></pre></td></tr></table></figure>
+<p>此后, s1 由于被锁阻塞, ExecBinlogCoordinates不在变化, 但仍然可以正常接收主库发来的日志</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">slave1 root<span class="variable">@localhost</span> <span class="number">20</span>:<span class="number">57</span>:<span class="number">12</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> pager cat <span class="operator">-</span> <span class="operator">|</span> grep <span class="operator">-</span>E <span class="string">&#x27;Master_Log_File|Relay_Master_Log_File|Read_Master_Log_Pos|Exec_Master_Log_Pos|Slave_IO_Running|Slave_SQL_Running|Seconds_Behind_Master|Slave_SQL_Running_State|Last|Relay_Log_File|Relay_Log_Pos&#x27;</span></span><br><span class="line">PAGER <span class="keyword">set</span> <span class="keyword">to</span> <span class="string">&#x27;cat - | grep -E &#x27;</span>Master_Log_File<span class="operator">|</span>Relay_Master_Log_File<span class="operator">|</span>Read_Master_Log_Pos<span class="operator">|</span>Exec_Master_Log_Pos<span class="operator">|</span>Slave_IO_Running<span class="operator">|</span>Slave_SQL_Running<span class="operator">|</span>Seconds_Behind_Master<span class="operator">|</span>Slave_SQL_Running_State<span class="operator">|</span><span class="keyword">Last</span><span class="operator">|</span>Relay_Log_File<span class="operator">|</span>Relay_Log_Pos<span class="string">&#x27;&#x27;</span></span><br><span class="line">slave1 root<span class="variable">@localhost</span> <span class="number">20</span>:<span class="number">57</span>:<span class="number">12</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">show</span> slave status\G</span><br><span class="line">              Master_Log_File: mysql<span class="operator">-</span>bin<span class="number">.000008</span></span><br><span class="line">          Read_Master_Log_Pos: <span class="number">4274259</span></span><br><span class="line">               Relay_Log_File: mysql<span class="operator">-</span>relay<span class="operator">-</span>bin<span class="number">.000003</span></span><br><span class="line">                Relay_Log_Pos: <span class="number">4167362</span></span><br><span class="line">        Relay_Master_Log_File: mysql<span class="operator">-</span>bin<span class="number">.000008</span></span><br><span class="line">             Slave_IO_Running: Yes</span><br><span class="line">            Slave_SQL_Running: Yes</span><br><span class="line">                   Last_Errno: <span class="number">0</span></span><br><span class="line">                   Last_Error:</span><br><span class="line">          Exec_Master_Log_Pos: <span class="number">4167229</span></span><br><span class="line">        Seconds_Behind_Master: <span class="number">6</span></span><br><span class="line">                Last_IO_Errno: <span class="number">0</span></span><br><span class="line">                Last_IO_Error:</span><br><span class="line">               Last_SQL_Errno: <span class="number">0</span></span><br><span class="line">               Last_SQL_Error:</span><br><span class="line">      Slave_SQL_Running_State: Waiting <span class="keyword">for</span> dependent transaction <span class="keyword">to</span> <span class="keyword">commit</span></span><br><span class="line">      Last_IO_Error_Timestamp:</span><br><span class="line">     Last_SQL_Error_Timestamp:</span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>在s2, 执行以下语句, 模拟s2与主库网络存在异常, 无法接受主库发来的日志</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">tc qdisc del dev eth0 root</span><br><span class="line">tc qdisc add dev eth0 root handle 1: prio</span><br><span class="line">tc filter add dev eth0 protocol ip parent 1: prio 1 u32 match ip dst 192.168.xx.93 match ip dport 3310 0xffff flowid 1:1</span><br><span class="line">tc filter add dev eth0 protocol all parent 1: prio 2 u32 match ip dst 0.0.0.0/0 flowid 1:2</span><br><span class="line">tc filter add dev eth0 protocol all parent 1: prio 2 u32 match ip protocol 1 0xff flowid 1:2</span><br><span class="line">tc qdisc add dev eth0 parent 1:1 handle 10: netem delay 180000ms</span><br><span class="line">tc qdisc add dev eth0 parent 1:2 handle 20: sfq</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">slave2 root<span class="variable">@localhost</span> <span class="number">20</span>:<span class="number">57</span>:<span class="number">31</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> pager</span><br><span class="line"><span class="keyword">Default</span> pager wasn<span class="string">&#x27;t set, using stdout.</span></span><br><span class="line"><span class="string">slave2 root@localhost 20:57:31 [(none)]&gt; pager cat - | grep -E &#x27;</span>Master_Log_File<span class="operator">|</span>Relay_Master_Log_File<span class="operator">|</span>Read_Master_Log_Pos<span class="operator">|</span>Exec_Master_Log_Pos<span class="operator">|</span>Slave_IO_Running<span class="operator">|</span>Slave_SQL_Running<span class="operator">|</span>Seconds_Behind_Master<span class="operator">|</span>Slave_SQL_Running_State<span class="operator">|</span><span class="keyword">Last</span><span class="operator">|</span>Relay_Log_File<span class="operator">|</span>Relay_Log_Pos<span class="string">&#x27;</span></span><br><span class="line"><span class="string">PAGER set to &#x27;</span>cat <span class="operator">-</span> <span class="operator">|</span> grep <span class="operator">-</span>E <span class="string">&#x27;Master_Log_File|Relay_Master_Log_File|Read_Master_Log_Pos|Exec_Master_Log_Pos|Slave_IO_Running|Slave_SQL_Running|Seconds_Behind_Master|Slave_SQL_Running_State|Last|Relay_Log_File|Relay_Log_Pos&#x27;&#x27;</span></span><br><span class="line"><span class="string">slave2 root@localhost 20:57:33 [(none)]&gt; show slave status\G</span></span><br><span class="line"><span class="string">              Master_Log_File: mysql-bin.000008</span></span><br><span class="line"><span class="string">          Read_Master_Log_Pos: 4211217</span></span><br><span class="line"><span class="string">               Relay_Log_File: mysql-relay-bin.000003</span></span><br><span class="line"><span class="string">                Relay_Log_Pos: 4211350</span></span><br><span class="line"><span class="string">        Relay_Master_Log_File: mysql-bin.000008</span></span><br><span class="line"><span class="string">             Slave_IO_Running: Yes</span></span><br><span class="line"><span class="string">            Slave_SQL_Running: Yes</span></span><br><span class="line"><span class="string">                   Last_Errno: 0</span></span><br><span class="line"><span class="string">                   Last_Error:</span></span><br><span class="line"><span class="string">          Exec_Master_Log_Pos: 4211217</span></span><br><span class="line"><span class="string">        Seconds_Behind_Master: 0</span></span><br><span class="line"><span class="string">                Last_IO_Errno: 0</span></span><br><span class="line"><span class="string">                Last_IO_Error:</span></span><br><span class="line"><span class="string">               Last_SQL_Errno: 0</span></span><br><span class="line"><span class="string">               Last_SQL_Error:</span></span><br><span class="line"><span class="string">      Slave_SQL_Running_State: Slave has read all relay log; waiting for more updates</span></span><br><span class="line"><span class="string">      Last_IO_Error_Timestamp:</span></span><br><span class="line"><span class="string">     Last_SQL_Error_Timestamp:</span></span><br><span class="line"><span class="string">1 row in set (0.01 sec)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">S1</span><br><span class="line">              Master_Log_File: mysql-bin.000008  </span><br><span class="line">          Read_Master_Log_Pos: 4274259</span><br><span class="line"></span><br><span class="line">        Relay_Master_Log_File: mysql-bin.000008  </span><br><span class="line">          Exec_Master_Log_Pos: 4167229</span><br><span class="line"></span><br><span class="line">S2</span><br><span class="line">              Master_Log_File: mysql-bin.000008  </span><br><span class="line">          Read_Master_Log_Pos: 4211217</span><br><span class="line"></span><br><span class="line">        Relay_Master_Log_File: mysql-bin.000008  </span><br><span class="line">          Exec_Master_Log_Pos: 4211217</span><br></pre></td></tr></table></figure>
+<p>可以看到</p>
+<ul>
+<li>ExecBinlogCoordinates: S2&gt;S1</li>
+<li>ReadBinlogCoordinates: S1&gt;S2</li>
+</ul>
+<p>查看orchestrator日志</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2022</span><span class="number">-06</span><span class="number">-18</span> <span class="number">21</span>:<span class="number">01</span>:<span class="number">13</span> INFO Stopped replication on <span class="number">192.168</span>.xx<span class="number">.96</span>:<span class="number">3310</span>, Self:mysql-bin<span class="number">.000001</span>:<span class="number">472290401</span>, Exec:mysql-bin<span class="number">.000008</span>:<span class="number">4167229</span>  </span><br><span class="line"><span class="number">2022</span><span class="number">-06</span><span class="number">-18</span> <span class="number">21</span>:<span class="number">01</span>:<span class="number">13</span> DEBUG - sorted replica: <span class="number">192.168</span>.xx<span class="number">.95</span>:<span class="number">3310</span> mysql-bin<span class="number">.000008</span>:<span class="number">4211217</span>  </span><br><span class="line"><span class="number">2022</span><span class="number">-06</span><span class="number">-18</span> <span class="number">21</span>:<span class="number">01</span>:<span class="number">13</span> DEBUG - sorted replica: <span class="number">192.168</span>.xx<span class="number">.96</span>:<span class="number">3310</span> mysql-bin<span class="number">.000008</span>:<span class="number">4167229</span></span><br></pre></td></tr></table></figure>
+<p>在审计日志搜索4211217和4167229</p>
+<p>s1</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="string">&#x27;192.168.xx.96&#x27;</span>, <span class="number">3310</span>, NOW(), NOW(), <span class="number">1</span>, <span class="number">343269</span>, <span class="number">14210</span>, <span class="string">&#x27;63648d0d-ebe7-11ec-b9ee-fa163eda3a6e&#x27;</span>, <span class="string">&#x27;5.7.32-35-log&#x27;</span>, <span class="string">&#x27;5.7&#x27;</span>, <span class="string">&#x27;Percona Server (GPL), Release 35, Revision 5688520&#x27;</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="string">&#x27;ROW&#x27;</span>, <span class="string">&#x27;FULL&#x27;</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="string">&#x27;mysql-bin.000001&#x27;</span>, <span class="number">472290401</span>, <span class="string">&#x27;192.168.xx.93&#x27;</span>, <span class="number">3310</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43&#x27;</span>, <span class="string">&#x27;63648d0d-ebe7-11ec-b9ee-fa163eda3a6e&#x27;</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43:1-1407359,\\n63648d0d-ebe7-11ec-b9ee-fa163eda3a6e:1-3756,\\n64b94f66-ebe7-11ec-b57f-00163e095602:1-188&#x27;</span>, <span class="string">&#x27;ON&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;mysql-bin.000008&#x27;</span>, <span class="number">4274259</span>, <span class="string">&#x27;mysql-bin.000008&#x27;</span>, <span class="number">4167229</span>, <span class="string">&#x27;mysql-relay-bin.000003&#x27;</span>, <span class="number">4167362</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;\\\&quot;error reconnecting to master \\&#x27;</span>repler@<span class="number">192.168</span>.xx<span class="number">.93</span>:<span class="number">3310</span>\\<span class="string">&#x27; - retry-time: 60  retries: 3\\\&quot;&#x27;</span>, NULL, <span class="number">246</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;[]&#x27;</span>, <span class="string">&#x27;192.168.xx.93:3310&#x27;</span>, <span class="string">&#x27;orc_dev_test&#x27;</span>, <span class="string">&#x27;cn-north-1a&#x27;</span>, <span class="string">&#x27;123456Cloud&#x27;</span>, <span class="string">&#x27;dev&#x27;</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">10000</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;bj1-mysql-test-02_3310&#x27;</span>, <span class="number">13211977</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;[]&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, NOW())\n        ON DUPLICATE KEY UPDATE</span><br></pre></td></tr></table></figure>
+
+<p>s2</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="string">&#x27;192.168.xx.95&#x27;</span>, <span class="number">3310</span>, NOW(), NOW(), <span class="number">1</span>, <span class="number">343268</span>, <span class="number">57903</span>, <span class="string">&#x27;64b94f66-ebe7-11ec-b57f-00163e095602&#x27;</span>, <span class="string">&#x27;5.7.32-35-log&#x27;</span>, <span class="string">&#x27;5.7&#x27;</span>, <span class="string">&#x27;Percona Server (GPL), Release 35, Revision 5688520&#x27;</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="string">&#x27;ROW&#x27;</span>, <span class="string">&#x27;FULL&#x27;</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="string">&#x27;mysql-bin.000001&#x27;</span>, <span class="number">472227305</span>, <span class="string">&#x27;192.168.xx.93&#x27;</span>, <span class="number">3310</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43&#x27;</span>, <span class="string">&#x27;64b94f66-ebe7-11ec-b57f-00163e095602&#x27;</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43:1-1407485,\\n63648d0d-ebe7-11ec-b9ee-fa163eda3a6e:1-3756,\\n64b94f66-ebe7-11ec-b57f-00163e095602:1-188&#x27;</span>, <span class="string">&#x27;ON&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;mysql-bin.000008&#x27;</span>, <span class="number">4211217</span>, <span class="string">&#x27;mysql-bin.000008&#x27;</span>, <span class="number">4211217</span>, <span class="string">&#x27;mysql-relay-bin.000003&#x27;</span>, <span class="number">4211350</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;\\\&quot;error reconnecting to master \\&#x27;</span>repler@<span class="number">192.168</span>.xx<span class="number">.93</span>:<span class="number">3310</span>\\<span class="string">&#x27; - retry-time: 1  retries: 1\\\&quot;&#x27;</span>, NULL, <span class="number">225</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;[]&#x27;</span>, <span class="string">&#x27;192.168.xx.93:3310&#x27;</span>, <span class="string">&#x27;orc_dev_test&#x27;</span>, <span class="string">&#x27;cn-north-1a&#x27;</span>, <span class="string">&#x27;123456Cloud&#x27;</span>, <span class="string">&#x27;dev&#x27;</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">10000</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;bj1-mysql-test-03_3310&#x27;</span>, <span class="number">51391021</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;[]&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, NOW())\n        ON DUPLICATE KEY UPDATE\n</span><br></pre></td></tr></table></figure>
+
+<p>kill -9 主库<br>等待日志 ERROR WaitForSQLThreadUpToDate timeout on 192.168.xx.96:3310 after duration 10s<br>s1解锁, 此时仍然不解除s2延迟, 等待failover完成</p>
+<p>Failover完成, ExecBinlogCoordinates大的S2成为新主库<br><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/picgo/2022/09/23/14-25-20-20220923142519-20d602.png"></p>
+<p>查看S2 Executed_Gtid_Set</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">slave2 root<span class="variable">@localhost</span> <span class="number">21</span>:<span class="number">02</span>:<span class="number">05</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">show</span> master status;</span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="operator">|</span> File             <span class="operator">|</span> Position  <span class="operator">|</span> Binlog_Do_DB <span class="operator">|</span> Binlog_Ignore_DB <span class="operator">|</span> Executed_Gtid_Set                                                                                                                       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="operator">|</span> mysql<span class="operator">-</span>bin<span class="number">.000001</span> <span class="operator">|</span> <span class="number">472231613</span> <span class="operator">|</span>              <span class="operator">|</span>                  <span class="operator">|</span> <span class="number">635</span>da820<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="number">-8550</span><span class="operator">-</span>fa163e6d6e43:<span class="number">1</span><span class="number">-1407485</span>,</span><br><span class="line"><span class="number">63648</span>d0d<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="operator">-</span>b9ee<span class="operator">-</span>fa163eda3a6e:<span class="number">1</span><span class="number">-3756</span>,</span><br><span class="line"><span class="number">64</span>b94f66<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="operator">-</span>b57f<span class="number">-00163e095602</span>:<span class="number">1</span><span class="number">-200</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>启动旧主库, 查看Executed_Gtid_Set</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">master root<span class="variable">@localhost</span> <span class="number">21</span>:<span class="number">02</span>:<span class="number">28</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">show</span> master status;</span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="operator">|</span> File             <span class="operator">|</span> Position <span class="operator">|</span> Binlog_Do_DB <span class="operator">|</span> Binlog_Ignore_DB <span class="operator">|</span> Executed_Gtid_Set                                                                                                                       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="operator">|</span> mysql<span class="operator">-</span>bin<span class="number">.000009</span> <span class="operator">|</span>      <span class="number">274</span> <span class="operator">|</span>              <span class="operator">|</span>                  <span class="operator">|</span> <span class="number">635</span>da820<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="number">-8550</span><span class="operator">-</span>fa163e6d6e43:<span class="number">1</span><span class="number">-1407665</span>,</span><br><span class="line"><span class="number">63648</span>d0d<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="operator">-</span>b9ee<span class="operator">-</span>fa163eda3a6e:<span class="number">1</span><span class="number">-3756</span>,</span><br><span class="line"><span class="number">64</span>b94f66<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="operator">-</span>b57f<span class="number">-00163e095602</span>:<span class="number">1</span><span class="number">-188</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>可以看到</p>
+<ul>
+<li>旧主库 635da820-ebe7-11ec-8550-fa163e6d6e43:1-1407665</li>
+<li>新主库(S2) 635da820-ebe7-11ec-8550-fa163e6d6e43:1-1407485</li>
+</ul>
+<p>数据丢失了<br>日志就不贴了, 没什么意义, 有兴趣可以自己尝试复现</p>
+<h1 id="修改后功能验证"><a href="#修改后功能验证" class="headerlink" title="修改后功能验证"></a>修改后功能验证</h1><p>设置<code>MinimiseDataLoss=true</code>, 重启orc</p>
+<blockquote>
+<p>官方没这个参数, 这是自己改代码加的参数</p>
+</blockquote>
+<p>在s1, 执行以下语句, 锁住t1表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">slave1 root<span class="variable">@localhost</span> <span class="number">21</span>:<span class="number">16</span>:<span class="number">05</span> [test]<span class="operator">&gt;</span> <span class="keyword">begin</span>;lock <span class="keyword">table</span> test.t1 read;</span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br><span class="line"> </span><br><span class="line">Query OK, <span class="number">0</span> <span class="keyword">rows</span> affected (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>此后, s1 由于被锁阻塞, ExecBinlogCoordinates不在变化, 但仍然可以正常接收主库发来的日志</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">slave1 root<span class="variable">@localhost</span> <span class="number">21</span>:<span class="number">16</span>:<span class="number">21</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> pager cat <span class="operator">-</span> <span class="operator">|</span> grep <span class="operator">-</span>E <span class="string">&#x27;Master_Log_File|Relay_Master_Log_File|Read_Master_Log_Pos|Exec_Master_Log_Pos|Slave_IO_Running|Slave_SQL_Running|Seconds_Behind_Master|Slave_SQL_Running_State|Last|Relay_Log_File|Relay_Log_Pos&#x27;</span></span><br><span class="line">PAGER <span class="keyword">set</span> <span class="keyword">to</span> <span class="string">&#x27;cat - | grep -E &#x27;</span>Master_Log_File<span class="operator">|</span>Relay_Master_Log_File<span class="operator">|</span>Read_Master_Log_Pos<span class="operator">|</span>Exec_Master_Log_Pos<span class="operator">|</span>Slave_IO_Running<span class="operator">|</span>Slave_SQL_Running<span class="operator">|</span>Seconds_Behind_Master<span class="operator">|</span>Slave_SQL_Running_State<span class="operator">|</span><span class="keyword">Last</span><span class="operator">|</span>Relay_Log_File<span class="operator">|</span>Relay_Log_Pos<span class="string">&#x27;&#x27;</span></span><br><span class="line">slave1 root<span class="variable">@localhost</span> <span class="number">21</span>:<span class="number">18</span>:<span class="number">08</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">show</span> slave status\G</span><br><span class="line">              Master_Log_File: mysql<span class="operator">-</span>bin<span class="number">.000009</span></span><br><span class="line">          Read_Master_Log_Pos: <span class="number">1411494</span></span><br><span class="line">               Relay_Log_File: mysql<span class="operator">-</span>relay<span class="operator">-</span>bin<span class="number">.000003</span></span><br><span class="line">                Relay_Log_Pos: <span class="number">1259657</span></span><br><span class="line">        Relay_Master_Log_File: mysql<span class="operator">-</span>bin<span class="number">.000009</span></span><br><span class="line">             Slave_IO_Running: Connecting</span><br><span class="line">            Slave_SQL_Running: Yes</span><br><span class="line">                   Last_Errno: <span class="number">0</span></span><br><span class="line">                   Last_Error:</span><br><span class="line">          Exec_Master_Log_Pos: <span class="number">1274711</span></span><br><span class="line">        Seconds_Behind_Master: <span class="number">121</span></span><br><span class="line">                Last_IO_Errno: <span class="number">2003</span></span><br><span class="line">                Last_IO_Error: error reconnecting <span class="keyword">to</span> master <span class="string">&#x27;repler@192.168.xx.93:3310&#x27;</span> <span class="operator">-</span> retry<span class="operator">-</span><span class="type">time</span>: <span class="number">60</span>  retries: <span class="number">1</span></span><br><span class="line">               Last_SQL_Errno: <span class="number">0</span></span><br><span class="line">               Last_SQL_Error:</span><br><span class="line">      Slave_SQL_Running_State: Waiting <span class="keyword">for</span> dependent transaction <span class="keyword">to</span> <span class="keyword">commit</span></span><br><span class="line">      Last_IO_Error_Timestamp: <span class="number">220618</span> <span class="number">21</span>:<span class="number">17</span>:<span class="number">16</span></span><br><span class="line">     Last_SQL_Error_Timestamp:</span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<p>在s2, 执行以下语句, 模拟s2与主库网络存在异常, 无法接受主库发来的日志</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">tc qdisc del dev eth0 root</span><br><span class="line">tc qdisc <span class="keyword">add</span> dev eth0 root handle <span class="number">1</span>: prio</span><br><span class="line">tc <span class="keyword">filter</span> <span class="keyword">add</span> dev eth0 protocol ip parent <span class="number">1</span>: prio <span class="number">1</span> u32 <span class="keyword">match</span> ip dst <span class="number">192.168</span>.xx<span class="number">.93</span> <span class="keyword">match</span> ip dport <span class="number">3310</span> <span class="number">0xffff</span> flowid <span class="number">1</span>:<span class="number">1</span></span><br><span class="line">tc <span class="keyword">filter</span> <span class="keyword">add</span> dev eth0 protocol <span class="keyword">all</span> parent <span class="number">1</span>: prio <span class="number">2</span> u32 <span class="keyword">match</span> ip dst <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span><span class="operator">/</span><span class="number">0</span> flowid <span class="number">1</span>:<span class="number">2</span></span><br><span class="line">tc <span class="keyword">filter</span> <span class="keyword">add</span> dev eth0 protocol <span class="keyword">all</span> parent <span class="number">1</span>: prio <span class="number">2</span> u32 <span class="keyword">match</span> ip protocol <span class="number">1</span> <span class="number">0xff</span> flowid <span class="number">1</span>:<span class="number">2</span></span><br><span class="line">tc qdisc <span class="keyword">add</span> dev eth0 parent <span class="number">1</span>:<span class="number">1</span> handle <span class="number">10</span>: netem delay <span class="number">180000</span>ms</span><br><span class="line">tc qdisc <span class="keyword">add</span> dev eth0 parent <span class="number">1</span>:<span class="number">2</span> handle <span class="number">20</span>: sfq</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">slave2 root<span class="variable">@localhost</span> <span class="number">21</span>:<span class="number">16</span>:<span class="number">45</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> pager cat <span class="operator">-</span> <span class="operator">|</span> grep <span class="operator">-</span>E <span class="string">&#x27;Master_Log_File|Relay_Master_Log_File|Read_Master_Log_Pos|Exec_Master_Log_Pos|Slave_IO_Running|Slave_SQL_Running|Seconds_Behind_Master|Slave_SQL_Running_State|Last|Relay_Log_File|Relay_Log_Pos&#x27;</span></span><br><span class="line">PAGER <span class="keyword">set</span> <span class="keyword">to</span> <span class="string">&#x27;cat - | grep -E &#x27;</span>Master_Log_File<span class="operator">|</span>Relay_Master_Log_File<span class="operator">|</span>Read_Master_Log_Pos<span class="operator">|</span>Exec_Master_Log_Pos<span class="operator">|</span>Slave_IO_Running<span class="operator">|</span>Slave_SQL_Running<span class="operator">|</span>Seconds_Behind_Master<span class="operator">|</span>Slave_SQL_Running_State<span class="operator">|</span><span class="keyword">Last</span><span class="operator">|</span>Relay_Log_File<span class="operator">|</span>Relay_Log_Pos<span class="string">&#x27;&#x27;</span></span><br><span class="line">slave2 root<span class="variable">@localhost</span> <span class="number">21</span>:<span class="number">18</span>:<span class="number">15</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">show</span> slave status\G</span><br><span class="line">              Master_Log_File: mysql<span class="operator">-</span>bin<span class="number">.000009</span></span><br><span class="line">          Read_Master_Log_Pos: <span class="number">1349240</span></span><br><span class="line">               Relay_Log_File: mysql<span class="operator">-</span>relay<span class="operator">-</span>bin<span class="number">.000003</span></span><br><span class="line">                Relay_Log_Pos: <span class="number">1335560</span></span><br><span class="line">        Relay_Master_Log_File: mysql<span class="operator">-</span>bin<span class="number">.000009</span></span><br><span class="line">             Slave_IO_Running: Yes</span><br><span class="line">            Slave_SQL_Running: Yes</span><br><span class="line">                   Last_Errno: <span class="number">0</span></span><br><span class="line">                   Last_Error:</span><br><span class="line">          Exec_Master_Log_Pos: <span class="number">1349240</span></span><br><span class="line">        Seconds_Behind_Master: <span class="number">0</span></span><br><span class="line">                Last_IO_Errno: <span class="number">0</span></span><br><span class="line">                Last_IO_Error:</span><br><span class="line">               Last_SQL_Errno: <span class="number">0</span></span><br><span class="line">               Last_SQL_Error:</span><br><span class="line">      Slave_SQL_Running_State: Slave has read <span class="keyword">all</span> relay log; waiting <span class="keyword">for</span> more updates</span><br><span class="line">      Last_IO_Error_Timestamp:</span><br><span class="line">     Last_SQL_Error_Timestamp:</span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">S1</span><br><span class="line"></span><br><span class="line">              Master_Log_File: mysql-bin.000009</span><br><span class="line">          Read_Master_Log_Pos: 1411494</span><br><span class="line">        Relay_Master_Log_File: mysql-bin.000009</span><br><span class="line">          Exec_Master_Log_Pos: 1274711</span><br><span class="line"></span><br><span class="line">S2</span><br><span class="line">              Master_Log_File: mysql-bin.000009</span><br><span class="line">          Read_Master_Log_Pos: 1349240</span><br><span class="line">        Relay_Master_Log_File: mysql-bin.000009</span><br><span class="line">          Exec_Master_Log_Pos: 1349240</span><br></pre></td></tr></table></figure>
+
+<p>可以看到</p>
+<ul>
+<li>ExecBinlogCoordinates: S2&gt;S1</li>
+<li>ReadBinlogCoordinates: S1&gt;S2</li>
+</ul>
+<p>查看orchestrator日志</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2022</span><span class="number">-06</span><span class="number">-18</span> <span class="number">21</span>:<span class="number">20</span>:<span class="number">20</span> INFO Stopped replication on <span class="number">192.168</span>.xx<span class="number">.96</span>:<span class="number">3310</span>, Self:mysql-bin<span class="number">.000001</span>:<span class="number">473561005</span>, Exec:mysql-bin<span class="number">.000009</span>:<span class="number">1274711</span></span><br><span class="line"><span class="number">2022</span><span class="number">-06</span><span class="number">-18</span> <span class="number">21</span>:<span class="number">20</span>:<span class="number">20</span> DEBUG - sorted replica: <span class="number">192.168</span>.xx<span class="number">.96</span>:<span class="number">3310</span> mysql-bin<span class="number">.000009</span>:<span class="number">1274711</span></span><br><span class="line"><span class="number">2022</span><span class="number">-06</span><span class="number">-18</span> <span class="number">21</span>:<span class="number">20</span>:<span class="number">20</span> DEBUG - sorted replica: <span class="number">192.168</span><span class="number">.22</span><span class="number">.95</span>:<span class="number">3310</span> mysql-bin<span class="number">.000009</span>:<span class="number">1349240</span></span><br></pre></td></tr></table></figure>
+<p>在审计日志搜索1274711和1349240</p>
+<p>S1</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="string">&#x27;192.168.xx.96&#x27;</span>, <span class="number">3310</span>, NOW(), NOW(), <span class="number">1</span>, <span class="number">344416</span>, <span class="number">14210</span>, <span class="string">&#x27;63648d0d-ebe7-11ec-b9ee-fa163eda3a6e&#x27;</span>, <span class="string">&#x27;5.7.32-35-log&#x27;</span>, <span class="string">&#x27;5.7&#x27;</span>, <span class="string">&#x27;Percona Server (GPL), Release 35, Revision 5688520&#x27;</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="string">&#x27;ROW&#x27;</span>, <span class="string">&#x27;FULL&#x27;</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="string">&#x27;mysql-bin.000001&#x27;</span>, <span class="number">473561005</span>, <span class="string">&#x27;192.168.xx.93&#x27;</span>, <span class="number">3310</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43&#x27;</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43,63648d0d-ebe7-11ec-b9ee-fa163eda3a6e&#x27;</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43:1-1411198,\\n63648d0d-ebe7-11ec-b9ee-fa163eda3a6e:1-3756,\\n64b94f66-ebe7-11ec-b57f-00163e095602:1-230&#x27;</span>, <span class="string">&#x27;ON&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;mysql-bin.000009&#x27;</span>, <span class="number">1411494</span>, <span class="string">&#x27;mysql-bin.000009&#x27;</span>, <span class="number">1274711</span>, <span class="string">&#x27;mysql-relay-bin.000003&#x27;</span>, <span class="number">1261031</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;\\\&quot;error reconnecting to master \\&#x27;</span>repler<span class="variable">@192</span><span class="number">.168</span>.xx<span class="number">.93</span>:<span class="number">3310</span>\\<span class="string">&#x27; - retry-time: 60  retries: 3\\\&quot;&#x27;</span>, <span class="keyword">NULL</span>, <span class="number">252</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;[]&#x27;</span>, <span class="string">&#x27;192.168.xx.93:3310&#x27;</span>, <span class="string">&#x27;orc_test_dev&#x27;</span>, <span class="string">&#x27;cn-north-1a&#x27;</span>, <span class="string">&#x27;123456Cloud&#x27;</span>, <span class="string">&#x27;dev&#x27;</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">10000</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;bj1-mysql-test-dev-02_3310&#x27;</span>, <span class="number">7597010</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;[]&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, NOW())\n        <span class="keyword">ON</span> DUPLICATE KEY <span class="keyword">UPDATE</span>\n</span><br></pre></td></tr></table></figure>
+
+<p>S2</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="string">&#x27;192.168.22.95&#x27;</span>, <span class="number">3310</span>, NOW(), NOW(), <span class="number">1</span>, <span class="number">344415</span>, <span class="number">57903</span>, <span class="string">&#x27;64b94f66-ebe7-11ec-b57f-00163e095602&#x27;</span>, <span class="string">&#x27;5.7.32-35-log&#x27;</span>, <span class="string">&#x27;5.7&#x27;</span>, <span class="string">&#x27;Percona Server (GPL), Release 35, Revision 5688520&#x27;</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="string">&#x27;ROW&#x27;</span>, <span class="string">&#x27;FULL&#x27;</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="string">&#x27;mysql-bin.000001&#x27;</span>, <span class="number">473527169</span>, <span class="string">&#x27;192.168.xx.93&#x27;</span>, <span class="number">3310</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43&#x27;</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43,64b94f66-ebe7-11ec-b57f-00163e095602&#x27;</span>, <span class="string">&#x27;635da820-ebe7-11ec-8550-fa163e6d6e43:1-1411411,\\n63648d0d-ebe7-11ec-b9ee-fa163eda3a6e:1-3756,\\n64b94f66-ebe7-11ec-b57f-00163e095602:1-230&#x27;</span>, <span class="string">&#x27;ON&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;mysql-bin.000009&#x27;</span>, <span class="number">1349240</span>, <span class="string">&#x27;mysql-bin.000009&#x27;</span>, <span class="number">1349240</span>, <span class="string">&#x27;mysql-relay-bin.000003&#x27;</span>, <span class="number">1335560</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;\\\&quot;error reconnecting to master \\&#x27;</span>repler<span class="variable">@192</span><span class="number">.168</span>.xx<span class="number">.93</span>:<span class="number">3310</span>\\<span class="string">&#x27; - retry-time: 60  retries: 1\\\&quot;&#x27;</span>, <span class="keyword">NULL</span>, <span class="number">221</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;[]&#x27;</span>, <span class="string">&#x27;192.168.xx.93:3310&#x27;</span>, <span class="string">&#x27;orc_test_dev&#x27;</span>, <span class="string">&#x27;cn-north-1a&#x27;</span>, <span class="string">&#x27;123456Cloud&#x27;</span>, <span class="string">&#x27;dev&#x27;</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">10000</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#x27;hb3a-mysql-test-dev-03_3310&#x27;</span>, <span class="number">75173733</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="string">&#x27;[]&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="number">0</span>, NOW())\n        <span class="keyword">ON</span> DUPLICATE KEY <span class="keyword">UPDATE</span>\n</span><br></pre></td></tr></table></figure>
+<p>kill -9主库</p>
+<p>等待日志 ERROR WaitForSQLThreadUpToDate timeout on 192.168.xx.96:3310 after duration 10s</p>
+<p>s1解锁, 此时仍然不解除s2延迟, 等待failover完成</p>
+<p>Failover完成, ReadBinlogCoordinates大的S1成为新主库<br><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/img/picgo/2022/09/23/14-35-47-20220923143547-1f6c7a.png"></p>
+<p>查看S1 Executed_Gtid_Set</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">master root<span class="variable">@localhost</span> <span class="number">21</span>:<span class="number">21</span>:<span class="number">06</span> [(<span class="keyword">none</span>)]<span class="operator">&gt;</span> <span class="keyword">show</span> master status;</span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="operator">|</span> File             <span class="operator">|</span> Position <span class="operator">|</span> Binlog_Do_DB <span class="operator">|</span> Binlog_Ignore_DB <span class="operator">|</span> Executed_Gtid_Set                                                                                                                       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="operator">|</span> mysql<span class="operator">-</span>bin<span class="number">.000010</span> <span class="operator">|</span>      <span class="number">274</span> <span class="operator">|</span>              <span class="operator">|</span>                  <span class="operator">|</span> <span class="number">635</span>da820<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="number">-8550</span><span class="operator">-</span>fa163e6d6e43:<span class="number">1</span><span class="number">-1411589</span>,</span><br><span class="line"><span class="number">63648</span>d0d<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="operator">-</span>b9ee<span class="operator">-</span>fa163eda3a6e:<span class="number">1</span><span class="number">-3756</span>,</span><br><span class="line"><span class="number">64</span>b94f66<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="operator">-</span>b57f<span class="number">-00163e095602</span>:<span class="number">1</span><span class="number">-230</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>启动旧主库, 查看Executed_Gtid_Set</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">slave1 root<span class="variable">@localhost</span> <span class="number">21</span>:<span class="number">20</span>:<span class="number">20</span> [infra_orc_test]<span class="operator">&gt;</span> <span class="keyword">show</span> master status;</span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="operator">|</span> File             <span class="operator">|</span> Position  <span class="operator">|</span> Binlog_Do_DB <span class="operator">|</span> Binlog_Ignore_DB <span class="operator">|</span> Executed_Gtid_Set                                                                                                                       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="operator">|</span> mysql<span class="operator">-</span>bin<span class="number">.000001</span> <span class="operator">|</span> <span class="number">473771250</span> <span class="operator">|</span>              <span class="operator">|</span>                  <span class="operator">|</span> <span class="number">635</span>da820<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="number">-8550</span><span class="operator">-</span>fa163e6d6e43:<span class="number">1</span><span class="number">-1411589</span>,</span><br><span class="line"><span class="number">63648</span>d0d<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="operator">-</span>b9ee<span class="operator">-</span>fa163eda3a6e:<span class="number">1</span><span class="number">-3991</span>,</span><br><span class="line"><span class="number">64</span>b94f66<span class="operator">-</span>ebe7<span class="number">-11</span>ec<span class="operator">-</span>b57f<span class="number">-00163e095602</span>:<span class="number">1</span><span class="number">-230</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-----------+--------------+------------------+-----------------------------------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>可以看到</p>
+<ul>
+<li>旧主库 635da820-ebe7-11ec-8550-fa163e6d6e43:1-1411589</li>
+<li>新主库(S1) 635da820-ebe7-11ec-8550-fa163e6d6e43:1-1411589<br>数据没有丢失!</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+        <div id="donation_div"></div>
+
+
+<script src="/js/vdonate.js"></script>
+
+<script>
+var a = new Donate({
+  title: '如果觉得我的文章对您有用，请随意打赏。您的支持将鼓励我继续创作!', // 可选参数，打赏标题
+  btnText: '打赏支持', // 可选参数，打赏按钮文字
+  el: document.getElementById('donation_div'),
+  wechatImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG65.jpeg',
+  alipayImage: 'https://raw.githubusercontent.com/Fanduzi/Fandb.github.io/master/css/images/WechatIMG64.jpeg'
+});
+</script>
+      
+      
+      <div>
+        <ul class="post-copyright">
+          <li class="post-copyright-author">
+          <strong>本文作者:  </strong>大范</a>
+          </li>
+          <li class="post-copyright-link">
+          <strong>本文链接:  </strong>
+          <a href="/2022/09/22/2022-09-22-Orchestrator-Lastest-Slave选择逻辑不合理导致的数据丢失问题/" target="_blank" title="Orchestrator Lastest Slave选择逻辑&#34;不合理&#34;导致的数据丢失问题">http://fuxkdb.com/2022/09/22/2022-09-22-Orchestrator-Lastest-Slave选择逻辑不合理导致的数据丢失问题/</a>
+          </li>
+          <li class="post-copyright-license">
+            <strong>版权声明:   </strong>
+            本博客所有文章除特别声明外，均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+            许可协议。转载请注明出处
+          </li>
+         
+        </ul>
+<div>
+
+      
+      
+        
+	<div id="comment">
+		<!-- 来必力City版安装代码 -->
+		<div id="lv-container" data-id="city" data-uid="MTAyMC8yOTQ4MS82MDQ5">
+		<script type="text/javascript">
+		   (function(d, s) {
+		       var j, e = d.getElementsByTagName(s)[0];
+
+		       if (typeof LivereTower === 'function') { return; }
+
+		       j = d.createElement(s);
+		       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+		       j.async = true;
+
+		       e.parentNode.insertBefore(j, e);
+		   })(document, 'script');
+		</script>
+		<noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+		</div>
+		<!-- City版安装代码已完成 -->
+	</div>
+
+
+
+      
+      
+        
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Orchestrator/" rel="tag">Orchestrator</a></li></ul>
+
+      
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2022/09/03/2022-09-03-server_id%E7%9B%B8%E5%90%8C%E5%AF%BC%E8%87%B4graceful-master-takeover-auto%E5%A4%B1%E8%B4%A5/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">下一篇</strong>
+      <div class="article-nav-title">server_id相同导致graceful-master-takeover-auto失败</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="toc-sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Orchestrator-Lastest-Slave%E9%80%89%E6%8B%A9%E9%80%BB%E8%BE%91%E2%80%9D%E4%B8%8D%E5%90%88%E7%90%86%E2%80%9D%E5%AF%BC%E8%87%B4%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">Orchestrator Lastest Slave选择逻辑”不合理”导致的数据丢失问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E"><span class="nav-number">1.2.</span> <span class="nav-text">测试环境说明</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8E%9F%E7%94%9Forchestrator%E9%97%AE%E9%A2%98%E5%A4%8D%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">原生orchestrator问题复现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E5%90%8E%E5%8A%9F%E8%83%BD%E9%AA%8C%E8%AF%81"><span class="nav-number">3.</span> <span class="nav-text">修改后功能验证</span></a></li></ol>
+    
+    </div>
+  </aside>
+
+</section>
+        
+      </div>
+      
+      <footer id="footer">
+  
+
+  <div class="container">
+      	<div class="row">
+	      <p> Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/iTimeTraveler/hexo-theme-hiker" target="_blank">Hexo-theme-hiker</a> </p>
+	      <p id="copyRightEn">Copyright &copy; 2013 - 2022 Fan() All Rights Reserved.</p>
+	      
+	      
+    		<p class="busuanzi_uv">
+				访客数 : <span id="busuanzi_value_site_uv"></span> |  
+				访问量 : <span id="busuanzi_value_site_pv"></span>
+		    </p>
+  		   
+		</div>
+
+		
+  </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+    var allheader = document.getElementById("allheader");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight + "px";
+    if (allheader != null) {
+      contentdiv.style.minHeight = document.body.offsetHeight - allheader.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    } else {
+      contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    }
+</script>
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/scripts.js"></script>
+
+
+
+
+
+  
+<script src="/js/dialog.js"></script>
+
+
+
+
+
+
+
+
+
+	<div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+	<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+	</script>
+
+
+
+
+
+
+  </div>
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="myModalLabel">设置</h2>
+      </div>
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+
+
+      <div class="modal-body">
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" onclick="javascript:setFontSize();" aria-expanded="true" aria-controls="collapseOne">
+              正文字号大小
+            </a>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+          <div class="panel-body">
+            您已调整页面字体大小
+          </div>
+        </div>
+      
+
+
+          <div style="margin:6px;">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" onclick="javascript:setBackground();" aria-expanded="true" aria-controls="collapseTwo">
+              夜间护眼模式
+            </a>
+        </div>
+          <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+          <div class="panel-body">
+            夜间模式已经开启，再次单击按钮即可关闭 
+          </div>
+        </div>
+
+        <div>
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关 于&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+        </div>
+         <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+          <div class="panel-body">
+            Fan()
+          </div>
+          <div class="panel-body">
+            Copyright © 2022 大范 All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
+
+      <hr style="margin-top:0px; margin-bottom:0px; width:80%; border-top: 1px solid #000;">
+      <hr style="margin-top:2px; margin-bottom:0px; width:80%; border-top: 3px solid #000;">
+      <div class="modal-footer">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js?v=1.0.0" async=""></script>
+  
+    <a id="menu-switch"><i class="fa fa-bars fa-lg"></i></a>
+  
+</body>
+</html>

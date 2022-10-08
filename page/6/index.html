@@ -305,6 +305,55 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2019-06-22-MySQL大表传输表空间的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/">MySQL大表传输表空间的坑</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/" class="article-date">
+	  <time datetime="2019-06-22T11:23:00.000Z" itemprop="datePublished">2019-06-22</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MySQL大表传输表空间的坑"><a href="#MySQL大表传输表空间的坑" class="headerlink" title="MySQL大表传输表空间的坑"></a>MySQL大表传输表空间的坑</h1><p>  最近刚帮业务线拆分完数据库, 源环境遗留了一张700G的大表, 虽说现在不用了, 但是业务方还是不希望删掉, 于是打算把这张表迁移到归档库, 这样有需要是还可以查询.<br>  700G的表想了想, 如果是逻辑导出再导入的话, 感觉会很慢. 于是决定使用传输表空间方式恢复到归档库中</p>
+<blockquote>
+<p>源库和归档库均为MGR集群 Multi-Primary Mode.</p>
+</blockquote>
+<h2 id="恢复备份"><a href="#恢复备份" class="headerlink" title="恢复备份"></a>恢复备份</h2><p>过程简单写, 并非本文重点<br><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xbstream -vx <span class="params">--parallel=10</span> &lt; mysql_backup_20190618.xbstream -C <span class="string">/rundata/backup/</span> &gt; <span class="string">/tmp/xb.log</span> 2&gt;&amp;1 &amp;</span><br><span class="line"><span class="keyword">cd</span> <span class="string">/rundata/backup/datadir</span></span><br><span class="line">rm 除这张700g表A的所有其他表的qp文件</span><br><span class="line">xtrabackup <span class="params">--decompress</span> <span class="params">--parallel=10</span> <span class="params">--remove-original</span> <span class="params">--target-dir=/rundata/backup/</span></span><br><span class="line">innobackupex <span class="params">--apply-log</span> <span class="params">--export</span> <span class="string">/rundata/backup/</span></span><br></pre></td></tr></table></figure></p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-限制备份速度防止网卡打满"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -787,76 +836,6 @@
 <p>对于mysqldump产生的sql文件, 则需要在导出是指定<br><figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump --<span class="meta">skip</span>-extended-<span class="meta">insert</span></span><br></pre></td></tr></table></figure><br>每行一个insert语句, 之后再使用awk处理</p>
 <p>使用pt-fifo-split</p>
 <figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">FLAT_FILE</span>=<span class="string">&quot;/tmp/big_file.txt&quot;</span></span><br><span class="line"><span class="attribute">FIFO_PATH</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.fifo&quot;</span></span><br><span class="line"><span class="attribute">LOAD_FILE</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.load&quot;</span></span><br><span class="line"><span class="attribute">CHUNK_SIZE</span>=1000</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Split the file</span></span><br><span class="line">pt-fifo-split --force --lines <span class="variable">$&#123;CHUNK_SIZE&#125;</span> <span class="variable">$&#123;FLAT_FILE&#125;</span> --fifo <span class="variable">$&#123;FIFO_PATH&#125;</span> &amp;</span><br><span class="line"><span class="comment"># Sleep 10 seconds to assure $&#123;FIFO_PATH&#125; exists before entering loop</span></span><br><span class="line">sleep 10</span><br><span class="line"><span class="keyword">while</span> [ -e <span class="variable">$&#123;FIFO_PATH&#125;</span> ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  # Write chunk <span class="keyword">to</span> disk</span><br><span class="line">  cat <span class="variable">$&#123;FIFO_PATH&#125;</span> &gt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  # Load chunk into table</span><br><span class="line">  mysql <span class="attribute">--database</span>=test \</span><br><span class="line">   --show-warnings \</span><br><span class="line">   -vv &lt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  sleep 1</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-Write-set Cache(GCache)"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/06/02/Write-set%20Cache(GCache)/">Write-set Cache(GCache)</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/06/02/Write-set%20Cache(GCache)/" class="article-date">
-	  <time datetime="2018-06-02T05:23:00.000Z" itemprop="datePublished">2018-06-02</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="Write-set-Cache-GCache"><a href="#Write-set-Cache-GCache" class="headerlink" title="Write-set Cache(GCache)"></a>Write-set Cache(GCache)</h3><p>Galear Cluster将write-sets存储在一个称为<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/glossary.html#term-write-set-cache">Write-set Cache</a>(或称为GCache)的特殊的cache中. GCache cache is a memory allocator for write-sets.主要目的是为了最大限度地减少RAM上的<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/glossary.html#term-write-set">write-set</a>footprint. Galera集群通过将卸载写入集存储到磁盘来改善此问题.</p>
-<p>GCache采用三种类型的存储：</p>
-<ul>
-<li><p><strong>Permanent In-Memory Store </strong>Here write-sets allocate using the default memory allocator for the operating system. This is useful in systems that have spare RAM. The store has a hard size limit.</p>
-<p>By default it is disabled.</p>
-<p>这个就是说可以用操作系统的内存空间, 对于有空闲内存的系统比较合适. 这个空间大小有一个硬性的限制, 貌似是这个参数gcache.mem_size=0[^1]</p>
-<p>默认不使用内存.</p>
-</li>
-<li><p><strong>Permanent Ring-Buffer File</strong> Here write-sets pre-allocate to disk during cache initialization. This is intended as the main write-set store.</p>
-<p>这一个块循环使用的区域, 是写到磁盘上的 , 貌似是这个参数gcache.size = 128M<a href="Galera复制的事务缓存大小。这定义了用作IST源的galera.cache文件的大小。此变量的值越大，重新加入节点将获得IST而不是SST的机会就越好。">^2</a></p>
-</li>
-<li><p><strong>On-Demand Page Store</strong> 这里写集根据需要在运行时分配给内存映射的页面文件。   默认情况下，其大小为128Mb(gcache.page_size[^3])，但如果需要存储更大的写入集，则可能会更大。页面存储的大小受可用磁盘空间的限制。默认情况下，Galera Cluster会在不使用时删除页面文件，但您可以对要保留的页面文件的总大小设置限制。 </p>
-<p>When all other stores are disabled, at least one page file remains present on disk.</p>
-</li>
-</ul>
-<p>Galera集群使用分配算法，尝试按上述顺序存储写入集。也就是说，它首先尝试使用永久性内存存储。如果写入集没有足够的空间，它将尝试存储到永久环形缓冲区文件。页面存储总是成功，除非写入集大于可用磁盘空间。</p>
-<blockquote>
-<p>Galera Cluster uses an allocation algorithm that attempts to store write-sets in the above order. That is, first it attempts to use permanent in-memory store. If there is not enough space for the write-set, it attempts to store to the permanent ring-buffer file. The page store always succeeds, unless the write-set is larger than the available disk space.</p>
-</blockquote>
-<p>默认情况下，写集缓存分配进程工作目录中的文件。您可以使用<a target="_blank" rel="noopener" href="http://galeracluster.com/documentation-webpages/galeraparameters.html#gcache-dir">gcache.dir</a>参数指定写入集缓存的专用位置.</p>
-<p>[^1]: Deprecated in 5.6.22-25.8 . This variable has been deprecated and shouldn’t be used as it could cause a node to crash.</p>
-<p><img src="/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180601165051861.png" alt="image-20180601165051861"></p>
-<p>当节点接收状态传输时，它们不能处理传入的写集，直到它们完成状态更新。在某些方法下，发送状态转移的节点也被阻塞。为防止数据库进一步落后，GCache将内存映射文件中的传入写入集保存到磁盘。   此参数定义要为当前环形缓冲区存储分配的磁盘空间量。节点在启动数据库服务器时分配此空间。</p>
-<p>[^3]: This variable can be used to specify the size of the page files in the page storage.</p>
-<p><img src="/var/folders/0g/1qch_56n4vz_3fnfp46xfq080000gn/T/abnerworks.Typora/image-20180601165332896.png" alt="image-20180601165332896"></p>
 
       
     </div>

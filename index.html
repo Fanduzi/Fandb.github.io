@@ -305,6 +305,54 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2022-09-22-Orchestrator-Lastest-Slave选择逻辑不合理导致的数据丢失问题"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2022/09/22/2022-09-22-Orchestrator-Lastest-Slave%E9%80%89%E6%8B%A9%E9%80%BB%E8%BE%91%E4%B8%8D%E5%90%88%E7%90%86%E5%AF%BC%E8%87%B4%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/">Orchestrator Lastest Slave选择逻辑&#34;不合理&#34;导致的数据丢失问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2022/09/22/2022-09-22-Orchestrator-Lastest-Slave%E9%80%89%E6%8B%A9%E9%80%BB%E8%BE%91%E4%B8%8D%E5%90%88%E7%90%86%E5%AF%BC%E8%87%B4%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/" class="article-date">
+	  <time datetime="2022-09-22T08:23:00.000Z" itemprop="datePublished">2022-09-22</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Orchestrator-Lastest-Slave选择逻辑”不合理”导致的数据丢失问题"><a href="#Orchestrator-Lastest-Slave选择逻辑”不合理”导致的数据丢失问题" class="headerlink" title="Orchestrator Lastest Slave选择逻辑”不合理”导致的数据丢失问题"></a>Orchestrator Lastest Slave选择逻辑”不合理”导致的数据丢失问题</h1><p>首先说明, “不合理”只是站在个人角度的结论. 到底合理不合理, 我说了不算.<br>以我对Orchestrator的了解, Orchestrator目标是追求可用性优先, 而非数据完整性. 很多公司也使用了Orchestrator, 我感觉未必知道有这个问题, 或者说, <strong>别问, 问就是”我们追求可用性”</strong>.</p>
+<p>现在的问题是, 即便开了半同步, 也可能丢数据.</p>
+<p>然而矛盾的点是, 线上主从的复制延迟是大家都要监控和管理的, 不会长期处于高延迟状态, 起码我经历的公司都是这样, 99.9%的集群主从延迟在1s内. 个别集群在高峰期会升高一点, 但很快又会下降; 又或者这些集群本身就是AP型业务.</p>
+<p>那么既然我们可以保证复制延迟小于1s, 根据<code>ReadBinlogCoordinates</code>选择Latest slave又能导致”恢复时间”增大多少呢? 而为了这X秒的快速恢复, 你又要花多少时间修复数据呢?</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2022-09-03-server_id相同导致graceful-master-takeover-auto失败"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -984,121 +1032,6 @@
 <td>2,140</td>
 <td>15,685</td>
 <td>14,838</td>
-</tr>
-</tbody>
-</table>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2021-02-07-MHA-Failover测试"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2021/02/07/2021-02-07-MHA-Failover%E6%B5%8B%E8%AF%95/">MHA Failover测试</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2021/02/07/2021-02-07-MHA-Failover%E6%B5%8B%E8%AF%95/" class="article-date">
-	  <time datetime="2021-02-07T14:16:00.000Z" itemprop="datePublished">2021-02-07</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h1><table>
-<thead>
-<tr>
-<th>用例</th>
-<th>ping_type=CONNECT</th>
-<th>ping_type=INSERT</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>master too many connection</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>master hang</td>
-<td>不会触发failover</td>
-<td>会触发failover且成功</td>
-</tr>
-<tr>
-<td>仅manager无法连通master</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>manager无法连通master, 且无法ssh slave1</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>manager无法连通master, 且无法ssh slave1和slave2</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>manager无法连通master, ssh到slave1后无法连通master</td>
-<td>不会触发failover</td>
-<td>不会触发failover</td>
-</tr>
-<tr>
-<td>manager无法连通master, ssh到slave1和slave2后均无法连通master</td>
-<td>会触发failover且成功</td>
-<td>会触发failover且成功(长连接断开后才会)</td>
-</tr>
-<tr>
-<td>master宕机前slave1也宕机了</td>
-<td>会触发failover, 但failover失败</td>
-<td>会触发failover, 但failover失败</td>
-</tr>
-<tr>
-<td>master挂了, 在此之前slave-1 io_thread stop了</td>
-<td>会failover且成功</td>
-<td>会failover且成功</td>
-</tr>
-<tr>
-<td>master挂了, 在此之前slave-1 io_thread error了</td>
-<td>会failover且成功</td>
-<td>会failover且成功</td>
-</tr>
-<tr>
-<td>master挂了, 在此之前slave-1 sql_thread stop了</td>
-<td>会failover且成功</td>
-<td>会failover且成功</td>
-</tr>
-<tr>
-<td>master挂了, 在此之前slave-1 sql_thread error了</td>
-<td>会触发failover, 但failover失败</td>
-<td>会触发failover, 但failover失败</td>
 </tr>
 </tbody>
 </table>

@@ -305,6 +305,121 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2021-02-07-MHA-Failover测试"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2021/02/07/2021-02-07-MHA-Failover%E6%B5%8B%E8%AF%95/">MHA Failover测试</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2021/02/07/2021-02-07-MHA-Failover%E6%B5%8B%E8%AF%95/" class="article-date">
+	  <time datetime="2021-02-07T14:16:00.000Z" itemprop="datePublished">2021-02-07</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h1><table>
+<thead>
+<tr>
+<th>用例</th>
+<th>ping_type=CONNECT</th>
+<th>ping_type=INSERT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>master too many connection</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>master hang</td>
+<td>不会触发failover</td>
+<td>会触发failover且成功</td>
+</tr>
+<tr>
+<td>仅manager无法连通master</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>manager无法连通master, 且无法ssh slave1</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>manager无法连通master, 且无法ssh slave1和slave2</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>manager无法连通master, ssh到slave1后无法连通master</td>
+<td>不会触发failover</td>
+<td>不会触发failover</td>
+</tr>
+<tr>
+<td>manager无法连通master, ssh到slave1和slave2后均无法连通master</td>
+<td>会触发failover且成功</td>
+<td>会触发failover且成功(长连接断开后才会)</td>
+</tr>
+<tr>
+<td>master宕机前slave1也宕机了</td>
+<td>会触发failover, 但failover失败</td>
+<td>会触发failover, 但failover失败</td>
+</tr>
+<tr>
+<td>master挂了, 在此之前slave-1 io_thread stop了</td>
+<td>会failover且成功</td>
+<td>会failover且成功</td>
+</tr>
+<tr>
+<td>master挂了, 在此之前slave-1 io_thread error了</td>
+<td>会failover且成功</td>
+<td>会failover且成功</td>
+</tr>
+<tr>
+<td>master挂了, 在此之前slave-1 sql_thread stop了</td>
+<td>会failover且成功</td>
+<td>会failover且成功</td>
+</tr>
+<tr>
+<td>master挂了, 在此之前slave-1 sql_thread error了</td>
+<td>会触发failover, 但failover失败</td>
+<td>会触发failover, 但failover失败</td>
+</tr>
+</tbody>
+</table>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2020-12-31-使用Canal-+-ClickHouse实时分析MySQL事务信息"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -767,53 +882,6 @@
     <div class="article-entry" itemprop="articleBody">
       
         <h1 id="insert-IGNORE-into-select-lock-in-share-mode-的作用"><a href="#insert-IGNORE-into-select-lock-in-share-mode-的作用" class="headerlink" title="insert IGNORE into select lock in share mode 的作用"></a>insert IGNORE into select lock in share mode 的作用</h1><p>pt-osc和gh-osc在拷贝旧数据时逻辑是一样的, 都是用insert ignore into 影子表 select * from 原表force index (<code>PRIMARY</code>) where chunk范围 lock in share mode<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-08-23-ProxySQL升级时对默认部署的实例的影响"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-ProxySQL%E5%8D%87%E7%BA%A7%E6%97%B6%E5%AF%B9%E9%BB%98%E8%AE%A4%E9%83%A8%E7%BD%B2%E7%9A%84%E5%AE%9E%E4%BE%8B%E7%9A%84%E5%BD%B1%E5%93%8D/">ProxySQL升级时对默认部署的实例的影响</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/23/2020-08-23-ProxySQL%E5%8D%87%E7%BA%A7%E6%97%B6%E5%AF%B9%E9%BB%98%E8%AE%A4%E9%83%A8%E7%BD%B2%E7%9A%84%E5%AE%9E%E4%BE%8B%E7%9A%84%E5%BD%B1%E5%93%8D/" class="article-date">
-	  <time datetime="2020-08-23T10:54:00.000Z" itemprop="datePublished">2020-08-23</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>公司有使用默认安装目录的ProxySQL跑业务. 在升级2.0.8 至 2.0.12的时候发现卸载2.0.8后这些使用默认方式安装的ProxySQL实例就会被关闭.</p>
-<p>原因是rpm包安装和卸载前后执行了一些动作</p>
-<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">[root@bj1-mysql-manager-prod-<span class="number">0</span>1 tmp]<span class="comment"># rpm --scripts -qp  /tmp/proxysql-2.0.8-1-centos7.x86_64.rpm </span></span><br><span class="line">preinstall scriptlet (using /bin/sh):</span><br><span class="line"><span class="comment"># Cleanup artifacts</span></span><br><span class="line"><span class="keyword">if</span> [ -f /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span> ];</span> <span class="keyword">then</span> </span><br><span class="line">    rm -fr /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span></span></span><br><span class="line">fi</span><br><span class="line">postinstall scriptlet (using /bin/sh):</span><br><span class="line"><span class="comment"># Create relevant user, directories and configuration files</span></span><br><span class="line"><span class="keyword">if</span> [ ! -d /var/run/proxysql ]; <span class="keyword">then</span> /bin/mkdir /var/run/proxysql ; fi</span><br><span class="line"><span class="keyword">if</span> [ ! -d /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span> ];</span> <span class="keyword">then</span> /bin/mkdir /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span> ;</span> fi</span><br><span class="line"><span class="keyword">if</span> ! id -u proxysql &gt; <span class="regexp">/dev/null</span> <span class="number">2</span>&gt;&amp;<span class="number">1</span>; <span class="keyword">then</span> useradd -r -U -s /bin/<span class="literal">false</span> -d /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span> -<span class="title">c</span> &quot;<span class="title">ProxySQL</span> <span class="title">Server</span>&quot; <span class="title">proxysql</span>;</span> fi</span><br><span class="line">/bin/chown -R <span class="symbol">proxysql:</span> /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span> /<span class="title">var</span>/<span class="title">run</span>/<span class="title">proxysql</span></span></span><br><span class="line">/bin/chown <span class="symbol">root:</span>proxysql /etc/proxysql.cnf</span><br><span class="line">/bin/chmod <span class="number">640</span> /etc/proxysql.cnf</span><br><span class="line"><span class="comment"># Configure systemd appropriately.</span></span><br><span class="line">/bin/systemctl daemon-reload</span><br><span class="line">/bin/systemctl enable proxysql.service</span><br><span class="line"><span class="comment"># Notify that a package update is in progress in order to start service.</span></span><br><span class="line"><span class="keyword">if</span> [ $<span class="number">1</span> -eq <span class="number">2</span> ]; <span class="keyword">then</span> /bin/touch /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span> ;</span> fi</span><br><span class="line">preuninstall scriptlet (using /bin/sh):</span><br><span class="line"><span class="comment"># When uninstalling always try stop the service, ignore failures</span></span><br><span class="line">/bin/systemctl stop proxysql || <span class="literal">true</span></span><br><span class="line">postuninstall scriptlet (using /bin/sh):</span><br><span class="line"><span class="keyword">if</span> [ $<span class="number">1</span> -eq <span class="number">0</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="comment"># This is a pure uninstall, systemd unit file removed</span></span><br><span class="line">    <span class="comment"># only daemon-reload is needed.</span></span><br><span class="line">    /bin/systemctl daemon-reload</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="comment"># This is an upgrade, ProxySQL should be started. This</span></span><br><span class="line">    <span class="comment"># logic works for packages newer than 2.0.7 and ensures</span></span><br><span class="line">    <span class="comment"># a faster restart time.</span></span><br><span class="line">    /bin/systemctl start proxysql.service</span><br><span class="line">    /bin/rm -fr /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span></span></span><br><span class="line">fi</span><br><span class="line">posttrans scriptlet (using /bin/sh):</span><br><span class="line"><span class="keyword">if</span> [ -f /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span> ];</span> <span class="keyword">then</span></span><br><span class="line">    <span class="comment"># This is a safeguard to start the service after an update</span></span><br><span class="line">    <span class="comment"># which supports legacy &quot;preun&quot; / &quot;postun&quot; logic and will</span></span><br><span class="line">    <span class="comment"># only execute for packages before 2.0.7.</span></span><br><span class="line">    /bin/systemctl start proxysql.service</span><br><span class="line">    /bin/rm -fr /var/<span class="class"><span class="keyword">lib</span>/<span class="title">proxysql</span>/<span class="title">PROXYSQL_UPGRADE</span></span></span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">

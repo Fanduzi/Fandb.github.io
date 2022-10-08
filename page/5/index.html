@@ -305,6 +305,52 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2019-12-12-TiDB-Syncer不同表名库名同步且支持pt-osc改表"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/">TiDB Syncer不同表名库名同步且支持pt-osc改表</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2019/12/12/2019-12-12-TiDB-Syncer%E4%B8%8D%E5%90%8C%E8%A1%A8%E5%90%8D%E5%BA%93%E5%90%8D%E5%90%8C%E6%AD%A5%E4%B8%94%E6%94%AF%E6%8C%81pt-osc%E6%94%B9%E8%A1%A8/" class="article-date">
+	  <time datetime="2019-12-12T13:55:00.000Z" itemprop="datePublished">2019-12-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="TiDB-Syncer不同表名库名同步且支持pt-osc改表"><a href="#TiDB-Syncer不同表名库名同步且支持pt-osc改表" class="headerlink" title="TiDB Syncer不同表名库名同步且支持pt-osc改表"></a>TiDB Syncer不同表名库名同步且支持pt-osc改表</h1><p>mysql端库名叫sysbench, 表名sbtest11<br>tidb端库名ptosc_sysbench,表名ptosc_sbtest11</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_new&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[replicate-do-table]]</span></span><br><span class="line"><span class="attr">db-name</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">tbl-name</span> = <span class="string">&quot;~.*_sbtest11_old&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">[[route-rules]]</span></span><br><span class="line"><span class="attr">pattern-schema</span> = <span class="string">&quot;sysbench&quot;</span></span><br><span class="line"><span class="attr">pattern-table</span> = <span class="string">&quot;sbtest11&quot;</span></span><br><span class="line"><span class="attr">target-schema</span> = <span class="string">&quot;ptosc_sysbench&quot;</span></span><br><span class="line"><span class="attr">target-table</span> = <span class="string">&quot;ptosc_sbtest11&quot;</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2019-12-10-Drainer不支持的DDL-1"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -766,55 +812,6 @@
       
         <p>自己写了一些和整理了些filter, 百度是搜不到的哈, 除了最后那俩anemometer的</p>
 <p>不输出Database 为 mysql|performance_schema|information_schema|sys|db_monitor 的查询<br><figure class="highlight lisp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">((\$event-&gt;&#123;db&#125; || &#x27;&#x27;) =~ m/^(?!(<span class="name">mysql</span><span class="name">|performance_schema|</span><span class="name">information_schema</span><span class="name">|sys|</span><span class="name">db_monitor</span>))/ </span><br></pre></td></tr></table></figure><br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2019-06-22-MySQL大表传输表空间的坑"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/">MySQL大表传输表空间的坑</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2019/06/22/2019-06-22-MySQL%E5%A4%A7%E8%A1%A8%E4%BC%A0%E8%BE%93%E8%A1%A8%E7%A9%BA%E9%97%B4%E7%9A%84%E5%9D%91/" class="article-date">
-	  <time datetime="2019-06-22T11:23:00.000Z" itemprop="datePublished">2019-06-22</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="MySQL大表传输表空间的坑"><a href="#MySQL大表传输表空间的坑" class="headerlink" title="MySQL大表传输表空间的坑"></a>MySQL大表传输表空间的坑</h1><p>  最近刚帮业务线拆分完数据库, 源环境遗留了一张700G的大表, 虽说现在不用了, 但是业务方还是不希望删掉, 于是打算把这张表迁移到归档库, 这样有需要是还可以查询.<br>  700G的表想了想, 如果是逻辑导出再导入的话, 感觉会很慢. 于是决定使用传输表空间方式恢复到归档库中</p>
-<blockquote>
-<p>源库和归档库均为MGR集群 Multi-Primary Mode.</p>
-</blockquote>
-<h2 id="恢复备份"><a href="#恢复备份" class="headerlink" title="恢复备份"></a>恢复备份</h2><p>过程简单写, 并非本文重点<br><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xbstream -vx <span class="params">--parallel=10</span> &lt; mysql_backup_20190618.xbstream -C <span class="string">/rundata/backup/</span> &gt; <span class="string">/tmp/xb.log</span> 2&gt;&amp;1 &amp;</span><br><span class="line"><span class="keyword">cd</span> <span class="string">/rundata/backup/datadir</span></span><br><span class="line">rm 除这张700g表A的所有其他表的qp文件</span><br><span class="line">xtrabackup <span class="params">--decompress</span> <span class="params">--parallel=10</span> <span class="params">--remove-original</span> <span class="params">--target-dir=/rundata/backup/</span></span><br><span class="line">innobackupex <span class="params">--apply-log</span> <span class="params">--export</span> <span class="string">/rundata/backup/</span></span><br></pre></td></tr></table></figure></p>
       
     </div>
     <footer class="article-footer">
