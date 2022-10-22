@@ -305,6 +305,273 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-2021-02-12-DorisDB-vs-ClickHouse-SSB对比测试"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2021/02/12/2021-02-12-DorisDB-vs-ClickHouse-SSB%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%95/">DorisDB vs ClickHouse SSB对比测试</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2021/02/12/2021-02-12-DorisDB-vs-ClickHouse-SSB%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%95/" class="article-date">
+	  <time datetime="2021-02-12T09:24:00.000Z" itemprop="datePublished">2021-02-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="DorisDB-vs-ClickHouse-SSB对比测试"><a href="#DorisDB-vs-ClickHouse-SSB对比测试" class="headerlink" title="DorisDB vs ClickHouse SSB对比测试"></a>DorisDB vs ClickHouse SSB对比测试</h1><h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><ol>
+<li>进行本次测试时对DorisDB了解甚微</li>
+<li>本次测试由于服务器资源有限, 没有严格遵循单一变量原则进行测试</li>
+<li>本次测试有一定参考意义</li>
+</ol>
+<h3 id="数据导入速度"><a href="#数据导入速度" class="headerlink" title="数据导入速度"></a>数据导入速度</h3><ul>
+<li>ClickHouse: 3500s</li>
+<li>DorisDB: 5160s</li>
+</ul>
+<h3 id="数据压缩情况-通过磁盘占用空间比较"><a href="#数据压缩情况-通过磁盘占用空间比较" class="headerlink" title="数据压缩情况(通过磁盘占用空间比较)"></a>数据压缩情况(通过磁盘占用空间比较)</h3><ul>
+<li>ClickHouse: 85.2G</li>
+<li>DorisDB: 132G</li>
+</ul>
+<h3 id="查询速度"><a href="#查询速度" class="headerlink" title="查询速度"></a>查询速度</h3><h4 id="单表查询"><a href="#单表查询" class="headerlink" title="单表查询"></a>单表查询</h4><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/ClickHouse%20vs%20DorisDB/%E5%8D%95%E8%A1%A8.png" alt="单表"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>DorisDB1</strong></th>
+<th><strong>DorisDB2</strong></th>
+<th><strong>ClickHouse1</strong></th>
+<th><strong>ClickHouse2</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Q1.1</strong></td>
+<td>350</td>
+<td>290</td>
+<td>226</td>
+<td>195</td>
+</tr>
+<tr>
+<td><strong>Q1.2</strong></td>
+<td>270</td>
+<td>190</td>
+<td>34</td>
+<td>63</td>
+</tr>
+<tr>
+<td><strong>Q1.3</strong></td>
+<td>310</td>
+<td>240</td>
+<td>43</td>
+<td>22</td>
+</tr>
+<tr>
+<td><strong>Q2.1</strong></td>
+<td>410</td>
+<td>370</td>
+<td>1,723</td>
+<td>1,791</td>
+</tr>
+<tr>
+<td><strong>Q2.2</strong></td>
+<td>780</td>
+<td>720</td>
+<td>1,463</td>
+<td>1,470</td>
+</tr>
+<tr>
+<td><strong>Q2.3</strong></td>
+<td>340</td>
+<td>280</td>
+<td>659</td>
+<td>1,337</td>
+</tr>
+<tr>
+<td><strong>Q3.1</strong></td>
+<td>1,560</td>
+<td>860</td>
+<td>3,488</td>
+<td>1,254</td>
+</tr>
+<tr>
+<td><strong>Q3.2</strong></td>
+<td>1,080</td>
+<td>790</td>
+<td>1,272</td>
+<td>966</td>
+</tr>
+<tr>
+<td><strong>Q3.3</strong></td>
+<td>250</td>
+<td>290</td>
+<td>979</td>
+<td>889</td>
+</tr>
+<tr>
+<td><strong>Q3.4</strong></td>
+<td>230</td>
+<td>260</td>
+<td>36</td>
+<td>20</td>
+</tr>
+<tr>
+<td><strong>Q4.1</strong></td>
+<td>870</td>
+<td>720</td>
+<td>5,067</td>
+<td>2,791</td>
+</tr>
+<tr>
+<td><strong>Q4.2</strong></td>
+<td>720</td>
+<td>490</td>
+<td>804</td>
+<td>752</td>
+</tr>
+<tr>
+<td><strong>Q4.3</strong></td>
+<td>510</td>
+<td>380</td>
+<td>561</td>
+<td>482</td>
+</tr>
+</tbody>
+</table>
+<h4 id="多表查询"><a href="#多表查询" class="headerlink" title="多表查询"></a>多表查询</h4><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/ClickHouse%20vs%20DorisDB/%E5%A4%9A%E8%A1%A8.png" alt="多表"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>DorisDB1</strong></th>
+<th><strong>DorisDB2</strong></th>
+<th><strong>ClickHouse1</strong></th>
+<th><strong>ClickHouse2</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Q1.1</strong></td>
+<td>450</td>
+<td>490</td>
+<td>1,496</td>
+<td>1,424</td>
+</tr>
+<tr>
+<td><strong>Q1.2</strong></td>
+<td>410</td>
+<td>450</td>
+<td>1,366</td>
+<td>659</td>
+</tr>
+<tr>
+<td><strong>Q1.3</strong></td>
+<td>510</td>
+<td>340</td>
+<td>678</td>
+<td>1,377</td>
+</tr>
+<tr>
+<td><strong>Q2.1</strong></td>
+<td>1,560</td>
+<td>1,600</td>
+<td>4,360</td>
+<td>2,667</td>
+</tr>
+<tr>
+<td><strong>Q2.2</strong></td>
+<td>1,690</td>
+<td>1,060</td>
+<td>4,498</td>
+<td>1,554</td>
+</tr>
+<tr>
+<td><strong>Q2.3</strong></td>
+<td>780</td>
+<td>1,150</td>
+<td>2,569</td>
+<td>2,577</td>
+</tr>
+<tr>
+<td><strong>Q3.1</strong></td>
+<td>3,480</td>
+<td>3,700</td>
+<td>10,190</td>
+<td>12,960</td>
+</tr>
+<tr>
+<td><strong>Q3.2</strong></td>
+<td>1,320</td>
+<td>1,850</td>
+<td>5,926</td>
+<td>5,743</td>
+</tr>
+<tr>
+<td><strong>Q3.3</strong></td>
+<td>1,030</td>
+<td>1,040</td>
+<td>3,445</td>
+<td>3,300</td>
+</tr>
+<tr>
+<td><strong>Q3.4</strong></td>
+<td>1,330</td>
+<td>1,170</td>
+<td>3,455</td>
+<td>3,330</td>
+</tr>
+<tr>
+<td><strong>Q4.1</strong></td>
+<td>3,480</td>
+<td>3,750</td>
+<td>15,560</td>
+<td>9,494</td>
+</tr>
+<tr>
+<td><strong>Q4.2</strong></td>
+<td>2,830</td>
+<td>3,170</td>
+<td>16,109</td>
+<td>18,048</td>
+</tr>
+<tr>
+<td><strong>Q4.3</strong></td>
+<td>1,560</td>
+<td>2,140</td>
+<td>15,685</td>
+<td>14,838</td>
+</tr>
+</tbody>
+</table>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-2021-02-07-MHA-Failover测试"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -837,51 +1104,6 @@
         <h1 id="ClickHouse-Materialized-Views-Illuminated-Part-1"><a href="#ClickHouse-Materialized-Views-Illuminated-Part-1" class="headerlink" title="ClickHouse Materialized Views Illuminated, Part 1"></a><a target="_blank" rel="noopener" href="https://altinity.com/blog/clickhouse-materialized-views-illuminated-part-1">ClickHouse Materialized Views Illuminated, Part 1</a></h1><p><img src="https://altinity.com/wp-content/uploads/2020/02/4c9e8-stockvault-abstract-background-big-data-concept264047.jpg" alt="header"></p>
 <p><a target="_blank" rel="noopener" href="https://altinity.com/blog/">Altinity blog</a>的读者们知道我们喜欢ClickHouse的<a target="_blank" rel="noopener" href="https://clickhouse.tech/docs/en/sql-reference/statements/create/view/#materialized">物化视图</a>. 物化视图可以实现聚合计算, 从Kafka读取数据, 实现最后点查询(last point queries)以及重组表主键索引和排序顺序. 除了这些功能之外, 物化视图可以在大量节点上很好地扩缩, 并可以处理大型数据集. 它们是ClickHouse的独特功能之一.</p>
 <p>在计算领域, 强大的功能至少意味着一点点复杂性. 这篇由两部分组成的文章通过解释物化视图的工作原理来填补空白, 从而使初学者也可以有效地使用它们. 我们将通过几个详细的示例, 您可以根据自己的使用进行调整. 在此过程中, 我们将探索用于创建视图的语法的确切含义, 并让您深入了解ClickHouse在做什么.  示例是完全自包含的, 因此您可以将它们复制/粘贴到clickhouse-client中并自己运行它们.<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-2020-08-23-为什么pt-osc和gh-osc在拷贝源表数据时要使用insert-IGNORE-into-select-lock-in-share-mode"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/08/23/2020-08-23-%E4%B8%BA%E4%BB%80%E4%B9%88pt-osc%E5%92%8Cgh-osc%E5%9C%A8%E6%8B%B7%E8%B4%9D%E6%BA%90%E8%A1%A8%E6%95%B0%E6%8D%AE%E6%97%B6%E8%A6%81%E4%BD%BF%E7%94%A8insert-IGNORE-into-select-lock-in-share-mode/">为什么pt-osc和gh-osc在拷贝源表数据时要使用insert IGNORE into select lock in share mode</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/08/23/2020-08-23-%E4%B8%BA%E4%BB%80%E4%B9%88pt-osc%E5%92%8Cgh-osc%E5%9C%A8%E6%8B%B7%E8%B4%9D%E6%BA%90%E8%A1%A8%E6%95%B0%E6%8D%AE%E6%97%B6%E8%A6%81%E4%BD%BF%E7%94%A8insert-IGNORE-into-select-lock-in-share-mode/" class="article-date">
-	  <time datetime="2020-08-23T10:58:00.000Z" itemprop="datePublished">2020-08-23</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="insert-IGNORE-into-select-lock-in-share-mode-的作用"><a href="#insert-IGNORE-into-select-lock-in-share-mode-的作用" class="headerlink" title="insert IGNORE into select lock in share mode 的作用"></a>insert IGNORE into select lock in share mode 的作用</h1><p>pt-osc和gh-osc在拷贝旧数据时逻辑是一样的, 都是用insert ignore into 影子表 select * from 原表force index (<code>PRIMARY</code>) where chunk范围 lock in share mode<br>
       
     </div>
     <footer class="article-footer">

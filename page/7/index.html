@@ -305,6 +305,55 @@
         
           <section id="main" style="float:none;">
   
+    <article id="post-执行sql文件限制频率避免流控"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2018/08/20/%E6%89%A7%E8%A1%8Csql%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6%E9%A2%91%E7%8E%87%E9%81%BF%E5%85%8D%E6%B5%81%E6%8E%A7/">执行sql文件限制频率避免流控</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2018/08/20/%E6%89%A7%E8%A1%8Csql%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6%E9%A2%91%E7%8E%87%E9%81%BF%E5%85%8D%E6%B5%81%E6%8E%A7/" class="article-date">
+	  <time datetime="2018-08-20T15:04:00.000Z" itemprop="datePublished">2018-08-20</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="避免流控"><a href="#避免流控" class="headerlink" title="避免流控"></a>避免流控</h2><p>对于pxc, 为了避免流控, 可以在导入.sql文件时, 先对文件做处理<br><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">awk</span> &#x27;<span class="number">1</span>;NR%<span class="number">1000</span>==<span class="number">0</span>&#123;print <span class="string">&quot;select sleep(1);&quot;</span>&#125;&#x27; xxx.sql &gt; xxx_dba.sql</span><br></pre></td></tr></table></figure><br>上面的命令每1000行增加一行<code>select sleep(1);</code>, 这样执行频率是1k/s</p>
+<p>对于mysqldump产生的sql文件, 则需要在导出是指定<br><figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqldump --<span class="meta">skip</span>-extended-<span class="meta">insert</span></span><br></pre></td></tr></table></figure><br>每行一个insert语句, 之后再使用awk处理</p>
+<p>使用pt-fifo-split</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">FLAT_FILE</span>=<span class="string">&quot;/tmp/big_file.txt&quot;</span></span><br><span class="line"><span class="attribute">FIFO_PATH</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.fifo&quot;</span></span><br><span class="line"><span class="attribute">LOAD_FILE</span>=<span class="string">&quot;<span class="variable">$&#123;FLAT_FILE&#125;</span>.load&quot;</span></span><br><span class="line"><span class="attribute">CHUNK_SIZE</span>=1000</span><br><span class="line"> </span><br><span class="line"><span class="comment"># Split the file</span></span><br><span class="line">pt-fifo-split --force --lines <span class="variable">$&#123;CHUNK_SIZE&#125;</span> <span class="variable">$&#123;FLAT_FILE&#125;</span> --fifo <span class="variable">$&#123;FIFO_PATH&#125;</span> &amp;</span><br><span class="line"><span class="comment"># Sleep 10 seconds to assure $&#123;FIFO_PATH&#125; exists before entering loop</span></span><br><span class="line">sleep 10</span><br><span class="line"><span class="keyword">while</span> [ -e <span class="variable">$&#123;FIFO_PATH&#125;</span> ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">  # Write chunk <span class="keyword">to</span> disk</span><br><span class="line">  cat <span class="variable">$&#123;FIFO_PATH&#125;</span> &gt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  # Load chunk into table</span><br><span class="line">  mysql <span class="attribute">--database</span>=test \</span><br><span class="line">   --show-warnings \</span><br><span class="line">   -vv &lt; <span class="variable">$&#123;LOAD_FILE&#125;</span></span><br><span class="line">  sleep 1</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
     <article id="post-Write-set Cache(GCache)"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -783,59 +832,6 @@
 </blockquote>
 <h2 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h2><p><a target="_blank" rel="noopener" href="https://redis.io/topics/protocol#simple-string-reply">Simple string reply</a>: OK 当配置被正确重写. 否则,返回错误</p>
 
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
-    <article id="post-redis-cli"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2018/01/18/redis-cli/">redis-cli,Redis命令行界面</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2018/01/18/redis-cli/" class="article-date">
-	  <time datetime="2018-01-17T16:00:00.000Z" itemprop="datePublished">2018-01-18</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="redis-cli-Redis命令行界面"><a href="#redis-cli-Redis命令行界面" class="headerlink" title="redis-cli,Redis命令行界面"></a>redis-cli,Redis命令行界面</h1><p>redis-cli是Redis命令行界面，一个简单的程序，允许向Redis发送命令，并直接从终端读取服务器发送的回复。</p>
-<p>它有两种主要的模式：一种是交互模式，在这种模式下，用户输入命令并获得回复的REPL（Read Eval Print Loop）另一种模式是将命令作为redis-cli的参数发送，执行并打印在标准输出上。</p>
-<p>在交互模式下，redis-cli具有基本的行编辑功能，可以提供良好的打字体验。</p>
-<p>但是，redis-cli不只是这一点。有些选项可以用来启动程序，以便将其放入特殊模式，以便redis-cli可以完成更复杂的任务，例如模拟slave并打印从master接收到的复制流，查看复制延迟，并显示统计数据，甚至一个ASCII艺术频谱图的延迟样本和频率，以及许多其他事情。</p>
-<p>本指南将涵盖redis-cli的不同方面，由简入繁。</p>
-<p>如果您要广泛使用Redis，或者您已经这么做了，那么很可能会碰巧使用redis-cli。花一些时间来熟悉它可能是一个非常好的主意，一旦你知道了命令行界面的所有技巧，你就会看到你将更有效地使用Redis。</p>
-<h1 id="命令行用法"><a href="#命令行用法" class="headerlink" title="命令行用法"></a>命令行用法</h1><p>如下可以直接非交互模式执行命令并在标准输出获取返回结果<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">redis-cli incr mycounter</span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">7</span></span><br></pre></td></tr></table></figure></p>
-<p>‘()’内为返回结果的类型.当我们需要获取返回结果作为下一个命令的输入,或者希望将结果重定向到文件中时,我们可能不需要显示类型信息.<br>实际上,redis-cli会自动检测,当它检测到标准输出是一个tty(a terminal basically)时,它会显示类型信息来提升可读性,否则它会启用原始输出模式,如下所示:<br><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli incr mycounter &gt; <span class="regexp">/tmp/</span>output.txt</span><br><span class="line">$ cat <span class="regexp">/tmp/</span>output.txt</span><br><span class="line"><span class="number">8</span></span><br></pre></td></tr></table></figure><br>这一次当CLI检测到输出不在写入terminal后,(integer)被删除了不再显示. 你可以使用<code>--raw</code>选项来强制输出到终端的内容也不显示类型信息<br><figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ redis-cli <span class="comment">--raw incr mycounter</span></span><br><span class="line"><span class="number">9</span></span><br></pre></td></tr></table></figure></p>
-<p>同样的,你也可以使用<code>--no-raw</code>强制非tty输出也显示类型信息<br><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> incr no</span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">1</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> --raw incr no</span><br><span class="line"><span class="number">2</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> incr no &gt; res.txt</span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# cat res.txt </span><br><span class="line"><span class="number">3</span></span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# redis-cli -p <span class="number">6381</span> --no-raw incr no &gt; res.txt</span><br><span class="line">[<span class="symbol">root@</span>cn_mu_binlog_backup ~]# cat res.txt </span><br><span class="line">(<span class="built_in">int</span>eger) <span class="number">4</span></span><br></pre></td></tr></table></figure><br>
       
     </div>
     <footer class="article-footer">
