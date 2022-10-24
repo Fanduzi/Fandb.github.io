@@ -305,57 +305,6 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-2020-05-03-[译文]ClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---最大QPS估算"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---%E6%9C%80%E5%A4%A7QPS%E4%BC%B0%E7%AE%97/">译文-ClickHouse In the Storm. Part 1 - Maximum QPS estimation - 最大QPS估算</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2020/05/03/2020-05-03-%5B%E8%AF%91%E6%96%87%5DClickHouse-In-the-Storm.-Part-1-Maximum-QPS-estimation---%E6%9C%80%E5%A4%A7QPS%E4%BC%B0%E7%AE%97/" class="article-date">
-	  <time datetime="2020-05-03T03:33:00.000Z" itemprop="datePublished">2020-05-03</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="ClickHouse-In-the-Storm-Part-1-Maximum-QPS-estimation-最大QPS估算"><a href="#ClickHouse-In-the-Storm-Part-1-Maximum-QPS-estimation-最大QPS估算" class="headerlink" title="ClickHouse In the Storm. Part 1: Maximum QPS estimation - 最大QPS估算"></a>ClickHouse In the Storm. Part 1: Maximum QPS estimation - 最大QPS估算</h1><p>ClickHouse是一个用于分析的OLAP数据库, 因此典型的使用场景是处理相对少量的请求:</p>
-<ul>
-<li>每小时几个查询到每秒几十甚至几百个查询</li>
-<li>影响大量数据(gigabytes/millions of rows)</li>
-</ul>
-<p>但是它在其他情况下表现如何? Let’s try to use a steam-hammer to crack nuts, 并检查ClickHouse每秒将如何处理数千个小请求。 这将帮助我们更好地理解可能的用例范围和限制。</p>
-<p>这篇文章分为两个部分。 第一部分介绍连接性基准测试和测试设置。 下一部分将介绍涉及实际数据的方案中的最大QPS。<br>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
     <article id="post-2020-05-02-ClickHouse多实例部署"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -763,6 +712,58 @@
 <p>注意：大家可以结合自己的业务需求，设置匹配规则，多条匹配规则之间是按照顺序进行匹配(命中一条规则就返回)</p>
 <p>其他详细参数可参考<a target="_blank" rel="noopener" href="https://github.com/alibaba/canal/wiki/AdminGuide">Canal AdminGuide</a></p>
 </blockquote>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2020-01-09-译文-Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2020/01/09/2020-01-09-%E8%AF%91%E6%96%87-Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative/">译文 Streaming MySQL Backups with Percona XtraBackup – Another Alternative</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2020/01/09/2020-01-09-%E8%AF%91%E6%96%87-Streaming-MySQL-Backups-with-Percona-XtraBackup-%E2%80%93-Another-Alternative/" class="article-date">
+	  <time datetime="2020-01-09T02:01:00.000Z" itemprop="datePublished">2020-01-09</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative"><a href="#Streaming-MySQL-Backups-with-Percona-XtraBackup-–-Another-Alternative" class="headerlink" title="Streaming MySQL Backups with Percona XtraBackup – Another Alternative"></a><a target="_blank" rel="noopener" href="https://www.percona.com/blog/2021/01/08/streaming-mysql-backups-with-percona-xtrabackup-another-alternative/">Streaming MySQL Backups with Percona XtraBackup – Another Alternative</a></h1><p>使用Percona XtraBackup流式传输MySQL备份-另一种选择</p>
+<p>今天我将向你介绍另一种使用<a target="_blank" rel="noopener" href="https://www.percona.com/software/mysql-database/percona-xtrabackup">Percona XtraBackup</a>在服务器间创建并传递备份的方式. 这个方法和网上的其他方法有什么不同吗? 其实并没有很大不同, 但是在性能和可用性方面很有趣.</p>
+<p>我们将xbstream实用程序与pigz和socat的功能结合在一起, 以在拥有多个处理器的情况下利用多处理功能, 同时在此组件成为瓶颈的情况下, 减少对网络带宽的使用. 因此, 让我们解释每个组件: </p>
+<p><strong>socat: </strong>代表SOcket CAT. 它是一个用于在两个地址之间进行数据传输的实用程序. </p>
+<p>使socat如此通用的原因是地址可以代表网络套接字, 任何文件描述符, Unix域数据报或流套接字, TCP和UDP（在IPv4和IPv6上）, 在IPv4 / IPv6上的SOCKS 4 / 4a, SCTP , PTY, 数据报和流套接字, 命名管道和未命名管道, 原始IP套接字, OpenSSL, 或者在Linux上甚至任何任意网络设备上</p>
+<p><strong>Pigz: </strong>它代表gzip的并行实现, 它是gzip的全功能替代品, 在压缩数据时利用了多个处理器和多个内核. </p>
+<p><strong>xbstream : （</strong>具有并行性）并行处理多个文件. </p>
+<p>所需软件包: pigz, socat, 当然还有 Percona XtraBackup</p>
       
     </div>
     <footer class="article-footer">

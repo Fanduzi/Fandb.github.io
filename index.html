@@ -305,55 +305,6 @@
         
           <section id="main" style="float:none;">
   
-    <article id="post-2022-10-22-使用clicktail采集TIDB慢查询日志到clickhouse"  class="article article-type-post" itemscope itemprop="blogPost" >
-  <div id="articleInner" class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="thumb" itemprop="name">
-      <a class="article-title" href="/2022/10/22/2022-10-22-%E4%BD%BF%E7%94%A8clicktail%E9%87%87%E9%9B%86TIDB%E6%85%A2%E6%9F%A5%E8%AF%A2%E6%97%A5%E5%BF%97%E5%88%B0clickhouse/">使用clicktail采集TIDB慢查询日志到clickhouse</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-meta">
-      
-	<a href="/2022/10/22/2022-10-22-%E4%BD%BF%E7%94%A8clicktail%E9%87%87%E9%9B%86TIDB%E6%85%A2%E6%9F%A5%E8%AF%A2%E6%97%A5%E5%BF%97%E5%88%B0clickhouse/" class="article-date">
-	  <time datetime="2022-10-22T11:00:00.000Z" itemprop="datePublished">2022-10-22</time>
-	</a>
-
-      
-      
-      
-
-    </div>
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="为什么要把TIDB慢查询日志采集到clickhouse"><a href="#为什么要把TIDB慢查询日志采集到clickhouse" class="headerlink" title="为什么要把TIDB慢查询日志采集到clickhouse?"></a>为什么要把TIDB慢查询日志采集到clickhouse?</h1><p>我们都知道, 想要查看TIDB慢查询日志有几种方式:</p>
-<h2 id="直接看慢日志文件"><a href="#直接看慢日志文件" class="headerlink" title="直接看慢日志文件"></a>直接看慢日志文件</h2><p>这没啥可说的. 我们也就偶尔会直接查看慢日志去排查一些问题, 大部分时间不会这样做. 尤其是在需要做统计分析的时候</p>
-<h2 id="查询SLOW-QUERY-x2F-CLUSTER-SLOW-QUERY表"><a href="#查询SLOW-QUERY-x2F-CLUSTER-SLOW-QUERY表" class="headerlink" title="查询SLOW_QUERY&#x2F;CLUSTER_SLOW_QUERY表."></a>查询<a target="_blank" rel="noopener" href="https://docs.pingcap.com/zh/tidb/dev/information-schema-slow-query">SLOW_QUERY</a>&#x2F;<a target="_blank" rel="noopener" href="https://docs.pingcap.com/zh/tidb/dev/information-schema-slow-query#cluster_slow_query-table">CLUSTER_SLOW_QUERY</a>表.</h2><p>本质上, 这两个表内容是TIDB通过解析节点的 TiDB 慢查询日志而来. 查询这两张表本身会对TIDB造成一定的资源损耗, 不信你慢日志多保留几个, where条件写宽泛点, 查询一下试试, 有可能OOM..</p>
-<p>我们以前就是通过查询<a target="_blank" rel="noopener" href="https://docs.pingcap.com/zh/tidb/dev/information-schema-slow-query#cluster_slow_query-table">CLUSTER_SLOW_QUERY</a> 表对线上TIDB慢查询做统计分析, 但是发现这个查询本身就是慢查询, 尤其是需要做一些聚合运算时(如最常见的计算P99), 对系统会产生一定性能影响. 为了避免出问题, 只能加上<a target="_blank" rel="noopener" href="https://docs.pingcap.com/zh/tidb/stable/optimizer-hints#memory_quotan">MEMORY_QUOTA</a>hint限制SQL占用的内存, 但这又偶尔会导致这个统计分析SQL运行失败</p>
-<h2 id="通过TIDB-Dashboard-的慢查询页面"><a href="#通过TIDB-Dashboard-的慢查询页面" class="headerlink" title="通过TIDB Dashboard 的慢查询页面"></a>通过<a target="_blank" rel="noopener" href="https://docs.pingcap.com/zh/tidb/stable/dashboard-intro">TIDB Dashboard</a> 的慢查询页面</h2><p>TIDB Dashboard是个好东西. 但是还是会有些不方便的地方.<br>比如, 如果我线上的TIDB集群较多, 就只能挨个访问每个集群的TIDB Dashboard查看. 这只能通过肉眼去查看, 如果我希望做一些趋势分析呢? 这时候有一个集中的地方更好.<br>再比如, 如果我希望研发可以自助查看集群慢查询呢? TIDB Dashboard貌似还不支持LDAP登录</p>
-      
-    </div>
-    <footer class="article-footer">
-      
-      
-      
-      
-
-    </footer>
-  </div>
-  
-</article>
-
-<!-- Table of Contents -->
-
-
-  
     <article id="post-2022-09-22-Orchestrator-Lastest-Slave选择逻辑不合理导致的数据丢失问题"  class="article article-type-post" itemscope itemprop="blogPost" >
   <div id="articleInner" class="article-inner">
     
@@ -817,6 +768,273 @@
 <p>我这的需求是同步生产环境表结构到演练环境, 以下是针对我这个场景的具体使用方法</p>
 <h2 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h2><p>skeema需要的用户权限具体见<a target="_blank" rel="noopener" href="https://www.skeema.io/docs/requirements/">https://www.skeema.io/docs/requirements/</a></p>
 <p>这里说一下重点, <code>skeema diff</code>时会在目标环境创建一个<code>_skeema_tmp</code>临时数据库, 然后会删除这个库</p>
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+      
+      
+
+    </footer>
+  </div>
+  
+</article>
+
+<!-- Table of Contents -->
+
+
+  
+    <article id="post-2021-02-12-DorisDB-vs-ClickHouse-SSB对比测试"  class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" itemprop="name">
+      <a class="article-title" href="/2021/02/12/2021-02-12-DorisDB-vs-ClickHouse-SSB%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%95/">DorisDB vs ClickHouse SSB对比测试</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2021/02/12/2021-02-12-DorisDB-vs-ClickHouse-SSB%E5%AF%B9%E6%AF%94%E6%B5%8B%E8%AF%95/" class="article-date">
+	  <time datetime="2021-02-12T09:24:00.000Z" itemprop="datePublished">2021-02-12</time>
+	</a>
+
+      
+      
+      
+
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="DorisDB-vs-ClickHouse-SSB对比测试"><a href="#DorisDB-vs-ClickHouse-SSB对比测试" class="headerlink" title="DorisDB vs ClickHouse SSB对比测试"></a>DorisDB vs ClickHouse SSB对比测试</h1><h2 id="TL-DR"><a href="#TL-DR" class="headerlink" title="TL;DR"></a>TL;DR</h2><ol>
+<li>进行本次测试时对DorisDB了解甚微</li>
+<li>本次测试由于服务器资源有限, 没有严格遵循单一变量原则进行测试</li>
+<li>本次测试有一定参考意义</li>
+</ol>
+<h3 id="数据导入速度"><a href="#数据导入速度" class="headerlink" title="数据导入速度"></a>数据导入速度</h3><ul>
+<li>ClickHouse: 3500s</li>
+<li>DorisDB: 5160s</li>
+</ul>
+<h3 id="数据压缩情况-通过磁盘占用空间比较"><a href="#数据压缩情况-通过磁盘占用空间比较" class="headerlink" title="数据压缩情况(通过磁盘占用空间比较)"></a>数据压缩情况(通过磁盘占用空间比较)</h3><ul>
+<li>ClickHouse: 85.2G</li>
+<li>DorisDB: 132G</li>
+</ul>
+<h3 id="查询速度"><a href="#查询速度" class="headerlink" title="查询速度"></a>查询速度</h3><h4 id="单表查询"><a href="#单表查询" class="headerlink" title="单表查询"></a>单表查询</h4><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/ClickHouse%20vs%20DorisDB/%E5%8D%95%E8%A1%A8.png" alt="单表"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>DorisDB1</strong></th>
+<th><strong>DorisDB2</strong></th>
+<th><strong>ClickHouse1</strong></th>
+<th><strong>ClickHouse2</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Q1.1</strong></td>
+<td>350</td>
+<td>290</td>
+<td>226</td>
+<td>195</td>
+</tr>
+<tr>
+<td><strong>Q1.2</strong></td>
+<td>270</td>
+<td>190</td>
+<td>34</td>
+<td>63</td>
+</tr>
+<tr>
+<td><strong>Q1.3</strong></td>
+<td>310</td>
+<td>240</td>
+<td>43</td>
+<td>22</td>
+</tr>
+<tr>
+<td><strong>Q2.1</strong></td>
+<td>410</td>
+<td>370</td>
+<td>1,723</td>
+<td>1,791</td>
+</tr>
+<tr>
+<td><strong>Q2.2</strong></td>
+<td>780</td>
+<td>720</td>
+<td>1,463</td>
+<td>1,470</td>
+</tr>
+<tr>
+<td><strong>Q2.3</strong></td>
+<td>340</td>
+<td>280</td>
+<td>659</td>
+<td>1,337</td>
+</tr>
+<tr>
+<td><strong>Q3.1</strong></td>
+<td>1,560</td>
+<td>860</td>
+<td>3,488</td>
+<td>1,254</td>
+</tr>
+<tr>
+<td><strong>Q3.2</strong></td>
+<td>1,080</td>
+<td>790</td>
+<td>1,272</td>
+<td>966</td>
+</tr>
+<tr>
+<td><strong>Q3.3</strong></td>
+<td>250</td>
+<td>290</td>
+<td>979</td>
+<td>889</td>
+</tr>
+<tr>
+<td><strong>Q3.4</strong></td>
+<td>230</td>
+<td>260</td>
+<td>36</td>
+<td>20</td>
+</tr>
+<tr>
+<td><strong>Q4.1</strong></td>
+<td>870</td>
+<td>720</td>
+<td>5,067</td>
+<td>2,791</td>
+</tr>
+<tr>
+<td><strong>Q4.2</strong></td>
+<td>720</td>
+<td>490</td>
+<td>804</td>
+<td>752</td>
+</tr>
+<tr>
+<td><strong>Q4.3</strong></td>
+<td>510</td>
+<td>380</td>
+<td>561</td>
+<td>482</td>
+</tr>
+</tbody>
+</table>
+<h4 id="多表查询"><a href="#多表查询" class="headerlink" title="多表查询"></a>多表查询</h4><p><img src="https://raw.githubusercontent.com/Fanduzi/Figure_bed/master/ClickHouse%20vs%20DorisDB/%E5%A4%9A%E8%A1%A8.png" alt="多表"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>DorisDB1</strong></th>
+<th><strong>DorisDB2</strong></th>
+<th><strong>ClickHouse1</strong></th>
+<th><strong>ClickHouse2</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Q1.1</strong></td>
+<td>450</td>
+<td>490</td>
+<td>1,496</td>
+<td>1,424</td>
+</tr>
+<tr>
+<td><strong>Q1.2</strong></td>
+<td>410</td>
+<td>450</td>
+<td>1,366</td>
+<td>659</td>
+</tr>
+<tr>
+<td><strong>Q1.3</strong></td>
+<td>510</td>
+<td>340</td>
+<td>678</td>
+<td>1,377</td>
+</tr>
+<tr>
+<td><strong>Q2.1</strong></td>
+<td>1,560</td>
+<td>1,600</td>
+<td>4,360</td>
+<td>2,667</td>
+</tr>
+<tr>
+<td><strong>Q2.2</strong></td>
+<td>1,690</td>
+<td>1,060</td>
+<td>4,498</td>
+<td>1,554</td>
+</tr>
+<tr>
+<td><strong>Q2.3</strong></td>
+<td>780</td>
+<td>1,150</td>
+<td>2,569</td>
+<td>2,577</td>
+</tr>
+<tr>
+<td><strong>Q3.1</strong></td>
+<td>3,480</td>
+<td>3,700</td>
+<td>10,190</td>
+<td>12,960</td>
+</tr>
+<tr>
+<td><strong>Q3.2</strong></td>
+<td>1,320</td>
+<td>1,850</td>
+<td>5,926</td>
+<td>5,743</td>
+</tr>
+<tr>
+<td><strong>Q3.3</strong></td>
+<td>1,030</td>
+<td>1,040</td>
+<td>3,445</td>
+<td>3,300</td>
+</tr>
+<tr>
+<td><strong>Q3.4</strong></td>
+<td>1,330</td>
+<td>1,170</td>
+<td>3,455</td>
+<td>3,330</td>
+</tr>
+<tr>
+<td><strong>Q4.1</strong></td>
+<td>3,480</td>
+<td>3,750</td>
+<td>15,560</td>
+<td>9,494</td>
+</tr>
+<tr>
+<td><strong>Q4.2</strong></td>
+<td>2,830</td>
+<td>3,170</td>
+<td>16,109</td>
+<td>18,048</td>
+</tr>
+<tr>
+<td><strong>Q4.3</strong></td>
+<td>1,560</td>
+<td>2,140</td>
+<td>15,685</td>
+<td>14,838</td>
+</tr>
+</tbody>
+</table>
       
     </div>
     <footer class="article-footer">
