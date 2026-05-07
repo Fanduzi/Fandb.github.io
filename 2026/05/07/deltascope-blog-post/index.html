@@ -226,6 +226,8 @@
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Verdict: review</span><br><span class="line">Statements: 1</span><br><span class="line">Blockers: 0</span><br><span class="line">Warnings: 1</span><br><span class="line">Notices: 0</span><br><span class="line"></span><br><span class="line">Statement 1: CREATE TABLE</span><br><span class="line">- [warning] ddl.column.default.require: column &quot;id&quot; should define a default value</span><br></pre></td></tr></table></figure>
 
 <p>这条 CREATE TABLE 看起来规范——有主键、有审计字段、有注释、有字符集声明——但 DeltaScope 仍然发现 <code>id</code> 列缺少 DEFAULT 值，给出了 warning 级别的提示。</p>
+<span id="more"></span>
+
 <h3 id="MySQL：ALTER-TABLE-破坏性变更"><a href="#MySQL：ALTER-TABLE-破坏性变更" class="headerlink" title="MySQL：ALTER TABLE 破坏性变更"></a>MySQL：ALTER TABLE 破坏性变更</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">deltascope audit --sql <span class="string">&quot;alter table users drop column email&quot;</span></span><br></pre></td></tr></table></figure>
 
 <p>输出：</p>
